@@ -2,6 +2,7 @@
 petsc-hs - Haskell bindings for the scientific computation library PETSc
 
 (Portable Extensible Toolkit for Scientific Computation)
+
 Copyright (c) 2015 - , Marco Zocca ( zocca at marco dot gmail at com )
 
 
@@ -26,18 +27,18 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 ## Installation
 
-* First of all, a working installations of PETSc (configured as a dynamic library) is required. Please refer to the respective pages for detailed instructions.
+* First of all, a working installations of PETSc (configured as a dynamic library) is required. Please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed instructions.
 
 * The Haskell side is based on `inline-c`, which can be obtained from Hackage via `cabal install inline-c`.
 
-* Once everything is setup simply run `make` from within the petsc-hs root directory, and at the end of the process you should find yourself within a GHCi interactive session.
+* Once the dependencies are setup, run `make` from within the petsc-hs root directory, and at the end of the process you should find yourself within a GHCi interactive session.
 
 
 
 
 ## Notes
 
-* The library is being developed on a Unix, with the Haskell compiler GHC 7.8.4, on top of PETSc 3.6.0 using MPICH (installed via the PETSc installation process).
+* The library is being developed on a Unix, with the Haskell compiler GHC 7.8.4, using PETSc 3.6.0 and MPICH (installed via the PETSc installation process).
 
 * The PETSc architecture directory within the makefile is hardcoded ("arch-darwin-c-debug"), but it depend on the actual configuration parameters you supplied when installing the library ; modify it to suit your case.
 

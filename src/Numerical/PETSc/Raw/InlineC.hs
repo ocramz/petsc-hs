@@ -510,7 +510,7 @@ matCreate' comm = withPtr $ \p -> [C.exp| int{MatCreate($(int c), $(Mat *p))} |]
 matCreate1 = matCreate' 
 
 matDestroy' m = [C.exp|int{MatDestroy($(Mat *m))}|]
-matDestroy m = with m matDestroy' 
+matDestroy1 m = with m matDestroy' 
 
 -- withMat :: Comm -> (Mat -> IO a) -> IO a
 -- withMat c = bracket (matCreate c) matDestroy
@@ -534,7 +534,7 @@ matSetSizes mat m n = [C.exp|int{MatSetSizes($(Mat mat), PETSC_DECIDE, PETSC_DEC
 
 -- PetscErrorCode  MatCreateSeqAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt nz,const PetscInt nnz[],Mat *A)
 
-matCreateSeqAIJ comm m n nz nnz =
+matCreateSeqAIJ' comm m n nz nnz =
   withPtr (\mat ->
    withArray nnz $ \nnzp ->
             [C.exp|int{MatCreateSeqAIJ($(int c),
@@ -545,13 +545,40 @@ matCreateSeqAIJ comm m n nz nnz =
                                        $(Mat *mat))}|]) 
   where c = unComm comm
 
--- withMatSeqAIJ comm m n nz nnz = bracket (matCreateSeqAIJ comm m n nz nnz) matDestroy
+-- PetscErrorCode  MatCreateSeqAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt nz,const PetscInt nnz[],Mat *A)  -- Collective on MPI_Comm
+-- Input Parameters :
+-- comm	- MPI communicator, set to PETSC_COMM_SELF
+-- m	- number of rows
+-- n	- number of columns
+-- nz	- number of nonzeros per row (same for all rows) (if nnz is given nz is ignored)
+-- nnz	- array containing the number of nonzeros in the various rows (possibly different for each row) or NULL
+-- Output Parameter :
+-- A -the matrix 
 
--- withMatSeqAIJPipeline comm m n nz nnz pre body =
---   withMatSeqAIJ comm m n nz nnz $ \mat -> do
---     pre mat
---     matAssembly mat
---     body mat
+matCreateSeqAIJ1 comm m' n' nnz' =
+  withPtr (\mat ->
+   withArray nnz $ \nnzp ->
+            [C.exp|int{MatCreateSeqAIJ($(int c),
+                                       $(PetscInt m),
+                                       $(PetscInt n),
+                                       0 ,
+                                       $(PetscInt* nnzp),
+                                       $(Mat *mat))}|]) 
+  where c = unComm comm
+        (m, n, nnz) = (toCInt m', toCInt n', map toCInt nnz')
+
+matCreateSeqAIJconstNZperRow1 comm m' n' nz' =
+  withPtr (\mat ->
+            [C.exp|int{MatCreateSeqAIJ($(int c),
+                                       $(PetscInt m),
+                                       $(PetscInt n),
+                                       $(PetscInt nz),
+                                       NULL ,
+                                       $(Mat *mat))}|]) 
+  where c = unComm comm
+        (m, n, nz) = (toCInt m', toCInt n', toCInt nz')
+
+
 
 
 -- PETSC_EXTERN PetscErrorCode MatCreateAIJ(MPI_Comm,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,const PetscInt[],PetscInt,const PetscInt[],Mat*);
@@ -659,6 +686,15 @@ matSeqAIJSetPreallocation mat nz nnz =
                   ) 
 
 
+
+-- PetscErrorCode MatSetValue(Mat m,PetscInt row,PetscInt col,PetscScalar value,InsertMode mode)
+matSetValueUnsafe' m row col val im =
+  [C.exp|int{MatSetValue($(Mat m),$(int rowc),$(int colc),$(PetscScalar val),$(int imm))}|] where
+    imm = fromIntegral $ insertModeToInt im
+    rowc = toCInt row
+    colc = toCInt col
+
+
 -- PetscErrorCode  MatSetValues(Mat mat,PetscInt m,const PetscInt idxm[],PetscInt n,const PetscInt idxn[],const PetscScalar v[],InsertMode addv) -- Not Collective
 -- Input Parameters :
 -- mat	- the matrix
@@ -731,19 +767,19 @@ MatSetValuesStencil() uses 0-based row and column numbers in Fortran as well as 
 
 
 
-matAssemblyBegin a = [C.exp|int{MatAssemblyBegin($(Mat a), MAT_FINAL_ASSEMBLY )}|]
+matAssemblyBegin' a = [C.exp|int{MatAssemblyBegin($(Mat a), MAT_FINAL_ASSEMBLY )}|]
 
-matAssemblyEnd a = [C.exp|int{MatAssemblyEnd($(Mat a), MAT_FINAL_ASSEMBLY )}|]
+matAssemblyEnd' a = [C.exp|int{MatAssemblyEnd($(Mat a), MAT_FINAL_ASSEMBLY )}|]
 
-matAssembly =
-  matAssemblyBegin >> matAssemblyEnd
+-- matAssembly =
+--   matAssemblyBegin >> matAssemblyEnd
 
-withMatAssembly v f = do
-  matAssemblyBegin v
-  f v
-  matAssemblyEnd v
+-- withMatAssembly v f = do
+--   matAssemblyBegin v
+--   f v
+--   matAssemblyEnd v
 
-matSetUp a = [C.exp|int{MatSetUp($(Mat a))}|] 
+matSetup' a = [C.exp|int{MatSetUp($(Mat a))}|] 
 
 
 

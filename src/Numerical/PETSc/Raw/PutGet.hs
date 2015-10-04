@@ -489,41 +489,159 @@ bracket1 allocate release io = mask $ \restore -> do
     
 -- * Mat
 
-data MatInfo = MatInfo {
-  matInfoMpiComm :: Comm ,
-  matInfoSize :: !(Int, Int),
-  matInfoNnz :: !Int   } deriving (Eq, Show)
+withMat :: Comm -> (Mat -> IO a) -> IO a
+withMat comm = bracketChk (matCreate1 comm) matDestroy1
 
-type MatMI = (Mat, MatInfo)
-data PetscMat = PMat (MVar MatMI)
+matCreate :: Comm -> IO Mat
+matCreate comm = chk1 (matCreate1 comm)
 
-modifyPMat (PMat mm) = modifyMVar_ mm
+matDestroy :: Mat -> IO ()
+matDestroy = chk0 . matDestroy1
 
--- -- -- alternative Mat formulation: (inspired by HMatrix)
+matSetup :: Mat -> IO ()
+matSetup = chk0 . matSetup'
 
-data MatrixOrder = RowMajor | ColMajor deriving (Eq, Show)
+matAssemblyBegin, matAssemblyEnd :: Mat -> IO ()
+matAssemblyBegin = chk0 . matAssemblyBegin'
+matAssemblyEnd = chk0 . matAssemblyEnd'
 
-transposeOrder RowMajor = ColMajor
-transposeOrder ColMajor = RowMajor
+matAssembly = matAssemblyBegin >> matAssemblyEnd
 
-data Matrix a = Matrix {
-  matrixInfo    :: !MatInfo,
-  matrixRowIdxs :: !(V.Vector Int),
-  matrixColIdxs :: !(V.Vector Int),
-  matrixData    :: !(V.Vector a),
-  matrixOrder   :: !MatrixOrder } deriving (Eq, Show)
+withMatAssembly m f = do
+  matAssemblyBegin m
+  f 
+  matAssemblyEnd m
 
-isValidMatrix m = (mx==my) && (V.length mri == V.length mci) where
-  (mx, my) = (matInfoSize . matrixInfo) m
-  mri = matrixRowIdxs m
-  mci = matrixColIdxs m 
+-- data MatrixOrder = RowMajor | ColMajor deriving (Eq, Show)
+-- transposeOrder RowMajor = ColMajor
+-- transposeOrder ColMajor = RowMajor
+-- -- matrixTranspose (Matrix r c d o)  = Matrix r c d (transposeOrder o)
+
+data MatrixData a =
+  MatrixData { matDataRowIdxs :: !(V.Vector Int),
+               matDataColIdxs :: !(V.Vector Int),
+               matDataEntries :: !(V.Vector a)} deriving (Eq, Show)
+
+checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
+  (lr, lc, le) = (V.length idxx, V.length idxy, V.length vals)
+
+
+identityMatrix comm n =
+  PetscMatrix (MIConstNZPR (MatrixInfoBase comm n n) 1)
+
+-- mkMatrixData idxx idxy vals
+--   | checkMatrixData 
+
+data MatrixInfoBase =
+  MatrixInfoBase { matComm  :: Comm
+                  ,matRows  :: !Int
+                  ,matCols  :: !Int
+                  -- ,matOrder :: !MatrixOrder
+                 } deriving (Eq, Show)
+
+mkMatrixInfoBase comm (MatrixData idxx idxy vals) =
+  MatrixInfoBase comm (V.length idxx) (V.length idxy)
+
+
+data MatrixInfo =
+  MIConstNZPR MatrixInfoBase !Int
+  | MIVarNZPR MatrixInfoBase !(V.Vector Int)
+
+
+-- | a datatype encapsulating matrix information and the typed pointer
+data PetscMatrix = PetscMatrix !MatrixInfo Mat
+
+petscMatrixBounds :: PetscMatrix -> ((Int, Int), (Int, Int))
+petscMatrixBounds pm = pmib (petscMatrixInfoB pm) where
+ pmib mi = (ibx, iby) where
+  ibx = (0, matRows mi - 1) :: (Int, Int)
+  iby = (0, matCols mi - 1) :: (Int, Int)
+
+petscMatrixInfoB :: PetscMatrix -> MatrixInfoBase
+petscMatrixInfoB (PetscMatrix (MIConstNZPR mi _) _) = mi
+petscMatrixInfoB (PetscMatrix (MIVarNZPR mi _) _) = mi
+
+petscMatrixMat :: PetscMatrix -> Mat
+petscMatrixMat (PetscMatrix (MIConstNZPR _ _ ) m) = m
+petscMatrixMat (PetscMatrix (MIVarNZPR _ _ ) m) = m
+
+validDims0 :: Int -> Int -> Bool
+validDims0 nr nc = nr > 0 && nc > 0 
+
+validDims' :: MatrixInfoBase -> Bool
+validDims' mi = validDims0 nr nc
+      where (nr, nc) = (matRows &&& matCols) mi
+
+validDims :: MatrixInfo -> Bool
+validDims (MIConstNZPR mi nz) = validDims' mi && nz >= 0 && nz <= matCols mi
+validDims (MIVarNZPR mi nnz) =
+  validDims' mi && V.length nnz == matRows mi && V.all withinCols nnz where
+    withinCols x = x >= 0 && x <= matCols mi
+    
+
+
+
+mkMatrixInfoConstNZPR :: Comm -> Int -> Int -> Int -> MatrixInfo
+mkMatrixInfoConstNZPR comm nr nc = MIConstNZPR (mkMatrixInfoBase comm nr nc)
+
+mkMatrixInfoVarNZPR :: Comm -> Int -> Int -> [Int] -> MatrixInfo
+mkMatrixInfoVarNZPR comm nr nc = MIVarNZPR (mkMatrixInfoBase comm nr nc)
+
+mkMatrix :: (Num a, Eq a) => MatrixInfo -> IO (Mat, a) -> IO PetscMatrix
+mkMatrix mi matcreatef
+  | validDims mi = do
+      m <- chk1 matcreatef
+      return $ PetscMatrix mi m
+  | otherwise = error "mkMatrix : invalid sizes : no matrix allocated"
+
+matCreateSeqAIJConstNZPR :: Comm -> Int -> Int -> Int -> IO PetscMatrix
+matCreateSeqAIJConstNZPR comm nr nc nz =
+  mkMatrix
+    (mkMatrixInfoConstNZPR comm nr nc nz)
+    (matCreateSeqAIJconstNZperRow1 comm nr nc nz)
+
+matCreateSeqAIJVarNZPR :: Comm -> Int -> Int -> [Int] -> IO PetscMatrix
+matCreateSeqAIJVarNZPR comm nr nc nnz =
+  mkMatrix
+    (mkMatrixInfoVarNZPR comm nr nc nnz)
+    (matCreateSeqAIJ1 comm nr nc nnz)
+
+
+
+
+
+-- data Matrix a = Matrix {
+--   matrixInfo    :: !MatInfo,
+--   matrixRowIdxs :: !(V.Vector Int),
+--   matrixColIdxs :: !(V.Vector Int),
+--   matrixData    :: !(V.Vector a),
+--   matrixOrder   :: !MatrixOrder } deriving (Eq, Show)
+
+-- isValidMatrix m = (mx==my) && (V.length mri == V.length mci) where
+--   (mx, my) = (matInfoSize . matrixInfo) m
+--   mri = matrixRowIdxs m
+--   mci = matrixColIdxs m 
   
 
--- matrixTranspose (Matrix r c d o)  = Matrix r c d (transposeOrder o)
 
-
-matGetOwnershipRange m = chk1 ( matGetOwnershipRange1 m ) >>= (`bothM` fi)
+-- matGetOwnershipRange m = chk1 ( matGetOwnershipRange1 m ) >>= (`bothM` fi)
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
