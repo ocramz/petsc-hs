@@ -383,8 +383,9 @@ vecGetOwnershipRange' a =
 
 vecGetOwnershipRange1 v = do
   (r1, (r2, e)) <- vecGetOwnershipRange' v
-  --   handleErrTup ((r1, r2), e)
-  return ((r1, r2), e)
+  let (r1', r2') = (fi r1, fi r2)
+  return ((r1', r2'), e) 
+    
 
 
 
@@ -1494,16 +1495,12 @@ pfSetVec' pf applyvec =
 
 
 
-snesCreate' comm p = [C.exp| int{SNESCreate($(int c), $(SNES *p))}|] where
-  c = unComm comm
-snesCreate c = withPtr (snesCreate' c) 
+snesCreate' comm = withPtr $ \p -> [C.exp| int{SNESCreate($(int c), $(SNES *p))}|] where
+  c = unComm comm 
 
 snesSetType' :: SNES -> SnesType_ -> IO CInt
 snesSetType' s t = withCString strk $ \strp -> [C.exp|int{SNESSetType($(SNES s), $(char* strp))}|] where
   strk = snesTypeToStr t
-
--- snesSetType :: SNES -> SnesType_ -> IO ()
-snesSetType s t = snesSetType' s t 
 
 
 -- PetscErrorCode  SNESSetFunction(SNES snes,Vec r,PetscErrorCode (*f)(SNES,Vec,Vec,void*),void *ctx)
@@ -1521,18 +1518,18 @@ snesSetFunction snes v f =
 
 
 -- PETSC_EXTERN PetscErrorCode SNESDestroy(SNES*);
-snesDestroy' p = [C.exp| int{SNESDestroy($(SNES *p))}  |]
-snesDestroy p = with p snesDestroy' 
+snesDestroy' p = with p $ \pp -> [C.exp| int{SNESDestroy($(SNES *pp))}  |]
+
 
 -- PETSC_EXTERN PetscErrorCode SNESSetUp(SNES);
-snesSetUp s = [C.exp|int{SNESSetUp($(SNES s))}|] 
+snesSetUp' s = [C.exp|int{SNESSetUp($(SNES s))}|] 
 
 -- PETSC_EXTERN PetscErrorCode SNESSolve(SNES,Vec,Vec);
-snesSolve s b x = [C.exp|int{SNESSolve($(SNES s), $(Vec b), $(Vec x))}|]
+snesSolve' s b x = [C.exp|int{SNESSolve($(SNES s), $(Vec b), $(Vec x))}|]
 
 
 -- PETSC_EXTERN PetscErrorCode SNESGetSolution(SNES,Vec*);
-snesGetSolution s = withPtr ( \v ->
+snesGetSolution' s = withPtr ( \v ->
   [C.exp|int{SNESGetSolution($(SNES s), $(Vec *v))}|] ) 
 
 
@@ -1559,7 +1556,7 @@ snesGetSolution s = withPtr ( \v ->
 -- * SNESLineSearch
 
 -- PetscErrorCode SNESGetLineSearch(SNES snes, SNESLineSearch *linesearch)
-snesGetLineSearch snes =
+snesGetLineSearch' snes =
   withPtr ( \ls ->
      [C.exp|int{SNESGetLineSearch($(SNES snes),
                                   $(SNESLineSearch* ls))}|]) 
@@ -1579,29 +1576,29 @@ snesGetLineSearch snes =
 
 
 -- PetscErrorCode  TSCreate(MPI_Comm comm, TS *ts)
-tsCreate comm =
+tsCreate' comm =
   withPtr (\ts -> [C.exp|int{TSCreate($(int c), $(TS* ts))}|]) 
   where
    c = unComm comm
 
 tsDestroy' ts = [C.exp| int{TSDestroy($(TS* ts))} |] 
-tsDestroy ts = with ts (\tp -> tsDestroy' tp) 
+tsDestroy1 ts = with ts tsDestroy'
 
 -- withTs c = bracket (tsCreate c) tsDestroy
 
 
 -- PetscErrorCode  TSSetProblemType(TS ts, TSProblemType type)
-tsSetProblemType ts t =
+tsSetProblemType' ts t =
   [C.exp|int{TSSetProblemType($(TS ts), $(int tt))}|] 
    where tt = fromIntegral $ tsProblemTypeToInt t
 
 
 -- PetscErrorCode TSSetInitialTimeStep(TS ts,PetscReal initial_time,PetscReal time_step)
-tsSetInitialTimeStep ts it dt =
+tsSetInitialTimeStep' ts it dt =
   [C.exp|int{TSSetInitialTimeStep($(TS ts), $(PetscReal it), $(PetscReal dt))}|] 
 
 -- PetscErrorCode  TSSetDuration(TS ts,PetscInt maxsteps,PetscReal maxtime)
-tsSetDuration ts ms' mt =
+tsSetDuration' ts ms' mt =
   [C.exp|int{TSSetDuration($(TS ts),$(int ms),$(PetscReal mt))}|] 
   where
     ms = fromIntegral (ms' :: Int)
@@ -1683,7 +1680,7 @@ tsSetDuration ts ms' mt =
 -- Notes :
 -- The final time returned by this function may be different from the time of the internally held state accessible by TSGetSolution() and TSGetTime() because the method may have stepped over the final time.
 
-tsSolve ts u = [C.exp|int{TSSolve($(TS ts),$(Vec u))}|]
+tsSolve' ts u = [C.exp|int{TSSolve($(TS ts),$(Vec u))}|]
 
     
 --    TSGetTimeStepNumber(ts,&steps);
@@ -1693,7 +1690,7 @@ tsSolve ts u = [C.exp|int{TSSolve($(TS ts),$(Vec u))}|]
 --       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 --    TSView(ts,PETSC_VIEWER_STDOUT_SELF);
-tsViewStdout ts =
+tsViewStdout' ts =
   [C.exp|int{TSView($(TS ts), PETSC_VIEWER_STDOUT_SELF)}|] 
 
 
@@ -1734,37 +1731,37 @@ tsViewStdout ts =
 
 -- withTaoInit0 = withTaoInit [] [] [] 
 
-taoCreate comm = withPtr (\p -> [C.exp| int{TaoCreate($(int c), $(Tao *p))} |] )
+taoCreate' comm = withPtr (\p -> [C.exp| int{TaoCreate($(int c), $(Tao *p))} |] )
   where
   c = unComm comm
 
-taoDestroy p = with p ( \pp -> [C.exp| int{TaoDestroy($(Tao *pp))}  |] ) 
+taoDestroy' p = with p ( \pp -> [C.exp| int{TaoDestroy($(Tao *pp))}  |] ) 
 
 -- withTao c = bracket (taoCreate c) taoDestroy
 
-taoSetType tao ti = withCString ti_ ( \tip -> [C.exp|int{TaoSetType($(Tao tao), $(char* tip ))}|] )
+taoSetType' tao ti = withCString ti_ ( \tip -> [C.exp|int{TaoSetType($(Tao tao), $(char* tip ))}|] )
   where
   ti_ = taoTypeToStr ti
 
-taoViewStdout tao = [C.exp|int{TaoView($(Tao tao), PETSC_VIEWER_STDOUT_SELF)}|]
+taoViewStdout' tao = [C.exp|int{TaoView($(Tao tao), PETSC_VIEWER_STDOUT_SELF)}|]
 
 -- taoGetConvergedReason tao = liftM taoConvergedIntToReason $
 --    withPtr (\tr -> [C.exp|int{TaoGetConvergedReason($(Tao tao), $(int* tr))}|]) 
 
 
 -- TaoSetInitialVector(TaoSolver tao, Vec x);
-taoSetInitialVector tao x = [C.exp|int{TaoSetInitialVector($(Tao tao),$(Vec x))}|] 
+taoSetInitialVector' tao x = [C.exp|int{TaoSetInitialVector($(Tao tao),$(Vec x))}|] 
 
 -- TaoSolve(TaoSolver tao);
-taoSolve tao = [C.exp|int{TaoSolve($(Tao tao))}|] 
+taoSolve' tao = [C.exp|int{TaoSolve($(Tao tao))}|] 
 
 
 
 -- PETSC_EXTERN PetscErrorCode TaoGetSolutionVector(Tao, Vec*);
-taoGetSolutionVector tao = withPtr (\p -> [C.exp|int{TaoGetSolutionVector($(Tao tao), $(Vec* p))}|])
+taoGetSolutionVector' tao = withPtr (\p -> [C.exp|int{TaoGetSolutionVector($(Tao tao), $(Vec* p))}|])
 
 -- PETSC_EXTERN PetscErrorCode TaoGetGradientVector(Tao, Vec*);
-taoGetGradientVector tao = withPtr (\p -> [C.exp|int{TaoGetGradientVector($(Tao tao), $(Vec* p))}|]) 
+taoGetGradientVector' tao = withPtr (\p -> [C.exp|int{TaoGetGradientVector($(Tao tao), $(Vec* p))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode TaoSetObjectiveRoutine(Tao, PetscErrorCode(*)(Tao, Vec, PetscReal*,void*), void*);
 taoSetObjectiveRoutine' tao f =
@@ -1883,13 +1880,13 @@ taoComputeGradient tao v =
 -- PETSC_EXTERN PetscErrorCode TaoComputeEqualityConstraints(Tao, Vec, Vec);
 -- PETSC_EXTERN PetscErrorCode TaoDefaultComputeGradient(Tao, Vec, Vec, void*);
 -- PETSC_EXTERN PetscErrorCode TaoIsObjectiveDefined(Tao,PetscBool*);
-taoIsObjectiveDefined t =
+taoIsObjectiveDefined' t =
  withPtr
   (\p -> [C.exp|int{TaoIsObjectiveDefined($(Tao t),
                                           $(PetscBool* p))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode TaoIsGradientDefined(Tao,PetscBool*);
-taoIsGradientDefined t =
+taoIsGradientDefined' t =
  withPtr
   (\p -> [C.exp|int{TaoIsGradientDefined($(Tao t),
                                           $(PetscBool* p))}|]) 
@@ -1927,7 +1924,7 @@ taoIsGradientDefined t =
 -- PETSC_EXTERN PetscErrorCode TaoComputeDualVariables(Tao, Vec, Vec);
 -- PETSC_EXTERN PetscErrorCode TaoComputeDualVariables(Tao, Vec, Vec);
 -- PETSC_EXTERN PetscErrorCode TaoSetVariableBounds(Tao, Vec, Vec);
-taoSetVariableBounds tao x1 x2 =
+taoSetVariableBounds' tao x1 x2 =
   [C.exp|int{TaoSetVariableBounds($(Tao tao), $(Vec x1), $(Vec x2))}|]
   
 -- PETSC_EXTERN PetscErrorCode TaoGetVariableBounds(Tao, Vec*, Vec*);
@@ -1979,16 +1976,16 @@ taoSetVariableBoundsRoutine tao f =
 
 -- * Viewer
 
-petscViewerCreate comm = withPtr $ \h -> 
+petscViewerCreate' comm = withPtr $ \h -> 
   [C.exp|int{PetscViewerCreate($(int c),$(PetscViewer* h))}|] where c = unComm comm
 
 -- PetscErrorCode  PetscViewerSetType(PetscViewer viewer,PetscViewerType type)
-petscViewerSetType v t = 
+petscViewerSetType' v t = 
   [C.exp|int{PetscViewerSetType($(PetscViewer v),$(int tc))}|] where
     tc = toCInt $ viewerTypeToInt t
 
 -- PetscErrorCode  PetscViewerHDF5Open(MPI_Comm comm, const char name[], PetscFileMode type, PetscViewer *hdf5v)
-petscViewerHDF5Open comm name ty =
+petscViewerHDF5Open' comm name ty =
   withPtr $ \f ->
    withCString name $ \np -> 
   [C.exp|int{PetscViewerHDF5Open($(int c),$(char* np),$(int t),$(PetscViewer* f))}|]
@@ -2003,17 +2000,17 @@ petscViewerHDF5Open comm name ty =
 -- 342:   PetscViewerFileSetName(*hdf5v, name);
 
 -- PetscErrorCode PetscViewerFileSetMode(PetscViewer viewer,PetscFileMode type)
-petscViewerFileSetMode v m =
+petscViewerFileSetMode' v m =
   [C.exp|int{PetscViewerFileSetMode($(PetscViewer v),$(int mp))}|] where
     mp = toCInt $ fileModeToInt m
 
 -- PetscErrorCode  PetscViewerFileSetName(PetscViewer viewer,const char name[])
-petscViewerFileSetName v name = withCString name $ \n -> 
+petscViewerFileSetName' v name = withCString name $ \n -> 
   [C.exp|int{PetscViewerFileSetName($(PetscViewer v),$(char* n))}|] 
 
 
 -- PetscErrorCode  PetscViewerDestroy(PetscViewer *viewer)
-petscViewerDestroy v =
+petscViewerDestroy' v =
   with v $ \vp -> [C.exp|int{PetscViewerDestroy($(PetscViewer* vp))}|]
 
 
