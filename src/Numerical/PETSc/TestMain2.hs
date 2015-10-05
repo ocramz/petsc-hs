@@ -5,10 +5,10 @@ import Numerical.PETSc.Raw.PutGet
 
 
 
-vinfo = VecInfo commWorld 5 5
+vinfo n = VecInfo commWorld n n
 
 t1' = 
-  withVecMPIPipeline vinfo (`vecSet` pi) $ \v1 -> do
+  withVecMPIPipeline (vinfo 5) (`vecSet` pi) $ \v1 -> do
    -- v2 <- vecCopyDuplicate v1
    v3 <- vecCopyDuplicate v1 
    -- vecSet v2 2
@@ -39,7 +39,7 @@ t1' =
 
 t1 = withPetsc0 t1'
 
-t2' = withVecMPIPipeline vinfo (`vecSet` pi) $ \v ->
+t2' = withVecMPIPipeline (vinfo 5) (`vecSet` pi) $ \v ->
   vecViewStdout v
 
 t2 = withPetsc0 t2'
@@ -47,11 +47,11 @@ t2 = withPetsc0 t2'
 
 -- | vecGet, modify array, restore modified array in original Vec:
 -- -- Vec -> array -> fmap f array -> Vec
-t3' = withVecMPIPipeline vinfo (`vecSet` (2*pi))  $ \v -> do
+t3' = withVecMPIPipeline (vinfo 5) (`vecSet` (2*pi))  $ \v -> do
   vecViewStdout v
   a <- vecGetArraySafe v
-  let b = map (*3) a
-  print b
+  let b = [1,2,3,4,5]
+  -- print b
   vecRestoreArray v b
   vecAssemblyChk v
   vecViewStdout v
@@ -60,17 +60,17 @@ t3 = withPetsc0 t3'
 
 
 
-testv1 = withVecMPIPipeline vinfo (`vecSet` pi)
+testv1 = withVecMPIPipeline (vinfo 5) (`vecSet` pi)
 
-t4'= testv1 $ \v -> do
-  a <- vecGetArraySafe v
-  let b = map (+1) a
-  vecRestoreArrayB v b
-  vecViewStdout v
+-- t4'= testv1 $ \v -> do
+--   a <- vecGetArraySafe v
+--   let b = map (+1) a
+--   vecRestoreArrayB v b
+--   vecViewStdout v
 
-t4 = withPetsc0 t4'
-
-
+-- t4 = withPetsc0 t4'
 
 
-tests = withPetsc0 $ sequence [t4']
+
+
+-- tests = withPetsc0 $ sequence [t4']

@@ -24,7 +24,8 @@ step2b:
 step3:
 	ghci ${SRCDIR}/TestMain2.hs ${SRCDIR}/Raw/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal2_c.o -isrc/ -L${PETSC_DIR_ARCH}/lib -lpetsc -lmpich
 
-
+reload:
+	make step3
 
 
 # main: 

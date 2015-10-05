@@ -270,26 +270,23 @@ vecGetArray1 v sz = do
 
 
 
+vecRestoreArray' :: Vec -> Ptr (Ptr PetscScalar_) -> IO CInt
+vecRestoreArray' v pc = [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]
 
-vecRestoreArray'' v pc = [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]
+vecRestoreArray'' v c = with c (vecRestoreArray' v)
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
 -- vecRestoreArray' v c = with c (\pc -> [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]) 
 vecRestoreArray1 v c = withArray c $ \cp ->
-  with cp $ \cpp -> vecRestoreArray'' v cpp
+  with cp $ \cpp -> vecRestoreArray' v cpp
 
  
 
 
 
-
-
-
-
-
 -- vra v c = withArray c $ \cp -> do
 --   pokeArray cp c
---   vecRestoreArray'' v cp
+--   vecRestoreArray' v cp
 
 -- vra v c = withArray c $ \cp ->
 --   with cp $ \cpp -> vecRestoreArray'' v cpp
@@ -347,7 +344,7 @@ a -location to put pointer to the array
 -- NB : type CArray = Ptr 
 
 vecGetArray1d' x m mstart = withPtr $ \arr -> 
-  [C.exp|int{VecGetArray1d($(Vec x),$(int m),$(int mstart),$(PetscScalar*** arr))}|]
+  [C.exp|int{VecGetArray1d($(Vec x),$(int m),$(int mstart),$(PetscScalar** arr))}|]
 
 -- vecGetArray1d'' :: Vec -> CInt -> CInt -> Ptr PetscScalar_ -> IO CInt
 -- vecGetArray1d'' x m ms a =

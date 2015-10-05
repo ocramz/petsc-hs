@@ -338,7 +338,7 @@ vecSet_ v n = chk0 $ vecSet1 v n
 vecSet v n = do {vecSet_ v n ; return v}
 
 vecGetOwnershipRange v = 
-  chk1 (vecGetOwnershipRange1 v) >>= (`bothM` fi)
+  chk1 (vecGetOwnershipRange1 v) 
 
 vecDot v1 v2 = chk1 $ vecDot1 v1 v2
 vecNorm v nt = chk1 $ vecNorm1 nt v
@@ -378,6 +378,10 @@ vecGetSize v = liftM fi $ chk1 ( vecGetSize1 v)
 -- vecSize v = unsafePerformIO (vecGetSize v)
 
 vecViewStdout v = chk0 $ vecViewStdout1 v
+
+
+
+vecGetArray1d v sz = chk1 (vecGetArray1d' v sz 0)
 
 
 
@@ -426,7 +430,7 @@ withVecGetArray1d' x m ms =
 
 vecRestoreArrayB v ar = alloca $ \ p -> do
   pokeArray p ar
-  with p $ \pp -> chk0 $ vecRestoreArray'' v pp
+  with p $ \pp -> chk0 $ vecRestoreArray' v pp
 
 
 
@@ -581,30 +585,30 @@ validDims (MIVarNZPR mi nnz) =
 
 
 
-mkMatrixInfoConstNZPR :: Comm -> Int -> Int -> Int -> MatrixInfo
-mkMatrixInfoConstNZPR comm nr nc = MIConstNZPR (mkMatrixInfoBase comm nr nc)
+-- mkMatrixInfoConstNZPR :: Comm -> Int -> Int -> Int -> MatrixInfo
+-- mkMatrixInfoConstNZPR comm nr nc = MIConstNZPR (mkMatrixInfoBase comm nr nc)
 
-mkMatrixInfoVarNZPR :: Comm -> Int -> Int -> [Int] -> MatrixInfo
-mkMatrixInfoVarNZPR comm nr nc = MIVarNZPR (mkMatrixInfoBase comm nr nc)
+-- mkMatrixInfoVarNZPR :: Comm -> Int -> Int -> [Int] -> MatrixInfo
+-- mkMatrixInfoVarNZPR comm nr nc = MIVarNZPR (mkMatrixInfoBase comm nr nc)
 
-mkMatrix :: (Num a, Eq a) => MatrixInfo -> IO (Mat, a) -> IO PetscMatrix
-mkMatrix mi matcreatef
-  | validDims mi = do
-      m <- chk1 matcreatef
-      return $ PetscMatrix mi m
-  | otherwise = error "mkMatrix : invalid sizes : no matrix allocated"
+-- mkMatrix :: (Num a, Eq a) => MatrixInfo -> IO (Mat, a) -> IO PetscMatrix
+-- mkMatrix mi matcreatef
+--   | validDims mi = do
+--       m <- chk1 matcreatef
+--       return $ PetscMatrix mi m
+--   | otherwise = error "mkMatrix : invalid sizes : no matrix allocated"
 
-matCreateSeqAIJConstNZPR :: Comm -> Int -> Int -> Int -> IO PetscMatrix
-matCreateSeqAIJConstNZPR comm nr nc nz =
-  mkMatrix
-    (mkMatrixInfoConstNZPR comm nr nc nz)
-    (matCreateSeqAIJconstNZperRow1 comm nr nc nz)
+-- matCreateSeqAIJConstNZPR :: Comm -> Int -> Int -> Int -> IO PetscMatrix
+-- matCreateSeqAIJConstNZPR comm nr nc nz =
+--   mkMatrix
+--     (mkMatrixInfoConstNZPR comm nr nc nz)
+--     (matCreateSeqAIJconstNZperRow1 comm nr nc nz)
 
-matCreateSeqAIJVarNZPR :: Comm -> Int -> Int -> [Int] -> IO PetscMatrix
-matCreateSeqAIJVarNZPR comm nr nc nnz =
-  mkMatrix
-    (mkMatrixInfoVarNZPR comm nr nc nnz)
-    (matCreateSeqAIJ1 comm nr nc nnz)
+-- matCreateSeqAIJVarNZPR :: Comm -> Int -> Int -> [Int] -> IO PetscMatrix
+-- matCreateSeqAIJVarNZPR comm nr nc nnz =
+--   mkMatrix
+--     (mkMatrixInfoVarNZPR comm nr nc nnz)
+--     (matCreateSeqAIJ1 comm nr nc nnz)
 
 
 
@@ -663,12 +667,12 @@ matCreateSeqAIJVarNZPR comm nr nc nnz =
 -- * PetscViewer
 
 withPetscViewer comm =
-  bracketChk (petscViewerCreate comm) petscViewerDestroy
+  bracketChk (petscViewerCreate' comm) petscViewerDestroy'
 
 withPetscViewerSetup comm ty mode name f = withPetscViewer comm $ \v -> do
-  chk0 $ petscViewerSetType v ty
-  chk0 $ petscViewerFileSetName v name
-  chk0 $ petscViewerFileSetMode v mode
+  chk0 $ petscViewerSetType' v ty
+  chk0 $ petscViewerFileSetName' v name
+  chk0 $ petscViewerFileSetMode' v mode
   f v
 
 
