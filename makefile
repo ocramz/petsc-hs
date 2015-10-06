@@ -5,6 +5,7 @@ SRCPARDIR = ${CURDIR}/src/Numerical
 CBITS = ${CURDIR}/src/cbits
 TESTDIR = ${CURDIR}/test
 LIBDIR = ${CURDIR}/lib
+EXAMPLEDIR = ${CURDIR}/examples
 
 main:
 	make step1
@@ -22,7 +23,7 @@ step2b:
 	cc -c ${SRCDIR}/Raw/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include
 
 step3:
-	ghci ${SRCDIR}/TestMain2.hs ${SRCDIR}/Raw/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal_c.o -isrc/ -L${PETSC_DIR_ARCH}/lib -lpetsc -lmpich
+	ghci ${EXAMPLEDIR}/TestMain2.hs ${SRCDIR}/Raw/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal_c.o -isrc/ -L${PETSC_DIR_ARCH}/lib -lpetsc -lmpich
 
 reload:
 	make step3
