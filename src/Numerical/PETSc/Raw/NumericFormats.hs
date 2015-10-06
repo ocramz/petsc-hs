@@ -6,8 +6,9 @@ import Data.Vector
 import Data.Complex
 
 
+-- -- some ideas from HMatrix
 
--- | indexing into numerical containers
+-- | indexing into numerical containers (see Data.Packed.Internal.Numeric)
 
 type family IndexOf (c :: * -> *)
 type instance IndexOf Vector = Int

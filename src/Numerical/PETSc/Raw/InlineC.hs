@@ -121,18 +121,18 @@ vecSetName1 v name = withCString name $ \n ->
   [C.exp|int{PetscObjectSetName($(Vec v),$(char* n))}|]
 
 
-vecCreate' comm p = [C.exp|int{VecCreate($(int c), $(Vec *p))} |]
+vecCreate0' comm p = [C.exp|int{VecCreate($(int c), $(Vec *p))} |]
   where c = unComm comm
-vecCreate c = withPtr (vecCreate' c) 
+vecCreate' c = withPtr (vecCreate0' c) 
 
 -- PetscErrorCode VecCreateMPI(MPI_Comm comm, int m, int M, Vec* x)
-vecCreateMPI' comm m1' m2' p = [C.exp|int{VecCreateMPI($(int c), $(int m1), $(int m2), $(Vec *p))}|] 
+vecCreateMPI0' comm m1' m2' p = [C.exp|int{VecCreateMPI($(int c), $(int m1), $(int m2), $(Vec *p))}|] 
   where c = unComm comm
         m1 = fromIntegral m1'
         m2 = fromIntegral m2'
-vecCreateMPI c nlocal nglobal = withPtr (vecCreateMPI' c nlocal nglobal) 
+vecCreateMPI' c nlocal nglobal = withPtr (vecCreateMPI0' c nlocal nglobal) 
 
-vecCreateMPILocal c m = vecCreateMPI c m m
+vecCreateMPILocal c m = vecCreateMPI' c m m
 
 
 -- PetscErrorCode  VecSetBlockSize(Vec v,PetscInt bs)
@@ -195,8 +195,8 @@ vecSetValues x ix y im =
 vecEqual1 v1 v2 = withPtr ( \b ->
   [C.exp|int{VecEqual($(Vec v1), $(Vec v2), $(PetscBool* b))}|] )
 
-vecDestroy' p = [C.exp|int{VecDestroy($(Vec *p))}|]
-vecDestroy p = with p vecDestroy' 
+vecDestroy0' p = [C.exp|int{VecDestroy($(Vec *p))}|]
+vecDestroy' p = with p vecDestroy0' 
 
 
 vecCopy1 vorig vcopy = [C.exp|int{VecCopy($(Vec vorig), $(Vec vcopy))}|] 
@@ -258,11 +258,11 @@ vecViewStdout1 v = [C.exp|int{VecView($(Vec v), PETSC_VIEWER_STDOUT_SELF)}|]
 
 
 -- PETSC_EXTERN PetscErrorCode VecGetArray(Vec,PetscScalar**);
-vecGetArray0 v p =  [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]
+vecGetArray0' v p =  [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]
 
-vecGetArray' v = withPtr ( \p -> [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]) 
-vecGetArray1 v sz = do
-  (p, e) <- vecGetArray' v
+vecGetArray0'' v = withPtr ( \p -> [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]) 
+vecGetArray' v sz = do
+  (p, e) <- vecGetArray0'' v
   arr <- peekArray sz p
   return (arr, e)
 
@@ -278,15 +278,15 @@ vecGetArray1 v sz = do
 
 
 
-vecRestoreArray' :: Vec -> Ptr (Ptr PetscScalar_) -> IO CInt
-vecRestoreArray' v pc = [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]
+vecRestoreArray0' :: Vec -> Ptr (Ptr PetscScalar_) -> IO CInt
+vecRestoreArray0' v pc = [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]
 
-vecRestoreArray'' v c = with c (vecRestoreArray' v)
+vecRestoreArray'' v c = with c (vecRestoreArray0' v)
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
 -- vecRestoreArray' v c = with c (\pc -> [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]) 
-vecRestoreArray1 v c = withArray c $ \cp ->
-  with cp $ \cpp -> vecRestoreArray' v cpp
+vecRestoreArray' v c = withArray c $ \cp ->
+  with cp $ \cpp -> vecRestoreArray0' v cpp
 
  
 
@@ -511,12 +511,12 @@ matSetType1 m mt = withCString cs $ \c -> [C.exp|int{MatSetType($(Mat m), $(char
 
 
 -- matCreate' c p = [C.exp| int{MatCreate($(int c), $(Mat *p))} |]
-matCreate' comm = withPtr $ \p -> [C.exp| int{MatCreate($(int c), $(Mat *p))} |] 
+matCreate0' comm = withPtr $ \p -> [C.exp| int{MatCreate($(int c), $(Mat *p))} |] 
   where c = unComm comm
-matCreate1 = matCreate' 
+matCreate' = matCreate0' 
 
-matDestroy' m = [C.exp|int{MatDestroy($(Mat *m))}|]
-matDestroy1 m = with m matDestroy' 
+matDestroy0' m = [C.exp|int{MatDestroy($(Mat *m))}|]
+matDestroy' m = with m matDestroy0' 
 
 -- withMat :: Comm -> (Mat -> IO a) -> IO a
 -- withMat c = bracket (matCreate c) matDestroy
@@ -531,8 +531,9 @@ matDestroy1 m = with m matDestroy'
 --      matAssembly mat
 --      post mat
 
-matSetSizes mat m n = [C.exp|int{MatSetSizes($(Mat mat), PETSC_DECIDE, PETSC_DECIDE,
-                                             $(int m), $(int n))}|]
+matSetSizes' mat m n = [C.exp|int{MatSetSizes($(Mat mat), PETSC_DECIDE, PETSC_DECIDE,
+                                             $(int mc), $(int nc))}|]
+  where (mc, nc) = (toCInt m, toCInt n)
 
 
 -- f1 i m = [C.exp|int{ ($(int i) % $(int m))  }|] -- mod

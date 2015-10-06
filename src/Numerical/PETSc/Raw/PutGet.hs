@@ -59,6 +59,8 @@ data IsInfo = IsInfo { isInfoMpiComm :: Comm,
 type ISI = (IS, IsInfo)
 data PetscIs = PIs (MVar ISI)
 
+
+withIsCreateGeneral :: IsInfo -> PetscCopyMode_ -> (IS -> IO a) -> IO a
 withIsCreateGeneral iis mode =
   bracketChk (isCreateGeneral comm n idx mode) isDestroy where
     comm = isInfoMpiComm iis
@@ -275,11 +277,22 @@ modifyMVar_ :: MVar a -> (a -> IO a) -> IO ()    -}
 --   a <- mkPetscVec vinfo v
 --   modifyPetscVec a f
 
-withVecCreate vv = bracketChk (vecCreate comm) vecDestroy where
+vecCreate :: Comm -> IO Vec
+vecCreate comm = chk1 (vecCreate' comm)
+
+vecCreateMPI :: Comm -> Int -> Int -> IO Vec
+vecCreateMPI comm nLocal nGlobal = chk1 (vecCreateMPI' comm nLocal nGlobal)
+
+vecDestroy :: Vec -> IO ()
+vecDestroy v = chk0 (vecDestroy' v)
+
+withVecCreate :: VecInfo -> (Vec -> IO a) -> IO a
+withVecCreate vv = bracket (vecCreate comm) vecDestroy where
   comm = vecInfoMpiComm vv
 
+withVecCreateMPI :: VecInfo -> (Vec -> IO a) -> IO a
 withVecCreateMPI vv =
-  bracketChk (vecCreateMPI comm nLoc nGlob) vecDestroy where
+  bracket (vecCreateMPI comm nLoc nGlob) vecDestroy where
     nLoc = vecInfoSizeLocal vv
     nGlob = vecInfoSizeGlobal vv
     comm = vecInfoMpiComm vv
@@ -292,6 +305,7 @@ withVecCreateMPI vv =
 
 vecSetSizes v n = chk0 $ vecSetSizes1 v (toCInt n)
 
+withVecPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b
 withVecPipeline vv pre post = withVecCreate vv $ \v -> do
   vecSetSizes v nDim
   pre v
@@ -300,6 +314,7 @@ withVecPipeline vv pre post = withVecCreate vv $ \v -> do
     where
       nDim = vecInfoSizeGlobal vv
 
+withVecMPIPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b
 withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
   pre v
   vecAssemblyChk v
@@ -310,6 +325,7 @@ withVecMPIPipeline' vv pre post = withVecCreateMPI vv $ \v -> do
   vecAssemblyChk v'
   post v'
 
+vecAssemblyChk :: Vec -> IO ()
 vecAssemblyChk v = chk0 (vecAssemblyBegin v) >> chk0 (vecAssemblyEnd v)
 
 vecEqual v1 v2 = chk1 $ vecEqual1 v1 v2
@@ -372,6 +388,7 @@ vecVecSum = vecAxpy 1
 
 vecVecSumSafe = vecWaxpySafe 1
 
+vecGetSize :: Vec -> IO Int
 vecGetSize v = liftM fi $ chk1 ( vecGetSize1 v) 
 -- vecSize v = unsafePerformIO (vecGetSize v)
 
@@ -379,11 +396,11 @@ vecViewStdout v = chk0 $ vecViewStdout1 v
 
 
 
-vecGetArray1d v sz = chk1 (vecGetArray1d' v sz 0)
+-- vecGetArray1d v sz = chk1 (vecGetArray1d' v sz 0)
 
 
 
-vecGetArray v sz = chk1 $ vecGetArray1 v sz
+vecGetArray v sz = chk1 $ vecGetArray' v sz
 
 vecGetArraySafe v = do
   sz <- vecGetSize v
@@ -391,7 +408,7 @@ vecGetArraySafe v = do
 
 
 
-vecRestoreArray v c = chk0 $ vecRestoreArray1 v c
+vecRestoreArray v c = chk0 $ vecRestoreArray' v c
 
 -- vecRestoreArrayB v c = chk0 $ vecRestoreArrayB1 v c
 
@@ -428,7 +445,7 @@ withVecGetArray1d' x m ms =
 
 vecRestoreArrayB v ar = alloca $ \ p -> do
   pokeArray p ar
-  with p $ \pp -> chk0 $ vecRestoreArray' v pp
+  with p $ \pp -> chk0 $ vecRestoreArray0' v pp
 
 
 
@@ -492,13 +509,13 @@ bracket1 allocate release io = mask $ \restore -> do
 -- * Mat
 
 withMat :: Comm -> (Mat -> IO a) -> IO a
-withMat comm = bracketChk (matCreate1 comm) matDestroy1
+withMat comm = bracketChk (matCreate' comm) matDestroy'
 
 matCreate :: Comm -> IO Mat
-matCreate comm = chk1 (matCreate1 comm)
+matCreate comm = chk1 (matCreate' comm)
 
 matDestroy :: Mat -> IO ()
-matDestroy = chk0 . matDestroy1
+matDestroy = chk0 . matDestroy'
 
 matSetup :: Mat -> IO ()
 matSetup = chk0 . matSetup'
@@ -507,6 +524,7 @@ matAssemblyBegin, matAssemblyEnd :: Mat -> IO ()
 matAssemblyBegin = chk0 . matAssemblyBegin'
 matAssemblyEnd = chk0 . matAssemblyEnd'
 
+matAssembly :: Mat -> IO ()
 matAssembly = matAssemblyBegin >> matAssemblyEnd
 
 withMatAssembly m f = do

@@ -1,4 +1,4 @@
-module Numerical.PETSc.TestMain2 where
+module TestMain2 where
 
 -- import Numerical.PETSc.Raw
 import Numerical.PETSc.Raw.PutGet
