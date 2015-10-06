@@ -188,12 +188,15 @@ vecSetValues x ix y im =
 --         (a, b) = (head ixs, last ixs)
 --       sv = vecSize v
 
--- inVecBounds v ix
---   | 
+
+
+-- | Compares two vectors. Returns true if the two vectors are either pointing to the same memory buffer, or if the two vectors have the same local and global layout as well as bitwise equality of all entries. Does NOT take round-off errors into account.
 
 -- PETSC_EXTERN PetscErrorCode VecEqual(Vec,Vec,PetscBool *);
 vecEqual1 v1 v2 = withPtr ( \b ->
   [C.exp|int{VecEqual($(Vec v1), $(Vec v2), $(PetscBool* b))}|] )
+
+
 
 vecDestroy0' p = [C.exp|int{VecDestroy($(Vec *p))}|]
 vecDestroy' p = with p vecDestroy0' 
@@ -206,22 +209,17 @@ vecCopy1 vorig vcopy = [C.exp|int{VecCopy($(Vec vorig), $(Vec vcopy))}|]
 vecDuplicate' p1 p2 = [C.exp| int{VecDuplicate($(Vec p1), $(Vec *p2))}|] 
 vecDuplicate1 v = withPtr (vecDuplicate' v) 
 
--- withVecDuplicate v0 = bracket (vecDuplicate v0) vecDestroy -- auto-cleanup :)
-
--- withVecDuplicateCopy v f = withVecDuplicate v $ \vv -> do
---   vecCopy v vv
---   f vv
 
 
-vecAssemblyBegin v = [C.exp|int{VecAssemblyBegin($(Vec v))}|] 
-vecAssemblyEnd v = [C.exp|int{VecAssemblyEnd($(Vec v))}|] 
+vecAssemblyBegin' v = [C.exp|int{VecAssemblyBegin($(Vec v))}|] 
+vecAssemblyEnd' v = [C.exp|int{VecAssemblyEnd($(Vec v))}|] 
 
-vecAssembly1 v = vecAssemblyBegin v >> vecAssemblyEnd v
+-- vecAssembly1 v = vecAssemblyBegin v >> vecAssemblyEnd v
 
-withVecAssembly v f = do
-  vecAssemblyBegin v
-  f v
-  vecAssemblyEnd v
+-- withVecAssembly v f = do
+--   vecAssemblyBegin v
+--   f v
+--   vecAssemblyEnd v
 
 -- -- -- vecAssembly' = (,) <$> vecAssemblyBegin <*> vecAssemblyEnd 
 

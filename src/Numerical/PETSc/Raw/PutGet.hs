@@ -320,14 +320,23 @@ withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
   vecAssemblyChk v
   post v
 
-withVecMPIPipeline' vv pre post = withVecCreateMPI vv $ \v -> do
+withVecMPIPipeline1 :: VecInfo -> (Vec -> IO Vec) -> (Vec -> IO a) -> IO a
+withVecMPIPipeline1 vv pre post = withVecCreateMPI vv $ \v -> do
   v' <- pre v
   vecAssemblyChk v'
   post v'
 
 vecAssemblyChk :: Vec -> IO ()
-vecAssemblyChk v = chk0 (vecAssemblyBegin v) >> chk0 (vecAssemblyEnd v)
+vecAssemblyChk v = chk0 (vecAssemblyBegin' v) >> chk0 (vecAssemblyEnd' v)
 
+-- withVecAssemblyChk v f = chk0 (vecAssemblyBegin' v) >> f >> chk0 (vecAssemblyEnd' v)
+
+-- | withVecAssemblyChk : perform a computation while vector assembly takes place
+withVecAssemblyChk :: Vec -> IO a -> IO a
+withVecAssemblyChk v = bracket_ (chk0 $ vecAssemblyBegin' v) (chk0 $ vecAssemblyEnd' v)
+
+-- | vecEqual : compares two vectors. Returns true if the two vectors are either pointing to the same memory buffer, or if the two vectors have the same local and global layout as well as bitwise equality of all entries. Does NOT take round-off errors into account.
+vecEqual :: Vec -> Vec -> IO Bool
 vecEqual v1 v2 = chk1 $ vecEqual1 v1 v2
 
 vecCopy_ vorig vcopy = chk0 $ vecCopy1 vorig vcopy
@@ -335,6 +344,8 @@ vecCopy vorig vcopy = do {vecCopy_ vorig vcopy ;  return vcopy}
 
 vecDuplicate v = chk1 $ vecDuplicate1 v
 
+-- | vecCopyDuplicate : duplicates Vec and copies content
+vecCopyDuplicate :: Vec -> IO Vec
 vecCopyDuplicate v = do
   v1 <- vecDuplicate v
   vecCopy v v1
@@ -351,6 +362,7 @@ vecSetName v name = chk0 $ vecSetName1 v name
 vecSet_ v n = chk0 $ vecSet1 v n
 vecSet v n = do {vecSet_ v n ; return v}
 
+vecGetOwnershipRange :: Vec -> IO (Int, Int)
 vecGetOwnershipRange v = 
   chk1 (vecGetOwnershipRange1 v) 
 
