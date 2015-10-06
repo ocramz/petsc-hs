@@ -4,7 +4,18 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DataKinds #-}
 
--- | inline-c context (i.e. the C-Haskell type map), and the necessary newtypes and type synonyms necessary to its definition
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Numerical.Petsc.Raw.Internal
+-- Copyright   :  (c) Marco Zocca 2015
+-- License     :  LGPL3
+-- Maintainer  :  Marco Zocca
+-- Stability   :  provisional
+--
+-- | inline-c context (i.e. the C-Haskell type map), and the necessary newtypes
+--   and type synonyms necessary to its definition
+--
+-----------------------------------------------------------------------------
 
 module Numerical.PETSc.Raw.Internal where
 

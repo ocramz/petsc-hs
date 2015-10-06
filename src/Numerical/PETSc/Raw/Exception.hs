@@ -1,6 +1,16 @@
 {-# LANGUAGE DeriveDataTypeable, TypeFamilies, FlexibleInstances #-}
--- | Exception handling for calls wrapped by PutGet interfaces
 
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Numerical.PETSc.Raw.Exception
+-- Copyright   :  (c) Marco Zocca 2015
+-- License     :  LGPL3
+-- Maintainer  :  Marco Zocca
+-- Stability   :  provisional
+--
+-- | Exception handling for calls wrapped by PutGet interfaces
+--
+-----------------------------------------------------------------------------
 module Numerical.PETSc.Raw.Exception where
 
 import Foreign.C.Types

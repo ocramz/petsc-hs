@@ -1,22 +1,25 @@
 {-# LANGUAGE TypeFamilies, FlexibleInstances #-}
 
--- | some miscellaneous utilities
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Numerical.PETSc.Raw.Exception
+-- Copyright   :  (c) Marco Zocca 2015
+-- License     :  LGPL3
+-- Maintainer  :  Marco Zocca
+-- Stability   :  provisional
+--
+-- | miscellaneous utilities
+--
+-----------------------------------------------------------------------------
 module Numerical.PETSc.Raw.Utils where
 
 import Foreign.C.Types
 import Foreign.C.String
--- import Foreign.C.Array
 import Foreign.Ptr
 import Foreign
 
-import Control.Monad.Trans
-import Control.Monad.Trans.Reader
-import Control.Monad.Trans.Either
-
 import Control.Monad
 import Control.Arrow
-
--- import Numerical.PETSc.Raw.Exception
 
 
 withCStrings :: [String] -> ([CString] -> IO a) -> IO a
