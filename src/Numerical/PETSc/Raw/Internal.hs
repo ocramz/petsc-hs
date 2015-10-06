@@ -1,15 +1,12 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, StandaloneDeriving #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DataKinds #-}
-module Numerical.PETSc.Internal2
-       where
 
--- import Numerical.PETSc.Types
-  --(PetscInt, PetscBool, PetscReal, PetscScalar)
+-- | inline-c context (i.e. the C-Haskell type map), and the necessary newtypes and type synonyms necessary to its definition
+
+module Numerical.PETSc.Raw.Internal where
 
 import Control.Exception as E
 import Data.Typeable
@@ -51,21 +48,12 @@ petscTypesTable = Map.fromList
                   , (typeNameId "Vec", [t| Vec |] )
                   , (typeNameId "Mat", [t| Mat |] )
                   , (typeNameId "DM", [t| DM |] )
-                  -- , (typeNameId "DMBoundaryType", [t| DMBoundaryType_ |]) 
-                  -- , (typeNameId "DMDAStencilType", [t| DMDAStencilType |])
-                  -- , (typeNameId "DMDAInterpolationType", [t| DMDAInterpolationType |])
-                  -- , (typeNameId "DMDAElementType", [t|DMDAElementType|])  
-                    
                   , (typeNameId "KSP", [t| KSP |])
-                  -- , (typeNameId "KSPType", [t| KSPType |])
-                  -- , (typeNameId "KSPConvergedReason", [t| KSPConvergedReason|])
 
                   , (typeNameId "SNES", [t| SNES |])
                   , (typeNameId "SNESLineSearch", [t| SNESLineSearch|])  
 
                   , (typeNameId "PF", [t| PF |])
-
-                  -- , (typeNameId "PetscViewer", [t| PetscViewer |])  
 
                   , (typeNameId "PetscSpace", [t| PetscSpace |])
                   , (typeNameId "PetscDualSpace", [t| PetscDualSpace |])
@@ -114,13 +102,6 @@ instance Storable PetscReal where
   alignment = sizeOf
   peek = peek
   poke = poke 
- -- peek p = do i <- (# peek Foo, i) p
- --                j <- (# peek Foo, j) p
- --                k <- (# peek Foo, k) p
- --                return $ Foo i j k
- --    poke p foo = do (# poke Foo, i) p (i foo)
- --                    (# poke Foo, j) p (j foo)
- --                    (# poke Foo, k) p (k foo)
 
 
 newtype IS = IS (Ptr IS) deriving Storable
@@ -198,71 +179,4 @@ instance Storable a => Storable (Complex a) where
 
 
 
--- * error
 
-handleErrTup (r, _) = return r
-handleErr _ = return ()
-
--- handleErrTup :: (a, CInt) -> IO a
--- handleErrTup (res, ie)
---   | ie /= 0 = throwIOErr ie
---   | otherwise = return res
-
--- handleErr :: CInt -> IO ()
--- handleErr 0 = return ()
--- handleErr n = throwIOErr n
-
--- throwIOErr :: CInt -> IO a
--- throwIOErr n = throwIO (ErrorCall $ "PETSc error " ++ show (n' :: Int)) where
---   n' = fromIntegral (n :: CInt)
-
-
-
-convErrCode :: CInt -> ErrCode
-convErrCode = ErrCode . fromIntegral
-newtype ErrCode = ErrCode { unErrCode :: Int } deriving (Eq, Show)
-
-
-
--- data ErrState e = NoErr | Err e
-
--- chkErrCode e | c == 0 = NoErr
---              | otherwise = Err c
---   where c = unErrCode e
-
--- * utils
-
--- boolErr :: (Monad m , Num a, Eq a) => m a -> m Bool
--- boolErr = liftM toBool
-
-
-
--- * Exceptions
-
-
--- data PetscException = NotInitialized
---                     | Finalized
---                     | Other
---                     deriving (Show,Typeable)
--- instance Exception PetscException
-
-
-
--- * utils
-
-sndM :: Monad m => m (a, b) -> m b
-sndM = liftM snd
-
-fstM :: Monad m => m (a, b) -> m a
-fstM = liftM fst
-
-fst2 x = ((y1, y2), t ) where
-  y1 = fst x
-  y2 = (fst . snd) x
-  t = (snd . snd) x
-
-fst2M :: Monad m => (a, (b, c)) -> m ((a, b), c)
-fst2M = return . fst2
-
-
--- fi = fromIntegral

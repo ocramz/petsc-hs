@@ -1,4 +1,6 @@
 {-# LANGUAGE TypeFamilies, FlexibleInstances #-}
+
+-- | some miscellaneous utilities
 module Numerical.PETSc.Raw.Utils where
 
 import Foreign.C.Types
@@ -83,12 +85,27 @@ linspace' n a b = take n [a, a + dt .. ] where
 mean x = sum x / fromIntegral (length x)
 
 
+
+sndM :: Monad m => m (a, b) -> m b
+sndM = liftM snd
+
+fstM :: Monad m => m (a, b) -> m a
+fstM = liftM fst
+
+fst2 x = ((y1, y2), t ) where
+  y1 = fst x
+  y2 = (fst . snd) x
+  t = (snd . snd) x
+
+fst2M :: Monad m => (a, (b, c)) -> m ((a, b), c)
+fst2M = return . fst2
+
 -- -- tuple unpacking stuff
 
 -- fst2 :: (a, (b, c)) -> (a,b)
-fst2 = fst . snd
+fstOf2 = fst . snd
 -- snd2 :: (a, (b, c)) -> c
-snd2 =  snd . snd
+sndOf2 =  snd . snd
 
 both' f =  f *** f
 
@@ -116,26 +133,6 @@ bothM t f = return (both t f)
 (_2) f (a, b) =
   f b >>= \y -> return (a, y) -- _2, "
 
-
--- sndM :: Monad m => m (a, b) -> m b
--- sndM = liftM snd
-
--- fstM :: Monad m => m (a, b) -> m a
--- fstM = liftM fst
-
--- -- fst2 x = ((y1, y2), t ) where
--- --   y1 = fst x
--- --   y2 = (fst . snd) x
--- --   t = (snd . snd) x
-
--- -- fst2M :: Monad m => (a, (b, c)) -> m ((a, b), c)
--- fst2M = liftM fst2
-
-
--- nul = [C.exp| void*{NULL}|]
-
--- misteryf0 m n = [C.exp|int{ $(int m) % $(int n)   }|] -- `mod`
--- misteryf1 m n = [C.exp|int{ $(int m) / $(int n)  }|]  -- `div`
 
 -- -- utils
 

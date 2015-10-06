@@ -1,19 +1,17 @@
 {-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
-{-# LANGUAGE ForeignFunctionInterface, CPP #-}
--- # FunctionalDependencies  #
+{-# LANGUAGE CPP #-}
 
 -- | Mid-level interface wrapping the inline-c calls
--- and still returning integer error codes
+-- and 
 --
 module Numerical.PETSc.Raw.PutGet where
-
 
 import Numerical.PETSc.Raw.InlineC
 import Numerical.PETSc.Raw.Types
 import Numerical.PETSc.Raw.Exception
 import Numerical.PETSc.Raw.Utils
 
-import Numerical.PETSc.Internal2
+import Numerical.PETSc.Raw.Internal
 
 import Foreign
 -- import Foreign.Storable

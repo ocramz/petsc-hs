@@ -1,16 +1,12 @@
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 
-module Numerical.PETSc.Raw.InlineC where
 -- | foreign signatures, + everything that requires an inline-c pass
+module Numerical.PETSc.Raw.InlineC where
 
-import Numerical.PETSc.Internal2
-
--- import Numerical.PETSc.Raw
+import Numerical.PETSc.Raw.Internal
 
 import Numerical.PETSc.Raw.Types
 import Numerical.PETSc.Raw.Utils
--- import Numerical.PETSc.Raw.
-
 
 import Language.C.Inline as C
 import Language.C.Inline.Context
@@ -35,7 +31,10 @@ C.include "<petscsnes.h>"
 C.include "<petsctao.h>"
 C.include "<petscdm.h>"
 C.include "<petscdmda.h>"
+C.include "<petscdmcomposite.h>"
 C.include "<petscts.h>"
+C.include "<petscviewer.h>"
+C.include "<petscviewerhdf5.h>"
 
 
 petscDecide = -1
@@ -797,7 +796,6 @@ matGetOwnershipRange1 m = do
 --   (r1, (r2, e)) <- matGetOwnershipRange' m
 --   handleErrTup ((r1, r2), e)
 
--- nestedTup2 (a, (b, c)) = ((a, b), c)
   
 
 -- -- -- Mat experiments
@@ -1977,9 +1975,10 @@ petscViewerCreate' comm = withPtr $ \h ->
   [C.exp|int{PetscViewerCreate($(int c),$(PetscViewer* h))}|] where c = unComm comm
 
 -- PetscErrorCode  PetscViewerSetType(PetscViewer viewer,PetscViewerType type)
-petscViewerSetType' v t = 
-  [C.exp|int{PetscViewerSetType($(PetscViewer v),$(int tc))}|] where
-    tc = toCInt $ viewerTypeToInt t
+petscViewerSetType' v t = withCString ts $ \tsp ->
+  [C.exp|int{PetscViewerSetType($(PetscViewer v),$(char* tsp))}|] where
+    -- tc = toCInt $ viewerTypeToInt t
+    ts = viewerTypeToStr t
 
 -- PetscErrorCode  PetscViewerHDF5Open(MPI_Comm comm, const char name[], PetscFileMode type, PetscViewer *hdf5v)
 petscViewerHDF5Open' comm name ty =
@@ -2029,14 +2028,14 @@ petscViewerHDF5PopGroup1 v =
 -- PETSC_EXTERN PetscErrorCode PetscLogStagePush(PetscLogStage);
 
 -- petscLogStageRegister :: String -> PetscLogStage_ -> IO CInt
-petscLogStageRegister s ls =
+petscLogStageRegister' s ls =
   withCString s $ \c ->
    with ls $ \lls -> 
-    [C.exp|int{PetscLogStageRegister($(char *c), $(PetscLogStage* lls ))}|] >>= handleErr
+    [C.exp|int{PetscLogStageRegister($(char *c), $(PetscLogStage* lls ))}|] 
 
-petscLogStagePush ls = [C.exp|int{PetscLogStagePush($(PetscLogStage ls))}|] >>= handleErr
+petscLogStagePush' ls = [C.exp|int{PetscLogStagePush($(PetscLogStage ls))}|] 
 
-petscLogStagePop = [C.exp|int{PetscLogStagePop()}|] >>= handleErr
+petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|] 
 
 
 -- -- * options
@@ -2144,11 +2143,6 @@ withPetsc'' a o h f = petscInitialize1 a o h >> (f `finally` petscFin1)
 
 -- -- PETSC_EXTERN PetscErrorCode PetscErrorMessage(int,const char*[],char **);
 
--- petscErrorMessage n =  do
---   p <- withPtr ( pem n ) >>= handleErrTup 
---   peekCString p where
---     pem nn mp = [C.exp|int{PetscErrorMessage($(int nn), $(char** mp), NULL)} |]
-
 petscErrorMessage' nn mp =
   [C.exp|int{PetscErrorMessage($(int nn), $(char** mp), NULL)} |]
 
@@ -2189,10 +2183,12 @@ mpiCommSize c =  unsafePerformIO $ mpiCommSize' c
 mpiCommRank' comm =
   withPtr
    (\p ->
-     [C.exp| int{ MPI_Comm_rank($(int c), $(int *p))}|] ) >>= \(a, _) -> return a
+     [C.exp| int{ MPI_Comm_rank($(int c), $(int *p))}|] )
   where
    c = unComm comm
-mpiCommRank c = MkRank $ unsafePerformIO $ mpiCommRank' c 
+   
+-- mpiCommRank c =
+--    MkRank $ unsafePerformIO $ mpiCommRank' c   -- FIXME surface it in PutGet
 
 
 {-# NOINLINE commWorld1 #-}
@@ -2210,8 +2206,8 @@ petscPrintf comm s =
     c = unComm comm
 
 
-petscSynchronizedPrintf comm s = withCString s ( \s_ ->
-  [C.exp|int{PetscSynchronizedPrintf($(int c), $(char* s_))}|] ) >>= handleErr
+petscSynchronizedPrintf' comm s = withCString s ( \s_ ->
+  [C.exp|int{PetscSynchronizedPrintf($(int c), $(char* s_))}|] )
     where c = unComm comm
 
 -- petscSynchronizedFlushStdout comm =
@@ -2223,8 +2219,8 @@ petscSynchronizedFlushStdout comm =
     where c = unComm comm
 
 
-syncPrintf c s =
-  petscSynchronizedPrintf c s >> petscSynchronizedFlushStdout c >>= handleErr
+-- syncPrintf c s =
+--   petscSynchronizedPrintf c s >> petscSynchronizedFlushStdout c 
 
 
 -- * misc parallelism stuff
