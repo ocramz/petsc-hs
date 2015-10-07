@@ -20,7 +20,7 @@ import Data.Vector.Storable (fromList, unsafeToForeignPtr, unsafeFromForeignPtr,
 
 
 
--- C-Haskell vector adapter
+-- | C-Haskell vector adapter
 {-# INLINE avec #-}
 avec :: Storable a => (CInt -> Ptr a -> b) -> VS.Vector a -> b
 avec f v = unsafePerformIO (unsafeWith v (return . f (fromIntegral (VS.length v))))
@@ -28,6 +28,8 @@ infixl 1 `avec`
 
 safeAvec :: Storable a => (CInt -> Ptr a -> b) -> VS.Vector a -> IO b
 safeAvec f v = unsafeWith v (return . f (fromIntegral $ VS.length v))
+
+
 
 
 
@@ -44,17 +46,27 @@ createVector n = do
     doMalloc dummy = 
         mallocPlainForeignPtrBytes (n * sizeOf dummy)
 
+
+
+
 readVector :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> b
-readVector v = unsafePerformIO . safeReadVector v
+readVector v = unsafePerformIO . readVectorSafe v
     
-safeReadVector :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> IO b
-safeReadVector = unsafeWith 
+readVectorSafe :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> IO b
+readVectorSafe = unsafeWith 
+
+
 
 vdim :: Storable a => VS.Vector a -> Int
 vdim = VS.length
 
+
+
 toList :: Storable a => VS.Vector a -> [a]
 toList v = readVector v $ peekArray (vdim v)
+
+toListSafe :: Storable a => VS.Vector a -> IO [a]
+toListSafe v = readVectorSafe v $ peekArray (vdim v)
 
 
 
@@ -78,6 +90,8 @@ fromSizedList n l =
 
 
 
+
+
 -- | access to Vector elements with range checking
 
 atIndex :: Storable a => VS.Vector a -> Int -> a
@@ -96,16 +110,26 @@ at' v n = readVector v $ flip peekElemOff n
 {-# INLINE at' #-}
 
 at'' :: Storable a => VS.Vector a -> Int -> IO a
-at'' v n = safeReadVector v $ flip peekElemOff n
+at'' v n = readVectorSafe v $ flip peekElemOff n
 {-# INLINE at'' #-}
+
+
+
+
+
+
+-- | map over storable vector : allocate w, map over v (peek from v[i], poke f v[i] into w), return w
+-- | which one is faster ? the HMatrix version uses `inlinePerformIO` as seen in Data.Text.Unsafe
+
 
 mapVectorM ::
   (Storable a, Storable b) => (a -> IO b) -> VS.Vector a -> IO (VS.Vector b)
 mapVectorM f v = do
-  w <- return $! unsafePerformIO $! createVector vd -- allocate space
+  w <- createVector vd -- allocate space
   go w 0 (vd - 1)
   return w
   where
+    vd = vdim v
     go u !k !t
       | k == t = do
           x <- unsafeWith v (`peekElemOff` k )
@@ -116,8 +140,7 @@ mapVectorM f v = do
           y <- f x
           _ <- unsafeWith u (\q -> pokeElemOff q k y)
           go u (k+1) t
-      
-    vd = vdim v
+
 
 mapVectorM0 ::
   (Storable a, Storable b, Monad m) => (a -> m b) -> VS.Vector a -> m (VS.Vector b)
@@ -138,3 +161,11 @@ mapVectorM0 f v = do
            go w' (k+1) t
 
 
+
+
+
+-- | testing testing
+
+v1 = 5 |> [3, 2 ..] :: VS.Vector Double
+
+v2 = mapVectorM0 (return . (^2)) v1 :: IO (VS.Vector Double)
