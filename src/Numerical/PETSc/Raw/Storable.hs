@@ -1,5 +1,7 @@
 module Numerical.PETSc.Raw.Storable where
 
+import Numerical.PETSc.Raw.Storable.Vector
+
 import Foreign
 import Foreign.C
 import Foreign.Storable
