@@ -1,8 +1,11 @@
+{-# LANGUAGE BangPatterns #-}
 module Numerical.PETSc.Raw.Storable.Vector where
+
+import Numerical.PETSc.Raw.Utils
 
 import Control.Monad
 
--- import Foreign.Marshal.Array
+import Foreign.Marshal.Array (peekArray)
 import Foreign.ForeignPtr
 import Foreign.Ptr
 import Foreign.Storable
@@ -14,6 +17,7 @@ import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 
 import qualified Data.Vector.Storable as VS
 import Data.Vector.Storable (fromList, unsafeToForeignPtr, unsafeFromForeignPtr, unsafeWith)
+
 
 
 -- C-Haskell vector adapter
@@ -29,7 +33,8 @@ safeAvec f v = unsafeWith v (return . f (fromIntegral $ VS.length v))
 
 createVector :: Storable a => Int -> IO (VS.Vector a)
 createVector n = do
-    when (n < 0) $ error ("trying to createVector of negative dim: "++show n)
+    -- when (n < 0) $ error ("trying to createVector of negative dim: "++show n)
+    (n < 0) ~!~ ("createVector : cannot allocate negative dim : "++show n)
     fp <- doMalloc undefined
     return $ unsafeFromForeignPtr fp 0 n
   where
@@ -44,3 +49,94 @@ safeReadVector v = unsafePerformIO . readVector v
     
 readVector :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> IO b
 readVector = unsafeWith 
+
+vdim :: Storable a => VS.Vector a -> Int
+vdim = VS.length
+
+toList :: Storable a => VS.Vector a -> [a]
+toList v = safeReadVector v $ peekArray (vdim v)
+
+
+
+--  5 |> [1..]
+-- fromList [1.0,2.0,3.0,4.0,5.0]
+
+(|>) :: (Storable a) => Int -> [a] -> VS.Vector a
+infixl 9 |>
+n |> l
+    | length l' == n = fromList l'
+    | otherwise      = error "list too short for |>"
+  where
+    l' = take n l
+
+fromSizedList n l =
+  listLongEnoughOrError n l (fromList $ take n l) "fromSizedList : list too short"
+
+atIndex v idx = inBoundsOrError idx (0, vdim v) (at' v idx) "@> : index out of bounds"
+
+atIndexSafe, (@:) :: Storable a => VS.Vector a -> Int -> IO a
+atIndexSafe v idx =
+  inBoundsOrError idx (0, vdim v) (at'' v idx) "@> : index out of bounds"
+
+(@:) = atIndexSafe
+
+-- | access to Vector elements without range checking
+at' :: Storable a => VS.Vector a -> Int -> a
+at' v n = safeReadVector v $ flip peekElemOff n
+{-# INLINE at' #-}
+
+at'' :: Storable a => VS.Vector a -> Int -> IO a
+at'' v n = readVector v $ flip peekElemOff n
+{-# INLINE at'' #-}
+
+mapVectorM ::
+  (Storable a, Storable b) => (a -> IO b) -> VS.Vector a -> IO (VS.Vector b)
+mapVectorM f v = do
+  w <- return $! unsafePerformIO $! createVector vd -- allocate space
+  go w 0 (vd - 1)
+  return w
+  where
+    go u !k !t
+      | k == t = do
+          x <- unsafeWith v (`peekElemOff` k )
+          y <- f x
+          unsafeWith u ( \q -> pokeElemOff q k y )
+      | otherwise = do
+          x <- unsafeWith v (`peekElemOff` k)
+          y <- f x
+          _ <- unsafeWith u (\q -> pokeElemOff q k y)
+          go u (k+1) t
+      
+    vd = vdim v
+
+
+mapVectorM' f v = do
+    w <- return $! unsafePerformIO $! createVector (vdim v)
+    go w 0 (vdim v -1)
+    return w
+    where go w' !k !t
+            | k == t  = do
+              x <- return $! unsafePerformIO $! unsafeWith v (`peekElemOff` k) 
+              y <- f x
+              return $! unsafePerformIO $! unsafeWith w' ( \q -> pokeElemOff q k y)
+            | otherwise            = do
+              x <- return $! unsafePerformIO $! unsafeWith v (`peekElemOff` k) 
+              y <- f x
+              _ <- return $! unsafePerformIO $! unsafeWith w' ( \q -> pokeElemOff q k y )
+              go w' (k+1) t
+
+
+-- mapVectorM f v = do
+--     w <- return $! createVector (vdim v)
+--     mapVectorM' w 0 (vdim v -1)
+--     return w
+--     where mapVectorM' w' !k !t
+--               | k == t               = do
+--                                        x <- return $! unsafeWith v $! \p -> peekElemOff p k 
+--                                        y <- f x
+--                                        return $! unsafeWith w' $! \q -> pokeElemOff q k y
+--               | otherwise            = do
+--                                        x <- return $! unsafeWith v $! \p -> peekElemOff p k 
+--                                        y <- f x
+--                                        _ <- return $! unsafeWith w' $! \q -> pokeElemOff q k y
+--                                        mapVectorM' w' (k+1) t
