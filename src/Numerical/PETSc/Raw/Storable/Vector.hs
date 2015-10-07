@@ -44,17 +44,18 @@ createVector n = do
     doMalloc dummy = 
         mallocPlainForeignPtrBytes (n * sizeOf dummy)
 
-safeReadVector :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> b
-safeReadVector v = unsafePerformIO . readVector v
+readVector :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> b
+readVector v = unsafePerformIO . safeReadVector v
     
-readVector :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> IO b
-readVector = unsafeWith 
+safeReadVector :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> IO b
+safeReadVector = unsafeWith 
 
 vdim :: Storable a => VS.Vector a -> Int
 vdim = VS.length
 
 toList :: Storable a => VS.Vector a -> [a]
-toList v = safeReadVector v $ peekArray (vdim v)
+toList v = readVector v $ peekArray (vdim v)
+
 
 
 
@@ -69,9 +70,17 @@ n |> l
   where
     l' = take n l
 
+fromSizedList :: Storable a => Int -> [a] -> VS.Vector a
 fromSizedList n l =
   listLongEnoughOrError n l (fromList $ take n l) "fromSizedList : list too short"
 
+
+
+
+
+-- | access to Vector elements with range checking
+
+atIndex :: Storable a => VS.Vector a -> Int -> a
 atIndex v idx = inBoundsOrError idx (0, vdim v) (at' v idx) "@> : index out of bounds"
 
 atIndexSafe, (@:) :: Storable a => VS.Vector a -> Int -> IO a
@@ -81,12 +90,13 @@ atIndexSafe v idx =
 (@:) = atIndexSafe
 
 -- | access to Vector elements without range checking
+
 at' :: Storable a => VS.Vector a -> Int -> a
-at' v n = safeReadVector v $ flip peekElemOff n
+at' v n = readVector v $ flip peekElemOff n
 {-# INLINE at' #-}
 
 at'' :: Storable a => VS.Vector a -> Int -> IO a
-at'' v n = readVector v $ flip peekElemOff n
+at'' v n = safeReadVector v $ flip peekElemOff n
 {-# INLINE at'' #-}
 
 mapVectorM ::
@@ -109,34 +119,22 @@ mapVectorM f v = do
       
     vd = vdim v
 
-
-mapVectorM' f v = do
+mapVectorM0 ::
+  (Storable a, Storable b, Monad m) => (a -> m b) -> VS.Vector a -> m (VS.Vector b)
+mapVectorM0 f v = do
     w <- return $! unsafePerformIO $! createVector (vdim v)
     go w 0 (vdim v -1)
     return w
-    where go w' !k !t
-            | k == t  = do
-              x <- return $! unsafePerformIO $! unsafeWith v (`peekElemOff` k) 
-              y <- f x
-              return $! unsafePerformIO $! unsafeWith w' ( \q -> pokeElemOff q k y)
-            | otherwise            = do
-              x <- return $! unsafePerformIO $! unsafeWith v (`peekElemOff` k) 
-              y <- f x
-              _ <- return $! unsafePerformIO $! unsafeWith w' ( \q -> pokeElemOff q k y )
-              go w' (k+1) t
+    where
+      go w' !k !t
+        | k == t  = do
+           x <- return $! unsafePerformIO $! unsafeWith v (`peekElemOff` k) 
+           y <- f x
+           return $! unsafePerformIO $! unsafeWith w' ( \q -> pokeElemOff q k y)
+        | otherwise = do
+           x <- return $! unsafePerformIO $! unsafeWith v (`peekElemOff` k) 
+           y <- f x
+           _ <- return $! unsafePerformIO $! unsafeWith w' ( \q -> pokeElemOff q k y )
+           go w' (k+1) t
 
 
--- mapVectorM f v = do
---     w <- return $! createVector (vdim v)
---     mapVectorM' w 0 (vdim v -1)
---     return w
---     where mapVectorM' w' !k !t
---               | k == t               = do
---                                        x <- return $! unsafeWith v $! \p -> peekElemOff p k 
---                                        y <- f x
---                                        return $! unsafeWith w' $! \q -> pokeElemOff q k y
---               | otherwise            = do
---                                        x <- return $! unsafeWith v $! \p -> peekElemOff p k 
---                                        y <- f x
---                                        _ <- return $! unsafeWith w' $! \q -> pokeElemOff q k y
---                                        mapVectorM' w' (k+1) t
