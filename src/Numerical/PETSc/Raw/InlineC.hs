@@ -123,13 +123,17 @@ vecSetName1 v name = withCString name $ \n ->
 
 vecCreate0' comm p = [C.exp|int{VecCreate($(int c), $(Vec *p))} |]
   where c = unComm comm
+
+vecCreate' :: Comm -> IO (Vec, CInt)
 vecCreate' c = withPtr (vecCreate0' c) 
 
 -- PetscErrorCode VecCreateMPI(MPI_Comm comm, int m, int M, Vec* x)
 vecCreateMPI0' comm m1' m2' p = [C.exp|int{VecCreateMPI($(int c), $(int m1), $(int m2), $(Vec *p))}|] 
   where c = unComm comm
-        m1 = fromIntegral m1'
-        m2 = fromIntegral m2'
+        m1 = toCInt m1'
+        m2 = toCInt m2'
+
+vecCreateMPI' :: Comm -> Int -> Int -> IO (Vec, CInt)
 vecCreateMPI' c nlocal nglobal = withPtr (vecCreateMPI0' c nlocal nglobal) 
 
 vecCreateMPILocal c m = vecCreateMPI' c m m
@@ -162,13 +166,14 @@ vecSetBlockSize1 v bs =
 --    These values may be cached, so VecAssemblyBegin() and VecAssemblyEnd()
 --    MUST be called after all calls to VecSetValues() have been completed.
 
--- vecSetValues' :: Vec -> CInt -> Ptr CInt -> Ptr PetscScalar_ -> IO CInt
+vecSetValues' ::
+  Vec -> CInt -> Ptr CInt -> Ptr PetscScalar_ -> InsertMode_ -> IO CInt
 vecSetValues' x ni ixx y imm = [C.exp|int{VecSetValues($(Vec x), $(int ni), $(int* ixx), $(PetscScalar* y), $(int im))}|] where im = fromIntegral $ insertModeToInt imm
 
 -- vecSetValues'' x ni ixx y imm =
 --   [C.exp|int{VecSetValues($(Vec x), $(int ni), $(int* ixx), $(PetscScalar* y), $(int im))}|] where im = fromIntegral $ insertModeToInt imm
 
--- vecSetValues :: Vec -> [CInt] -> [PetscScalar_] -> IO ()
+vecSetValues :: Vec -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO CInt
 vecSetValues x ix y im =
   withArray ix $ \ixx ->
    withArray y $ \yy -> vecSetValues' x ni ixx yy im
@@ -199,6 +204,8 @@ vecEqual1 v1 v2 = withPtr ( \b ->
 
 
 vecDestroy0' p = [C.exp|int{VecDestroy($(Vec *p))}|]
+
+vecDestroy' :: Vec -> IO CInt
 vecDestroy' p = with p vecDestroy0' 
 
 
@@ -210,8 +217,10 @@ vecDuplicate' p1 p2 = [C.exp| int{VecDuplicate($(Vec p1), $(Vec *p2))}|]
 vecDuplicate1 v = withPtr (vecDuplicate' v) 
 
 
+vecAssemblyBegin' :: Vec -> IO CInt
+vecAssemblyBegin' v = [C.exp|int{VecAssemblyBegin($(Vec v))}|]
 
-vecAssemblyBegin' v = [C.exp|int{VecAssemblyBegin($(Vec v))}|] 
+vecAssemblyEnd' :: Vec -> IO CInt
 vecAssemblyEnd' v = [C.exp|int{VecAssemblyEnd($(Vec v))}|] 
 
 -- vecAssembly1 v = vecAssemblyBegin v >> vecAssemblyEnd v

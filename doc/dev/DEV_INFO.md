@@ -6,7 +6,7 @@ The low-level bindings use `inline-c` (https://github.com/fpco/inline-c) to wrap
  
 Exception control can be found in ..Raw/Exception.hs ; the integer error codes returned by the "raw" calls (those in ../Raw/InlineC.hs) are checked and an appropriate exception is thrown.
 
-The mid-level bindings (../Raw/PutGet.hs) wrap the low-level calls with the exception logic and group appropriately allocation-setup-cleanup sequences into higher level "with-" functions, using e.g. `bracket` from Control.Exception . An application developer should only work with these or higher-level bindings (PETSc is an extensive library and can be used in *many* different ways, so it's better not to limit users by design too much).
+The mid-level bindings (../Raw/PutGet.hs) wrap the low-level calls with the exception logic and group appropriately allocation-setup-cleanup sequences into higher level "with-" functions, using e.g. `bracket` from Control.Exception . An application developer should only work with these or higher-level bindings (PETSc is an extensive library and can be used in *many* different ways, so it's better not to limit users by design too much). The types for the mid-level bindings are declared in ..Raw/Types.hs .
 
 
 ## Build Sequence
