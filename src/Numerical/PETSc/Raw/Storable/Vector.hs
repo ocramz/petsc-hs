@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Numerical.PETSc.Raw.Storable.Vector where
 
 import Numerical.PETSc.Raw.Utils
@@ -118,6 +119,9 @@ at'' v n = readVectorSafe v $ flip peekElemOff n
 
 
 
+
+-- | maps
+
 -- | map over storable vector : allocate w, map over v (peek from v[i], poke f v[i] into w), return w
 -- | which one is faster ? the HMatrix version uses `inlinePerformIO` as seen in Data.Text.Unsafe
 
@@ -161,6 +165,98 @@ mapVectorM0 f v = do
            go w' (k+1) t
 
 
+-- | map over storable vector and passes index to mapping function
+
+mapVectorWithIndex ::
+  (Storable a, Storable b) => (Int -> a -> b) -> VS.Vector a -> IO (VS.Vector b)
+mapVectorWithIndex f v = do
+    w <- createVector vd
+    unsafeWith v $ \p ->
+        unsafeWith w $ \q -> do
+            let go (-1) = return ()
+                go !k = do x <- peekElemOff p k
+                           pokeElemOff      q k (f k x)
+                           go (k-1)
+            go (vd -1)
+    return w
+      where
+        vd = vdim v
+{-# INLINE mapVectorWithIndex #-}
+
+
+
+buildVectorFromIdxs :: Storable a => Int -> (Int -> a) -> VS.Vector a
+buildVectorFromIdxs len f =
+    fromList $ map f [0 .. (len - 1)]
+
+mapFromList :: Storable b => [a] -> (a -> b) -> VS.Vector b
+mapFromList l f = fromList (map f l)
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- | zips 
+
+-- | zipWith for Vectors
+zipVectorWith ::
+  (Storable a, Storable b, Storable c) =>
+     (a-> b -> c) -> VS.Vector a -> VS.Vector b -> VS.Vector c
+zipVectorWith f u v = unsafePerformIO $ do
+    let n = min (vdim u) (vdim v)
+    w <- createVector n
+    unsafeWith u $ \pu ->
+        unsafeWith v $ \pv ->
+            unsafeWith w $ \pw -> do
+                let go (-1) = return ()
+                    go !k = do x <- peekElemOff pu k
+                               y <- peekElemOff pv k
+                               pokeElemOff      pw k (f x y)
+                               go (k-1)
+                go (n -1)
+    return w
+{-# INLINE zipVectorWith #-}
+
+-- | unzipWith for Vectors
+unzipVectorWith :: (Storable (a,b), Storable c, Storable d) 
+                   => ((a,b) -> (c,d)) -> VS.Vector (a,b) -> (VS.Vector c,VS.Vector d)
+unzipVectorWith f u = unsafePerformIO $ do
+      let n = vdim u
+      v <- createVector n
+      w <- createVector n
+      unsafeWith u $ \pu ->
+          unsafeWith v $ \pv ->
+              unsafeWith w $ \pw -> do
+                  let go (-1) = return ()
+                      go !k   = do z <- peekElemOff pu k
+                                   let (x,y) = f z 
+                                   pokeElemOff      pv k x
+                                   pokeElemOff      pw k y
+                                   go (k-1)
+                  go (n-1)
+      return (v,w)
+{-# INLINE unzipVectorWith #-}
+
+
+-- | zip for Vectors
+-- zipVector ::
+--   (Storable a, Storable b, Storable (a,b)) =>
+--     VS.Vector a -> VS.Vector b -> VS.Vector (a,b)
+-- zipVector = zipVectorWith (,)
+
+-- -- | unzip for Vectors
+-- unzipVector ::
+--   (Storable a, Storable b, Storable (a,b)) =>
+--     VS.Vector (a,b) -> (VS.Vector a,VS.Vector b)
+-- unzipVector = unzipVectorWith id
 
 
 
@@ -169,3 +265,6 @@ mapVectorM0 f v = do
 v1 = 5 |> [3, 2 ..] :: VS.Vector Double
 
 v2 = mapVectorM0 (return . (^2)) v1 :: IO (VS.Vector Double)
+v2u = unsafePerformIO v2
+
+v3 = zipVectorWith (+) v1 v2u
