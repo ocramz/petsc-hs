@@ -60,21 +60,52 @@ withCStringArrayPtr ss f = withCStringArray ss $ \css -> with css f
 
 
 
--- indexing
+
 
 c ~!~ es = when c (error es)
 
-ifThenElse :: Bool -> a -> a -> a
+-- ifThenElse :: Bool -> a -> a -> a
 ifThenElse q i e
   | q = i
   | otherwise = e
 
+ifThenElseE q a b
+  | q = Left a
+  | otherwise = Right b
+
+
+
+
+-- indexing
+
+ifNegE n = ifThenElseE (n<0)
+
+listTooShortE n l = ifThenElseE (length (take n l) /= n)
+
+listTooShortEorError n l = listTooShortE n l (error "list too short") l
+
+
+
+
 ifNeg :: Int -> a -> a -> a
 ifNeg n = ifThenElse (n < 0)
 
+listLongEnough n l = ifThenElse (length (take n l) == n)
+
+-- listLongEnoughOrError n l f es
+--   | length l' == n = f
+--   | otherwise = error es where
+--       l' = take n l
+
+-- inBoundsOrError n (a,b) f es
+--   | n >= a && n <= b = f
+--   | otherwise = error es
+
+
+
 ifNegError :: Int -> String -> a -> a
 ifNegError n es = ifNeg n (error es)
-  
+
 
 listLongEnoughOrError n l f es
   | length l' == n = f
