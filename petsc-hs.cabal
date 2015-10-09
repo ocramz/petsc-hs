@@ -10,14 +10,14 @@ license:             LGPL-3
 license-file:        LICENSE
 author:              Marco Zocca
 maintainer:          zocca.marco@gmail.com
--- copyright:           
+copyright:           (c) 2015 Marco Zocca
 category:            Numerical
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Numerical.PETSc, Numerical.PETSc.TestMain2, Numerical.PETSc.Raw.PutGet
+  exposed-modules:     Numerical.PETSc
   -- other-modules:       
   other-extensions:    ConstraintKinds, ForeignFunctionInterface, QuasiQuotes, TemplateHaskell, GeneralizedNewtypeDeriving, StandaloneDeriving, DeriveDataTypeable, DataKinds, MultiParamTypeClasses, BangPatterns, FunctionalDependencies, FlexibleInstances, TypeFamilies, FlexibleContexts, RankNTypes, CPP
   build-depends:       base >=4.7 && <4.8, 
@@ -26,6 +26,74 @@ library
                        QuickCheck >=2.7 && <2.8, 
                        bytestring >=0.10 && <0.11, 
                        transformers >=0.3 && <0.4
-  hs-source-dirs:      src
+  main-is:             Internal.hs, InlineC.hs
+  hs-source-dirs:      src/Numerical/PETSc/, src/Numerical/PETSc/Raw
+  c-source-dirs:       src/Numerical/PETSc/Raw
+  c-sources:           Internal.c, InlineC.c
+  extra-libraries:     petsc mpich
+  extra-lib-dirs:      lib/
+  -- hs-source-dirs:      src
   build-tools:         chs
   default-language:    Haskell2010
+
+executable example
+  main-is:             TestMain2.hs
+  hs-source-dirs:      examples
+  extra-lib-dirs:      lib/
+  extra-libraries:     petsc mpich
+
+
+
+-- executable foo
+--   main-is:             Main.hs, Foo.hs, Bar.hs
+--   hs-source-dirs:      src
+--   -- Here the corresponding C sources must be listed for every module
+--   -- that uses C code.  In this example, Main.hs and Bar.hs do, but
+--   -- Foo.hs does not.
+--   c-sources:           src/Main.c, src/Bar.c
+--   -- These flags will be passed to the C compiler
+--   cc-options:          -Wall -O2
+--   -- Libraries to link the code with.
+--   extra-libraries:     m
+--   ...
+
+-- If we were to compile the above manually we could do:
+
+-- $ ghc -c Main.hs
+-- $ cc -c Main.c -o Main_c.o
+-- $ ghc Foo.hs
+-- $ ghc Bar.hs
+-- $ cc -c Bar.c -o Bar_c.o
+-- $ ghc Main.o Foo.o Bar.o Main_c.o Bar_c.o -lm -o Main
+
+
+
+
+--  -- makefile to implement : 
+
+-- PETSC_DIR_ARCH = ${PETSC_DIR}/arch-darwin-c-debug
+-- PETSC_DIR_ARCH_INCLUDE = ${PETSC_DIR_ARCH}/include
+-- SRCDIR = ${CURDIR}/src/Numerical/PETSc
+-- SRCPARDIR = ${CURDIR}/src/Numerical
+-- CBITS = ${CURDIR}/src/cbits
+-- TESTDIR = ${CURDIR}/test
+-- LIBDIR = ${CURDIR}/lib
+-- EXAMPLEDIR = ${CURDIR}/examples
+
+-- main:
+-- 	make step1
+-- 	make step2a
+-- 	make step2b
+-- 	make step3
+
+-- step1:
+-- 	ghc  ${SRCDIR}/Raw/Internal.hs ${SRCDIR}/Raw/InlineC.hs -isrc/
+
+-- step2a:
+-- 	cc -c ${SRCDIR}/Raw/Internal.c -o ${LIBDIR}/Internal_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include
+
+-- step2b:
+-- 	cc -c ${SRCDIR}/Raw/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include
+
+-- step3:
+-- 	ghci ${EXAMPLEDIR}/TestMain2.hs ${SRCDIR}/Raw/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal_c.o -isrc/ -L${PETSC_DIR_ARCH}/lib -lpetsc -lmpich
