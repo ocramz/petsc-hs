@@ -35,8 +35,8 @@ library
   -- hs-source-dirs:      src
   -- build-tools:         chs
   default-language:    Haskell2010
-  extra-include-dirs:  ~/petsc-3.6.0/include, ~/petsc-3-6.0/arch-darmin-c-debug
-  extra-lib-dirs:      lib/ ~/petsc-4.6.0/lib
+  extra-include-dirs:  ~/petsc-3.6.0/include, ~/petsc-3.6.0/arch-darmin-c-debug
+  extra-lib-dirs:      lib/ ~/petsc-3.6.0/lib
 
 executable example
   main-is:             TestMain2.hs
