@@ -17,7 +17,7 @@ extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Numerical.PETSc
+  exposed-modules:     PETSc
   -- other-modules:       
   other-extensions:    ConstraintKinds, ForeignFunctionInterface, QuasiQuotes, TemplateHaskell, GeneralizedNewtypeDeriving, StandaloneDeriving, DeriveDataTypeable, DataKinds, MultiParamTypeClasses, BangPatterns, FunctionalDependencies, FlexibleInstances, TypeFamilies, FlexibleContexts, RankNTypes, CPP
   build-depends:       base >=4.7 && <4.8, 
@@ -26,15 +26,17 @@ library
                        QuickCheck >=2.7 && <2.8, 
                        bytestring >=0.10 && <0.11, 
                        transformers >=0.3 && <0.4
-  main-is:             Internal.hs, InlineC.hs
-  hs-source-dirs:      src/Numerical/PETSc/, src/Numerical/PETSc/Raw
-  c-source-dirs:       src/Numerical/PETSc/Raw
-  c-sources:           Internal.c, InlineC.c
+  -- main-is:             Internal.hs, InlineC.hs
+  hs-source-dirs:      src/Numerical/PETSc/, src/Numerical/PETSc/Raw, src/Numerical/
+  -- c-source-dirs:       src/Numerical/PETSc/Raw
+  c-sources:           src/Numerical/PETSc/Internal.c, src/Numerical/PETSc/InlineC.c
   extra-libraries:     petsc mpich
-  extra-lib-dirs:      lib/
+  -- lib-dirs:      lib/
   -- hs-source-dirs:      src
-  build-tools:         chs
+  -- build-tools:         chs
   default-language:    Haskell2010
+  extra-include-dirs:  ~/petsc-3.6.0/include, ~/petsc-3-6.0/arch-darmin-c-debug
+  extra-lib-dirs:      lib/ ~/petsc-4.6.0/lib
 
 executable example
   main-is:             TestMain2.hs
