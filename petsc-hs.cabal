@@ -25,22 +25,37 @@ library
                        containers >=0.5 && <0.6, 
                        QuickCheck >=2.7 && <2.8, 
                        bytestring >=0.10 && <0.11, 
-                       transformers >=0.3 && <0.4
+                       transformers,
+                       transformers-base,
+                       contravariant,
+                       monad-control,
+                       comonad,
+                       semigroupoids,
+                       profunctors,
+                       free,
+                       inline-c,
+                       vector,
+                       mtl,
+                       async,
+                       either,
+                       StateVar,
+                       mmorph,
+                       prelude-extras,
+                       void,
+                       MonadRandom
   -- main-is:             Internal.hs, InlineC.hs
   hs-source-dirs:      src/
   -- c-source-dirs:       src/Numerical/PETSc/Raw
   c-sources:           src/Numerical/PETSc/Internal.c, src/Numerical/PETSc/InlineC.c
   -- extra-libraries:     petsc mpich
   pkgconfig-depends:   PETSc
-  -- pkgconfig-depends:   mpich
+  pkgconfig-depends:   mpich
   -- lib-dirs:      lib/
   -- hs-source-dirs:      src
   -- build-tools:         chs
   default-language:    Haskell2010
   -- extra-include-dirs:  ~/petsc-3.6.0/include, ~/petsc-3.6.0/arch-darmin-c-debug
   -- extra-lib-dirs:      lib/ ~/petsc-3.6.0/lib
-  -- extra-include-dirs:  ~/petsc-3.6.0/include, ~/petsc-3.6.0/arch-darmin-c-debug
-  -- extra-lib-dirs:      /Users/ocramz/petsc-3.6.0/arch-darwin-c-debug/lib/pkgconfig/
   extra-lib-dirs:      lib/ 
 
 executable example
