@@ -267,11 +267,16 @@ vecViewStdout1 v = [C.exp|int{VecView($(Vec v), PETSC_VIEWER_STDOUT_SELF)}|]
 -- PETSC_EXTERN PetscErrorCode VecGetArray(Vec,PetscScalar**);
 vecGetArray0' v p =  [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]
 
-vecGetArray0'' v = withPtr ( \p -> [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]) 
+vecGetArray0'' v = withPtr ( \p -> [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|])
+
+
+
 vecGetArray' v sz = do
-  (p, e) <- vecGetArray0'' v
+  (p, e) <- vga v
   arr <- peekArray sz p
   return (arr, e)
+    where
+      vga v' = withPtr $ \p -> vecGetArray0' v' p
 
 -- vecGetArraySafe v = vecGetArray v (vecSize v)
 

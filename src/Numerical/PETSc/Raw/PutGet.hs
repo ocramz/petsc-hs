@@ -359,7 +359,10 @@ vecCopyDuplicate v = do
 vecView v vi = chk0 $ vecView1 v vi
 vecSetName v name = chk0 $ vecSetName1 v name
 
+vecSet_ :: Vec -> PetscScalar_ -> IO ()
 vecSet_ v n = chk0 $ vecSet1 v n
+
+vecSet :: Vec -> PetscScalar_ -> IO Vec
 vecSet v n = do {vecSet_ v n ; return v}
 
 vecGetOwnershipRange :: Vec -> IO (Int, Int)
@@ -412,8 +415,10 @@ vecViewStdout v = chk0 $ vecViewStdout1 v
 
 
 
+vecGetArray :: Vec -> Int -> IO [PetscScalar_]
 vecGetArray v sz = chk1 $ vecGetArray' v sz
 
+vecGetArraySafe :: Vec -> IO [PetscScalar_]
 vecGetArraySafe v = do
   sz <- vecGetSize v
   vecGetArray v sz
@@ -444,8 +449,8 @@ withVecGetArrayMVarUse v f = withVecGetArrayMVar v $ \mv -> withMVar mv f
 
 
 
-withVecGetArray1d' x m ms =
-  bracketChk (vecGetArray1d' x m ms)
+-- withVecGetArray1d' x m ms =
+--   bracketChk (vecGetArray1d' x m ms)
 
 -- vecGetArray1d0 x m ms = do
 --   p <- chk1 $ vecGetArray1d' x m ms
