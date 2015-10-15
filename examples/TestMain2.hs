@@ -60,14 +60,12 @@ t3 = withPetsc0 t3'
 
 
 
--- test1 = withVecMPIPipeline (vinfo 5) (`vecSet` pi)
-
 
 t4'= withVecMPIPipeline (vinfo 5) (`vecSet` pi) $ \v -> do
   a <- vecGetArraySafe v
   -- let b = map (+1) a
   let b = take 6 [1, 1 ..]
-  vecRestoreArray v b
+  vecRestoreArray v b       
   vecViewStdout v
 
 t4 = withPetsc0 t4'
