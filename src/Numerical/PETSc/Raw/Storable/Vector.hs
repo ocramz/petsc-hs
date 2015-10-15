@@ -19,6 +19,8 @@ import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 import qualified Data.Vector.Storable as VS
 import Data.Vector.Storable (fromList, unsafeToForeignPtr, unsafeFromForeignPtr, unsafeWith)
 
+-- import qualified Data.Vector.Storable as VSM
+
 
 
 -- | C-Haskell vector adapter
@@ -274,3 +276,18 @@ v2 = mapVectorM0 (return . (^2)) v1 :: IO (VS.Vector Double)
 v2u = unsafePerformIO v2
 
 v3 = zipVectorWith (+) v1 v2u
+
+
+
+
+-- -- -- -- --
+
+-- unsafeFromForeignPtr0 :: Storable a => ForeignPtr a -> Int -> VSM.Vector a
+-- unsafeFromForeignPtr0 = VSM.unsafeFromForeignPtr0
+
+-- f fp t = do
+--   p <- newForeignPtr fp
+--   t p
+
+f :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> IO b
+f = unsafeWith

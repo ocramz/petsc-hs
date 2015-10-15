@@ -32,6 +32,8 @@ import Foreign.C.Types
 import Foreign.C.String
 import qualified Foreign.ForeignPtr.Safe         as FPS
 
+import qualified Data.Vector.Storable as V
+
 import System.IO.Unsafe (unsafePerformIO)
 
 context petscCtx
@@ -278,40 +280,26 @@ vecGetArray' v sz = do
     where
       vga v' = withPtr $ \p -> vecGetArray0' v' p
 
--- vecGetArraySafe v = vecGetArray v (vecSize v)
 
 
 
 
 
--- PETSC_EXTERN PetscErrorCode VecGetArrayRead(Vec,const PetscScalar**);
 
 
 
-
-
+-- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
 vecRestoreArray0' :: Vec -> Ptr (Ptr PetscScalar_) -> IO CInt
 vecRestoreArray0' v pc = [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]
 
 vecRestoreArray'' v c = with c (vecRestoreArray0' v)
 
--- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
--- vecRestoreArray' v c = with c (\pc -> [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]) 
+
+
 vecRestoreArray' v c = withArray c $ \cp ->
   with cp $ \cpp -> vecRestoreArray0' v cpp
 
- 
 
-
-
--- vra v c = withArray c $ \cp -> do
---   pokeArray cp c
---   vecRestoreArray' v cp
-
--- vra v c = withArray c $ \cp ->
---   with cp $ \cpp -> vecRestoreArray'' v cpp
-
--- vecRestoreArray1 v c = withArray c $ \cp -> vecRestoreArray' v cp
 
 -- withVecRestoreArray v c f = vecRestoreArray v (f c)
 

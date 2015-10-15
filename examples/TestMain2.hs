@@ -60,17 +60,33 @@ t3 = withPetsc0 t3'
 
 
 
-testv1 = withVecMPIPipeline (vinfo 5) (`vecSet` pi)
-
--- t4'= testv1 $ \v -> do
---   a <- vecGetArraySafe v
---   let b = map (+1) a
---   vecRestoreArrayB v b
---   vecViewStdout v
-
--- t4 = withPetsc0 t4'
+-- test1 = withVecMPIPipeline (vinfo 5) (`vecSet` pi)
 
 
+t4'= withVecMPIPipeline (vinfo 5) (`vecSet` pi) $ \v -> do
+  a <- vecGetArraySafe v
+  -- let b = map (+1) a
+  let b = take 6 [1, 1 ..]
+  vecRestoreArray v b
+  vecViewStdout v
+
+t4 = withPetsc0 t4'
+
+
+
+t5' = do
+  v <- vecCreateMPIInfo vi
+  vecSet v pi
+  a <- vecGetArraySafe v
+  let b = map (+1) a
+  vecRestoreArray v b
+  vecViewStdout v
+  vecDestroy v
+
+    where
+      vi = vinfo 5
+
+t5 = withPetsc0 $ t5'
 
 
 -- tests = withPetsc0 $ sequence [t4']
