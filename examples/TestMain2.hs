@@ -58,7 +58,7 @@ t3' = withVecMPIPipeline (vinfo 5) (`vecSet` (2*pi))  $ \v -> do
 
 t3 = withPetsc0 t3'
 
-
+-- --
 
 
 t4'= withVecMPIPipeline (vinfo 5) (`vecSet` pi) $ \v -> do
@@ -70,7 +70,7 @@ t4'= withVecMPIPipeline (vinfo 5) (`vecSet` pi) $ \v -> do
 
 t4 = withPetsc0 t4'
 
-
+-- -- 
 
 t5' = do
   v <- vecCreateMPIInfo vi
@@ -86,5 +86,4 @@ t5' = do
 
 t5 = withPetsc0 $ t5'
 
-
--- tests = withPetsc0 $ sequence [t4']
+-- -- 

@@ -4,3 +4,5 @@
 *.o
 *.c
 *.h
+*.dyn_hi
+*.dyn_o
