@@ -9,27 +9,7 @@ vinfo n = VecInfo commWorld n n
 
 t1' = 
   withVecMPIPipeline (vinfo 5) (`vecSet` pi) $ \v1 -> do
-   -- v2 <- vecCopyDuplicate v1
    v3 <- vecCopyDuplicate v1 
-   -- vecSet v2 2
-   -- v3 <- vecAxpy 1 v1 v2
-   -- v3 <- vecVecSumSafe (PVec v1 vinfo) (PVec v2 vinfo)
-   -- v3 <- vecWaxpy v3 1 v1 v2
-   -- vecViewStdout v3
-   -- av3 <- vecGetArraySafe v3
-   -- let av3' = map (+1) av3
-   -- vecRestoreArray v3 av3'
-   -- withVecGetArrayMVarModify v3 $ \a -> do
-   --   print a
-   --   let a2 = map (+2) a
-   --   print "so far so good"
-   --   print a2
-   --   return a2
-   -- withVecGetArray v3 $ \a -> do
-   --   print a
-   --   let a2 = map (+2) a
-   --   print a2
-   --   return a2
    v3 <- v1 .+ v3
    a <- vecGetArraySafe v3
    let a2 = map (+1) a
@@ -51,7 +31,6 @@ t3' = withVecMPIPipeline (vinfo 5) (`vecSet` (2*pi))  $ \v -> do
   vecViewStdout v
   a <- vecGetArraySafe v
   let b = [1,2,3,4,5]
-  -- print b
   vecRestoreArray v b
   vecAssemblyChk v
   vecViewStdout v
@@ -63,8 +42,7 @@ t3 = withPetsc0 t3'
 
 t4'= withVecMPIPipeline (vinfo 5) (`vecSet` pi) $ \v -> do
   a <- vecGetArraySafe v
-  -- let b = map (+1) a
-  let b = take 6 [1, 1 ..]
+  let b = take 6 [1, 1 ..] --laziness: wrong size of b is not issue to vecRestoreArray
   vecRestoreArray v b       
   vecViewStdout v
 
