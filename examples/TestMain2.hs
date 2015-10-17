@@ -42,7 +42,7 @@ t3 = withPetsc0 t3'
 
 t4'= withVecMPIPipeline (vinfo 5) (`vecSet` pi) $ \v -> do
   a <- vecGetArraySafe v
-  let b = take 6 [1, 1 ..] --laziness: wrong size of b is not issue to vecRestoreArray
+  let b = take 6 [1, 1 ..] --laziness: size of b is not issue to vecRestoreArray (?!)
   vecRestoreArray v b       
   vecViewStdout v
 
