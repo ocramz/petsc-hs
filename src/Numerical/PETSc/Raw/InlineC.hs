@@ -267,12 +267,10 @@ vecViewStdout1 v = [C.exp|int{VecView($(Vec v), PETSC_VIEWER_STDOUT_SELF)}|]
 
 
 -- PETSC_EXTERN PetscErrorCode VecGetArray(Vec,PetscScalar**);
+vecGetArray0' :: Vec -> Ptr (Ptr PetscScalar_) -> IO CInt
 vecGetArray0' v p =  [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]
 
-vecGetArray0'' v = withPtr ( \p -> [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|])
-
-
-
+vecGetArray' :: Vec -> Int -> IO ([PetscScalar_], CInt)
 vecGetArray' v sz = do
   (p, e) <- vga v
   arr <- peekArray sz p
@@ -292,25 +290,14 @@ vecGetArray' v sz = do
 vecRestoreArray0' :: Vec -> Ptr (Ptr PetscScalar_) -> IO CInt
 vecRestoreArray0' v pc = [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]
 
-vecRestoreArray'' v c = with c (vecRestoreArray0' v)
 
-
-
+vecRestoreArray' :: Vec -> [PetscScalar_] -> IO CInt
 vecRestoreArray' v c = withArray c $ \cp ->
   with cp $ \cpp -> vecRestoreArray0' v cpp
 
 
 
--- withVecRestoreArray v c f = vecRestoreArray v (f c)
 
--- withVecGetArrayUnsafe v modify =
---   bracket (vecGetArray v sz) (\c -> withVecRestoreArray v c modify) return
---    where sz = vecSize v
-
--- withVecGetArrayUnsafe' v f = do
---   a <- vecGetArraySafe v
---   vecRestoreArray v (f a)
---   vecAssembly v
 
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArrayRead(Vec,const PetscScalar**);
@@ -319,8 +306,6 @@ vecRestoreArray' v c = withArray c $ \cp ->
 -- withVecGetArray v sz
 --   | sz >0 =  bracket (vecGetArray v sz) (vecRestoreArray v)
 --   | otherwise = error "withVecGetArray: temp array size must be nonnegative"
-
--- withVecGetArraySafe' v = withVecGetArray v (vecSize v)
 
 -- withVecGetArraySafe v =
 --   bracket (vecGetArray v sz) (vecRestoreArray v)  where
