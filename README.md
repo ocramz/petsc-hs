@@ -5,6 +5,7 @@ petsc-hs - Haskell bindings for the scientific computation library PETSc
 
 Copyright (c) 2015 - , Marco Zocca ( zocca at marco dot gmail at com )
 
+https://travis-ci.org/ocramz/petsc-hs.svg
 
 
 ## Introduction
