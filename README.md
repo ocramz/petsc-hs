@@ -38,7 +38,7 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 ## Notes
 
-* The library is being developed on a Unix, with the Haskell compiler GHC 7.8.4, using PETSc 3.6.0 and MPICH (installed via the PETSc installation process).
+* The library is being developed on a Unix, with the Haskell compiler GHC 7.8.3, using PETSc 3.6.0 and MPICH (installed via the PETSc installation process).
 
 * The PETSc architecture directory within the makefile is hardcoded ("arch-darwin-c-debug"), but it depend on the actual configuration parameters you supplied when installing the library ; modify it to suit your case.
 
