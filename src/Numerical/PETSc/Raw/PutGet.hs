@@ -66,9 +66,16 @@ withIsCreateGeneral iis mode =
     idxi = isIndexSet iis
 
 
+isColoringCreate comm nc n cols cm =
+  chk1 (isColoringCreate' comm nc n cols cm)
+
+isColoringDestroy isc = chk0 (isColoringDestroy' isc)
+
+dmCreateColoring :: DM -> ISColoringType_ -> IO ISColoring
+dmCreateColoring dm coloringtype = chk1 $ dmCreateColoring' dm coloringtype
 
 
-
+withDmIsColoring dm ct = bracket (dmCreateColoring dm ct) isColoringDestroy
 
 
 
@@ -503,6 +510,9 @@ withMatFDColoring mat iscoloring =
 
 
 -- * DM
+
+
+
 -- -- * DMDA 
 
 -- * KSP
@@ -514,6 +524,18 @@ withMatFDColoring mat iscoloring =
 -- * TS
 
 -- * Tao
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 -- * PetscViewer

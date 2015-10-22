@@ -898,6 +898,7 @@ matFDColoringDestroy' color = with color $ \cp -> [C.exp|int{MatFDColoringDestro
 
 
 
+
 -- * DM
 
 
@@ -1592,7 +1593,11 @@ snesGetSolution' s = withPtr ( \v ->
 --                              $fun:(int (*f)(SNES, Vec, Vec, void*) ),
 --                              $(void* ctx))}|]
 
--- PetscErrorCode  SNESSetJacobian(SNES snes,Mat Amat,Mat Pmat,PetscErrorCode (*J)(SNES,Vec,Mat,Mat,void*),void *ctx)  -- Logically Collective on SNES and Mat
+
+
+
+
+-- PetscErrorCode  SNESSetJacobian(SNES snes,Mat Amat,Mat Pmat,PetscErrorCode (*J)(SNES,Vec,Mat,Mat,void*),void *ctx)          -- Logically Collective on SNES and Mat
 -- Input Parameters :
 -- snes	- the SNES context
 -- Amat	- the matrix that defines the (approximate) Jacobian
@@ -1604,9 +1609,26 @@ snesSetJacobian0' snes amat pmat f ctx =
                              $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)),$(void* ctx))}|]
 
 
+-- -- monomorphic SNESSetJacobian : see e.g. www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex5s.c.html
+-- -- usage : SNESSetJacobian(snes,J,J,SNESComputeJacobianDefaultColor,fdcoloring);
+snesSetJacobian0mono' snes amat pmat f col =
+  [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
+                             $fun:(int (*f)(SNES,Vec,Mat,Mat,MatFDColoring*)),
+                             $(MatFDColoring col))}|]
+
+
+
+snesSetJacobianComputeDefaultColor' :: SNES -> Mat -> Mat -> MatFDColoring -> IO CInt
+snesSetJacobianComputeDefaultColor' snes amat pmat =
+  snesSetJacobian0mono' snes amat pmat snesComputeJacobianDefaultColor0' 
+
+
+
 -- PetscErrorCode  SNESComputeJacobianDefaultColor(SNES snes,Vec x1,Mat J,Mat B,void *ctx)
+snesComputeJacobianDefaultColor0' ::
+  SNES -> Vec -> Mat -> Mat -> Ptr MatFDColoring -> IO CInt 
 snesComputeJacobianDefaultColor0' snes x jj bb fdcoloring =
-  [C.exp|int{SNESComputeJacobianDefaultColor($(SNES snes),$(Vec x),$(Mat jj),$(Mat bb),$(MatFDColoring fdcoloring))}|]
+  [C.exp|int{SNESComputeJacobianDefaultColor($(SNES snes),$(Vec x),$(Mat jj),$(Mat bb),$(MatFDColoring* fdcoloring))}|]
 
 
 

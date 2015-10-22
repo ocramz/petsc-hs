@@ -7,7 +7,7 @@ Copyright (c) 2015 - , Marco Zocca ( zocca at marco dot gmail at com )
 
 
 
-[![Build Status](https://travis-ci.org/ocramz/petsc-hs.svg?branch=master)](https://travis-ci.org/ocramz/petsc-hs)
+Travis CI : [![Build Status](https://travis-ci.org/ocramz/petsc-hs.svg?branch=master)](https://travis-ci.org/ocramz/petsc-hs)
 
 
 ## Introduction
