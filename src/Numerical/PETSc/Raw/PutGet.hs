@@ -482,9 +482,12 @@ validDims (MIVarNZPR mi nnz) =
 
 
 
+matFDColoringCreate mat isc = chk1 $ matFDColoringCreate' mat isc
 
+matFDColoringDestroy mfc = chk0 $ matFDColoringDestroy' mfc
 
-
+withMatFDColoring mat iscoloring =
+  bracket (matFDColoringCreate mat iscoloring) matFDColoringDestroy
 
 
 

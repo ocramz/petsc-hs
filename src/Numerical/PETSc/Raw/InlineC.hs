@@ -878,13 +878,16 @@ matGetOwnershipRange1 m = do
 matFDColoringCreate0' m i c =
   [C.exp| int{MatFDColoringCreate($(Mat m),$(ISColoring i),$(MatFDColoring* c)) } |]
 
-matDFColoringCreate' m i = withPtr $ \c -> matFDColoringCreate0' m i c
+matFDColoringCreate' m i = withPtr $ \c -> matFDColoringCreate0' m i c
 
 
 
+-- PetscErrorCode MatFDColoringSetUp(Mat mat,ISColoring iscoloring,MatFDColoring color)
+matFDColoringSetUp' mat iscoloring color =
+  [C.exp|int{MatFDColoringSetUp($(Mat mat),$(ISColoring iscoloring),$(MatFDColoring color))}|]
 
-
-
+-- PetscErrorCode  MatFDColoringDestroy(MatFDColoring *c)
+matFDColoringDestroy' color = with color $ \cp -> [C.exp|int{MatFDColoringDestroy($(MatFDColoring* cp))}|]
 
 
 
