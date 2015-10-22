@@ -30,7 +30,7 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 ## Installation
 
-* First of all, a working installations of PETSc and MPICH (both configured as dynamic libraries) is required. Please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed instructions.
+* First of all, a working installations of PETSc and MPICH (both configured as dynamic libraries) is required. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions.
 
 * The Haskell side is based on `inline-c`, which can be obtained from Hackage via `cabal install inline-c`.
 
