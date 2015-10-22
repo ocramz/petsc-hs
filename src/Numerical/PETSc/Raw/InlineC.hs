@@ -856,7 +856,6 @@ matFDColoring m i c =
   [C.exp| int{MatFDColoringCreate($(Mat m),$(ISColoring i),$(MatFDColoring* c)) } |]
 
 
-f2937 = map
 
 
 
