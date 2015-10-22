@@ -852,10 +852,10 @@ matGetOwnershipRange1 m = do
 
 -- PetscErrorCode  MatFDColoringCreate(Mat mat,ISColoring iscoloring,MatFDColoring *color)
 
-matFDColoring m i c =
+matFDColoringCreate0' m i c =
   [C.exp| int{MatFDColoringCreate($(Mat m),$(ISColoring i),$(MatFDColoring* c)) } |]
 
-
+matDFColoringCreate' m i = withPtr $ \c -> matFDColoringCreate0' m i c
 
 
 
@@ -938,6 +938,19 @@ dmCreateMatrix dm = withPtr (dmCreateMatrix' dm)
 -- For DMDA, in two and three dimensions coordinates are interlaced (x_0,y_0,x_1,y_1,...) and (x_0,y_0,z_0,x_1,y_1,z_1...)
 dmGetCoordinates dm =
  withPtr (\c-> [C.exp| int{DMGetCoordinates($(DM dm),$(Vec*c))} |] ) 
+
+
+
+
+
+
+
+-- PetscErrorCode  DMCreateColoring(DM dm,ISColoringType ctype,ISColoring *coloring)
+dmCreateColoring' d c = withPtr $ \col -> [C.exp|int{DMCreateColoring($(DM d),$(int ctype),$(ISColoring* col))}|] where
+  ctype = toCInt $ isColoringTypeToInt c
+
+
+
 
 
 
@@ -1546,10 +1559,28 @@ snesGetSolution' s = withPtr ( \v ->
 --    pre s
 --    snesSolve s b x
 --    post s
-   
 
 
+-- snesSetFunction' snes r f ctx =
+--   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
+--                              $fun:(int (*f)(SNES, Vec, Vec, void*) ),
+--                              $(void* ctx))}|]
 
+-- PetscErrorCode  SNESSetJacobian(SNES snes,Mat Amat,Mat Pmat,PetscErrorCode (*J)(SNES,Vec,Mat,Mat,void*),void *ctx)  -- Logically Collective on SNES and Mat
+-- Input Parameters :
+-- snes	- the SNES context
+-- Amat	- the matrix that defines the (approximate) Jacobian
+-- Pmat	- the matrix to be used in constructing the preconditioner, usually the same as Amat.
+-- J	- Jacobian evaluation routine (if NULL then SNES retains any previously set value), see SNESJacobianFunction for details
+-- ctx	- [optional] user-defined context for private data for the Jacobian evaluation routine (may be NULL) (if NULL then SNES retains any previously set value)
+snesSetJacobian0' snes amat pmat f ctx =
+  [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
+                             $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)),$(void* ctx))}|]
+
+
+-- PetscErrorCode  SNESComputeJacobianDefaultColor(SNES snes,Vec x1,Mat J,Mat B,void *ctx)
+snesComputeJacobianDefaultColor0' snes x jj bb fdcoloring =
+  [C.exp|int{SNESComputeJacobianDefaultColor($(SNES snes),$(Vec x),$(Mat jj),$(Mat bb),$(MatFDColoring fdcoloring))}|]
 
 
 

@@ -22,6 +22,17 @@ petscCopyModeToInt x = fromEnum (x :: PetscCopyMode_ )
 -- * IS
 
 
+-- ISColoringType  -- determines if the coloring is for the entire parallel grid/graph/matrix or for just the local ghosted portion
+-- Synopsis :
+-- typedef enum {IS_COLORING_GLOBAL,IS_COLORING_GHOSTED} ISColoringType;
+--   IS_COLORING_GLOBAL - does not include the colors for ghost points, this is used when the function is called synchronously in parallel. This requires generating a "parallel coloring".
+--   IS_COLORING_GHOSTED - includes colors for ghost points, this is used when the function can be called separately on individual processes with the ghost points already filled in. Does not require a "parallel coloring", rather each process colors its local + ghost part. Using this can result in much less parallel communication. In the paradigm of DMGetLocalVector() and DMGetGlobalVector() this could be called IS_COLORING_LOCAL
+
+
+data ISColoringType_ = ISColoringGlobal | ISColoringGhosted deriving (Eq, Show, Enum)
+isColoringTypeToInt x = fromEnum (x :: ISColoringType_)
+
+
 -- * Vec
 
 data VecNorm_ = VecNorm1 | VecNorm2 | VecNormFrobenius | VecNormInfty | VecNorm1and2 deriving (Eq, Enum, Show)
