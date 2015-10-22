@@ -23,8 +23,8 @@ module Numerical.PETSc.Raw.Internal where
 -- import Data.Typeable
 
 import qualified Language.C.Inline as C
-import qualified Language.C.Types as CT
-import qualified Language.C.Types.Parse as CTP
+import qualified Language.C.Types as CT -- (CIdentifier)
+-- import qualified Language.C.Types.Parse as CTP
 import Language.C.Inline.Context
 
 import Foreign.C.Types 
@@ -41,8 +41,8 @@ import qualified Data.Map as Map
 
 import qualified Data.Vector.Storable.Mutable as V
 
-C.include "<stdio.h>"
-C.include "<math.h>"
+-- C.include "<stdio.h>"
+-- C.include "<math.h>"
 
 -- * inline-c PETSc Context (type maps)
 petscCtx :: Context
@@ -86,8 +86,8 @@ petscTypesTable = Map.fromList
                   , (typeNameId "ISColoring", [t| ISColoring |])
                   ]
 
-typeNameId :: String -> CT.TypeSpecifier
-typeNameId = CT.TypeName . CTP.CIdentifier
+-- typeNameId :: String -> CT.TypeSpecifier
+typeNameId = CT.TypeName . CT.CIdentifier
 
 -- * type synonyms
 

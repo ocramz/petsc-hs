@@ -14,7 +14,7 @@ Travis CI : [![Build Status](https://travis-ci.org/ocramz/petsc-hs.svg?branch=ma
 
 The [PETSc](http://www.mcs.anl.gov/petsc/) architecture provides numerical data-structures and algorithms such as linear and nonlinear equation solvers and extensive preconditioning facilities, time steppers (integrators) for dynamic problems, advanced meshing primitives for the solution of discretized PDEs and an advanced optimization toolkit. It is based on MPI, to support distributed storage and computations.
 
-This Haskell library wraps many of the C functions while adding type safety and compositionality. As a result, programs are much shorter, therefore easier to interpret, debug, study and improve.
+This Haskell library wraps many of the C functions while adding types, memory safety and compositionality. 
 
 
 ## Vision
