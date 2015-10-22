@@ -257,7 +257,7 @@ vecSetSizes1 v n = [C.exp|int{VecSetSizes( $(Vec v), PETSC_DECIDE, $(int n))}|]
 
 -- PETSC_EXTERN PetscErrorCode VecGetSize(Vec,PetscInt*);
 vecGetSize' v p =  [C.exp|int{VecGetSize($(Vec v), $(int *p))}|]
-vecGetSize1 v = (withPtr $ \p -> vecGetSize' v p) 
+vecGetSize1 v = withPtr $ \p -> vecGetSize' v p
 -- vecGetSizeUnsafe = unsafePerformIO . vecGetSize1
 
 -- vecSize v = fromIntegral $ vecGetSizeUnsafe v
@@ -848,6 +848,19 @@ matGetOwnershipRange1 m = do
 
 
 
+-- -- * Mat FD Coloring
+
+-- PetscErrorCode  MatFDColoringCreate(Mat mat,ISColoring iscoloring,MatFDColoring *color)
+
+matFDColoring m i c =
+  [C.exp| int{MatFDColoringCreate($(Mat m),$(ISColoring i),$(MatFDColoring* c)) } |]
+
+
+
+
+
+
+
 
 
 
@@ -1250,7 +1263,7 @@ kspSetType' ksp kt = withCString strk $ \strp -> [C.exp|int{KSPSetType($(KSP ksp
   strk = kspTypeToStr kt
 
 -- kspSetType :: KSP -> KspType_ -> IO ()
-kspSetType ksp kt = kspSetType' ksp kt 
+-- kspSetType = kspSetType'  
 
 -- PETSC_EXTERN PetscErrorCode KSPGetType(KSP,KSPType *);
 -- kspGetType ksp = alloca ( \strp -> do
@@ -1339,7 +1352,7 @@ kspSetComputeSingularValues ksp b= [C.exp|int{KSPSetComputeSingularValues($(KSP 
 
 -- PETSC_EXTERN PetscErrorCode KSPGetRhs(KSP,Vec *);
 kspGetRhs' ksp = withPtr $ \v -> [C.exp|int{KSPGetRhs($(KSP ksp), $(Vec *v))}|]
-kspGetRhs ksp = kspGetRhs' ksp 
+-- kspGetRhs ksp = kspGetRhs' ksp 
 
 -- PETSC_EXTERN PetscErrorCode KSPGetSolution(KSP,Vec *);
 kspGetSolution' ksp = withPtr $ \v -> [C.exp|int{KSPGetSolution($(KSP ksp), $(Vec *v))}|]

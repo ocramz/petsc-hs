@@ -10,7 +10,7 @@
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  Marco Zocca
--- Stability   :  provisional
+-- Stability   :  experimental
 --
 -- | inline-c context (i.e. the C-Haskell type map), and the necessary newtypes
 --   and type synonyms necessary to its definition
@@ -76,6 +76,9 @@ petscTypesTable = Map.fromList
                   , (typeNameId "Tao", [t| Tao |])
 
                   , (typeNameId "PetscViewer", [t| PetscViewer |])
+
+                  , (typeNameId "MatFDColoring", [t| MatFDColoring |])
+                  , (typeNameId "ISColoring", [t| ISColoring |])
                   ]
 
 typeNameId :: String -> CT.TypeSpecifier
@@ -143,21 +146,9 @@ newtype PetscQuadrature = PetscQuadrature (Ptr PetscQuadrature) deriving Storabl
 
 newtype PetscViewer = PetscViewer (Ptr PetscViewer) deriving Storable
 
--- * DM
+newtype MatFDColoring = MatFDColoring (Ptr MatFDColoring) deriving Storable
 
-
-
-
--- * KSP
-
-
-
-
-
--- * MPI
-
-
-
+newtype ISColoring = ISColoring (Ptr ISColoring) deriving Storable
 
 
 
