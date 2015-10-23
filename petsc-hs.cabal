@@ -33,7 +33,7 @@ library
                        semigroupoids,
                        profunctors,
                        free,
-                       inline-c,
+                       inline-c > 0.5.3.4,
                        vector,
                        mtl,
                        async,
