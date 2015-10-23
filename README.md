@@ -12,14 +12,14 @@ Travis CI : [![Build Status](https://travis-ci.org/ocramz/petsc-hs.svg?branch=ma
 
 ## Introduction
 
-The [PETSc](http://www.mcs.anl.gov/petsc/) architecture provides numerical data-structures and algorithms such as linear and nonlinear equation solvers and extensive preconditioning facilities, time steppers (integrators) for dynamic problems, advanced meshing primitives for the solution of discretized PDEs and an advanced optimization toolkit. It is based on MPI, to support distributed storage and computations.
+The [PETSc](http://www.mcs.anl.gov/petsc/) architecture provides numerical data-structures and algorithms such as linear and nonlinear system solvers, extensive preconditioning facilities, time steppers (integrators) for dynamic problems, advanced meshing primitives for the solution of discretized PDEs and an advanced optimization toolkit. It is based on MPI, to support distributed storage and computations.
 
 This Haskell library wraps many of the C functions while adding types, memory safety and compositionality. 
 
 
 ## Vision
 
-The grand aim of this library is to bring together functional programming and high-performance numerical computing, and in particular the guarantees provided by the former into the practice of the latter.
+The grand aim of this library is to bring together functional programming and high-performance numerical computing, and in particular the guarantees provided by the former into the practice of the latter. Or, alternatively, to add large-scale scientific computation capabilities to a great systems programming language !
 
 It is your humble author's opinion that many imperative languages do not completely address the needs of scientific programming: ease of design, of verification and of collaboration. 
 Functional composition of sub-programs and rich, static types are the missing link between scientific programmer efficiency and program expressiveness.
