@@ -3,6 +3,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, StandaloneDeriving #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -23,8 +24,9 @@ module Numerical.PETSc.Raw.Internal where
 -- import Data.Typeable
 
 import qualified Language.C.Inline as C
-import qualified Language.C.Types as CT -- (CIdentifier)
--- import qualified Language.C.Types.Parse as CTP
+import qualified Language.C.Types as CT
+-- import qualified Language.C.Types as CT -- (CIdentifier)
+-- import qualified Language.C.Types.Parse as CTP (CIdentifier)
 import Language.C.Inline.Context
 
 import Foreign.C.Types 
@@ -49,7 +51,7 @@ petscCtx :: Context
 petscCtx = baseCtx <> funCtx <> vecCtx <> ctx where
   ctx = mempty {ctxTypesTable = petscTypesTable}
 
-petscTypesTable :: Map.Map CT.TypeSpecifier TH.TypeQ
+-- petscTypesTable :: Map.Map CT.TypeSpecifier TH.TypeQ  
 petscTypesTable = Map.fromList
                   [
                     (typeNameId "PetscInt", [t| PetscInt_ |] )
@@ -87,7 +89,8 @@ petscTypesTable = Map.fromList
                   ]
 
 -- typeNameId :: String -> CT.TypeSpecifier
-typeNameId = CT.TypeName . CT.CIdentifier
+typeNameId = CT.TypeName -- . CT.CIdentifier
+
 
 -- * type synonyms
 

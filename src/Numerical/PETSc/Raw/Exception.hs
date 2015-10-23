@@ -27,7 +27,6 @@ import Control.Concurrent.Async
 
 import Control.Monad
 import Control.Monad.Trans.Reader
-import Control.Monad.Trans.Either
 import Control.Monad.Trans
 
 import Control.Arrow hiding (left, right)
