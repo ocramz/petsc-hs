@@ -20,7 +20,6 @@ import Numerical.PETSc.Raw.Utils
 import Language.C.Inline as C
 import Language.C.Inline.Context
 import Control.Exception
--- import Control.Concurrent
 import Foreign
 import Foreign.Marshal.Array
 import Foreign.Marshal.Alloc (alloca)
