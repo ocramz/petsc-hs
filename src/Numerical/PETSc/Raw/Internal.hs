@@ -20,13 +20,8 @@
 
 module Numerical.PETSc.Raw.Internal where
 
--- import Control.Exception as E
--- import Data.Typeable
-
 import qualified Language.C.Inline as C
 import qualified Language.C.Types as CT
--- import qualified Language.C.Types as CT -- (CIdentifier)
--- import qualified Language.C.Types.Parse as CTP (CIdentifier)
 import Language.C.Inline.Context
 
 import Foreign.C.Types 
@@ -36,22 +31,16 @@ import Foreign
 import qualified Language.Haskell.TH as TH
 
 import Data.Monoid ((<>), mempty)
-import Control.Monad (unless, when, liftM)
-import Control.Concurrent
 import qualified Data.Map as Map
--- import Language.C.Inline
 
-import qualified Data.Vector.Storable.Mutable as V
-
--- C.include "<stdio.h>"
--- C.include "<math.h>"
+-- import qualified Data.Vector.Storable.Mutable as V
 
 -- * inline-c PETSc Context (type maps)
 petscCtx :: Context
 petscCtx = baseCtx <> funCtx <> vecCtx <> ctx where
   ctx = mempty {ctxTypesTable = petscTypesTable}
 
--- petscTypesTable :: Map.Map CT.TypeSpecifier TH.TypeQ  
+petscTypesTable :: Map.Map CT.TypeSpecifier TH.TypeQ  
 petscTypesTable = Map.fromList
                   [
                     (typeNameId "PetscInt", [t| PetscInt_ |] )
@@ -88,8 +77,8 @@ petscTypesTable = Map.fromList
                   , (typeNameId "ISColoring", [t| ISColoring |])
                   ]
 
--- typeNameId :: String -> CT.TypeSpecifier
-typeNameId = CT.TypeName -- . CT.CIdentifier
+typeNameId :: CT.CIdentifier -> CT.TypeSpecifier
+typeNameId = CT.TypeName 
 
 
 -- * type synonyms
