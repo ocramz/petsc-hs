@@ -26,10 +26,10 @@ import Control.Concurrent
 import Control.Concurrent.Async
 
 import Control.Monad
-import Control.Monad.Trans.Reader
-import Control.Monad.Trans
+-- import Control.Monad.Trans.Reader
+-- import Control.Monad.Trans
 
-import Control.Arrow hiding (left, right)
+-- import Control.Arrow hiding (left, right)
 
 -- -- Checkable
 
