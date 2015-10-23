@@ -54,14 +54,19 @@ withCStringArrayPtr ss f = withCStringArray ss $ \css -> with css f
 
 
 
+-- * array sorting (hmm..)
+
+qsort :: Ord a => [a] -> [a]
+qsort []     = []
+qsort (x:xs) = qsort l ++ [x] ++ qsort r where
+  l = filter (< x) xs
+  r = filter (> x) xs
 
 
 
 
 
-
-
-
+(~!~) :: Monad m => Bool -> String -> m ()
 c ~!~ es = when c (error es)
 
 -- ifThenElse :: Bool -> a -> a -> a

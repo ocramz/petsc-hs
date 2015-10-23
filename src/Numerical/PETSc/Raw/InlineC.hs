@@ -278,8 +278,8 @@ vecSet1 v n = [C.exp|int{VecSet( $(Vec v), $(PetscScalar n))}|]
 vecSetSizes1 v n = [C.exp|int{VecSetSizes( $(Vec v), PETSC_DECIDE, $(int n))}|] 
 
 -- PETSC_EXTERN PetscErrorCode VecGetSize(Vec,PetscInt*);
-vecGetSize' v p =  [C.exp|int{VecGetSize($(Vec v), $(int *p))}|]
-vecGetSize1 v = withPtr $ \p -> vecGetSize' v p
+vecGetSize0' v p =  [C.exp|int{VecGetSize($(Vec v), $(int *p))}|]
+vecGetSize' v = withPtr $ \p -> vecGetSize0' v p
 -- vecGetSizeUnsafe = unsafePerformIO . vecGetSize1
 
 -- vecSize v = fromIntegral $ vecGetSizeUnsafe v

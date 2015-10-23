@@ -21,6 +21,8 @@ import Foreign
 import Foreign.C.Types
 -- import Foreign.C
 
+import System.IO.Unsafe (unsafePerformIO)
+
 import Control.Monad
 import Control.Arrow
 import Control.Concurrent
@@ -211,6 +213,23 @@ vecCopyDuplicate v = do
   vecCopy v v1
 
 
+vecSetValuesUnsafe :: Vec -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO ()
+vecSetValuesUnsafe v ix y im =
+  withArray ix $ \ixx ->
+   withArray y $ \yy -> chk0 $ vecSetValues' v ni ixx yy im 
+  where
+  ni = toCInt $ length ix
+
+-- vecSetValuesSafe v ix y im
+--   | c1 && c2 = vecSetValuesUnsafe v ix y im 
+--   | otherwise = error "vecSetValuesSafe: "
+--      where
+--       c1 = length ix == length y
+--       c2 = a >= 0 && b <= sv where
+--         ixs = qsort ix
+--         (a, b) = (head ixs, last ixs)
+--       sv = vecGetSizeUnsafe v
+
 
 
 
@@ -263,10 +282,19 @@ vecVecSum = vecAxpy 1
 
 vecVecSumSafe = vecWaxpySafe 1
 
-vecGetSize :: Vec -> IO Int
-vecGetSize v = liftM fi $ chk1 ( vecGetSize1 v) 
--- vecSize v = unsafePerformIO (vecGetSize v)
 
+
+
+vecGetSize :: Vec -> IO Int
+vecGetSize v = liftM fi $ chk1 ( vecGetSize' v) 
+
+vecGetSizeUnsafe, vecSize :: Vec -> Int
+vecGetSizeUnsafe = unsafePerformIO . vecGetSize
+
+vecSize = vecGetSizeUnsafe
+
+
+vecViewStdout :: Vec -> IO ()
 vecViewStdout v = chk0 $ vecViewStdout1 v
 
 
