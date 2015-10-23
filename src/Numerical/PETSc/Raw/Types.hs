@@ -1,11 +1,20 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Numerical.PETSc.Raw.Types
+-- Copyright   :  (c) Marco Zocca 2015
+-- License     :  LGPL3
+-- Maintainer  :  Marco Zocca
+-- Stability   :  experimental
+--
+-- | Types for inline-c based signatures and resp. helpers
+--
+-----------------------------------------------------------------------------
 module Numerical.PETSc.Raw.Types where
--- | types for inline-c based signatures and resp. helpers
 
-import Foreign
+-- import Foreign
 import Foreign.C.Types
-
 
 
 

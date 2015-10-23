@@ -6,7 +6,7 @@
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  Marco Zocca
--- Stability   :  provisional
+-- Stability   :  experimental
 --
 -- | Exception handling for calls wrapped by PutGet interfaces
 --

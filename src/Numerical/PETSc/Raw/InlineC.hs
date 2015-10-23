@@ -6,9 +6,9 @@
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  Marco Zocca
--- Stability   :  provisional
+-- Stability   :  experimental
 --
--- | foreign signatures, + everything that requires an inline-c pass
+-- | Foreign signatures, + everything that requires an inline-c pass
 --
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Raw.InlineC where

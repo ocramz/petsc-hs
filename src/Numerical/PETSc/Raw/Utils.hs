@@ -6,9 +6,9 @@
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  Marco Zocca
--- Stability   :  provisional
+-- Stability   :  experimental
 --
--- | miscellaneous utilities
+-- | Miscellaneous utilities
 --
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Raw.Utils where
