@@ -19,7 +19,7 @@ This Haskell library wraps many of the C functions while adding types, memory sa
 
 ## Vision
 
-The grand aim of this library is to bring together functional programming and high-performance numerical computing, and in particular the guarantees provided by the former into the practice of the latter. Or, alternatively, to add large-scale scientific computation capabilities to a great systems programming language !
+The grand aim of this library is to bring together functional programming and high-performance numerical computing, and in particular the guarantees provided by the former into the practice of the latter. Or, alternatively, to add scientific computation capabilities to a great programming language !
 
 It is your humble author's opinion that many imperative languages do not completely address the needs of scientific programming: ease of design, of verification and of collaboration. 
 Functional composition of sub-programs and rich, static types are the missing link between scientific programmer efficiency and program expressiveness.
