@@ -77,6 +77,7 @@ dmCreateColoring :: DM -> ISColoringType_ -> IO ISColoring
 dmCreateColoring dm coloringtype = chk1 $ dmCreateColoring' dm coloringtype
 
 
+withDmIsColoring :: DM -> ISColoringType_ -> (ISColoring -> IO a) -> IO a
 withDmIsColoring dm ct = bracket (dmCreateColoring dm ct) isColoringDestroy
 
 
@@ -253,8 +254,13 @@ vecGetOwnershipRange :: Vec -> IO (Int, Int)
 vecGetOwnershipRange v = 
   chk1 (vecGetOwnershipRange1 v) 
 
+vecDot :: Vec -> Vec -> IO PetscScalar_
 vecDot v1 v2 = chk1 $ vecDot1 v1 v2
+
+vecNorm :: Vec -> VecNorm_ -> IO PetscScalar_
 vecNorm v nt = chk1 $ vecNorm1 nt v
+
+vecSum :: Vec -> IO PetscScalar_
 vecSum v = chk1 $ vecSum1 v
 
 vecLog_ v = chk0 $ vecLog' v
