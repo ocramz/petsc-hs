@@ -803,6 +803,7 @@ withPetscViewerHDF5Group viewer name f = do
 
 -- * MPI
 
+commWorld, commSelf :: Comm
 commWorld = commWorld1
 commSelf = commSelf1
 
@@ -815,11 +816,19 @@ commSelf = commSelf1
 
 -- commWorld = commWorld
 
+petscInit0 :: IO ()
 petscInit0 = chk0 petscInit01
+
+petscFin :: IO ()
 petscFin = chk0 petscFin1
 
+withPetsc0 :: IO a -> IO a
 withPetsc0 = bracket_ petscInit0 petscFin
 
+petscInit ::
+  [String] -> String -> String -> IO ()
 petscInit args opts help = chk0 $ petscInitialize1 args opts help
 
+withPetsc ::
+  [String] -> String -> String -> IO a -> IO a
 withPetsc a o h = bracket_ (petscInit a o h) petscFin
