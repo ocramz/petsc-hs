@@ -220,15 +220,15 @@ vecSetValuesUnsafe v ix y im =
   where
   ni = toCInt $ length ix
 
--- vecSetValuesSafe v ix y im
---   | c1 && c2 = vecSetValuesUnsafe v ix y im 
---   | otherwise = error "vecSetValuesSafe: "
---      where
---       c1 = length ix == length y
---       c2 = a >= 0 && b <= sv where
---         ixs = qsort ix
---         (a, b) = (head ixs, last ixs)
---       sv = vecGetSizeUnsafe v
+vecSetValuesSafe v ix y im
+  | c1 && c2 = vecSetValuesUnsafe v ix y im 
+  | otherwise = error "vecSetValuesSafe: "
+     where
+      c1 = length ix == length y
+      c2 = a >= 0 && b <= sv where
+        ixs = qsort ix
+        (a, b) = (head ixs, last ixs)
+      sv = vecGetSizeUnsafe v
 
 
 
@@ -288,14 +288,19 @@ vecVecSumSafe = vecWaxpySafe 1
 vecGetSize :: Vec -> IO Int
 vecGetSize v = liftM fi $ chk1 ( vecGetSize' v) 
 
-vecGetSizeUnsafe, vecSize :: Vec -> Int
+vecGetSizeUnsafe :: Vec -> Int
 vecGetSizeUnsafe = unsafePerformIO . vecGetSize
 
+vecSize :: Vec -> Int
 vecSize = vecGetSizeUnsafe
+
+
 
 
 vecViewStdout :: Vec -> IO ()
 vecViewStdout v = chk0 $ vecViewStdout1 v
+
+
 
 
 vecGetArray :: Vec -> Int -> IO [PetscScalar_]
@@ -305,6 +310,10 @@ vecGetArraySafe :: Vec -> IO [PetscScalar_]
 vecGetArraySafe v = do
   sz <- vecGetSize v
   vecGetArray v sz
+
+-- vecGetVector v =
+--   vecGetArray v >>= newForeignPtr_ >>= \l -> return $ V.unsafeFromForeignPtr0 l n
+--    where n = vecSize v
 
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
@@ -397,6 +406,7 @@ matAssemblyEnd = chk0 . matAssemblyEnd'
 matAssembly :: Mat -> IO ()
 matAssembly = matAssemblyBegin >> matAssemblyEnd
 
+withMatAssembly :: Mat -> IO a -> IO ()
 withMatAssembly m f = do
   matAssemblyBegin m
   f 
