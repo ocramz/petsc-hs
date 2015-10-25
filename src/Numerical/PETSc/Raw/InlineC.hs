@@ -538,6 +538,7 @@ matDestroy' m = with m matDestroy0'
 --      matAssembly mat
 --      post mat
 
+matSetSizes' :: Mat -> Int -> Int -> IO CInt
 matSetSizes' mat m n = [C.exp|int{MatSetSizes($(Mat mat), PETSC_DECIDE, PETSC_DECIDE,
                                              $(int mc), $(int nc))}|]
   where (mc, nc) = (toCInt m, toCInt n)
@@ -611,7 +612,9 @@ matCreateSeqAIJconstNZperRow1 comm m' n' nz' =
 --     Output Parameter :
 -- mat -the matrix 
 
-matCreateMPIAIJWithArrays comm i j a =
+matCreateMPIAIJWithArrays' ::
+  Comm -> [PetscInt_] -> [PetscInt_] -> [PetscScalar_] -> IO (Mat, CInt)
+matCreateMPIAIJWithArrays' comm i j a =
   withArray i $ \ip ->
    withArray j $ \jp ->
     withArray a $ \aap -> 

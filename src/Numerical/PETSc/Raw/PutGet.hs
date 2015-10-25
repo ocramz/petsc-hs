@@ -238,8 +238,9 @@ vecSetValuesSafe v ix y im
 
 
 
-
+vecView :: Vec -> PetscViewer -> IO ()
 vecView v vi = chk0 $ vecView1 v vi
+
 vecSetName v name = chk0 $ vecSetName1 v name
 
 vecSet_ :: Vec -> PetscScalar_ -> IO ()
@@ -396,6 +397,19 @@ withMat comm = bracketChk (matCreate' comm) matDestroy'
 
 matCreate :: Comm -> IO Mat
 matCreate comm = chk1 (matCreate' comm)
+
+matCreateSeqAIJVarNZPR :: Comm -> Int -> Int -> [Int] -> IO Mat
+matCreateSeqAIJVarNZPR comm m n nnz =
+  chk1 (matCreateSeqAIJ1 comm m n nnz)
+
+matCreateSeqAIJConstNZPR :: Comm -> Int -> Int -> Int -> IO Mat
+matCreateSeqAIJConstNZPR comm m n nz =
+  chk1 (matCreateSeqAIJconstNZperRow1 comm m n nz)
+
+matCreateMPIAIJWithArrays ::
+  Comm -> [PetscInt_] -> [PetscInt_] -> [PetscScalar_] -> IO Mat
+matCreateMPIAIJWithArrays comm idxx idxy vals =
+  chk1 (matCreateMPIAIJWithArrays' comm idxx idxy vals)
 
 matDestroy :: Mat -> IO ()
 matDestroy = chk0 . matDestroy'
