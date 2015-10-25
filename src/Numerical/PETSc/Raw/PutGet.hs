@@ -434,14 +434,35 @@ matDestroy ::
 matDestroy = chk0 . matDestroy'
 
 
+-- | setting matrix values 
+
 matSetValues ::
-  Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO () 
+  Mat ->
+  [CInt] ->         -- first index positions
+  [CInt] ->         -- second index positions
+  [PetscScalar_] -> -- values to be inserted
+  InsertMode_ ->    -- `AddValues` or `InsertValues`
+  IO () 
 matSetValues m idxx idxy vals im = chk0 (matSetValues' m idxx idxy vals im)
 
 matSetValuesAdd, matSetValuesInsert :: 
   Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> IO ()
 matSetValuesAdd m idxx idxy vals = chk0 (matSetValuesAdd' m idxx idxy vals)
 matSetValuesInsert m idxx idxy vals = chk0 (matSetValuesInsert' m idxx idxy vals)
+
+matSetValuesSafe ::
+  Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO ()
+matSetValuesSafe m idxx idxy vals im
+  | safeFlag = matSetValues m idxx idxy vals im
+  | otherwise = error "matSetValuesSafe : "
+     where
+       safeFlag = c1 && c2
+       (lix, liy, lv) = (length idxx, length idxy, length vals)
+       c1 = lix == liy && lix == lv    -- compatible array lengths
+       (mx,my) = matGetSizeCIntUnsafe m
+       c2 = inBoundsUnsortedList idxx (0, mx) &&  -- all indices in bounds
+            inBoundsUnsortedList idxy (0, my)
+
 
 
 matSetup ::
@@ -456,6 +477,8 @@ matAssemblyEnd = chk0 . matAssemblyEnd'
 matAssembly ::
   Mat -> IO ()
 matAssembly = matAssemblyBegin >> matAssemblyEnd
+
+-- | withMatAssembly : we can perform some computation while data are in flight
 
 withMatAssembly ::
   Mat -> IO a -> IO ()
@@ -473,6 +496,14 @@ matGetSizeCInt m = chk1 (matGetSize' m)
 matGetSize ::
   Mat -> IO (Int, Int)
 matGetSize mat = matGetSizeCInt mat >>= \(m,n) -> return (fi m, fi n)
+
+matGetSizeUnsafe ::
+  Mat -> (Int, Int)
+matGetSizeUnsafe = unsafePerformIO . matGetSize
+
+matGetSizeCIntUnsafe ::
+  Mat -> (CInt, CInt)
+matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 
 -- data MatrixOrder = RowMajor | ColMajor deriving (Eq, Show)
 -- transposeOrder RowMajor = ColMajor

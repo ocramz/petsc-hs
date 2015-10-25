@@ -123,7 +123,17 @@ inBoundsOrError n (a,b) f es
   | otherwise = error es
 
 
+-- | tests whether smallest element of list is in bounds
 
+inBoundsUnsortedList lx (x1, x2)
+  | validX = s
+  | otherwise = error "inBoundsUnsortedList : invalid bounds x1 >= x2 "where
+  (l1, l2) = extremaUnsortedList lx
+  s = l1 >= x1 && l2 <= x2
+  validX = x1 < x2
+
+extremaUnsortedList lx = (head lxs, last lxs) where
+  lxs = qsort lx
 
 
 
