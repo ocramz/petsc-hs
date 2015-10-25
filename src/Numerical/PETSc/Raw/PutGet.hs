@@ -568,6 +568,7 @@ matFDColoringCreate mat isc = chk1 $ matFDColoringCreate' mat isc
 
 matFDColoringDestroy mfc = chk0 $ matFDColoringDestroy' mfc
 
+withMatFDColoring :: Mat -> ISColoring -> (MatFDColoring -> IO a) -> IO a
 withMatFDColoring mat iscoloring =
   bracket (matFDColoringCreate mat iscoloring) matFDColoringDestroy
 
@@ -586,9 +587,38 @@ withMatFDColoring mat iscoloring =
 
 -- * DM
 
+dmCreate :: Comm -> IO DM
+dmCreate comm = chk1 (dmCreate' comm)
+
+dmDestroy :: DM -> IO ()
+dmDestroy dm = chk0 (dmDestroy' dm)
+
+dmCreateGlobalVector, dmCreateLocalVector :: DM -> IO Vec
+dmCreateGlobalVector dm = chk1 (dmCreateGlobalVector' dm)
+dmCreateLocalVector dm = chk1 (dmCreateLocalVector' dm)
+
 
 
 -- -- * DMDA 
+
+dmdaCreate :: Comm -> IO DM
+dmdaCreate comm = chk1 (dmdaCreate' comm)
+
+dmdaSetDim :: DM -> Int -> IO ()
+dmdaSetDim dm d = chk0 (dmdaSetDim' dm d') where
+  d' = toCInt d
+
+-- dmdaSetSizes dm x y z = chk0 (dmdaSetSizes' dm x' y' z') where
+--   (x',y',z') = (toCInt x, toCInt y, toCInt z)
+
+dmdaCreate1d ::
+  Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> [CInt] -> IO DM
+dmdaCreate1d comm b mm dofPerNode stencilW lx =
+  chk1 (dmdaCreate1d' comm b mm dofPerNode stencilW lx)
+
+dmdaCreate2d :: Comm -> (DMBoundaryType_, DMBoundaryType_) -> DMDAStencilType -> (PetscInt_, PetscInt_) -> PetscInt_ -> PetscInt_ -> IO DM
+dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
+  chk1 (dmdaCreate2d' comm bx by sten mm nn dof s)
 
 -- * KSP
 

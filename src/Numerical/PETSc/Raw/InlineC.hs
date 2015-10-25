@@ -906,10 +906,10 @@ matFDColoringDestroy' color = with color $ \cp -> [C.exp|int{MatFDColoringDestro
 
 
 -- PETSC_EXTERN PetscErrorCode DMCreate(MPI_Comm,DM*);
-dmCreate comm = withPtr ( \dm -> [C.exp|int{DMCreate($(int c), $(DM* dm))} |] ) 
+dmCreate' comm = withPtr ( \dm -> [C.exp|int{DMCreate($(int c), $(DM* dm))} |] ) 
   where c = unComm comm
 
-dmDestroy dm = with dm ( \dmp -> [C.exp|int{DMDestroy($(DM* dmp))}|] ) 
+dmDestroy' dm = with dm ( \dmp -> [C.exp|int{DMDestroy($(DM* dmp))}|] ) 
 
 -- withDm comm = bracket (dmCreate comm) dmDestroy
 
@@ -918,10 +918,10 @@ dmDestroy dm = with dm ( \dmp -> [C.exp|int{DMDestroy($(DM* dmp))}|] )
 -- -- DMGet* and DMRestore* are for temporary access (always go in pairs)
 
 -- PETSC_EXTERN PetscErrorCode DMCreateGlobalVector(DM,Vec*);
-dmCreateGlobalVector dm = withPtr ( \v -> [C.exp|int{DMCreateGlobalVector($(DM dm), $(Vec* v))}|]) 
+dmCreateGlobalVector' dm = withPtr ( \v -> [C.exp|int{DMCreateGlobalVector($(DM dm), $(Vec* v))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode DMCreateLocalVector(DM,Vec*);
-dmCreateLocalVector dm = withPtr ( \v -> [C.exp|int{DMCreateLocalVector($(DM dm), $(Vec* v))}|]) 
+dmCreateLocalVector' dm = withPtr ( \v -> [C.exp|int{DMCreateLocalVector($(DM dm), $(Vec* v))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode DMGetLocalVector(DM,Vec *);
 dmGetLocalVector dm = withPtr ( \v -> [C.exp|int{DMGetLocalVector($(DM dm),$(Vec* v))}|]) 
@@ -1000,15 +1000,15 @@ dmCreateColoring' d c = withPtr $ \col -> [C.exp|int{DMCreateColoring($(DM d),$(
 -- dmdaDirectionToInt x = fromEnum (x :: DMDADirection)
 
 
-dmdaCreate comm = withPtr ( \p -> [C.exp|int{DMDACreate($(int c), $(DM* p))}|] ) where
+dmdaCreate' comm = withPtr ( \p -> [C.exp|int{DMDACreate($(int c), $(DM* p))}|] ) where
   c = unComm comm
 
 
 
 -- PETSC_EXTERN PetscErrorCode DMDASetDim(DM,PetscInt);
-dmdaSetDim dm d = [C.exp|int{DMDASetDim($(DM dm), $(PetscInt d))}|] 
+dmdaSetDim' dm d = [C.exp|int{DMDASetDim($(DM dm), $(PetscInt d))}|] 
 -- PETSC_EXTERN PetscErrorCode DMDASetSizes(DM,PetscInt,PetscInt,PetscInt);
-dmdaSetSizes dm x y z = [C.exp|int{DMDASetSizes($(DM dm), $(PetscInt x), $(PetscInt y), $(PetscInt z))}|] 
+dmdaSetSizes' dm x y z = [C.exp|int{DMDASetSizes($(DM dm), $(PetscInt x), $(PetscInt y), $(PetscInt z))}|] 
 
 -- PetscErrorCode  DMDACreate1d(MPI_Comm comm, DMBoundaryType bx, PetscInt M, PetscInt dof, PetscInt s, const PetscInt lx[], DM *da)   -- Collective on MPI_Comm
 -- Input Parameters
@@ -1019,7 +1019,7 @@ dmdaSetSizes dm x y z = [C.exp|int{DMDASetSizes($(DM dm), $(PetscInt x), $(Petsc
 -- dof	- number of degrees of freedom per node
 -- s	- stencil width
 -- lx	- array containing number of nodes in the X direction on each processor, or NULL. If non-null, must be of length as the number of processes in the MPI_Comm.
-dmdaCreate1d comm bx m dof s lx_ =
+dmdaCreate1d' comm bx m dof s lx_ =
   withArray lx_ ( \ lx ->
    withPtr ( \ dm -> [C.exp|int{DMDACreate1d($(int c),
                                               $(int bxe),
@@ -1063,7 +1063,7 @@ dmdaCreate1d comm bx m dof s lx_ =
 -- .  da - the resulting distributed array object
 
 
-dmdaCreate2d comm bx by sten mm nn m n dof s lx_ ly_ =
+dmdaCreate2d0' comm bx by sten mm nn m n dof s lx_ ly_ =
   withArray lx_ $ \lx ->
    withArray ly_ $ \ly -> 
     withPtr ( \dm -> [C.exp|int{DMDACreate2d($(int c),
@@ -1084,7 +1084,7 @@ dmdaCreate2d comm bx by sten mm nn m n dof s lx_ ly_ =
         bye = toEnum $ dmBoundaryTypeToInt by
         stene = toEnum $ dmdaStencilTypeToInt sten
 
-dmdaCreate2d' c bx by sten mm nn dof s = dmdaCreate2d c bx by sten mm nn petscDecide petscDecide dof s [] []
+dmdaCreate2d' c bx by sten mm nn dof s = dmdaCreate2d0' c bx by sten mm nn petscDecide petscDecide dof s [] []
 
 -- withDmda2d comm bx by sten mm nn dof s =
 --   bracket (dmdaCreate2d' comm bx by sten mm nn dof s) dmDestroy
