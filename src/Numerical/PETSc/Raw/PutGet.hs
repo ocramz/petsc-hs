@@ -827,6 +827,7 @@ withPetscViewerSetup comm ty mode name f = withPetscViewer comm $ \v -> do
  53:   PetscViewerHDF5PushGroup(viewer, "/testTimestep");
 -}
 
+withPetscViewerHDF5Group :: PetscViewer -> String -> (PetscViewer -> IO a) -> IO ()
 withPetscViewerHDF5Group viewer name f = do
   chk0 $ petscViewerHDF5PushGroup1 viewer name
   f viewer
@@ -849,6 +850,8 @@ commSelf = commSelf1
 
 
 -- * misc PETSc
+
+-- -- NB : all PETSc functions must appear within a withPetsc* bracket
 
 petscInit0 :: IO ()
 petscInit0 = chk0 petscInit01
