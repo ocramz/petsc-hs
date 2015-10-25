@@ -254,6 +254,9 @@ vecGetOwnershipRange :: Vec -> IO (Int, Int)
 vecGetOwnershipRange v = 
   chk1 (vecGetOwnershipRange1 v) 
 
+
+-- | Vec math. operations
+
 vecDot :: Vec -> Vec -> IO PetscScalar_
 vecDot v1 v2 = chk1 $ vecDot1 v1 v2
 
@@ -307,12 +310,15 @@ vecSize = vecGetSizeUnsafe
 
 
 
+-- | print a Vec tor stdout 
 
 vecViewStdout :: Vec -> IO ()
 vecViewStdout v = chk0 $ vecViewStdout1 v
 
 
 
+
+-- | getting/restoring a contiguous array from/to a Vec 
 
 vecGetArray :: Vec -> Int -> IO [PetscScalar_]
 vecGetArray v sz = chk1 $ vecGetArray' v sz
@@ -395,20 +401,26 @@ bracket1 allocate release io = mask $ \restore -> do
 
 
 
+
+
     
 -- * Mat
 
-withMat :: Comm -> (Mat -> IO a) -> IO a
+withMat ::
+  Comm -> (Mat -> IO a) -> IO a
 withMat comm = bracketChk (matCreate' comm) matDestroy'
 
-matCreate :: Comm -> IO Mat
+matCreate ::
+  Comm -> IO Mat
 matCreate comm = chk1 (matCreate' comm)
 
-matCreateSeqAIJVarNZPR :: Comm -> Int -> Int -> [Int] -> IO Mat
+matCreateSeqAIJVarNZPR ::
+  Comm -> Int -> Int -> [Int] -> IO Mat
 matCreateSeqAIJVarNZPR comm m n nnz =
   chk1 (matCreateSeqAIJ1 comm m n nnz)
 
-matCreateSeqAIJConstNZPR :: Comm -> Int -> Int -> Int -> IO Mat
+matCreateSeqAIJConstNZPR ::
+  Comm -> Int -> Int -> Int -> IO Mat
 matCreateSeqAIJConstNZPR comm m n nz =
   chk1 (matCreateSeqAIJconstNZperRow1 comm m n nz)
 
@@ -417,11 +429,13 @@ matCreateMPIAIJWithArrays ::
 matCreateMPIAIJWithArrays comm idxx idxy vals =
   chk1 (matCreateMPIAIJWithArrays' comm idxx idxy vals)
 
-matDestroy :: Mat -> IO ()
+matDestroy ::
+  Mat -> IO ()
 matDestroy = chk0 . matDestroy'
 
 
-matSetValues :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO () 
+matSetValues ::
+  Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO () 
 matSetValues m idxx idxy vals im = chk0 (matSetValues' m idxx idxy vals im)
 
 matSetValuesAdd, matSetValuesInsert :: 
@@ -430,28 +444,34 @@ matSetValuesAdd m idxx idxy vals = chk0 (matSetValuesAdd' m idxx idxy vals)
 matSetValuesInsert m idxx idxy vals = chk0 (matSetValuesInsert' m idxx idxy vals)
 
 
-matSetup :: Mat -> IO ()
+matSetup ::
+  Mat -> IO ()
 matSetup = chk0 . matSetup'
 
-matAssemblyBegin, matAssemblyEnd :: Mat -> IO ()
+matAssemblyBegin, matAssemblyEnd :: 
+  Mat -> IO ()
 matAssemblyBegin = chk0 . matAssemblyBegin'
 matAssemblyEnd = chk0 . matAssemblyEnd'
 
-matAssembly :: Mat -> IO ()
+matAssembly ::
+  Mat -> IO ()
 matAssembly = matAssemblyBegin >> matAssemblyEnd
 
-withMatAssembly :: Mat -> IO a -> IO ()
+withMatAssembly ::
+  Mat -> IO a -> IO ()
 withMatAssembly m f = do
   matAssemblyBegin m
   f 
   matAssemblyEnd m
 
-matGetOwnershipRange :: Mat -> IO (Int, Int)
+matGetOwnershipRange ::
+  Mat -> IO (Int, Int)
 matGetOwnershipRange m = chk1 (matGetOwnershipRange' m)
 
 matGetSizeCInt m = chk1 (matGetSize' m)
 
-matGetSize :: Mat -> IO (Int, Int)
+matGetSize ::
+  Mat -> IO (Int, Int)
 matGetSize mat = matGetSizeCInt mat >>= \(m,n) -> return (fi m, fi n)
 
 -- data MatrixOrder = RowMajor | ColMajor deriving (Eq, Show)
@@ -569,9 +589,12 @@ validDims (MIVarNZPR mi nnz) =
   
 
 
-
+matFDColoringCreate ::
+  Mat -> ISColoring -> IO MatFDColoring
 matFDColoringCreate mat isc = chk1 $ matFDColoringCreate' mat isc
 
+matFDColoringDestroy ::
+  MatFDColoring -> IO ()
 matFDColoringDestroy mfc = chk0 $ matFDColoringDestroy' mfc
 
 withMatFDColoring :: Mat -> ISColoring -> (MatFDColoring -> IO a) -> IO a
