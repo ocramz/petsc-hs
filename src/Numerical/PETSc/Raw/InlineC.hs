@@ -1039,9 +1039,7 @@ dmdaCreate1d' comm bx m dof s lx_ =
 -- PetscErrorCode  DMDACreate2d(MPI_Comm comm,DMBoundaryType bx,DMBoundaryType by,DMDAStencilType stencil_type, PetscInt M,PetscInt N,PetscInt m,PetscInt n,PetscInt dof,PetscInt s,const PetscInt lx[],const PetscInt ly[],DM *da)
 --    DMDACreate2d -  Creates an object that will manage the communication of  two-dimensional
 --    regular array data that is distributed across some processors.
-
 --    Collective on MPI_Comm
-
 --    Input Parameters:
 -- +  comm - MPI communicator
 -- .  bx,by - type of ghost nodes the array have.
@@ -1339,14 +1337,14 @@ kspDestroy' p = with p kspDestroy0'
      --   -- return soln
 
 
-kspSetOperators ksp amat pmat =
+kspSetOperators' ksp amat pmat =
   [C.exp|int{KSPSetOperators($(KSP ksp), $(Mat amat), $(Mat pmat))}|] 
 
-kspSetUp ksp = [C.exp|int{KSPSetUp($(KSP ksp))}|]
+kspSetUp' ksp = [C.exp|int{KSPSetUp($(KSP ksp))}|]
 
-kspSolve ksp b x = [C.exp|int{KSPSolve($(KSP ksp), $(Vec b), $(Vec x))}|] 
+kspSolve' ksp b x = [C.exp|int{KSPSolve($(KSP ksp), $(Vec b), $(Vec x))}|] 
 
-kspSolveTranspose ksp b x =
+kspSolveTranspose' ksp b x =
   [C.exp|int{KSPSolveTranspose($(KSP ksp), $(Vec b), $(Vec x))}|] 
 
 
@@ -1370,25 +1368,25 @@ kspSetReusePreconditioner ksp b = [C.exp|int{KSPSetReusePreconditioner($(KSP ksp
 -- kspSetTolerances ksp 
 
 -- PETSC_EXTERN PetscErrorCode KSPSetInitialGuessNonzero(KSP,PetscBool );
-kspSetInitialGuessNonzero ksp b= [C.exp|int{KSPSetInitialGuessNonzero($(KSP ksp), $(PetscBool b))}|]
+kspSetInitialGuessNonzero' ksp b = [C.exp|int{KSPSetInitialGuessNonzero($(KSP ksp), $(PetscBool b))}|]
 
 -- PETSC_EXTERN PetscErrorCode KSPGetInitialGuessNonzero(KSP,PetscBool  *);
 -- PETSC_EXTERN PetscErrorCode KSPSetInitialGuessKnoll(KSP,PetscBool );
 -- PETSC_EXTERN PetscErrorCode KSPGetInitialGuessKnoll(KSP,PetscBool *);
 
 -- PETSC_EXTERN PetscErrorCode KSPSetErrorIfNotConverged(KSP,PetscBool );
-kspSetErrorIfNotConverged ksp b= [C.exp|int{KSPSetErrorIfNotConverged($(KSP ksp), $(PetscBool b))}|] 
+kspSetErrorIfNotConverged ksp b = [C.exp|int{KSPSetErrorIfNotConverged($(KSP ksp), $(PetscBool b))}|] 
 
 -- PETSC_EXTERN PetscErrorCode KSPGetErrorIfNotConverged(KSP,PetscBool  *);
 -- PETSC_EXTERN PetscErrorCode KSPGetComputeEigenvalues(KSP,PetscBool *);
 
 -- PETSC_EXTERN PetscErrorCode KSPSetComputeEigenvalues(KSP,PetscBool );
-kspSetComputeEigenValues ksp b= [C.exp|int{KSPSetComputeEigenvalues($(KSP ksp), $(PetscBool b))}|]
+kspSetComputeEigenValues ksp b = [C.exp|int{KSPSetComputeEigenvalues($(KSP ksp), $(PetscBool b))}|]
 
 -- PETSC_EXTERN PetscErrorCode KSPGetComputeSingularValues(KSP,PetscBool *);
 
 -- PETSC_EXTERN PetscErrorCode KSPSetComputeSingularValues(KSP,PetscBool );
-kspSetComputeSingularValues ksp b= [C.exp|int{KSPSetComputeSingularValues($(KSP ksp), $(PetscBool b))}|] 
+kspSetComputeSingularValues ksp b = [C.exp|int{KSPSetComputeSingularValues($(KSP ksp), $(PetscBool b))}|] 
 
 -- PETSC_EXTERN PetscErrorCode KSPGetRhs(KSP,Vec *);
 kspGetRhs' ksp = withPtr $ \v -> [C.exp|int{KSPGetRhs($(KSP ksp), $(Vec *v))}|]

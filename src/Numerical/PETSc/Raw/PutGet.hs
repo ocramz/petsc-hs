@@ -696,6 +696,31 @@ kspDestroy ksp = chk0 (kspDestroy' ksp)
 kspSetType :: KSP -> KspType_ -> IO ()
 kspSetType ksp kt = chk0 (kspSetType' ksp kt)
 
+withKsp :: Comm -> (KSP -> IO a) -> IO a
+withKsp comm =
+  bracket (kspCreate comm) kspDestroy
+
+withKspSetup ::
+  Comm ->
+  KspType_ ->
+  Mat ->            -- linear operator
+  Mat ->            -- preconditioner
+  Bool ->           -- set initial solution guess to nonzero vector
+  (KSP -> IO a) ->  -- post-setup actions, i.e. solve with a r.h.s , etc.
+  IO a
+withKspSetup comm kt amat pmat ignz f = withKsp comm $ \ksp -> do
+  kspSetOperators ksp amat pmat
+  kspSetType ksp kt
+  kspSetInitialGuessNonzero ksp ignz
+  kspSetUp ksp
+  f ksp
+
+
+kspSetOperators ksp amat pmat = chk0 (kspSetOperators' ksp amat pmat)
+
+kspSetInitialGuessNonzero ksp ig = chk0 (kspSetInitialGuessNonzero' ksp ig)
+
+kspSetUp ksp = chk0 (kspSetUp' ksp)
 
 -- * PF
 
