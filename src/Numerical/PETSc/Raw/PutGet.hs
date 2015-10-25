@@ -414,6 +414,16 @@ matCreateMPIAIJWithArrays comm idxx idxy vals =
 matDestroy :: Mat -> IO ()
 matDestroy = chk0 . matDestroy'
 
+
+matSetValues :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO () 
+matSetValues m idxx idxy vals im = chk0 (matSetValues' m idxx idxy vals im)
+
+matSetValuesAdd, matSetValuesInsert :: 
+  Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> IO ()
+matSetValuesAdd m idxx idxy vals = chk0 (matSetValuesAdd' m idxx idxy vals)
+matSetValuesInsert m idxx idxy vals = chk0 (matSetValuesInsert' m idxx idxy vals)
+
+
 matSetup :: Mat -> IO ()
 matSetup = chk0 . matSetup'
 
@@ -440,6 +450,7 @@ data MatrixData a =
                matDataColIdxs :: !(V.Vector Int),
                matDataEntries :: !(V.Vector a)} deriving (Eq, Show)
 
+checkMatrixData :: MatrixData a -> Bool
 checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
   (lr, lc, le) = (V.length idxx, V.length idxy, V.length vals)
 

@@ -731,7 +731,7 @@ matSetValueUnsafe' m row col val im =
 -- Negative indices may be passed in idxm and idxn, these rows and columns are simply ignored. This allows easily inserting element stiffness matrices with homogeneous Dirchlet boundary conditions that you don't want represented in the matrix
 
 
-matSetValues' mat nbx idxx_ nby idxy_ b_ im =
+matSetValues0' mat nbx idxx_ nby idxy_ b_ im =
   [C.exp|int { MatSetValues($(Mat mat),
                       $(int nbx),
                       $(int* idxx_),
@@ -740,21 +740,21 @@ matSetValues' mat nbx idxx_ nby idxy_ b_ im =
                       $(PetscScalar* b_), $(int imm))} |] where
     imm = fromIntegral $ insertModeToInt im
 
-matSetValues mat idxx idxy b im
+matSetValues' mat idxx idxy b im
   | compatDim =
      withArray idxx $ \idxx_ ->
      withArray idxy $ \idxy_ ->
      withArray b $ \b_ ->
-     matSetValues' mat nbx idxx_ nby idxy_ b_ im 
+     matSetValues0' mat nbx idxx_ nby idxy_ b_ im 
   | otherwise = error "matSetValues: incompatible dimensions"
   where
-       nbx = fromIntegral $ length idxx
-       nby = fromIntegral $ length idxy
-       nb = fromIntegral $ length b
+       nbx = toCInt $ length idxx
+       nby = toCInt $ length idxy
+       nb = toCInt $ length b
        compatDim = (nbx*nby) == nb
 
-matSetValuesAdd m x y b = matSetValues m x y b AddValues
-matSetValuesInsert m x y b = matSetValues m x y b InsertValues
+matSetValuesAdd' m x y b = matSetValues' m x y b AddValues
+matSetValuesInsert' m x y b = matSetValues' m x y b InsertValues
 
 
 
