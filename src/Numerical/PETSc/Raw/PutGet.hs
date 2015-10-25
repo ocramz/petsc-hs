@@ -611,30 +611,77 @@ dmdaSetDim dm d = chk0 (dmdaSetDim' dm d') where
 -- dmdaSetSizes dm x y z = chk0 (dmdaSetSizes' dm x' y' z') where
 --   (x',y',z') = (toCInt x, toCInt y, toCInt z)
 
+
+
 dmdaCreate1d ::
-  Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> [CInt] -> IO DM
-dmdaCreate1d comm b mm dofPerNode stencilW lx =
-  chk1 (dmdaCreate1d' comm b mm dofPerNode stencilW lx)
+  Comm ->             
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
+  PetscInt_ ->        -- mm : global array dimension 
+  PetscInt_ ->        -- dof : # DOF / node
+  PetscInt_ ->        -- sw : stencil width 
+  [CInt] ->           -- # nodes in X dir / processor
+  IO DM
+dmdaCreate1d comm b mm dof sw lx =
+  chk1 (dmdaCreate1d' comm b mm dof sw lx)
 
 dmdaCreate2d ::
-  Comm -> (DMBoundaryType_, DMBoundaryType_) -> DMDAStencilType -> (PetscInt_, PetscInt_) -> PetscInt_ -> PetscInt_ -> IO DM
+  Comm ->
+  (DMBoundaryType_, DMBoundaryType_) -> -- (bx, by) : type of bdry ghost cells 
+  DMDAStencilType ->                    -- sten : box or star stencil type
+  (PetscInt_, PetscInt_) ->             -- (mm, nn) : global array dimensions
+  PetscInt_ ->                          -- dof : # DOF / node
+  PetscInt_ ->
+  IO DM
 dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
   chk1 (dmdaCreate2d' comm bx by sten mm nn dof s)
 
+
+
 dmdaSetUniformCoordinates ::
-  DM -> (PetscReal_, PetscReal_) -> (PetscReal_, PetscReal_) -> (PetscReal_, PetscReal_) -> IO ()
+  DM ->
+  (PetscReal_, PetscReal_) ->
+  (PetscReal_, PetscReal_) ->
+  (PetscReal_, PetscReal_) ->
+  IO ()
 dmdaSetUniformCoordinates da (xmin, xmax) (ymin, ymax) (zmin, zmax) =
   chk0 (dmdaSetUniformCoordinates' da xmin xmax ymin ymax zmin zmax)
 
 dmdaSetUniformCoordinates1d ::
-  DM -> (PetscReal_, PetscReal_) -> IO ()
+  DM ->
+  (PetscReal_, PetscReal_) ->
+  IO ()
 dmdaSetUniformCoordinates1d da (xmin, xmax) =
   dmdaSetUniformCoordinates da (xmin, xmax) (0,0) (0,0)
 
 dmdaSetUniformCoordinates2d ::
-  DM -> (PetscReal_, PetscReal_) -> (PetscReal_, PetscReal_) -> IO ()
+  DM ->
+  (PetscReal_, PetscReal_) ->
+  (PetscReal_, PetscReal_) ->
+  IO ()
 dmdaSetUniformCoordinates2d da (xmin, xmax) (ymin, ymax)  =
   dmdaSetUniformCoordinates da (xmin, xmax) (ymin, ymax) (0,0)
+
+
+-- | brackets for distributed arrays
+
+withDmda1d comm b m dof sw lx =
+  bracket (dmdaCreate1d comm b m dof sw lx) dmDestroy
+
+withDmda2d comm (bx, by) sten (m, n) dof s =
+  bracket (dmdaCreate2d comm (bx, by) sten (m, n) dof s) dmDestroy
+
+
+-- | brackets for distributed arrays, uniform coordinates
+
+withDmdaUniform1d comm b m dof sw lx (x1,x2) f=
+  withDmda1d comm b m dof sw lx $ \dm -> do
+   dmdaSetUniformCoordinates1d dm (x1,x2)
+   f dm 
+
+withDmdaUniform2d comm (bx,by) sten (m,n) dof s (x1,x2) (y1,y2) f =
+  withDmda2d comm (bx,by) sten (m,n) dof s $ \dm -> do
+    dmdaSetUniformCoordinates2d dm (x1,x2) (y1,y2)
+    f dm
 
 
 
