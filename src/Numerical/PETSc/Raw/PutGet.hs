@@ -220,15 +220,19 @@ vecSetValuesUnsafe v ix y im =
   where
   ni = toCInt $ length ix
 
+
+vecSetValuesSafe :: Vec -> [Int] -> [PetscScalar_] -> InsertMode_ -> IO ()
 vecSetValuesSafe v ix y im
-  | c1 && c2 = vecSetValuesUnsafe v ix y im 
-  | otherwise = error "vecSetValuesSafe: "
-     where
-      c1 = length ix == length y
-      c2 = a >= 0 && b <= sv where
-        ixs = qsort ix
-        (a, b) = (head ixs, last ixs)
-      sv = vecGetSizeUnsafe v
+  | safeFlag ix y sv = vecSetValuesUnsafe v ix' y im
+  | otherwise = error "vecSetValuesSafe : "
+      where
+        sv = vecGetSizeUnsafe v
+        ix' = map toCInt ix
+        safeFlag ix_ y_ sv_ = c1 && c2 where
+          c1 = length ix_ == length y_
+          c2 = a >= 0 && b <= sv_
+          ixs = qsort ix_
+          (a, b) = (head ixs, last ixs)
 
 
 
