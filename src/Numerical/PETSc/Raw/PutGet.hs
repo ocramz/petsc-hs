@@ -814,8 +814,6 @@ commSelf = commSelf1
 
 -- * misc PETSc
 
--- commWorld = commWorld
-
 petscInit0 :: IO ()
 petscInit0 = chk0 petscInit01
 
