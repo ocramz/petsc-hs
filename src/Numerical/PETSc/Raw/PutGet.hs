@@ -451,10 +451,15 @@ matSetValuesAdd m idxx idxy vals = chk0 (matSetValuesAdd' m idxx idxy vals)
 matSetValuesInsert m idxx idxy vals = chk0 (matSetValuesInsert' m idxx idxy vals)
 
 matSetValuesSafe ::
-  Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO ()
+  Mat ->
+  [CInt] ->          -- first dimension index array 
+  [CInt] ->          -- second " " "
+  [PetscScalar_] ->  -- values to fill the matrix with
+  InsertMode_ ->     -- `AddValues` or `InsertValues`
+  IO ()
 matSetValuesSafe m idxx idxy vals im
   | safeFlag = matSetValues m idxx idxy vals im
-  | otherwise = error "matSetValuesSafe : "
+  | otherwise = error "matSetValuesSafe : invalid indices "
      where
        safeFlag = c1 && c2
        (lix, liy, lv) = (length idxx, length idxy, length vals)
