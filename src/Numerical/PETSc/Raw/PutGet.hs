@@ -440,6 +440,14 @@ withMatAssembly m f = do
   f 
   matAssemblyEnd m
 
+matGetOwnershipRange :: Mat -> IO (Int, Int)
+matGetOwnershipRange m = chk1 (matGetOwnershipRange' m)
+
+matGetSizeCInt m = chk1 (matGetSize' m)
+
+matGetSize :: Mat -> IO (Int, Int)
+matGetSize mat = matGetSizeCInt mat >>= \(m,n) -> return (fi m, fi n)
+
 -- data MatrixOrder = RowMajor | ColMajor deriving (Eq, Show)
 -- transposeOrder RowMajor = ColMajor
 -- transposeOrder ColMajor = RowMajor

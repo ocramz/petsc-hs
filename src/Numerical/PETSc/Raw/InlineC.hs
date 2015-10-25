@@ -668,15 +668,17 @@ matViewStdout v = [C.exp|int{MatView($(Mat v), PETSC_VIEWER_STDOUT_SELF)}|]
 
 
 -- PETSC_EXTERN PetscErrorCode MatGetSize(Mat,PetscInt*,PetscInt*);
-matGetSize' v sx sy =  [C.exp|int{MatGetSize($(Mat v), $(int *sx), $(int *sy))}|]
+matGetSize0' v sx sy =  [C.exp|int{MatGetSize($(Mat v), $(int *sx), $(int *sy))}|]
 
-matGetSize v = withPtr ( \px ->
-  withPtr $ \py -> matGetSize' v px py ) >>= fst2M
-               
-matGetSizeUnsafeCInt = unsafePerformIO . matGetSize
+matGetSize' :: Mat -> IO ((CInt, CInt), CInt)
+matGetSize' v = withPtr ( \px ->
+  withPtr $ \py -> matGetSize0' v px py ) >>= fst2M
 
--- matGetSizeUnsafe :: Mat -> (Int, Int)
--- matGetSizeUnsafe m = (fromIntegral a', fromIntegral b') where
+matGetSizeUnsafeCInt' :: Mat -> ((CInt, CInt), CInt)
+matGetSizeUnsafeCInt' = unsafePerformIO . matGetSize'
+
+-- matGetSizeUnsafe' :: Mat -> (Int, Int)
+-- matGetSizeUnsafe' m = (fi a', fi b') where
 --   (a', b') = matGetSizeUnsafeCInt m
 
 -- withMatSize mat f = f (matGetSizeUnsafeCInt mat)
@@ -803,18 +805,15 @@ matSetup' a = [C.exp|int{MatSetUp($(Mat a))}|]
 -- TODO row (block) indexing : these should not be interpreted as mere Ints but as indices, e.g. FEM mesh nodes
 
 -- PETSC_EXTERN PetscErrorCode MatGetOwnershipRange(Mat,PetscInt*,PetscInt*);
-matGetOwnershipRange' a =
+matGetOwnershipRange0' a =
  withPtr $ \rmin -> 
   withPtr $ \rmax ->
    [C.exp|int{MatGetOwnershipRange($(Mat a), $(PetscInt *rmin), $(PetscInt *rmax) )}|]
 
-matGetOwnershipRange1 m = do
-  (r2, (r1, e)) <- matGetOwnershipRange' m
-  return ((r2, r1), e)
+matGetOwnershipRange' m = do
+  (r2, (r1, e)) <- matGetOwnershipRange0' m
+  return ((fi r2, fi r1), e)
 
--- matGetOwnershipRange m = do
---   (r1, (r2, e)) <- matGetOwnershipRange' m
---   handleErrTup ((r1, r2), e)
 
   
 
