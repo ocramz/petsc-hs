@@ -1294,9 +1294,9 @@ kspGetConvergedReason' ksp =
 --   kspGetConvergedReason' ksp >>= \r -> return $ kspConvergedIntToReason (fromIntegral r)
 
 
-kspCreate' comm p = [C.exp| int{KSPCreate($(int c), $(KSP *p))}|] where
+kspCreate0' comm p = [C.exp| int{KSPCreate($(int c), $(KSP *p))}|] where
   c = unComm comm
-kspCreate c = withPtr (kspCreate' c)
+kspCreate' c = withPtr (kspCreate0' c)
 
 kspSetType' :: KSP -> KspType_ -> IO CInt
 kspSetType' ksp kt = withCString strk $ \strp -> [C.exp|int{KSPSetType($(KSP ksp), $(char* strp))}|] where
@@ -1310,8 +1310,8 @@ kspSetType' ksp kt = withCString strk $ \strp -> [C.exp|int{KSPSetType($(KSP ksp
 --                            [C.exp|int{KSPGetType($(KSP ksp), $(char *strp))}|]
 --                            peekString strp) 
 
-kspDestroy' p = [C.exp| int{KSPDestroy($(KSP *p))}  |]
-kspDestroy p = with p kspDestroy' 
+kspDestroy0' p = [C.exp| int{KSPDestroy($(KSP *p))}  |]
+kspDestroy' p = with p kspDestroy0' 
 
 -- withKsp c = bracket (kspCreate c) kspDestroy
 

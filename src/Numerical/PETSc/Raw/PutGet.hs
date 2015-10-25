@@ -616,11 +616,39 @@ dmdaCreate1d ::
 dmdaCreate1d comm b mm dofPerNode stencilW lx =
   chk1 (dmdaCreate1d' comm b mm dofPerNode stencilW lx)
 
-dmdaCreate2d :: Comm -> (DMBoundaryType_, DMBoundaryType_) -> DMDAStencilType -> (PetscInt_, PetscInt_) -> PetscInt_ -> PetscInt_ -> IO DM
+dmdaCreate2d ::
+  Comm -> (DMBoundaryType_, DMBoundaryType_) -> DMDAStencilType -> (PetscInt_, PetscInt_) -> PetscInt_ -> PetscInt_ -> IO DM
 dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
   chk1 (dmdaCreate2d' comm bx by sten mm nn dof s)
 
+dmdaSetUniformCoordinates ::
+  DM -> (PetscReal_, PetscReal_) -> (PetscReal_, PetscReal_) -> (PetscReal_, PetscReal_) -> IO ()
+dmdaSetUniformCoordinates da (xmin, xmax) (ymin, ymax) (zmin, zmax) =
+  chk0 (dmdaSetUniformCoordinates' da xmin xmax ymin ymax zmin zmax)
+
+dmdaSetUniformCoordinates1d ::
+  DM -> (PetscReal_, PetscReal_) -> IO ()
+dmdaSetUniformCoordinates1d da (xmin, xmax) =
+  dmdaSetUniformCoordinates da (xmin, xmax) (0,0) (0,0)
+
+dmdaSetUniformCoordinates2d ::
+  DM -> (PetscReal_, PetscReal_) -> (PetscReal_, PetscReal_) -> IO ()
+dmdaSetUniformCoordinates2d da (xmin, xmax) (ymin, ymax)  =
+  dmdaSetUniformCoordinates da (xmin, xmax) (ymin, ymax) (0,0)
+
+
+
 -- * KSP
+
+kspCreate :: Comm -> IO KSP
+kspCreate comm = chk1 (kspCreate' comm)
+
+kspDestroy :: KSP -> IO ()
+kspDestroy ksp = chk0 (kspDestroy' ksp)
+
+kspSetType :: KSP -> KspType_ -> IO ()
+kspSetType ksp kt = chk0 (kspSetType' ksp kt)
+
 
 -- * PF
 
