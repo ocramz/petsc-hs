@@ -780,11 +780,11 @@ dmdaSetUniformCoordinates2d da (xmin, xmax) (ymin, ymax)  =
 
 withDmda1d ::
   Comm ->
-  DMBoundaryType_ ->
-  PetscInt_ ->
-  PetscInt_ ->
-  PetscInt_ ->
-  [CInt] ->
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
+  PetscInt_ ->        -- mm : global array dimension 
+  PetscInt_ ->        -- dof : # DOF / node
+  PetscInt_ ->        -- sw : stencil width 
+  [CInt] ->           -- # nodes in X dir / processor
   (DM -> IO a) ->
   IO a
 withDmda1d comm b m dof sw lx =
@@ -805,15 +805,61 @@ withDmda2d comm (bx, by) sten (m, n) dof s =
 
 -- | brackets for distributed arrays, uniform coordinates
 
+withDmdaUniform1d ::
+  Comm ->
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
+  PetscInt_ ->        -- mm : global array dimension 
+  PetscInt_ ->        -- dof : # DOF / node
+  PetscInt_ ->        -- sw : stencil width 
+  [CInt] ->           -- # nodes in X dir / processor
+  (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
+  (DM -> IO a) ->
+  IO a
 withDmdaUniform1d comm b m dof sw lx (x1,x2) f=
   withDmda1d comm b m dof sw lx $ \dm -> do
    dmdaSetUniformCoordinates1d dm (x1,x2)
    f dm 
 
-withDmdaUniform2d comm (bx,by) sten (m,n) dof s (x1,x2) (y1,y2) f =
-  withDmda2d comm (bx,by) sten (m,n) dof s $ \dm -> do
+withDmdaUniform2d ::
+  Comm ->
+  (DMBoundaryType_, DMBoundaryType_) ->  -- b : type of boundary ghost cells
+  DMDAStencilType ->
+  (PetscInt_, PetscInt_) ->    -- (m, n) : global array dimensions 
+  PetscInt_ ->                 -- dof : # DOF / node
+  PetscInt_ ->                 -- sw : stencil width 
+  (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
+  (PetscReal_, PetscReal_) ->  -- (ymin, ymax)
+  (DM -> IO a) ->
+  IO a
+withDmdaUniform2d comm (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
+  withDmda2d comm (bx,by) sten (m,n) dof sw $ \dm -> do
     dmdaSetUniformCoordinates2d dm (x1,x2) (y1,y2)
     f dm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

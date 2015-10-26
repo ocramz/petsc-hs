@@ -1082,7 +1082,10 @@ dmdaCreate2d0' comm bx by sten mm nn m n dof s lx_ ly_ =
         bye = toEnum $ dmBoundaryTypeToInt by
         stene = toEnum $ dmdaStencilTypeToInt sten
 
-dmdaCreate2d' c bx by sten mm nn dof s = dmdaCreate2d0' c bx by sten mm nn petscDecide petscDecide dof s [] []
+-- | Hp : lx == ly == NULL
+-- (customary in PETSc examples )
+dmdaCreate2d' c bx by sten mm nn dof s =
+  dmdaCreate2d0' c bx by sten mm nn petscDecide petscDecide dof s [] []
 
 -- withDmda2d comm bx by sten mm nn dof s =
 --   bracket (dmdaCreate2d' comm bx by sten mm nn dof s) dmDestroy
