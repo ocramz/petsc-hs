@@ -876,7 +876,58 @@ snesGetSolution snes = chk1 $ snesGetSolution' snes
 
 
 
+
+
+
+
+
 -- * TS
+
+tsCreate :: Comm -> IO TS
+tsCreate comm = chk1 $ tsCreate' comm
+
+tsDestroy :: TS -> IO ()
+tsDestroy ts = chk0 $ tsDestroy' ts
+
+withTs :: Comm -> (TS -> IO a) -> IO a
+withTs comm = bracket (tsCreate comm) tsDestroy
+
+tsSetProblemType :: TS -> TsProblemType -> IO ()
+tsSetProblemType ts ty = chk0 $ tsSetProblemType' ts ty
+
+tsSetInitialTimeStep ::
+  TS ->
+  PetscReal_ -> -- initial time
+  PetscReal_ -> -- initial timestep
+  IO ()
+tsSetInitialTimeStep ts it dt = chk0 $ tsSetInitialTimeStep' ts it dt
+
+tsSetDuration ::
+  TS ->
+  Int ->  -- max. # steps
+  PetscReal_ -> -- max. time
+  IO ()
+tsSetDuration ts ms mt = chk0 $ tsSetDuration' ts ms mt
+
+tsSetSolution ::
+  TS ->
+  Vec ->        -- initial condition
+  IO ()
+tsSetSolution ts isolnv = chk0 $ tsSetSolution' ts isolnv
+
+tsSolve_ :: TS -> IO ()
+tsSolve_ ts = chk0 $ tsSolve_' ts
+
+tsSolveWithInitialCondition :: TS -> Vec -> IO ()
+tsSolveWithInitialCondition ts isolnv = do
+  tsSetSolution ts isolnv
+  tsSolve_ ts
+
+
+
+
+
+
 
 -- * Tao
 

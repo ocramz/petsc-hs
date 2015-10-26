@@ -1661,8 +1661,8 @@ tsCreate' comm =
   where
    c = unComm comm
 
-tsDestroy' ts = [C.exp| int{TSDestroy($(TS* ts))} |] 
-tsDestroy1 ts = with ts tsDestroy'
+tsDestroy0' ts = [C.exp| int{TSDestroy($(TS* ts))} |] 
+tsDestroy' ts = with ts tsDestroy0'
 
 -- withTs c = bracket (tsCreate c) tsDestroy
 
@@ -1751,6 +1751,9 @@ tsSetDuration' ts ms' mt =
 --    InitialConditions(u,&appctx);
 
 
+-- PetscErrorCode  TSSetSolution(TS ts,Vec u)
+tsSetSolution' ts u = [C.exp|int{TSSetSolution($(TS ts),$(Vec u))}|]
+
 
 --    TSSolve(ts,u);
 -- PetscErrorCode TSSolve(TS ts,Vec u)        -- Collective on TS
@@ -1762,6 +1765,7 @@ tsSetDuration' ts ms' mt =
 
 tsSolve' ts u = [C.exp|int{TSSolve($(TS ts),$(Vec u))}|]
 
+tsSolve_' ts = [C.exp|int{TSSolve($(TS ts), NULL)}|]
     
 --    TSGetTimeStepNumber(ts,&steps);
 
