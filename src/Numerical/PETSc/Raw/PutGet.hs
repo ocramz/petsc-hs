@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
+-- # LANGUAGE RecordWildCards #
 {-# LANGUAGE CPP #-}
 
 -----------------------------------------------------------------------------
@@ -802,13 +803,12 @@ withDmda2d0 ::
 withDmda2d0 comm (bx, by) sten (m, n) dof s =
   bracket (dmdaCreate2d comm (bx, by) sten (m, n) dof s) dmDestroy
 
-withDmda2d :: Dmda2dInfo -> (DM ->  IO a) -> IO a
-withDmda2d (Dmda2dInfo comm bdry sten szs dof sw _ _) =
-  bracket (dmdaCreate2d comm bdry sten szs dof sw) dmDestroy 
+
+
 
 -- | a datatype for Dmda2d + info
 
-data Dmda2dP = Dmda2dP !Dmda2dInfo DM
+data Dmda2d = Dmda2d !Dmda2dInfo DM
 
 data Dmda2dInfo =
   Dmda2dInfo {
@@ -820,7 +820,24 @@ data Dmda2dInfo =
     dmdaStenWidth :: !PetscInt_,
     dmdaBoundsX :: !(PetscReal_, PetscReal_),
     dmdaBoundsY :: !(PetscReal_, PetscReal_)
-    }
+    } deriving (Eq, Show)
+
+
+
+
+withDmda2d1 ::
+  Dmda2dInfo ->
+  (DM ->  IO a) ->
+  IO a
+withDmda2d1 (Dmda2dInfo comm bdry sten szs dof sw _ _) =
+  bracket (dmdaCreate2d comm bdry sten szs dof sw) dmDestroy 
+
+-- withDmda2d Dmda2dInfo{..} pre post =
+--   withDmda2d1 di $ \p -> do
+--    pre dm 
+--    post dm 
+
+
 
 
 
