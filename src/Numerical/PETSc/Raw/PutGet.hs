@@ -790,7 +790,7 @@ withDmda1d ::
 withDmda1d comm b m dof sw lx =
   bracket (dmdaCreate1d comm b m dof sw lx) dmDestroy
 
-withDmda2d ::
+withDmda2d0 ::
   Comm ->
   (DMBoundaryType_, DMBoundaryType_) ->
   DMDAStencilType ->
@@ -799,8 +799,11 @@ withDmda2d ::
   PetscInt_ ->
   (DM -> IO a) ->
   IO a
-withDmda2d comm (bx, by) sten (m, n) dof s =
+withDmda2d0 comm (bx, by) sten (m, n) dof s =
   bracket (dmdaCreate2d comm (bx, by) sten (m, n) dof s) dmDestroy
+
+withDmda2d (Dmda2dInfo comm bdry sten szs dof sw _ _) =
+  bracket (dmdaCreate2d comm bdry sten szs dof sw) dmDestroy
 
 
 -- | brackets for distributed arrays, uniform coordinates
@@ -820,7 +823,26 @@ withDmdaUniform1d comm b m dof sw lx (x1,x2) f=
    dmdaSetUniformCoordinates1d dm (x1,x2)
    f dm 
 
+data Dmda2dInfo =
+  Dmda2dInfo {
+    dmdaComm :: Comm,
+    dmdaBdryType :: (DMBoundaryType_, DMBoundaryType_),
+    dmdaStenType :: DMDAStencilType,
+    dmdaSizes :: (PetscInt_, PetscInt_),
+    dmdaNdofPN :: PetscInt_,
+    dmdaStenWidth :: PetscInt_,
+    dmdaBoundsX :: (PetscReal_, PetscReal_),
+    dmdaBoundsY :: (PetscReal_, PetscReal_)
+    }
+
 withDmdaUniform2d ::
+  Dmda2dInfo -> (DM -> IO a) -> IO a
+withDmdaUniform2d (Dmda2dInfo comm bdryt sten szs dof sw bx by) f =
+  withDmda2d0 comm bdryt sten szs dof sw $ \dm -> do
+    dmdaSetUniformCoordinates2d dm bx by
+    f dm
+
+withDmdaUniform2d0 ::
   Comm ->
   (DMBoundaryType_, DMBoundaryType_) ->  -- b : type of boundary ghost cells
   DMDAStencilType ->
@@ -831,7 +853,7 @@ withDmdaUniform2d ::
   (PetscReal_, PetscReal_) ->  -- (ymin, ymax)
   (DM -> IO a) ->
   IO a
-withDmdaUniform2d comm (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
+withDmdaUniform2d0 comm (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
   withDmda2d comm (bx,by) sten (m,n) dof sw $ \dm -> do
     dmdaSetUniformCoordinates2d dm (x1,x2) (y1,y2)
     f dm
