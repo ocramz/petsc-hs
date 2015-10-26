@@ -1545,17 +1545,42 @@ snesSetType' s t = withCString strk $ \strp -> [C.exp|int{SNESSetType($(SNES s),
 
 
 -- PetscErrorCode  SNESSetFunction(SNES snes,Vec r,PetscErrorCode (*f)(SNES,Vec,Vec,void*),void *ctx)
-snesSetFunction' snes r f ctx =
+{-
+Input Parameters :
+snes	- the SNES context
+r	- vector to store function value
+f	- function evaluation routine; see SNESFunction for calling sequence details
+ctx	- [optional] user-defined context for private data for the function evaluation routine (may be NULL)
+Notes
+
+The Newton-like methods typically solve linear systems of the form
+     f'(x) x = -f(x),
+where f'(x) denotes the Jacobian matrix and f(x) is the function.
+-}
+
+{-
+PetscErrorCode SNESFunction(SNES snes,Vec x,Vec f,void *ctx);
+Input Parameters :
+
+snes	- the SNES context
+x	- state at which to evaluate residual
+ctx	- optional user-defined function context, passed in with SNESSetFunction()
+Output Parameter
+
+f -vector to put residual (function value) 
+-}
+
+snesSetFunction0' snes r f ctx =
   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
-                             $fun:(int (*f)(SNES, Vec, Vec, void*) ),
+                             $fun:(int (*f)(SNES, Vec, void*) ),
                              $(void* ctx))}|]
-snesSetFunction0 snes r f =
+snesSetFunction_' snes r f =
   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
-                             $fun:(int (*f)(SNES, Vec, Vec, void*) ),
+                             $fun:(int (*f)(SNES, Vec, void*) ),
                              NULL )}|]
-snesSetFunction snes v f =
-  snesSetFunction0 snes v f' where
-    f' s a b _ = f s a b
+snesSetFunction' snes v f =
+  snesSetFunction_' snes v f' where
+    f' s a _ = f s a 
 
 
 -- PETSC_EXTERN PetscErrorCode SNESDestroy(SNES*);
@@ -1587,12 +1612,6 @@ snesGetSolution' s = withPtr ( \v ->
 --    post s
 
 
--- snesSetFunction' snes r f ctx =
---   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
---                              $fun:(int (*f)(SNES, Vec, Vec, void*) ),
---                              $(void* ctx))}|]
-
-
 
 
 
@@ -1603,9 +1622,41 @@ snesGetSolution' s = withPtr ( \v ->
 -- Pmat	- the matrix to be used in constructing the preconditioner, usually the same as Amat.
 -- J	- Jacobian evaluation routine (if NULL then SNES retains any previously set value), see SNESJacobianFunction for details
 -- ctx	- [optional] user-defined context for private data for the Jacobian evaluation routine (may be NULL) (if NULL then SNES retains any previously set value)
+
+{-
+Notes
+
+If the Amat matrix and Pmat matrix are different you must call MatAssemblyBegin/End() on each matrix.
+If you know the operator Amat has a null space you can use MatSetNullSpace() and MatSetTransposeNullSpace() to supply the null space to Amat and the KSP solvers will automatically use that null space as needed during the solution process.
+
+If using SNESComputeJacobianDefaultColor() to assemble a Jacobian, the ctx argument must be a MatFDColoring.
+
+Other defect-correction schemes can be used by computing a different matrix in place of the Jacobian. One common example is to use the "Picard linearization" which only differentiates through the highest order parts of each term.
+-}
+
+{-
+PetscErrorCode SNESJacobianFunction(SNES snes,Vec x,Mat Amat,Mat Pmat,void *ctx);
+x	- input vector
+Amat	- the matrix that defines the (approximate) Jacobian
+Pmat	- the matrix to be used in constructing the preconditioner, usually the same as Amat.
+ctx	- [optional] user-defined Jacobian context
+-}
+
 snesSetJacobian0' snes amat pmat f ctx =
   [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
                              $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)),$(void* ctx))}|]
+
+snesSetJacobian' snes amat pmat f =
+  snesSetJacobian0' snes amat pmat f' where
+    f' s v a p _ = f s v a p 
+
+snesSetJacobian0_' snes amat pmat f =
+  [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
+                             $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)), NULL)}|]
+
+snesSetJacobian_' snes amat pmat f =
+  snesSetJacobian0_' snes amat pmat f' where
+    f' s v a p _ = f s v a p 
 
 
 -- -- monomorphic SNESSetJacobian : see e.g. www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex5s.c.html

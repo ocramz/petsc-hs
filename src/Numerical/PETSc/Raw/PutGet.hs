@@ -880,6 +880,32 @@ snesSetType snes st = chk0 $ snesSetType' snes st
 withSnes :: Comm -> (SNES -> IO a) -> IO a
 withSnes comm = bracket (snesCreate comm) snesDestroy
 
+-- | snesSetFunction, snesSetJacobian : 
+--   Newton-like methods typically solve linear systems of the form
+--      f'(x) x = -f(x)
+--   where f'(x) denotes the Jacobian matrix and f(x) is the function.
+
+snesSetFunction ::
+  SNES ->
+  Vec ->        -- r : storage for function value
+    (SNES ->       
+     Vec ->        -- vector at which to compute residual
+     IO CInt) -> 
+  IO ()
+snesSetFunction snes r f = chk0 $ snesSetFunction' snes r f
+
+snesSetJacobian ::
+  SNES ->
+  Mat ->        -- amat : storage for approximate Jacobian
+  Mat ->        -- pmat : storage for preconditioner (usually == amat)
+    (SNES ->       
+     Vec ->        -- vector at which to compute Jacobian
+     Mat ->        
+     Mat ->
+     IO CInt) ->
+  IO ()
+snesSetJacobian snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat f
+
 snesSetUp :: SNES -> IO ()
 snesSetUp snes = chk0 $ snesSetUp' snes
 
@@ -974,7 +1000,11 @@ taoSetType tao ty = chk0 $ taoSetType' tao ty
 taoSetInitialVector :: Tao -> Vec -> IO ()
 taoSetInitialVector tao x = chk0 $ taoSetInitialVector' tao x
 
-taoSetVariableBounds :: Tao -> Vec -> Vec -> IO ()
+taoSetVariableBounds ::
+  Tao ->
+  Vec ->  -- min
+  Vec ->  -- max
+  IO ()
 taoSetVariableBounds tao xmin xmax = chk0 $ taoSetVariableBounds' tao xmin xmax
 
 taoSolve :: Tao -> IO ()
@@ -1007,6 +1037,7 @@ taoIsGradientDefined tao = chk1 $ taoIsGradientDefined' tao
 
 -- * PetscViewer
 
+withPetscViewer :: Comm -> (PetscViewer -> IO a) -> IO a
 withPetscViewer comm =
   bracketChk (petscViewerCreate' comm) petscViewerDestroy'
 
@@ -1060,7 +1091,10 @@ withPetsc0 :: IO a -> IO a
 withPetsc0 = bracket_ petscInit0 petscFin
 
 petscInit ::
-  [String] -> String -> String -> IO ()
+  [String] ->   -- "argv" list of strings
+  String ->     -- options string
+  String ->     -- help string
+  IO ()
 petscInit args opts help = chk0 $ petscInitialize1 args opts help
 
 withPetsc ::
