@@ -727,6 +727,22 @@ dmdaSetDim dm d = chk0 (dmdaSetDim' dm d') where
 --   (x',y',z') = (toCInt x, toCInt y, toCInt z)
 
 
+-- | a datatype for Dmda1d + info
+
+data PetscDmda1d = PetscDmda1d !Dmda2dInfo DM
+
+data Dmda1dInfo =
+  Dmda1dInfo {
+    dmdaComm :: !Comm,
+    dmdaBdryType :: !DMBoundaryType_,
+    dmdaSizes :: !PetscInt_,
+    dmdaNdofPN :: !PetscInt_,
+    dmdaStenWidth :: !PetscInt_,
+    dmdaBoundsX :: !(PetscReal_, PetscReal_)
+    } deriving (Eq, Show)
+
+
+
 
 dmdaCreate1d ::
   Comm ->             
@@ -808,7 +824,7 @@ withDmda2d0 comm (bx, by) sten (m, n) dof s =
 
 -- | a datatype for Dmda2d + info
 
-data Dmda2d = Dmda2d !Dmda2dInfo DM
+data PetscDmda2d = PetscDmda2d !Dmda2dInfo DM
 
 data Dmda2dInfo =
   Dmda2dInfo {
@@ -831,6 +847,7 @@ withDmda2d1 ::
   IO a
 withDmda2d1 (Dmda2dInfo comm bdry sten szs dof sw _ _) =
   bracket (dmdaCreate2d comm bdry sten szs dof sw) dmDestroy 
+
 
 -- withDmda2d Dmda2dInfo{..} pre post =
 --   withDmda2d1 di $ \p -> do
