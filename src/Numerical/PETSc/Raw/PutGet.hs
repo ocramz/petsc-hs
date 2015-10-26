@@ -460,6 +460,20 @@ matDestroy ::
 matDestroy = chk0 . matDestroy'
 
 
+-- withVecCreateMPI :: VecInfo -> (Vec -> IO a) -> IO a
+-- withVecCreateMPI vv =
+--   bracket (vecCreateMPI comm nLoc nGlob) vecDestroy where
+--     nLoc = vecInfoSizeLocal vv
+--     nGlob = vecInfoSizeGlobal vv
+--     comm = vecInfoMpiComm vv
+
+-- withMatCreateSeqAIJVarNZPR mi =
+--   bracket (matCreateSeqAIJVarNZPR comm m n nnz) matDestroy
+--    where
+--      comm = 
+     
+
+
 -- | setting matrix values 
 
 matSetValues ::
@@ -764,9 +778,27 @@ dmdaSetUniformCoordinates2d da (xmin, xmax) (ymin, ymax)  =
 
 -- | brackets for distributed arrays
 
+withDmda1d ::
+  Comm ->
+  DMBoundaryType_ ->
+  PetscInt_ ->
+  PetscInt_ ->
+  PetscInt_ ->
+  [CInt] ->
+  (DM -> IO a) ->
+  IO a
 withDmda1d comm b m dof sw lx =
   bracket (dmdaCreate1d comm b m dof sw lx) dmDestroy
 
+withDmda2d ::
+  Comm ->
+  (DMBoundaryType_, DMBoundaryType_) ->
+  DMDAStencilType ->
+  (PetscInt_, PetscInt_) ->
+  PetscInt_ ->
+  PetscInt_ ->
+  (DM -> IO a) ->
+  IO a
 withDmda2d comm (bx, by) sten (m, n) dof s =
   bracket (dmdaCreate2d comm (bx, by) sten (m, n) dof s) dmDestroy
 
