@@ -1,9 +1,18 @@
 {-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
 {-# LANGUAGE CPP #-}
 
--- | Mid-level interface wrapping the inline-c calls
--- and 
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Numerical.PETSc.Raw.Internal
+-- Copyright   :  (c) Marco Zocca 2015
+-- License     :  LGPL3
+-- Maintainer  :  Marco Zocca
+-- Stability   :  experimental
 --
+-- | Mid-level interface: catching exceptions and hiding pointers in lexical
+--   scope of `bracket`s
+--
+-----------------------------------------------------------------------------
 module Numerical.PETSc.Raw.PutGet where
 
 import Numerical.PETSc.Raw.InlineC
@@ -659,6 +668,11 @@ withMatFDColoring mat iscoloring =
 
 
 
+
+
+
+
+
 -- * DM
 
 dmCreate :: Comm -> IO DM
@@ -872,6 +886,14 @@ snesSolve snes rhsv solnv = chk0 $ snesSolve' snes rhsv solnv
 
 snesGetSolution :: SNES -> IO Vec
 snesGetSolution snes = chk1 $ snesGetSolution' snes
+
+
+
+
+
+
+
+
 
 
 
