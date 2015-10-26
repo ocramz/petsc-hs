@@ -266,6 +266,9 @@ vecNorm v nt = chk1 $ vecNorm1 nt v
 vecSum :: Vec -> IO PetscScalar_
 vecSum v = chk1 $ vecSum1 v
 
+-- | Vec math (in-place, destructive) operations 
+vecLog_, vecExp_, vecAbs_ :: Vec -> IO ()
+vecLog, vecExp, vecAbs :: Vec -> IO Vec
 vecLog_ v = chk0 $ vecLog' v
 vecLog v = do {vecLog_ v; return v}
 vecExp_ v = chk0 $ vecExp' v
@@ -274,7 +277,8 @@ vecAbs_ v = chk0 $ vecAbs' v
 vecAbs v = do {vecAbs_ v ; return v}
 
 -- | AXPY : y = a x + y
--- -- NB : x and y must be different vectors
+-- -- NB : x and y must be different vectors (i.e. distinct pointers)
+vecAxpy :: PetscScalar_ -> Vec -> Vec -> IO Vec
 vecAxpy a y x = do
   chk0 $ vecAxpy' y a x
   return y
@@ -291,6 +295,7 @@ vecWaxpySafe a vx vy = withVecCreate vi $ \w ->
     x = vec vx
     y = vec vy
 
+vecVecSum , (.+) :: Vec -> Vec -> IO Vec
 vecVecSum = vecAxpy 1
 (.+) = vecVecSum
 
@@ -496,6 +501,8 @@ matGetOwnershipRange ::
   Mat -> IO (Int, Int)
 matGetOwnershipRange m = chk1 (matGetOwnershipRange' m)
 
+matGetSizeCInt ::
+  Mat -> IO (CInt, CInt)
 matGetSizeCInt m = chk1 (matGetSize' m)
 
 matGetSize ::
@@ -525,6 +532,7 @@ checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
   (lr, lc, le) = (V.length idxx, V.length idxy, V.length vals)
 
 
+identityMatrix :: Comm -> Int -> Mat -> PetscMatrix
 identityMatrix comm n =
   PetscMatrix (MIConstNZPR (MatrixInfoBase comm n n) 1)
 
@@ -536,6 +544,7 @@ data MatrixInfoBase =
                   -- ,matOrder :: !MatrixOrder
                  } deriving (Eq, Show)
 
+mkMatrixInfoBase :: Comm -> MatrixData a -> MatrixInfoBase
 mkMatrixInfoBase comm (MatrixData idxx idxy vals) =
   MatrixInfoBase comm (V.length idxx) (V.length idxy)
 
@@ -781,11 +790,19 @@ withKspSetup comm kt amat pmat ignz f = withKsp comm $ \ksp -> do
   f ksp
 
 
+kspSetOperators :: KSP -> Mat -> Mat -> IO ()
 kspSetOperators ksp amat pmat = chk0 (kspSetOperators' ksp amat pmat)
 
+kspSetInitialGuessNonzero :: KSP -> Bool -> IO ()
 kspSetInitialGuessNonzero ksp ig = chk0 (kspSetInitialGuessNonzero' ksp ig)
 
+kspSetUp :: KSP -> IO ()
 kspSetUp ksp = chk0 (kspSetUp' ksp)
+
+kspSolve, kspSolveTranspose :: 
+  KSP -> Vec -> Vec -> IO ()
+kspSolve ksp rhsv solnv =  chk0 (kspSolve' ksp rhsv solnv)
+kspSolveTranspose ksp rhsv solnv = chk0 (kspSolve' ksp rhsv solnv)
 
 -- * PF
 
