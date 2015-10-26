@@ -789,6 +789,21 @@ withKspSetup comm kt amat pmat ignz f = withKsp comm $ \ksp -> do
   kspSetUp ksp
   f ksp
 
+withKspSetupSolve ::
+  Comm ->
+  KspType_ ->
+  Mat ->            -- linear operator
+  Mat ->            -- preconditioner
+  Bool ->           -- set initial solution guess to nonzero vector
+  Vec ->
+  Vec ->
+  (KSP -> IO a) ->  -- post-solve actions
+  IO a
+withKspSetupSolve comm kt amat pmat ignz rhsv solnv post =
+  withKspSetup comm kt amat pmat ignz $ \ksp -> do
+    kspSolve ksp rhsv solnv
+    post ksp
+
 
 kspSetOperators :: KSP -> Mat -> Mat -> IO ()
 kspSetOperators ksp amat pmat = chk0 (kspSetOperators' ksp amat pmat)
