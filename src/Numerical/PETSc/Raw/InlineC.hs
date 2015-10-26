@@ -1949,12 +1949,12 @@ taoSetJacobianDesignRoutine t m f =
 -- PETSC_EXTERN PetscErrorCode TaoSetStateDesignIS(Tao, IS, IS);
 
 -- PETSC_EXTERN PetscErrorCode TaoComputeObjective(Tao, Vec, PetscReal*);
-taoComputeObjective tao v =
+taoComputeObjective' tao v =
   withPtr (\p -> [C.exp|int{TaoComputeObjective($(Tao tao),$(Vec v),$(PetscReal* p))}|] ) 
 -- PETSC_EXTERN PetscErrorCode TaoComputeSeparableObjective(Tao, Vec, Vec);
 
 -- PETSC_EXTERN PetscErrorCode TaoComputeGradient(Tao, Vec, Vec);
-taoComputeGradient tao v =
+taoComputeGradient' tao v =
  -- -- -- -- DIRTY HACK WARNING: will it work?
   withPtr (\p -> [C.exp|int{TaoComputeGradient($(Tao tao),$(Vec v),$(Vec* p))}|] ) 
   

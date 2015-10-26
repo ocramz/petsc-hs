@@ -52,7 +52,6 @@ withPtr f = alloca $ \e -> do
   
 
 --------
-
 {- from Base :
 modifyMVar_ :: MVar a -> (a -> IO a) -> IO ()
 modifyMVar :: MVar a -> (a -> IO (a,b)) -> IO b  -}
@@ -76,10 +75,17 @@ withIsCreateGeneral iis mode =
     idx = map toCInt idxi
     idxi = isIndexSet iis
 
-
+isColoringCreate ::
+  Comm ->
+  CInt ->
+  CInt ->
+  [CInt] ->
+  PetscCopyMode_ ->
+  IO ISColoring
 isColoringCreate comm nc n cols cm =
   chk1 (isColoringCreate' comm nc n cols cm)
 
+isColoringDestroy :: ISColoring -> IO ()
 isColoringDestroy isc = chk0 (isColoringDestroy' isc)
 
 dmCreateColoring :: DM -> ISColoringType_ -> IO ISColoring
@@ -968,13 +974,24 @@ taoSetType tao ty = chk0 $ taoSetType' tao ty
 taoSetInitialVector :: Tao -> Vec -> IO ()
 taoSetInitialVector tao x = chk0 $ taoSetInitialVector' tao x
 
+taoSetVariableBounds :: Tao -> Vec -> Vec -> IO ()
+taoSetVariableBounds tao xmin xmax = chk0 $ taoSetVariableBounds' tao xmin xmax
+
 taoSolve :: Tao -> IO ()
 taoSolve tao = chk0 $ taoSolve' tao
 
 taoGetSolutionVector :: Tao -> IO Vec
 taoGetSolutionVector tao = chk1 $ taoGetSolutionVector' tao
 
+taoComputeObjective :: Tao -> Vec -> IO PetscReal_
+taoComputeObjective tao v = chk1 $ taoComputeObjective' tao v
 
+taoComputeGradient :: Tao -> Vec -> IO Vec
+taoComputeGradient tao v = chk1 $ taoComputeGradient' tao v
+
+taoIsObjectiveDefined, taoIsGradientDefined :: Tao -> IO PetscBool_
+taoIsObjectiveDefined tao = chk1 $ taoIsObjectiveDefined' tao
+taoIsGradientDefined tao = chk1 $ taoIsGradientDefined' tao
 
 
 
