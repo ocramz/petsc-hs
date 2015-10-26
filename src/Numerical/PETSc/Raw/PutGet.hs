@@ -802,8 +802,26 @@ withDmda2d0 ::
 withDmda2d0 comm (bx, by) sten (m, n) dof s =
   bracket (dmdaCreate2d comm (bx, by) sten (m, n) dof s) dmDestroy
 
+withDmda2d :: Dmda2dInfo -> (DM ->  IO a) -> IO a
 withDmda2d (Dmda2dInfo comm bdry sten szs dof sw _ _) =
-  bracket (dmdaCreate2d comm bdry sten szs dof sw) dmDestroy
+  bracket (dmdaCreate2d comm bdry sten szs dof sw) dmDestroy 
+
+-- | a datatype for Dmda2d + info
+
+data Dmda2dP = Dmda2dP !Dmda2dInfo DM
+
+data Dmda2dInfo =
+  Dmda2dInfo {
+    dmdaComm :: !Comm,
+    dmdaBdryType :: !(DMBoundaryType_, DMBoundaryType_),
+    dmdaStenType :: !DMDAStencilType,
+    dmdaSizes :: !(PetscInt_, PetscInt_),
+    dmdaNdofPN :: !PetscInt_,
+    dmdaStenWidth :: !PetscInt_,
+    dmdaBoundsX :: !(PetscReal_, PetscReal_),
+    dmdaBoundsY :: !(PetscReal_, PetscReal_)
+    }
+
 
 
 -- | brackets for distributed arrays, uniform coordinates
@@ -823,17 +841,7 @@ withDmdaUniform1d comm b m dof sw lx (x1,x2) f=
    dmdaSetUniformCoordinates1d dm (x1,x2)
    f dm 
 
-data Dmda2dInfo =
-  Dmda2dInfo {
-    dmdaComm :: Comm,
-    dmdaBdryType :: (DMBoundaryType_, DMBoundaryType_),
-    dmdaStenType :: DMDAStencilType,
-    dmdaSizes :: (PetscInt_, PetscInt_),
-    dmdaNdofPN :: PetscInt_,
-    dmdaStenWidth :: PetscInt_,
-    dmdaBoundsX :: (PetscReal_, PetscReal_),
-    dmdaBoundsY :: (PetscReal_, PetscReal_)
-    }
+
 
 withDmdaUniform2d ::
   Dmda2dInfo -> (DM -> IO a) -> IO a
@@ -854,7 +862,7 @@ withDmdaUniform2d0 ::
   (DM -> IO a) ->
   IO a
 withDmdaUniform2d0 comm (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
-  withDmda2d comm (bx,by) sten (m,n) dof sw $ \dm -> do
+  withDmda2d0 comm (bx,by) sten (m,n) dof sw $ \dm -> do
     dmdaSetUniformCoordinates2d dm (x1,x2) (y1,y2)
     f dm
 
