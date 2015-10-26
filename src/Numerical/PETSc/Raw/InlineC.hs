@@ -1354,7 +1354,7 @@ kspSolveTranspose' ksp b x =
 -- PETSC_EXTERN PetscErrorCode KSPReset(KSP);
 
 -- PETSC_EXTERN PetscErrorCode KSPSetReusePreconditioner(KSP,PetscBool);
-kspSetReusePreconditioner ksp b = [C.exp|int{KSPSetReusePreconditioner($(KSP ksp), $(PetscBool b))}|] 
+kspSetReusePreconditioner' ksp b = [C.exp|int{KSPSetReusePreconditioner($(KSP ksp), $(PetscBool b))}|] 
 
 -- PETSC_EXTERN PetscErrorCode KSPRegisterAll(void);
 -- PETSC_EXTERN PetscErrorCode KSPRegister(const char[],PetscErrorCode (*)(KSP));
@@ -1404,7 +1404,7 @@ kspGetResidualNorm' ksp = withPtr $ \v -> [C.exp|int{KSPGetResidualNorm($(KSP ks
 -- kspGetResidualNorm ksp = kspGetResidualNorm' ksp 
 
 -- PETSC_EXTERN PetscErrorCode KSPGetIterationNumber(KSP,PetscInt*);
-kspGetIterationNumber ksp = withPtr ( \v -> [C.exp|int{KSPGetIterationNumber($(KSP ksp), $(int *v))}|] ) 
+kspGetIterationNumber' ksp = withPtr ( \v -> [C.exp|int{KSPGetIterationNumber($(KSP ksp), $(int *v))}|] ) 
 
 -- PETSC_EXTERN PetscErrorCode KSPSetNullSpace(KSP,MatNullSpace);
 -- PETSC_EXTERN PetscErrorCode KSPGetNullSpace(KSP,MatNullSpace*);

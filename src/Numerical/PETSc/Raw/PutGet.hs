@@ -819,9 +819,62 @@ kspSolve, kspSolveTranspose ::
 kspSolve ksp rhsv solnv =  chk0 (kspSolve' ksp rhsv solnv)
 kspSolveTranspose ksp rhsv solnv = chk0 (kspSolve' ksp rhsv solnv)
 
+kspSetReusePreconditioner ::
+  KSP -> Bool -> IO ()
+kspSetReusePreconditioner ksp b = chk0 (kspSetReusePreconditioner' ksp b)
+
+kspGetRhs :: KSP -> IO Vec
+kspGetRhs ksp = chk1 (kspGetRhs' ksp)
+
+kspGetSolution :: KSP -> IO Vec
+kspGetSolution ksp = chk1 (kspGetSolution' ksp)
+
+kspGetResidualNorm :: KSP -> IO PetscReal_
+kspGetResidualNorm ksp = chk1 (kspGetResidualNorm' ksp)
+
+kspGetIterationNumber :: KSP -> IO CInt
+kspGetIterationNumber ksp = chk1 (kspGetIterationNumber' ksp)
+
+
+
+
+
+
+
+
+
+
 -- * PF
 
 -- * SNES
+
+snesCreate :: Comm -> IO SNES
+snesCreate comm = chk1 (snesCreate' comm)
+
+snesDestroy :: SNES -> IO ()
+snesDestroy snes = chk0 (snesDestroy' snes)
+
+snesSetType :: SNES -> SnesType_ -> IO ()
+snesSetType snes st = chk0 $ snesSetType' snes st
+
+withSnes :: Comm -> (SNES -> IO a) -> IO a
+withSnes comm = bracket (snesCreate comm) snesDestroy
+
+snesSetUp :: SNES -> IO ()
+snesSetUp snes = chk0 $ snesSetUp' snes
+
+snesSolve ::
+  SNES ->
+  Vec ->   -- r.h.s
+  Vec ->   -- solution (WILL BE OVERWRITTEN)
+  IO ()
+snesSolve snes rhsv solnv = chk0 $ snesSolve' snes rhsv solnv
+
+snesGetSolution :: SNES -> IO Vec
+snesGetSolution snes = chk1 $ snesGetSolution' snes
+
+
+
 
 -- * TS
 
