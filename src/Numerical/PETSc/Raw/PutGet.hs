@@ -181,6 +181,7 @@ withVecCreateMPI vv =
     comm = vecInfoMpiComm vv
 
 
+vecSetSizes :: Vec -> Int -> IO ()
 vecSetSizes v n = chk0 $ vecSetSizes1 v (toCInt n)
 
 withVecPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b
@@ -290,6 +291,11 @@ vecExp_ v = chk0 $ vecExp' v
 vecExp v = do {vecExp_ v; return v}
 vecAbs_ v = chk0 $ vecAbs' v
 vecAbs v = do {vecAbs_ v ; return v}
+
+vecScale_ :: Vec -> PetscScalar_ -> IO ()
+vecScale_ v a = chk0 $ vecScale' v a
+vecScale :: Vec -> PetscScalar_ -> IO Vec
+vecScale v a = do {vecScale_ v a; return v}
 
 -- | AXPY : y = a x + y
 -- -- NB : x and y must be different vectors (i.e. distinct pointers)

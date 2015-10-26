@@ -65,3 +65,22 @@ t5' = do
 t5 = withPetsc0 $ t5'
 
 -- -- 
+
+
+t6' = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
+  withSnes comm $ \snes ->
+   withMat comm $ \jac ->
+    snesSetFunction snes v vf
+    snesSetjacobian snes jac jac
+    snesSolve snes
+    where
+      vi = vinfo 5
+      comm = vecInfoMpiComm vi
+
+vf u = do
+  w <- vecDot u u
+  return 0
+
+vj u = do
+  j <- vecScale u 2
+  return 0
