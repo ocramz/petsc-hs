@@ -795,8 +795,8 @@ withKspSetupSolve ::
   Mat ->            -- linear operator
   Mat ->            -- preconditioner
   Bool ->           -- set initial solution guess to nonzero vector
-  Vec ->
-  Vec ->
+  Vec ->            -- r.h.s
+  Vec ->            -- solution (WILL BE OVERWRITTEN)
   (KSP -> IO a) ->  -- post-solve actions
   IO a
 withKspSetupSolve comm kt amat pmat ignz rhsv solnv post =
