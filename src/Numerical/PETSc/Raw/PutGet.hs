@@ -931,6 +931,28 @@ tsSolveWithInitialCondition ts isolnv = do
 
 -- * Tao
 
+taoCreate :: Comm -> IO Tao
+taoCreate comm = chk1 $ taoCreate' comm
+
+taoDestroy :: Tao -> IO ()
+taoDestroy tao = chk0 $ taoDestroy' tao
+
+withTao :: Comm -> (Tao -> IO a) -> IO a
+withTao comm = bracket (taoCreate comm) taoDestroy
+
+taoSetType :: Tao -> TaoType_ -> IO ()
+taoSetType tao ty = chk0 $ taoSetType' tao ty
+
+taoSetInitialVector :: Tao -> Vec -> IO ()
+taoSetInitialVector tao x = chk0 $ taoSetInitialVector' tao x
+
+taoSolve :: Tao -> IO ()
+taoSolve tao = chk0 $ taoSolve' tao
+
+taoGetSolutionVector :: Tao -> IO Vec
+taoGetSolutionVector tao = chk1 $ taoGetSolutionVector' tao
+
+
 
 
 
