@@ -733,12 +733,12 @@ data PetscDmda1d = PetscDmda1d !Dmda2dInfo DM
 
 data Dmda1dInfo =
   Dmda1dInfo {
-    dmdaComm :: !Comm,
-    dmdaBdryType :: !DMBoundaryType_,
-    dmdaSizes :: !PetscInt_,
-    dmdaNdofPN :: !PetscInt_,
-    dmdaStenWidth :: !PetscInt_,
-    dmdaBoundsX :: !(PetscReal_, PetscReal_)
+    dmda1dComm :: !Comm,
+    dmda1dBdryType :: !DMBoundaryType_,
+    dmda1dSizes :: !PetscInt_,
+    dmda1dNdofPN :: !PetscInt_,
+    dmda1dStenWidth :: !PetscInt_,
+    dmda1dBoundsX :: !(PetscReal_, PetscReal_)
     } deriving (Eq, Show)
 
 
