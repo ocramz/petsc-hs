@@ -87,9 +87,9 @@ t5 = withPetsc0 $ t5'
 
 --
 
-t7' = withVecMPIPipeline vi (`vecSet` 0) $ \v -> do
-  vecSetValuesSafe v [1,2,3] [pi,pi,pi] InsertValues
-  vecViewStdout v
-    where
-      vi = vinfo 5
+-- t7' = withVecMPIPipeline vi (`vecSet` 0) $ \v -> do
+--   vecSetValuesSafe v [1,2,3] [pi,pi,pi] InsertValues
+--   vecViewStdout v
+--     where
+--       vi = vinfo 5
       
