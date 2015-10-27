@@ -22,7 +22,7 @@ addons:
 before_install:
  # - ./download-petsc.sh
  # - ./install-petsc.sh
- - mkdir petsc
+ - mkdir -p petsc
  - cd petsc
  - wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz
  - tar xvf petsc-lite-3.6.2.tar.gz

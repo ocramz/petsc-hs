@@ -10,8 +10,7 @@
 --   scope of `bracket`s
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Raw.PutGet ( module X )
-       where
+module Numerical.PETSc.Raw.PutGet ( module X ) where
 
 import Numerical.PETSc.Raw.PutGet.IS as X 
 import Numerical.PETSc.Raw.PutGet.Vec as X
