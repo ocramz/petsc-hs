@@ -282,22 +282,30 @@ vecGetVector v = do
      len = vecSize v
   
 
-withVecGetVectorMap ::
-  Vec ->                              -- generic PETSc vector
-  (PetscScalar_ -> PetscScalar_) ->   -- pure Haskell (elementwise) function
-  IO (V.Vector PetscScalar_)          -- mapped immutable vector
-withVecGetVectorMap v f = do 
+withVecGetVector ::
+  Vec ->                                               -- generic PETSc vector
+  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->  -- pure Haskell function
+  IO (V.Vector PetscScalar_)                           -- immutable vector
+withVecGetVector v f = do 
   p <- vecGetArrayPtr v
   pf <- newForeignPtr_ p
   vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)
-  let vImmOut = V.map f vImm
-  -- vImmOut <-  f vImm
+
+  let vImmOut = f vImm
+
   vMutOut <- V.thaw vImmOut
   let (fpOut, _, _) = VM.unsafeToForeignPtr vMutOut
       pOut = unsafeForeignPtrToPtr fpOut
   vecRestoreArrayPtr v pOut
   return vImmOut
     where len = vecSize v
+
+
+withVecGetVectorMap ::
+  Vec ->                              -- generic PETSc vector
+  (PetscScalar_ -> PetscScalar_) ->   -- pure Haskell (elementwise) function
+  IO (V.Vector PetscScalar_)          -- mapped immutable vector
+withVecGetVectorMap v f = withVecGetVector v (V.map f)
 
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
