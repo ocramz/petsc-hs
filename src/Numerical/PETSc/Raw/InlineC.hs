@@ -1487,7 +1487,7 @@ pfSetType' pf t o = -- not sure how to represent the pointer to void
 -- view	- function that prints information about the PF
 -- destroy	- function to free the private function context
 -- ctx	- private function context
-pfSet' pf apply applyvec view destroy ctx =
+pfSet0' pf apply applyvec view destroy ctx =
   [C.exp|int{PFSet($(PF pf),
                    $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
                    $fun:(int(*applyvec)(void*, Vec, Vec)),
@@ -1497,14 +1497,40 @@ pfSet' pf apply applyvec view destroy ctx =
                   )}
         |]
 
+pfSet0nc' pf apply applyvec view destroy ctx =
+  [C.exp|int{PFSet($(PF pf),
+                   $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
+                   $fun:(int(*applyvec)(void*, Vec, Vec)),
+                   $fun:(int(*view)(void*, int )),
+                   $fun:(int(*destroy)(void*)),
+                   NULL
+                  )}
+        |]
+
+pfSet' pf apply applyvec viewf destroyf =
+  pfSet0nc' pf f1 f2 f3 f4 where
+    f1 _ = apply
+    f2 _ = applyvec
+    f3 _ = viewf
+    f4 _ = destroyf
+    -- f1' :: Storable a => CInt -> [a] -> [a] -> IO CInt
+    -- f1' a arr1 arr2 = withArray arr1 $  \arrp1 ->
+    --   withArray arr2 $ \arrp2 ->
+    --     f1 a arrp1 arrp2
+
+
 -- f :: (a -> a -> IO Int) -> (a -> a -> IO a)  -- ?
 
 -- pfSetVec' :: PF -> (Ptr () -> Vec -> Vec -> IO CInt) -> IO ()
-pfSetVec' pf applyvec =
+pfSetVec0' pf applyvec =
     [C.exp|int{PFSet($(PF pf),
                    0,
                    $fun:(int(*applyvec)( void* , Vec, Vec)),
                    0, 0, 0)}|] 
+
+pfSetVec' pf applyvec =
+  pfSetVec0' pf f where
+    f _ = applyvec 
 
 -- WARNING : `applyvec` etc. modify last argument
 
