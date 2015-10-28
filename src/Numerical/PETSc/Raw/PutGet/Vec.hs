@@ -33,8 +33,9 @@ import Control.Exception
 import Control.Monad.ST (ST, runST)
 import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
-import qualified Data.Vector as V
-import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, unsafeToForeignPtr)
+-- import qualified Data.Vector as V
+import qualified Data.Vector.Storable as V 
+import qualified Data.Vector.Storable.Mutable as VM
 
 
 
@@ -260,9 +261,25 @@ vecGetArraySafe v = do
   sz <- vecGetSize v
   vecGetArray v sz
 
+vecGetArrayPtr :: Vec -> IO (Ptr PetscScalar_)
+vecGetArrayPtr v = chk1 (vecGetArray1' v)
+
+
+-- | interface with Data.Vector
+-- -- using ".Storable and ".Storable.Mutable
+
 -- vecGetVector v =
 --   vecGetArray v >>= newForeignPtr_ >>= \l -> return $ V.unsafeFromForeignPtr0 l n
 --    where n = vecSize v
+
+vecGetVector :: Vec -> IO (V.Vector PetscScalar_)
+vecGetVector v = do
+  p <- vecGetArrayPtr v
+  pf <- newForeignPtr_ p
+  V.freeze (VM.unsafeFromForeignPtr0 pf len)
+   where
+     len = vecSize v
+  
 
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);

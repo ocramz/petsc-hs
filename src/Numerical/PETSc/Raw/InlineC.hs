@@ -302,22 +302,16 @@ vecGetArray' v sz = do
     where
       vga v' = withPtr $ \p -> vecGetArray0' v' p
 
+vecGetArray1' :: Vec -> IO (Ptr PetscScalar_, CInt)
+vecGetArray1' v = withPtr $ \p -> vecGetArray0' v p
 
 
-
-  
-
-
-withMutV :: (PrimMonad m, Storable a, Storable b) =>
- V.Vector a ->
- ( VM.MVector (PrimState m) a -> VM.MVector (PrimState m) b ) ->
- m (V.Vector b )
-withMutV v f = do
-  a <- V.thaw v
-  V.freeze $ f a 
-
-
-
+-- vecGetArr' :: Vec -> IO (Ptr PetscScalar_, CInt)
+vecGetVector v = do
+  (len, _) <- vecGetSize' v
+  (ptr, e) <- withPtr $ \p -> vecGetArray0' v p
+  p' <- newForeignPtr_ ptr
+  V.freeze $ VM.unsafeFromForeignPtr0 p' (fi len)
 
 
 
@@ -326,21 +320,53 @@ vectorFromC len ptr = do
   ptr' <- newForeignPtr_ ptr
   V.freeze $ VM.unsafeFromForeignPtr0 ptr' len
 
-vectorToC :: Storable a => V.Vector a -> Int -> Ptr a -> IO ()
-vectorToC vec len ptr = do
+  
+
+
+-- withMutV :: (PrimMonad m, Storable a, Storable b) =>
+--  V.Vector a ->
+--  ( VM.MVector (PrimState m) a -> VM.MVector (PrimState m) b ) ->
+--  m (V.Vector b )
+-- withMutV v f = do
+--   a <- V.thaw v
+--   V.freeze $ f a 
+
+
+
+vectorToC0 :: Storable a => V.Vector a -> Int -> Ptr a -> IO ()
+vectorToC0 vec len ptr = do
   ptr' <- newForeignPtr_ ptr
   V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
 
 
+vectorToC :: Storable a => V.Vector a -> Ptr a -> IO ()
+vectorToC vec ptr = do
+  p <- newForeignPtr_ ptr
+  V.copy (VM.unsafeFromForeignPtr0 p len) vec
+   where
+     len = V.length vec
 
 
 
+
+funIO :: (Storable a, Storable b) =>
+         (V.Vector a -> V.Vector b) ->
+         Int -> Ptr a -> Ptr b ->
+         IO ()
+funIO fun dim y f = do
+--         -- Convert the pointer we get from C (y) to a vector, and then
+--         -- apply the user-supplied function.
+        fImm <- fun <$> vectorFromC dim y
+--         -- Fill in the provided pointer with the resulting vector.
+        vectorToC0 fImm dim f
 
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
 vecRestoreArray0' :: Vec -> Ptr (Ptr PetscScalar_) -> IO CInt
 vecRestoreArray0' v pc = [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]
 
+vecRestoreArray0'' :: Vec -> Ptr PetscScalar_ -> IO CInt
+vecRestoreArray0'' v c = with c $ \pc -> vecRestoreArray0' v pc
 
 vecRestoreArray' :: Vec -> [PetscScalar_] -> IO CInt
 vecRestoreArray' v c = withArray c $ \cp ->
