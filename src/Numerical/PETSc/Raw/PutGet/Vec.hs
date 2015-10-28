@@ -282,11 +282,16 @@ vecGetVector v = do
      len = vecSize v
   
 
-withVecGetVector v f = do
+withVecGetVector ::
+  Vec ->                              -- generic PETSc vector
+  (PetscScalar_ -> PetscScalar_) ->   -- pure Haskell (elementwise) function
+  IO (V.Vector PetscScalar_)          -- mapped immutable vector
+withVecGetVector v f = do 
   p <- vecGetArrayPtr v
   pf <- newForeignPtr_ p
   vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)
   let vImmOut = V.map f vImm
+  -- vImmOut <-  f vImm
   vMutOut <- V.thaw vImmOut
   let (fpOut, _, _) = VM.unsafeToForeignPtr vMutOut
       pOut = unsafeForeignPtrToPtr fpOut
