@@ -282,11 +282,11 @@ vecGetVector v = do
      len = vecSize v
   
 
-withVecGetVector ::
+withVecGetVectorMap ::
   Vec ->                              -- generic PETSc vector
   (PetscScalar_ -> PetscScalar_) ->   -- pure Haskell (elementwise) function
   IO (V.Vector PetscScalar_)          -- mapped immutable vector
-withVecGetVector v f = do 
+withVecGetVectorMap v f = do 
   p <- vecGetArrayPtr v
   pf <- newForeignPtr_ p
   vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)

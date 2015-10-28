@@ -92,7 +92,7 @@ t7' = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
   vecViewStdout v
   x <- vecGetVector v
   print x
-  y <- withVecGetVector v (+1)
+  y <- withVecGetVectorMap v sqrt
   print y
     where
       vi = vinfo 5
