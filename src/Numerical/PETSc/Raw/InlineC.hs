@@ -1507,16 +1507,36 @@ pfSet0nc' pf apply applyvec view destroy ctx =
                   )}
         |]
 
-pfSet' pf apply applyvec viewf destroyf =
+pfSet1' pf apply applyvec viewf destroyf =
   pfSet0nc' pf f1 f2 f3 f4 where
     f1 _ = apply
     f2 _ = applyvec
     f3 _ = viewf
     f4 _ = destroyf
-    -- f1' :: Storable a => CInt -> [a] -> [a] -> IO CInt
-    -- f1' a arr1 arr2 = withArray arr1 $  \arrp1 ->
+    -- apply' :: PetscInt_ -> [PetscScalar_] -> [PetscScalar_] -> IO CInt
+    -- apply' a arr1 arr2 = withArray arr1 $  \arrp1 ->
     --   withArray arr2 $ \arrp2 ->
-    --     f1 a arrp1 arrp2
+    --     f1 a a arrp1 arrp2
+
+
+pfSetArr0' pf apply =
+  [C.exp|int{PFSet($(PF pf),
+                   $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
+                   NULL,
+                   NULL,
+                   NULL,
+                   NULL   )}  |]
+
+
+f ::
+  Storable a =>
+  t -> a -> [a] -> [a] ->
+  (a -> Ptr a -> Ptr a -> IO a) ->
+  IO a
+f _ a arr1 arr2 apply = withArray arr1 $ \p1 ->
+  withArray arr2 $ \p2 ->
+   apply a p1 p2
+
 
 
 -- f :: (a -> a -> IO Int) -> (a -> a -> IO a)  -- ?
