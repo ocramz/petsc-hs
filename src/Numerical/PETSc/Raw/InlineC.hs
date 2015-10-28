@@ -25,13 +25,15 @@ import Foreign.Marshal.Array
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Ptr (Ptr)
 import Control.Monad
+import Control.Monad.Primitive
 -- import Control.Arrow ((***), (&&&))
--- import Control.Applicative
+import Control.Applicative ( (<$>), (<*>) )
 import Foreign.C.Types
 import Foreign.C.String
 import qualified Foreign.ForeignPtr.Safe         as FPS
 
 import qualified Data.Vector.Storable as V
+import qualified Data.Vector.Storable.Mutable as VM
 
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -301,6 +303,33 @@ vecGetArray' v sz = do
       vga v' = withPtr $ \p -> vecGetArray0' v' p
 
 
+
+
+  
+
+
+withMutV :: (PrimMonad m, Storable a, Storable b) =>
+ V.Vector a ->
+ ( VM.MVector (PrimState m) a -> VM.MVector (PrimState m) b ) ->
+ m (V.Vector b )
+withMutV v f = do
+  a <- V.thaw v
+  V.freeze $ f a 
+
+
+
+
+
+
+vectorFromC :: Storable a => Int -> Ptr a -> IO (V.Vector a)
+vectorFromC len ptr = do
+  ptr' <- newForeignPtr_ ptr
+  V.freeze $ VM.unsafeFromForeignPtr0 ptr' len
+
+vectorToC :: Storable a => V.Vector a -> Int -> Ptr a -> IO ()
+vectorToC vec len ptr = do
+  ptr' <- newForeignPtr_ ptr
+  V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
 
 
 

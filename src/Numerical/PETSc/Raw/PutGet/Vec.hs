@@ -49,7 +49,7 @@ data VecInfo = VecInfo
 
 data PVec = PVec { vec     :: !Vec,
                    vecInfo :: !VecInfo }
-data PetscVec = PetscVec { unPetscVec :: MVar PVec }
+
 
 
 
@@ -269,6 +269,7 @@ vecGetArraySafe v = do
 vecRestoreArray v c = chk0 $ vecRestoreArray' v c
 
 -- vecRestoreArrayV v p = go v 0 (vd - 1) where
+--   vd = V.length v
 --   go w n sz
 --     | n == sz = V.unsafeWith w (\q -> pokeElemOff q n ())
 
@@ -304,11 +305,11 @@ vecRestoreArrayB v ar = alloca $ \ p -> do
 
 
 
-
+{-
 bracket1 allocate release io = mask $ \restore -> do
   stuff <- allocate
   restore (io stuff) `finally` release stuff
-
+-}
 
 
 
@@ -318,6 +319,8 @@ bracket1 allocate release io = mask $ \restore -> do
 
 
 -- -- MVar stuff
+
+-- data PetscVec = PetscVec { unPetscVec :: MVar PVec }
 
 -- makePetscVec v vi = do
 --   m <- newMVar (PVec v vi)

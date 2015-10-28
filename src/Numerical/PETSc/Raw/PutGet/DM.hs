@@ -17,7 +17,6 @@ import Numerical.PETSc.Raw.InlineC
 import Numerical.PETSc.Raw.Types
 import Numerical.PETSc.Raw.Exception
 import Numerical.PETSc.Raw.Utils
-
 import Numerical.PETSc.Raw.Internal
 
 import Foreign
