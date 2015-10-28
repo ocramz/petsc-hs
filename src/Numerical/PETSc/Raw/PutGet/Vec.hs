@@ -26,6 +26,7 @@ import Foreign.C.Types
 import System.IO.Unsafe (unsafePerformIO)
 
 import Control.Monad
+import Control.Applicative
 import Control.Arrow
 import Control.Concurrent
 import Control.Exception
@@ -264,13 +265,12 @@ vecGetArraySafe v = do
 vecGetArrayPtr :: Vec -> IO (Ptr PetscScalar_)
 vecGetArrayPtr v = chk1 (vecGetArray1' v)
 
+vecRestoreArrayPtr :: Vec -> Ptr PetscScalar_ -> IO ()
+vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
+
 
 -- | interface with Data.Vector
 -- -- using ".Storable and ".Storable.Mutable
-
--- vecGetVector v =
---   vecGetArray v >>= newForeignPtr_ >>= \l -> return $ V.unsafeFromForeignPtr0 l n
---    where n = vecSize v
 
 vecGetVector :: Vec -> IO (V.Vector PetscScalar_)
 vecGetVector v = do
@@ -280,6 +280,14 @@ vecGetVector v = do
    where
      len = vecSize v
   
+
+-- withVecGetVector v f = do
+--   p <- vecGetArrayPtr v
+--   pf <- newForeignPtr_ p
+--   vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)
+--   let vImmOut = V.map f vImm
+--   vMutOut <- V.thaw vImmOut  
+--     where len = vecSize v
 
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);

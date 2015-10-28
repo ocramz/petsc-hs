@@ -279,15 +279,39 @@ vecSet1 v n = [C.exp|int{VecSet( $(Vec v), $(PetscScalar n))}|]
 
 vecSetSizes1 v n = [C.exp|int{VecSetSizes( $(Vec v), PETSC_DECIDE, $(int n))}|] 
 
+
+-- | get Vec length
+
 -- PETSC_EXTERN PetscErrorCode VecGetSize(Vec,PetscInt*);
 vecGetSize0' v p =  [C.exp|int{VecGetSize($(Vec v), $(int *p))}|]
+
+vecGetSize' :: Vec -> IO (CInt, CInt)
 vecGetSize' v = withPtr $ \p -> vecGetSize0' v p
--- vecGetSizeUnsafe = unsafePerformIO . vecGetSize1
 
--- vecSize v = fromIntegral $ vecGetSizeUnsafe v
+vecGetSizeUnsafe' = unsafePerformIO . vecGetSize'
+
+vecSize' :: Vec -> Int
+vecSize' = fi . fst . vecGetSizeUnsafe'
 
 
+
+-- | view Vec values on stdout
+
+vecViewStdout1 :: Vec -> IO CInt
 vecViewStdout1 v = [C.exp|int{VecView($(Vec v), PETSC_VIEWER_STDOUT_SELF)}|] 
+
+
+-- withVecGetArray' v f =
+--   [C.block|
+--    int{
+--      PetscScalar* temp;
+--      int szv = VecGetSize(v);
+--      int e1 = VecGetArray($(Vec v), &temp);
+
+--      int e2 = VecRestoreArray($(Vec v), &temp);
+--      return e2;
+--       }
+--    |]
 
 
 -- PETSC_EXTERN PetscErrorCode VecGetArray(Vec,PetscScalar**);
@@ -305,13 +329,6 @@ vecGetArray' v sz = do
 vecGetArray1' :: Vec -> IO (Ptr PetscScalar_, CInt)
 vecGetArray1' v = withPtr $ \p -> vecGetArray0' v p
 
-
--- vecGetArr' :: Vec -> IO (Ptr PetscScalar_, CInt)
-vecGetVector v = do
-  (len, _) <- vecGetSize' v
-  (ptr, e) <- withPtr $ \p -> vecGetArray0' v p
-  p' <- newForeignPtr_ ptr
-  V.freeze $ VM.unsafeFromForeignPtr0 p' (fi len)
 
 
 
@@ -361,12 +378,15 @@ funIO fun dim y f = do
         vectorToC0 fImm dim f
 
 
+
+
+
 -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
 vecRestoreArray0' :: Vec -> Ptr (Ptr PetscScalar_) -> IO CInt
 vecRestoreArray0' v pc = [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]
 
-vecRestoreArray0'' :: Vec -> Ptr PetscScalar_ -> IO CInt
-vecRestoreArray0'' v c = with c $ \pc -> vecRestoreArray0' v pc
+vecRestoreArrayPtr' :: Vec -> Ptr PetscScalar_ -> IO CInt
+vecRestoreArrayPtr' v c = with c $ \pc -> vecRestoreArray0' v pc
 
 vecRestoreArray' :: Vec -> [PetscScalar_] -> IO CInt
 vecRestoreArray' v c = withArray c $ \cp ->
@@ -456,7 +476,7 @@ vecGetOwnershipRange1 v = do
 
 
 
--- -- -- math functions on Vec
+-- | misc. math functions on Vec
 vecDot' v1 v2 v = [C.exp|int{VecDot( $(Vec v1), $(Vec v2), $(PetscScalar * v))}|] 
 vecDot1 v1 v2 = withPtr (vecDot' v1 v2) 
 
