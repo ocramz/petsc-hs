@@ -21,6 +21,7 @@ import Numerical.PETSc.Raw.Utils
 import Numerical.PETSc.Raw.Internal
 
 import Foreign
+import Foreign.ForeignPtr.Unsafe
 import Foreign.C.Types
 
 import System.IO.Unsafe (unsafePerformIO)
@@ -281,13 +282,17 @@ vecGetVector v = do
      len = vecSize v
   
 
--- withVecGetVector v f = do
---   p <- vecGetArrayPtr v
---   pf <- newForeignPtr_ p
---   vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)
---   let vImmOut = V.map f vImm
---   vMutOut <- V.thaw vImmOut  
---     where len = vecSize v
+withVecGetVector v f = do
+  p <- vecGetArrayPtr v
+  pf <- newForeignPtr_ p
+  vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)
+  let vImmOut = V.map f vImm
+  vMutOut <- V.thaw vImmOut
+  let (fpOut, _, _) = VM.unsafeToForeignPtr vMutOut
+      pOut = unsafeForeignPtrToPtr fpOut
+  vecRestoreArrayPtr v pOut
+  return vImmOut
+    where len = vecSize v
 
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
