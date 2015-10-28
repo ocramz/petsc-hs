@@ -1531,17 +1531,13 @@ pfSetArr0' pf apply =
                    NULL,
                    NULL   )}  |]
 
-
-f ::
-  Storable a =>
-  t -> a -> [a] -> [a] ->
-  (a -> Ptr a -> Ptr a -> IO a) ->
-  IO a
-f _ a arr1 arr2 apply = withArray arr1 $ \p1 ->
-  withArray arr2 $ \p2 ->
-   apply a p1 p2
-
-
+-- pfsa1 ::
+--   PF ->
+--   (PetscInt_ -> Ptr PetscScalar_ -> Ptr PetscScalar_ -> IO CInt) ->
+--   IO CInt
+pfsa1 pf f =
+  pfSetArr0' pf fm where
+    fm _ = f
 
 
 -- pfSetVec' :: PF -> (Ptr () -> Vec -> Vec -> IO CInt) -> IO ()
@@ -1556,17 +1552,6 @@ pfSetVec' pf applyvec =
     f _ = applyvec 
 
 -- WARNING : `applyvec` etc. modify last argument
-
-
--- -- withPfSetVec pf f =  pfSetVec' pf ( \_ v1 v2 ->  f v1 v2)
-                     
-
--- pfSetVec'' :: PF -> (Vec -> IO Vec) -> IO a -- how do we get it?
--- pfSetVec'' pf f = 
---   pfSetVec' pf $ \v  ->
---     with v $ \p -> f p
-
--- pf0 :: (Vec -> IO Vec) -> (Ptr () -> Vec -> Vec -> IO CInt)
 
 
 
