@@ -1519,6 +1519,10 @@ pfSet1' pf apply applyvec viewf destroyf =
     --     f1 a a arrp1 arrp2
 
 
+pfSetArr0' ::
+  PF ->
+  (Ptr () -> PetscInt_ -> Ptr PetscScalar_ -> Ptr PetscScalar_ -> IO CInt ) ->
+  IO CInt
 pfSetArr0' pf apply =
   [C.exp|int{PFSet($(PF pf),
                    $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
@@ -1539,7 +1543,6 @@ f _ a arr1 arr2 apply = withArray arr1 $ \p1 ->
 
 
 
--- f :: (a -> a -> IO Int) -> (a -> a -> IO a)  -- ?
 
 -- pfSetVec' :: PF -> (Ptr () -> Vec -> Vec -> IO CInt) -> IO ()
 pfSetVec0' pf applyvec =
