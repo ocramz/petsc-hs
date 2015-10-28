@@ -282,6 +282,8 @@ vecGetVector v = do
      len = vecSize v
   
 
+-- | V.Vector -> Vec "lift"ing HOFs 
+
 withVecGetVector ::
   Vec ->                                               -- generic PETSc vector
   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->  -- pure Haskell function
@@ -290,9 +292,26 @@ withVecGetVector v f = do
   p <- vecGetArrayPtr v
   pf <- newForeignPtr_ p
   vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)
+  let vImmOut = f vImm      -- the actual V.Vector processing
+  vMutOut <- V.thaw vImmOut
+  let (fpOut, _, _) = VM.unsafeToForeignPtr vMutOut
+      pOut = unsafeForeignPtrToPtr fpOut
+  vecRestoreArrayPtr v pOut
+  return vImmOut
+    where len = vecSize v
 
-  let vImmOut = f vImm
+          
+-- |  " , monadic version :
 
+withVecGetVectorM ::
+  Vec ->                                               
+  (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->   -- arrow into IO
+  IO (V.Vector PetscScalar_)                           
+withVecGetVectorM v f = do 
+  p <- vecGetArrayPtr v
+  pf <- newForeignPtr_ p
+  vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)
+  vImmOut <- f vImm        
   vMutOut <- V.thaw vImmOut
   let (fpOut, _, _) = VM.unsafeToForeignPtr vMutOut
       pOut = unsafeForeignPtrToPtr fpOut

@@ -88,7 +88,6 @@ t5 = withPetsc0 $ t5'
 --
 
 t7' = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
-  -- vecSetValuesSafe v [1,2,3] [pi,pi,pi] InsertValues
   vecViewStdout v
   x <- vecGetVector v
   print x
