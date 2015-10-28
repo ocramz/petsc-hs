@@ -53,32 +53,7 @@ data PetscVec = PetscVec { unPetscVec :: MVar PVec }
 
 
 
-makePetscVec v vi = do
-  m <- newMVar (PVec v vi)
-  return $ PetscVec m
 
-
-
-usePetscVec x f = do
-  let mv = unPetscVec x
-  withMVar mv (`applyVec` f)
-  return $ PetscVec mv
-
-updatePetscVec x g = do
-  let mv = unPetscVec x
-  modifyMVar_ mv (`applyVec` g)
-  return $ PetscVec mv
-
-
-
-applyVec :: PVec -> (Vec -> IO Vec) -> IO PVec
-applyVec vv fm = do
-  out1 <- fm $ vec vv
-  return $ PVec out1 (vecInfo vv)
-
-applyVec' vv fm = do
-  fm (vec vv)
-  return (PVec (vec vv) (vecInfo vv))
 
 
 
@@ -188,6 +163,7 @@ vecSetValuesSafe v ix y im
 vecView :: Vec -> PetscViewer -> IO ()
 vecView v vi = chk0 $ vecView1 v vi
 
+vecSetName :: Vec -> String -> IO ()
 vecSetName v name = chk0 $ vecSetName1 v name
 
 vecSet_ :: Vec -> PetscScalar_ -> IO ()
@@ -335,12 +311,41 @@ bracket1 allocate release io = mask $ \restore -> do
 
 
 
--- withVecGetArray1d' x m ms =
---   bracketChk (vecGetArray1d' x m ms)
 
--- vecGetArray1d0 x m ms = do
---   p <- chk1 $ vecGetArray1d' x m ms
---   return p
+
+
+
+
+
+-- -- MVar stuff
+
+-- makePetscVec v vi = do
+--   m <- newMVar (PVec v vi)
+--   return $ PetscVec m
+
+-- usePetscVec x f = do
+--   let mv = unPetscVec x
+--   withMVar mv (`applyVec` f)
+--   return $ PetscVec mv
+
+-- updatePetscVec x g = do
+--   let mv = unPetscVec x
+--   modifyMVar_ mv (`applyVec` g)
+--   return $ PetscVec mv
+
+-- applyVec :: PVec -> (Vec -> IO Vec) -> IO PVec
+-- applyVec vv fm = do
+--   out1 <- fm $ vec vv
+--   return $ PVec out1 (vecInfo vv)
+
+-- applyVec' vv fm = do
+--   fm (vec vv)
+--   return (PVec (vec vv) (vecInfo vv))
+
+-- --
+
+
+
 
 
 

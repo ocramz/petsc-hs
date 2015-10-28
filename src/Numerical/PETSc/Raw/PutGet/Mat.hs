@@ -180,25 +180,29 @@ identityMatrix comm n =
   PetscMatrix (MIConstNZPR (MatrixInfoBase comm n n) 1)
 
 
-data MatrixInfoBase =
-  MatrixInfoBase { matComm  :: Comm
-                  ,matRows  :: !Int
-                  ,matCols  :: !Int
-                  -- ,matOrder :: !MatrixOrder
-                 } deriving (Eq, Show)
+
 
 mkMatrixInfoBase :: Comm -> MatrixData a -> MatrixInfoBase
 mkMatrixInfoBase comm (MatrixData idxx idxy vals) =
   MatrixInfoBase comm (V.length idxx) (V.length idxy)
 
 
-data MatrixInfo =
-  MIConstNZPR MatrixInfoBase !Int
-  | MIVarNZPR MatrixInfoBase !(V.Vector Int)
+
 
 
 -- | a datatype encapsulating matrix information and the typed pointer
 data PetscMatrix = PetscMatrix !MatrixInfo Mat
+
+data MatrixInfo =
+  MIConstNZPR MatrixInfoBase !Int
+  | MIVarNZPR MatrixInfoBase !(V.Vector Int)
+
+data MatrixInfoBase =
+  MatrixInfoBase { matComm  :: Comm
+                  ,matRows  :: !Int
+                  ,matCols  :: !Int
+                  -- ,matOrder :: !MatrixOrder
+                 } deriving (Eq, Show)
 
 petscMatrixBounds :: PetscMatrix -> ((Int, Int), (Int, Int))
 petscMatrixBounds pm = pmib (petscMatrixInfoB pm) where

@@ -1456,15 +1456,20 @@ kspGetIterationNumber' ksp = withPtr ( \v -> [C.exp|int{KSPGetIterationNumber($(
 -- comm	- MPI communicator
 -- dimin	- dimension of the space you are mapping from
 -- dimout	- dimension of the space you are mapping to
-pfCreate comm dimin dimout = withPtr ( \pf ->[C.exp|int{PFCreate($(int c),$(int dimin),$(int dimout),$(PF*pf) )}|] ) 
+pfCreate' comm dimin dimout = withPtr ( \pf ->[C.exp|int{PFCreate($(int c),$(int diminc),$(int dimoutc),$(PF*pf) )}|] ) 
   where
     c = unComm comm
+    diminc = toCInt dimin
+    dimoutc = toCInt dimout
+
+-- PetscErrorCode  PFDestroy(PF *pf)
+pfDestroy' pf = with pf $ \pfp -> [C.exp|int{PFDestroy($(PF* pfp))}|]
 
 -- PETSC_EXTERN PetscErrorCode DMDACreatePF(DM,PF*);
-dmdaCreatePF dm = withPtr (\pf -> [C.exp|int{DMDACreatePF($(DM dm),$(PF*pf))}|]) 
+dmdaCreatePF' dm = withPtr (\pf -> [C.exp|int{DMDACreatePF($(DM dm),$(PF*pf))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode PFSetType(PF,PFType,void*);
-pfSetType pf t o = -- not sure how to represent the pointer to void 
+pfSetType' pf t o = -- not sure how to represent the pointer to void 
   withCString tstr (\tp->   [C.exp|int{PFSetType($(PF pf),$(char*tp),$(void*o))}|]
                    )  where
   tstr = pfTypeToStr t
