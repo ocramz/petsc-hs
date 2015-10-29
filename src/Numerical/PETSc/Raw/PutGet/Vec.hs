@@ -270,6 +270,7 @@ vecRestoreArrayPtr :: Vec -> Ptr PetscScalar_ -> IO ()
 vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
 
 
+
 -- | interface with Data.Vector
 -- -- using ".Storable and ".Storable.Mutable
 
@@ -280,6 +281,15 @@ vecGetVector v = do
   V.freeze (VM.unsafeFromForeignPtr0 pf len)
    where
      len = vecSize v
+
+vecRestoreVector :: Vec -> V.Vector PetscScalar_ -> IO ()
+vecRestoreVector v w = do
+  vmut <- V.thaw w
+  let (fpOut, _, _) = VM.unsafeToForeignPtr vmut
+      pOut = unsafeForeignPtrToPtr fpOut
+  vecRestoreArrayPtr v pOut
+
+  
   
 
 -- | V.Vector -> Vec "lift"ing HOFs 
@@ -301,19 +311,9 @@ withVecGetVector v f = do
     where len = vecSize v
 
 
-vecGetVector1 :: Vec -> IO (V.Vector PetscScalar_)
-vecGetVector1 v = do
-  p <- vecGetArrayPtr v
-  fp <- newForeignPtr_ p
-  V.freeze (VM.unsafeFromForeignPtr0 fp len)
-    where len = vecSize v
 
-vecRestoreVector1 :: Vec -> V.Vector PetscScalar_ -> IO ()
-vecRestoreVector1 v w = do
-  vmut <- V.thaw w
-  let (fpOut, _, _) = VM.unsafeToForeignPtr vmut
-      pOut = unsafeForeignPtrToPtr fpOut
-  vecRestoreArrayPtr v pOut
+
+
 
           
 -- |  " , monadic version :

@@ -106,11 +106,11 @@ t7 = withPetsc0 t7'
 
 t8' = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
   vecViewStdout v
-  x <- vecGetVector1 v
+  x <- vecGetVector v
   print x
   let y = V.map (+1) x
   print y
-  vecRestoreVector1 v y
+  vecRestoreVector v y
   vecViewStdout v
     where
       vi = vinfo 3
