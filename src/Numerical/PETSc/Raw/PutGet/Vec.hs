@@ -300,6 +300,21 @@ withVecGetVector v f = do
   return vImmOut
     where len = vecSize v
 
+
+vecGetVector1 :: Vec -> IO (V.Vector PetscScalar_)
+vecGetVector1 v = do
+  p <- vecGetArrayPtr v
+  fp <- newForeignPtr_ p
+  V.freeze (VM.unsafeFromForeignPtr0 fp len)
+    where len = vecSize v
+
+vecRestoreVector1 :: Vec -> V.Vector PetscScalar_ -> IO ()
+vecRestoreVector1 v w = do
+  vmut <- V.thaw w
+  let (fpOut, _, _) = VM.unsafeToForeignPtr vmut
+      pOut = unsafeForeignPtrToPtr fpOut
+  vecRestoreArrayPtr v pOut
+
           
 -- |  " , monadic version :
 
@@ -318,6 +333,8 @@ withVecGetVectorM v f = do
   vecRestoreArrayPtr v pOut
   return vImmOut
     where len = vecSize v
+
+
 
 
 withVecGetVectorMap ::

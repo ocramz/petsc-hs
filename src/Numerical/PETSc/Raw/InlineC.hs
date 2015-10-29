@@ -329,6 +329,9 @@ vecGetArray' v sz = do
 vecGetArray1' :: Vec -> IO (Ptr PetscScalar_, CInt)
 vecGetArray1' v = withPtr $ \p -> vecGetArray0' v p
 
+-- vecGetArray2' :: Vec -> IO (Ptr PetscScalar_, CInt)
+-- vecGetArray2' v = withPtr $ \p -> vga v p where
+--   vga v p = [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]
 
 
 
@@ -391,6 +394,11 @@ vecRestoreArrayPtr' v c = with c $ \pc -> vecRestoreArray0' v pc
 vecRestoreArray' :: Vec -> [PetscScalar_] -> IO CInt
 vecRestoreArray' v c = withArray c $ \cp ->
   with cp $ \cpp -> vecRestoreArray0' v cpp
+
+-- vecRestoreArrayPtr2' :: Vec -> Ptr PetscScalar_ -> IO CInt
+-- vecRestoreArrayPtr2' v c = with c $ \pc -> vra v pc
+--   where
+--     vra w pc = [C.exp|int{VecRestoreArray($(Vec w), $(PetscScalar** pc))}|]
 
 
 

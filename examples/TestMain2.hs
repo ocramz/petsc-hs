@@ -3,14 +3,15 @@ module TestMain2 where
 -- import Numerical.PETSc.Raw
 import Numerical.PETSc.Raw.PutGet
 
+import qualified Data.Vector.Storable as V
 
 
 vinfo n = VecInfo commWorld n n
 
 t1' = 
   withVecMPIPipeline (vinfo 5) (`vecSet` pi) $ \v1 -> do
-   v3 <- vecCopyDuplicate v1 
-   v3 <- v1 .+ v3
+   v2 <- vecCopyDuplicate v1 
+   v3 <- v1 .+ v2
    a <- vecGetArraySafe v3
    let a2 = map (+1) a
    print a2
@@ -93,8 +94,25 @@ t7' = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
   print x
   y <- withVecGetVectorMap v sqrt
   print y
+  vecViewStdout v -- v is not recomputed : GHC doesn;t know it changed
+  print =<< withVecGetVectorMap v id
+
     where
       vi = vinfo 5
 
 t7 = withPetsc0 t7'
-      
+
+-- --
+
+t8' = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
+  vecViewStdout v
+  x <- vecGetVector1 v
+  print x
+  let y = V.map (+1) x
+  print y
+  vecRestoreVector1 v y
+  vecViewStdout v
+    where
+      vi = vinfo 3
+
+t8 = withPetsc0 t8'
