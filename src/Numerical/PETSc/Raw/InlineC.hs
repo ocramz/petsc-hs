@@ -1703,6 +1703,8 @@ snesSetFunction_' snes r f =
   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
                              $fun:(int (*f)(SNES, Vec, void*) ),
                              NULL )}|]
+
+snesSetFunction' :: SNES -> Vec -> (SNES -> Vec -> IO CInt) -> IO CInt
 snesSetFunction' snes v f =
   snesSetFunction_' snes v f' where
     f' s a _ = f s a 
@@ -1779,6 +1781,8 @@ snesSetJacobian0_' snes amat pmat f =
   [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
                              $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)), NULL)}|]
 
+snesSetJacobian_' ::
+  SNES -> Mat -> Mat -> (SNES -> Vec -> Mat -> Mat -> IO CInt) -> IO CInt
 snesSetJacobian_' snes amat pmat f =
   snesSetJacobian0_' snes amat pmat f' where
     f' s v a p _ = f s v a p 

@@ -17,6 +17,7 @@ import Numerical.PETSc.Raw.InlineC
 import Numerical.PETSc.Raw.Types
 import Numerical.PETSc.Raw.Exception
 import Numerical.PETSc.Raw.Utils
+import Numerical.PETSc.Raw.PutGet.Vec
 
 import Numerical.PETSc.Raw.Internal
 
@@ -26,6 +27,7 @@ import Foreign.C.Types
 import System.IO.Unsafe (unsafePerformIO)
 
 import Control.Monad
+import Control.Applicative
 import Control.Arrow
 import Control.Concurrent
 import Control.Exception
@@ -33,8 +35,7 @@ import Control.Exception
 import Control.Monad.ST (ST, runST)
 import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
-import qualified Data.Vector as V
-import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, unsafeToForeignPtr)
+import qualified Data.Vector.Storable as V 
 
 
 
@@ -65,6 +66,27 @@ snesSetFunction ::
   IO ()
 snesSetFunction snes r f = chk0 $ snesSetFunction' snes r f
 
+
+snesSetFunctionVector ::
+  SNES ->
+  Vec ->        -- r : storage for function value
+    (V.Vector PetscScalar_ ->       
+     V.Vector PetscScalar_ ) ->
+  IO ()
+snesSetFunctionVector snes r f = chk0 $ snesSetFunction' snes r f'
+  where f' = liftVectorF f
+
+
+ 
+liftVectorF ::
+  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> s -> Vec -> IO CInt
+liftVectorF f s vec = do
+  v <- f <$> vecGetVector vec
+  vecRestoreVector vec v
+  return (0 :: CInt)
+  
+
+
 snesSetJacobian ::
   SNES ->
   Mat ->        -- amat : storage for approximate Jacobian
@@ -90,3 +112,24 @@ snesSolve snes rhsv solnv = chk0 $ snesSolve' snes rhsv solnv
 snesGetSolution :: SNES -> IO Vec
 snesGetSolution snes = chk1 $ snesGetSolution' snes
 
+
+
+snesSetJacobianComputeDefaultColor ::
+  SNES -> Mat -> Mat -> MatFDColoring -> IO ()
+snesSetJacobianComputeDefaultColor snes amat pmat fdcol =
+  chk0 $ snesSetJacobianComputeDefaultColor' snes amat pmat fdcol
+
+
+
+
+
+-- -- -- junk
+
+-- snesFHs snes r f = snesSetFunction snes r -- (cInt0Wrap r f)
+
+-- cInt0Wrap r f = do
+--   r >>= f
+--   return (0 :: CInt)
+  
+-- ioFunction :: IO a -> (a -> IO CInt) -> IO ()
+-- ioFunction  m f = m >>= chk0 . f
