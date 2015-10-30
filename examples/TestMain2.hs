@@ -88,19 +88,6 @@ t5 = withPetsc0 $ t5'
 
 --
 
-t7' = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
-  vecViewStdout v
-  x <- vecGetVector v
-  print x
-  y <- withVecGetVectorMap v sqrt
-  print y
-  vecViewStdout v -- v is not recomputed : GHC doesn;t know it changed
-  print =<< withVecGetVectorMap v id
-
-    where
-      vi = vinfo 5
-
-t7 = withPetsc0 t7'
 
 -- --
 
@@ -108,7 +95,7 @@ t8' = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
   vecViewStdout v
   x <- vecGetVector v
   print x
-  let y = V.map (+1) x
+  let y = V.map sqrt x
   print y
   vecRestoreVector v y
   vecViewStdout v
@@ -116,3 +103,13 @@ t8' = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
       vi = vinfo 3
 
 t8 = withPetsc0 t8'
+
+-- --
+
+t9' = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
+  withVecGetVectorOverwrite v (V.map exp)
+  vecViewStdout v
+    where
+      vi = vinfo 3
+
+t9 = withPetsc0 t9'

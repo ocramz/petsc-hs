@@ -284,64 +284,64 @@ vecGetVector v = do
 
 vecRestoreVector :: Vec -> V.Vector PetscScalar_ -> IO ()
 vecRestoreVector v w = do
-  vmut <- V.thaw w
-  let (fpOut, _, _) = VM.unsafeToForeignPtr vmut
-      pOut = unsafeForeignPtrToPtr fpOut
-  vecRestoreArrayPtr v pOut
-
-  
-  
-
--- | V.Vector -> Vec "lift"ing HOFs 
-
-withVecGetVector ::
-  Vec ->                                               -- generic PETSc vector
-  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->  -- pure Haskell function
-  IO (V.Vector PetscScalar_)                           -- immutable vector
-withVecGetVector v f = do 
   p <- vecGetArrayPtr v
   pf <- newForeignPtr_ p
-  vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)
-  let vImmOut = f vImm      -- the actual V.Vector processing
-  vMutOut <- V.thaw vImmOut
-  let (fpOut, _, _) = VM.unsafeToForeignPtr vMutOut
-      pOut = unsafeForeignPtrToPtr fpOut
-  vecRestoreArrayPtr v pOut
-  return vImmOut
-    where len = vecSize v
+  V.copy (VM.unsafeFromForeignPtr0 pf len) w
+  vecRestoreArrayPtr v p
+    where
+     len = vecSize v
 
 
+
+-- | mutating operators, use at own risk
+
+withVecGetVectorOverwrite ::
+  Vec ->
+  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+  IO ()
+withVecGetVectorOverwrite v modify = do
+  x <- vecGetVector v
+  let y = modify x
+  vecRestoreVector v y
+
+-- -- ", monadic version
+
+withVecGetVectorOverwriteM ::
+  Vec ->
+  (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
+  IO ()
+withVecGetVectorOverwriteM v modifyM = do
+  x <- vecGetVector v
+  y <- modifyM x
+  vecRestoreVector v y
 
 
 
 
           
--- |  " , monadic version :
+-- -- |  " , monadic version :
 
-withVecGetVectorM ::
-  Vec ->                                               
-  (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->   -- arrow into IO
-  IO (V.Vector PetscScalar_)                           
-withVecGetVectorM v f = do 
-  p <- vecGetArrayPtr v
-  pf <- newForeignPtr_ p
-  vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)
-  vImmOut <- f vImm        
-  vMutOut <- V.thaw vImmOut
-  let (fpOut, _, _) = VM.unsafeToForeignPtr vMutOut
-      pOut = unsafeForeignPtrToPtr fpOut
-  vecRestoreArrayPtr v pOut
-  return vImmOut
-    where len = vecSize v
+-- withVecGetVectorM ::
+--   Vec ->                                               
+--   (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->   -- arrow into IO
+--   IO (V.Vector PetscScalar_     )                           
+-- withVecGetVectorM v f = do 
+--   p <- vecGetArrayPtr v
+--   pf <- newForeignPtr_ p
+--   vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)
+--   vImmOut <- f vImm        
+--   V.copy (VM.unsafeFromForeignPtr0 pf len) vImmOut
+--   vecRestoreArrayPtr v p
+--   return vImmOut
+--     where len = vecSize v
+
+-- withVecGetVectorMap ::
+--   Vec ->                              -- generic PETSc vector
+--   (PetscScalar_ -> PetscScalar_) ->   -- pure Haskell (elementwise) function
+--   IO (V.Vector PetscScalar_)          -- mapped immutable vector
+-- withVecGetVectorMap v f = withVecGetVector v (V.map f)
 
 
-
-
-withVecGetVectorMap ::
-  Vec ->                              -- generic PETSc vector
-  (PetscScalar_ -> PetscScalar_) ->   -- pure Haskell (elementwise) function
-  IO (V.Vector PetscScalar_)          -- mapped immutable vector
-withVecGetVectorMap v f = withVecGetVector v (V.map f)
 
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
