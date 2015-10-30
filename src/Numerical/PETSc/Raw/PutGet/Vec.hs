@@ -266,6 +266,10 @@ vecGetArraySafe v = do
 vecGetArrayPtr :: Vec -> IO (Ptr PetscScalar_)
 vecGetArrayPtr v = chk1 (vecGetArray1' v)
 
+-- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
+vecRestoreArray v c = chk0 $ vecRestoreArray' v c
+
+
 vecRestoreArrayPtr :: Vec -> Ptr PetscScalar_ -> IO ()
 vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
 
@@ -318,69 +322,12 @@ withVecGetVectorOverwriteM v modifyM = do
 
 
 
-          
--- -- |  " , monadic version :
-
--- withVecGetVectorM ::
---   Vec ->                                               
---   (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->   -- arrow into IO
---   IO (V.Vector PetscScalar_     )                           
--- withVecGetVectorM v f = do 
---   p <- vecGetArrayPtr v
---   pf <- newForeignPtr_ p
---   vImm <- V.freeze (VM.unsafeFromForeignPtr0 pf len)
---   vImmOut <- f vImm        
---   V.copy (VM.unsafeFromForeignPtr0 pf len) vImmOut
---   vecRestoreArrayPtr v p
---   return vImmOut
---     where len = vecSize v
-
--- withVecGetVectorMap ::
---   Vec ->                              -- generic PETSc vector
---   (PetscScalar_ -> PetscScalar_) ->   -- pure Haskell (elementwise) function
---   IO (V.Vector PetscScalar_)          -- mapped immutable vector
--- withVecGetVectorMap v f = withVecGetVector v (V.map f)
+    
 
 
 
 
--- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
-vecRestoreArray v c = chk0 $ vecRestoreArray' v c
 
--- vecRestoreArrayV v p = go v 0 (vd - 1) where
---   vd = V.length v
---   go w n sz
---     | n == sz = V.unsafeWith w (\q -> pokeElemOff q n ())
-
--- vra0 v a idx
---   | idx > 0 = do
---       V.unsafeWith v (\q -> pokeElemOff q idx (a !! idx))
---       vra0 v a (idx - 1)
---   | otherwise = V.unsafeWith v (\q -> pokeElemOff q idx (a !! idx))
-
-fvra v a i = V.unsafeWith v (\q -> pokeElemOff q i (a !! i))
-
-
-
-
-withVecGetArray v = bracket (vecGetArraySafe v) (vecRestoreArray v)
-
-vecGetArraySafeMVar v = do
-  sz <- vecGetSize v
-  a <- vecGetArray v sz
-  newMVar a
-vecRestoreArrayMVar v mc = withMVar mc (vecRestoreArray v)
-
-withVecGetArrayMVar v =
-  bracket (vecGetArraySafeMVar v) (vecRestoreArrayMVar v) 
-
-withVecGetArrayMVarUse v f = withVecGetArrayMVar v $ \mv -> withMVar mv f
--- withVecGetArrayMVarModify v f = withVecGetArrayMVar v $ \mv -> modifyMVar_ mv f
-
-
-vecRestoreArrayB v ar = alloca $ \ p -> do
-  pokeArray p ar
-  with p $ \pp -> chk0 $ vecRestoreArray0' v pp
 
 
 
