@@ -70,10 +70,10 @@ snesSetFunction snes r f = chk0 $ snesSetFunction' snes r f
 snesSetFunctionVector ::
   SNES ->
   Vec ->        -- r : storage for function value
-    (V.Vector PetscScalar_ ->       
+    (V.Vector PetscScalar_ ->       -- NB pure function, SNES not used 
      V.Vector PetscScalar_ ) ->
   IO ()
-snesSetFunctionVector snes r f = chk0 $ snesSetFunction' snes r f'
+snesSetFunctionVector s r f = chk0 $ snesSetFunction' s r f'
   where f' = liftVectorF f
 
 
