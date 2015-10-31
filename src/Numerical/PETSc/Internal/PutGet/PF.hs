@@ -2,7 +2,7 @@
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.PETSc.Raw.PutGet.PF
+-- Module      :  Numerical.PETSc.Internal.PutGet.PF
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  Marco Zocca
@@ -11,13 +11,13 @@
 -- | PF Mid-level interface
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Raw.PutGet.PF where
+module Numerical.PETSc.Internal.PutGet.PF where
 
-import Numerical.PETSc.Raw.InlineC
-import Numerical.PETSc.Raw.Types
-import Numerical.PETSc.Raw.Exception
-import Numerical.PETSc.Raw.Utils
-import Numerical.PETSc.Raw.Internal
+import Numerical.PETSc.Internal.InlineC
+import Numerical.PETSc.Internal.Types
+import Numerical.PETSc.Internal.Exception
+import Numerical.PETSc.Internal.Utils
+import Numerical.PETSc.Internal.Internal
 
 import Foreign
 import Foreign.C.Types
