@@ -158,6 +158,35 @@ withDmda2d0 comm (bx, by) sten (m, n) dof s =
 
 
 
+dmdaGetInfoCInt da = chk1 (dmdaGetInfo__' da)
+
+dmdaGetInfo3d da = do
+  (d,(mm,nn,pp),(m,n,p),dof,s,(bx,by,bz),sten) <- dmdaGetInfoCInt da
+  
+  let
+    dim = fi d
+    dims = (fi mm,fi nn, fi pp)
+    procsPerDim = (fi m, fi n, fi p)
+    (ndof, ss) = (fi dof, fi s)
+    bdries = (cIntToDmBoundaryType bx,
+              cIntToDmBoundaryType by,
+              cIntToDmBoundaryType bz)
+    st = cIntToDmdaStencilType sten
+  return (dim,dims,procsPerDim,ndof,ss,bdries,st)
+
+dmdaGetInfo2d ::
+  DM ->
+  IO (Int,
+      (Int,Int),
+      (Int,Int),
+      Int,
+      Int,
+      (DMBoundaryType_, DMBoundaryType_),
+      DMDAStencilType)
+dmdaGetInfo2d da = do
+  (d,(mm,nn,_),(m,n,_),dof,s,(bx,by,_),st) <- dmdaGetInfo3d da
+  return (d,(mm,nn),(m,n),dof,s,(bx,by),st)
+
 
 -- | a datatype for Dmda2d + info
 

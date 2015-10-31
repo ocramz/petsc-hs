@@ -1385,21 +1385,7 @@ Use NULL (NULL_INTEGER in Fortran) in place of any output parameter that is not 
 
 dmdaGetInfo_' da dim mm nn pp m n p dof s bxp byp bzp stp =
   [C.exp|
-   int{DMDAGetInfo(
-          $(DM da),
-          $(PetscInt* dim),
-          $(PetscInt* mm),
-          $(PetscInt* nn),
-          $(PetscInt* pp),
-          $(PetscInt* m),
-          $(PetscInt* n),
-          $(PetscInt* p),
-          $(PetscInt* dof),
-          $(PetscInt* s),
-          $(int* bxp),
-          $(int* byp),
-          $(int* bzp),
-          $(int* stp))} |]
+   int{DMDAGetInfo($(DM da), $(PetscInt* dim), $(PetscInt* mm), $(PetscInt* nn), $(PetscInt* pp), $(PetscInt* m), $(PetscInt* n), $(PetscInt* p), $(PetscInt* dof), $(PetscInt* s), $(int* bxp), $(int* byp), $(int* bzp), $(int* stp))} |]
 
 dmdaGetInfo__' da = withPtr ( \dim ->
   withPtr $ \mm ->
