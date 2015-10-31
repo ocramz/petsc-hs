@@ -23,9 +23,6 @@ type PetscReal_ = {#type PetscReal#}
 -- /* typedef enum { PETSC_FALSE,PETSC_TRUE } PetscBool; */
 -- {#enum PetscBool as PetscBool {underscoreToCase} deriving (Eq, Show)#}
 type PetscBool_ = {#type PetscBool#}
--- deriving instance Storable PetscBool
-
-
 
 
 -- * PETSc misc
