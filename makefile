@@ -17,13 +17,13 @@ step1:
 	ghc  ${SRCDIR}/Raw/Internal.hs ${SRCDIR}/Raw/InlineC.hs -isrc/
 
 step2a:
-	cc -c ${SRCDIR}/Raw/Internal.c -o ${LIBDIR}/Internal_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include
+	cc -c ${SRCDIR}/Internal/Internal.c -o ${LIBDIR}/Internal_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include
 
 step2b:
-	cc -c ${SRCDIR}/Raw/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include
+	cc -c ${SRCDIR}/Internal/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include
 
 step3:
-	ghci ${EXAMPLEDIR}/TestMain2.hs ${SRCDIR}/Raw/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal_c.o -isrc/ -L${PETSC_DIR_ARCH}/lib -lpetsc -lmpich
+	ghci ${EXAMPLEDIR}/TestMain2.hs ${SRCDIR}/Internal/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal_c.o -isrc/ -L${PETSC_DIR_ARCH}/lib -lpetsc -lmpich
 
 reload:
 	make step3
