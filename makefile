@@ -12,7 +12,6 @@ main:
 	make step2
 	make step3
 
-
 step1:
 	ghc ${SRCDIR}/Internal/InlineC.hs -isrc/
 

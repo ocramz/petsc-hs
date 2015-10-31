@@ -25,90 +25,21 @@ type PetscReal_ = {#type PetscReal#}
 type PetscBool_ = {#type PetscBool#}
 -- deriving instance Storable PetscBool
 
--- * IS
-
-
-
-
-
--- * Vec
-
-
-
-
--- * Mat
-
-
-
-
-
-
--- * DM
-
-
-
-
--- -- * DMDA
-
-
-
-
-
-
--- * KSP
-
-
-
-
--- * PF
-
-
-
-
--- * SNES
-
-
-
-
--- * TS
-
-
-
-
-
--- * TAO
-
-
-
-
--- * Viewer
-
 
 
 
 -- * PETSc misc
 
-
-
-
 -- * MPI misc
-
-
 
 -- CString
 
 
 
 
--- errors etc
 
 
--- /* typedef int PetscErrorCode; */
--- {#typedef PetscErrorCode CInt#}
--- {#default out `ErrCode' [PetscErrorCode] convErrCode#}
--- convErrCode :: CInt -> ErrCode
--- convErrCode = ErrCode . fromIntegral
--- newtype ErrCode = ErrCode { unErrCode :: Int } deriving (Eq, Show)
+
 
 
 
