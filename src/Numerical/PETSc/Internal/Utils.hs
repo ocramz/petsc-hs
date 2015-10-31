@@ -2,7 +2,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.PETSc.Raw.Exception
+-- Module      :  Numerical.PETSc.Internal.Utils
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  Marco Zocca
@@ -11,7 +11,7 @@
 -- | Miscellaneous utilities
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Raw.Utils where
+module Numerical.PETSc.Internal.Utils where
 
 import Foreign.C.Types
 import Foreign.C.String

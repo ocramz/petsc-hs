@@ -14,7 +14,7 @@ main:
 	make step3
 
 step1:
-	ghc  ${SRCDIR}/Raw/Internal.hs ${SRCDIR}/Raw/InlineC.hs -isrc/
+	ghc  ${SRCDIR}/Internal/Internal.hs ${SRCDIR}/Internal/InlineC.hs -isrc/
 
 step2a:
 	cc -c ${SRCDIR}/Internal/Internal.c -o ${LIBDIR}/Internal_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include

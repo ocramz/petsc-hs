@@ -2,7 +2,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.PETSc.Raw.InlineC
+-- Module      :  Numerical.PETSc.Internal.InlineC
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  Marco Zocca
@@ -11,11 +11,11 @@
 -- | Foreign signatures, + everything that requires an inline-c pass
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Raw.InlineC where
+module Numerical.PETSc.Internal.InlineC where
 
-import Numerical.PETSc.Raw.Internal
-import Numerical.PETSc.Raw.Types
-import Numerical.PETSc.Raw.Utils
+import Numerical.PETSc.Internal.Internal
+import Numerical.PETSc.Internal.Types
+import Numerical.PETSc.Internal.Utils
 
 import Language.C.Inline as C
 import Language.C.Inline.Context

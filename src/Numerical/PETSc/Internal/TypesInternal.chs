@@ -1,7 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 
 -- | C2HS type inference macros
-module Numerical.PETSc.Raw.TypesInternal
+module Numerical.PETSc.Internal.TypesInternal
 --        (
 --   PetscInt,
 --   PetscScalar,

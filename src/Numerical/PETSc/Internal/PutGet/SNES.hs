@@ -2,7 +2,7 @@
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.PETSc.Raw.PutGet.SNES
+-- Module      :  Numerical.PETSc.Internal.PutGet.SNES
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  Marco Zocca
@@ -11,15 +11,15 @@
 -- | SNES Mid-level interface
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Raw.PutGet.SNES where
+module Numerical.PETSc.Internal.PutGet.SNES where
 
-import Numerical.PETSc.Raw.InlineC
-import Numerical.PETSc.Raw.Types
-import Numerical.PETSc.Raw.Exception
-import Numerical.PETSc.Raw.Utils
-import Numerical.PETSc.Raw.PutGet.Vec
+import Numerical.PETSc.Internal.InlineC
+import Numerical.PETSc.Internal.Types
+import Numerical.PETSc.Internal.Exception
+import Numerical.PETSc.Internal.Utils
+import Numerical.PETSc.Internal.PutGet.Vec
 
-import Numerical.PETSc.Raw.Internal
+import Numerical.PETSc.Internal.Internal
 
 import Foreign
 import Foreign.C.Types

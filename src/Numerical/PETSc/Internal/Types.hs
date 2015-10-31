@@ -2,7 +2,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.PETSc.Raw.Types
+-- Module      :  Numerical.PETSc.Internal.Types
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  Marco Zocca
@@ -11,7 +11,7 @@
 -- | Types for inline-c based signatures and resp. helpers
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Raw.Types where
+module Numerical.PETSc.Internal.Types where
 
 -- import Foreign
 import Foreign.C.Types

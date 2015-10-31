@@ -18,7 +18,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Numerical.PETSc.Raw.Internal where
+module Numerical.PETSc.Internal.Internal where
 
 import qualified Language.C.Inline as C
 import qualified Language.C.Types as CT

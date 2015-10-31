@@ -1,8 +1,8 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
-module Numerical.PETSc.Raw.Storable.Vector where
+module Numerical.PETSc.Internal.Storable.Vector where
 
-import Numerical.PETSc.Raw.Utils
+import Numerical.PETSc.Internal.Utils
 
 import Control.Monad
 

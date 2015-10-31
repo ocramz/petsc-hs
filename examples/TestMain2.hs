@@ -1,7 +1,7 @@
 module TestMain2 where
 
 -- import Numerical.PETSc.Raw
-import Numerical.PETSc.Raw.PutGet
+import Numerical.PETSc.Internal.PutGet
 
 import qualified Data.Vector.Storable as V
 

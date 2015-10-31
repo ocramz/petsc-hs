@@ -9,7 +9,7 @@
 -- | common adapters for Storable
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Raw.Storable.Common where
+module Numerical.PETSc.Internal.Storable.Common where
 
 import Data.Functor
 import Control.Applicative
