@@ -28,9 +28,6 @@ step3:
 reload:
 	make step3
 
-
-
-
 alt1:
 	ghc -c ${SRCDIR}/Internal/InlineC.hs -isrc/
 	cc -c ${SRCDIR}/Internal/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include
