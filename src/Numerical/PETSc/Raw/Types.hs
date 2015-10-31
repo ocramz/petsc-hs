@@ -77,6 +77,7 @@ cIntToDmBoundaryType c =
             2 -> DmBMirror
             3 -> DmBPeriodic
             4 -> DmBTwist
+            _ -> DmBNone -- default
   where g = fromIntegral (c :: CInt)
 
 
@@ -88,6 +89,7 @@ dmdaStencilTypeToInt x = fromEnum (x :: DMDAStencilType)
 cIntToDmdaStencilType c =
   case g of 0 -> DmSStar
             1 -> DmSBox
+            _ -> DmSStar -- default
   where g = fromIntegral (c :: CInt)
 
 

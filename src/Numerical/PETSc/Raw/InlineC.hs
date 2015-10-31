@@ -1583,6 +1583,27 @@ kspGetIterationNumber' ksp = withPtr ( \v -> [C.exp|int{KSPGetIterationNumber($(
 -- PETSC_EXTERN PetscErrorCode KSPGetVecs(KSP,PetscInt,Vec**,PetscInt,Vec**);
 
 
+{-
+PetscErrorCode KSPSetComputeRHS(KSP ksp,PetscErrorCode (*func)(KSP,Vec,void*),void *ctx)    --- Logically Collective :
+Input Arguments :
+ksp	- the KSP context
+func	- function to compute the right hand side
+ctx	- optional context
+Calling sequence of func :
+ func(KSP ksp,Vec b,void *ctx)
+ksp	- the KSP context
+b	- right hand side of linear system
+ctx	- optional user-provided context
+-}
+kspSetComputeRHS_' :: KSP -> (KSP -> Vec -> Ptr () -> IO CInt) -> IO CInt
+kspSetComputeRHS_' ksp f =
+  [C.exp|int{KSPSetComputeRHS($(KSP ksp),$fun:(int (* f)(KSP, Vec, void*)), NULL  )}|]
+
+kspSetComputeRHS__' :: KSP -> (KSP -> Vec -> IO CInt) -> IO CInt
+kspSetComputeRHS__' ksp f = kspSetComputeRHS_' ksp g where
+  g k v _ = f k v
+
+
 -- PetscErrorCode  KSPReasonView(KSP ksp,PetscViewer viewer)
 -- kspReasonView ksp = [C.exp|int{KSPReasonView($(KSP ksp), PETSC_VIEWER_STDOUT_SELF)}|] >>= handleErr
 

@@ -77,6 +77,42 @@ snesSetFunctionVector s r f = chk0 $ snesSetFunction' s r f'
   where f' = liftVectorF f
 
 
+liftF1 ::
+  (Functor m, Monad m) =>
+  (a -> b ) ->          -- pure unary f
+  (d -> m a) ->         -- getter
+  (d -> b -> m e) ->    -- setter
+  d ->
+  m CInt
+liftF1 f getter setter b = do
+  y <- f <$> getter b
+  setter b y
+  return (0 :: CInt)
+
+liftF1_ ::
+  Monad m =>
+  (r -> m a) ->
+  (r -> b -> m c) ->
+  r ->
+  (a -> b) ->
+  m c
+liftF1_ get set x f = do
+  v <- get x
+  set x (f v)
+
+liftF2 ::
+  (Functor m, Monad m) =>
+  (a -> b -> c) ->
+  a ->
+  (d -> m b) ->
+  (d -> c -> m e) ->
+  d ->
+  m CInt
+liftF2 f a getter setter b = do
+  y <- f a <$> getter b
+  setter b y
+  return (0 :: CInt)
+
  
 liftVectorF ::
   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> s -> Vec -> IO CInt
