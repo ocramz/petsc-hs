@@ -55,6 +55,7 @@ petscTypesTable = Map.fromList
                   , (typeNameId "Vec", [t| Vec |] )
                   , (typeNameId "Mat", [t| Mat |] )
                   , (typeNameId "DM", [t| DM |] )
+                  , (typeNameId "DMDALocalInfo", [t| DMDALocalInfo |])
                   , (typeNameId "KSP", [t| KSP |])
 
                   , (typeNameId "SNES", [t| SNES |])
@@ -122,6 +123,7 @@ newtype Vec = Vec (Ptr Vec) deriving Storable
 newtype Mat = Mat (Ptr Mat) deriving Storable
 
 newtype DM = DM (Ptr DM) deriving Storable
+newtype DMDALocalInfo = DMDALocalInfo (Ptr DMDALocalInfo) deriving Storable
 
 newtype KSP = KSP (Ptr KSP) deriving Storable
 

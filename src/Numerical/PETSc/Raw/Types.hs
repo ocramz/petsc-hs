@@ -71,12 +71,24 @@ matCompositeTypeToInt x = fromEnum (x :: MatCompositeType_ )
 data DMBoundaryType_ = DmBNone | DmBGhosted | DmBMirror | DmBPeriodic | DmBTwist deriving (Eq, Show, Enum)
 dmBoundaryTypeToInt x = fromEnum (x :: DMBoundaryType_)
 
+cIntToDmBoundaryType c =
+  case g of 0 -> DmBNone
+            1 -> DmBGhosted
+            2 -> DmBMirror
+            3 -> DmBPeriodic
+            4 -> DmBTwist
+  where g = fromIntegral (c :: CInt)
+
 
 -- -- * DMDA
 
 data DMDAStencilType = DmSStar | DmSBox deriving (Eq, Show, Enum)
 dmdaStencilTypeToInt x = fromEnum (x :: DMDAStencilType)
 
+cIntToDmdaStencilType c =
+  case g of 0 -> DmSStar
+            1 -> DmSBox
+  where g = fromIntegral (c :: CInt)
 
 
 

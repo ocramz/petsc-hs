@@ -54,11 +54,14 @@ library
   -- hs-source-dirs:      src
   -- build-tools:         chs
   default-language:    Haskell2010
-  -- extra-include-dirs:  ~/petsc-3.6.0/include, ~/petsc-3.6.0/arch-darmin-c-debug
+  extra-include-dirs:  ~/petsc-3.6.0/include, ~/petsc-3.6.0/arch-darmin-c-debug
   -- extra-lib-dirs:      lib/ ~/petsc-3.6.0/lib
   extra-lib-dirs:      lib/ 
+  -- ghc-options:         -O2 -Wall -lpetsc -lmpich
+  extra-libraries:     petsc mpich
 
 executable example
+  default-language:    Haskell2010
   main-is:             TestMain2.hs
   hs-source-dirs:      examples
   extra-lib-dirs:      lib/

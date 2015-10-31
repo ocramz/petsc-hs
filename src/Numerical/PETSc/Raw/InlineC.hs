@@ -1321,10 +1321,110 @@ dmdaRestoreArray dm ghosted vptr = withArray vptr ( \vp ->
                               $(PetscScalar* vp))}|] ) 
 
 -- PetscErrorCode  DMDAVecRestoreArray(DM da,Vec vec,void *array)
-dmdaVecRestoreArray dm v arr = withArray arr $ \arr_ -> 
+dmdaVecRestoreArray' dm v arr_ =
   [C.exp|int{DMDAVecRestoreArray($(DM dm), $(Vec v), $(PetscScalar* arr_))}|]
 
--- withDmdaArray dm v = bracket (dmdaVecGetArray dm v) (dmdaVecRestoreArray dm v)
+
+
+
+
+-- PetscErrorCode DMDASNESSetFunctionLocal(DM dm,InsertMode imode,PetscErrorCode (*func)(DMDALocalInfo*,void*,void*,void*),void *ctx)  -- Logically Collective
+-- Input Arguments :
+-- dm	- DM to associate callback with
+-- imode	- INSERT_VALUES if local function computes owned part, ADD_VALUES if it contributes to ghosted part
+-- func	- local residual evaluation
+-- ctx	- optional context for local residual evaluation
+-- Calling sequence :
+-- For PetscErrorCode (*func)(DMDALocalInfo *info,void *x, void *f, void *ctx),
+-- info	- DMDALocalInfo defining the subdomain to evaluate the residual on
+-- x	- dimensional pointer to state at which to evaluate residual (e.g. PetscScalar *x or **x or ***x)
+-- f	- dimensional pointer to residual, write the residual here (e.g. PetscScalar *f or **f or ***f)
+-- ctx	- optional context passed above
+
+
+dmdaSnesSetFunctionLocal' ::
+  DM ->
+  InsertMode_ ->
+  (DMDALocalInfo -> Ptr PetscScalar_ -> Ptr PetscScalar_ -> Ptr () -> IO CInt) ->
+  Ptr () ->
+  IO CInt
+dmdaSnesSetFunctionLocal' dm imode f ctx =
+  [C.exp|
+    int{DMDASNESSetFunctionLocal(
+           $(DM dm),
+           $(int imo),
+           $fun:(int (*f)(DMDALocalInfo,PetscScalar*,PetscScalar*,void*)),
+                 $(void* ctx)) }
+        |]
+     where imo = toCInt $ insertModeToInt imode
+
+
+-- snesSetFunction0' snes r f ctx =
+--   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
+--                              $fun:(int (*f)(SNES, Vec, void*) ),
+--                              $(void* ctx))}|]
+
+
+
+
+{-
+PetscErrorCode  DMDAGetInfo(DM da,PetscInt *dim,PetscInt *M,PetscInt *N,PetscInt *P,PetscInt *m,PetscInt *n,PetscInt *p,PetscInt *dof,PetscInt *s,DMBoundaryType *bx,DMBoundaryType *by,DMBoundaryType *bz,DMDAStencilType *st) -- Not Collective
+Input Parameter :
+da -the distributed array 
+Output Parameters :
+dim	- dimension of the distributed array (1, 2, or 3)
+M, N, P	- global dimension in each direction of the array
+m, n, p	- corresponding number of procs in each dimension
+dof	- number of degrees of freedom per node
+s	- stencil width
+bx,by,bz	- type of ghost nodes at boundary, one of DM_BOUNDARY_NONE, DM_BOUNDARY_GHOSTED, DM_BOUNDARY_MIRROR, DM_BOUNDARY_PERIODIC
+st	- stencil type, either DMDA_STENCIL_STAR or DMDA_STENCIL_BOX
+Note :
+Use NULL (NULL_INTEGER in Fortran) in place of any output parameter that is not of interest.
+-}
+
+dmdaGetInfo_' da dim mm nn pp m n p dof s bxp byp bzp stp =
+  [C.exp|
+   int{DMDAGetInfo(
+          $(DM da),
+          $(PetscInt* dim),
+          $(PetscInt* mm),
+          $(PetscInt* nn),
+          $(PetscInt* pp),
+          $(PetscInt* m),
+          $(PetscInt* n),
+          $(PetscInt* p),
+          $(PetscInt* dof),
+          $(PetscInt* s),
+          $(int* bxp),
+          $(int* byp),
+          $(int* bzp),
+          $(int* stp))} |]
+
+dmdaGetInfo__' da = withPtr ( \dim ->
+  withPtr $ \mm ->
+  withPtr $ \nn ->
+  withPtr $ \pp ->
+  withPtr $ \m ->
+  withPtr $ \n ->
+  withPtr $ \p ->
+  withPtr $ \dof ->
+  withPtr $ \s ->
+  withPtr $ \bxp ->
+  withPtr $ \byp ->
+  withPtr $ \bzp ->
+  withPtr $ \stp ->
+   dmdaGetInfo_' da dim mm nn pp m n p dof s bxp byp bzp stp ) >>=
+    \(a,(b,(c,(d,(e,(f,(g,(h,(i,(j,(k,(l,(m_,err))))))))))))) ->
+     return ((a,(b,c,d),(e,f,g),h,i,(j,k,l),m_), err )
+   
+-- dmdaGetInfo' da dim mm nn pp m n p dof s bx by bz st =
+--   dmdaGetInfo_' da dim mm nn pp m n p dof s bxp byp bzp stp
+--   where
+--     bxp = toCInt $ dmBoundaryTypeToInt bx
+--     byp = toCInt $ dmBoundaryTypeToInt by
+--     bzp = toCInt $ dmBoundaryTypeToInt bz
+--     stp = toCInt $ dmdaStencilTypeToInt st
 
 
 
