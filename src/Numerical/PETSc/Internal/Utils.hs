@@ -102,6 +102,7 @@ listTooShortEorError n l = listTooShortE n l (error "list too short") l
 ifNeg :: Int -> a -> a -> a
 ifNeg n = ifThenElse (n < 0)
 
+listLongerThan :: Int -> [a] -> Bool
 listLongerThan n l = length (take n l) == n
 
 -- listLongEnoughOrError n l f es
@@ -159,15 +160,17 @@ extremaUnsortedList lx = (head lxs, last lxs) where
 
 -- * misc
 
-linspace' n a b = take n [a, a + dt .. ] where
+linspace1, linspace1a :: (Enum a, Fractional a) => Int -> a -> a -> [a]
+linspace1 n a b = take n [a, a + dt .. ] where
   dt = (b-a) / fromIntegral n
 
--- linspace1 n a b = mv  where
---   mv1 = take n [a, a+dt ..]
---   mv2 = reverse $ take n [b, b-dt ..]
---   mv = Data.List.map (\(x,y) -> 1/2 * (x+y)) $ zip mv1 mv2
---   dt = (b-a) / fromIntegral n
+linspace1a n a b = mv  where
+  mv1 = take n [a, a+dt ..]
+  mv2 = reverse $ take n [b, b-dt ..]
+  mv = map (\(x,y) -> 1/2 * (x+y)) $ zip mv1 mv2
+  dt = (b-a) / fromIntegral n
 
+mean :: Fractional a => [a] -> a
 mean x = sum x / fromIntegral (length x)
 
 
@@ -178,6 +181,7 @@ sndM = liftM snd
 fstM :: Monad m => m (a, b) -> m a
 fstM = liftM fst
 
+fst2 :: (a, (b, x)) -> ((a, b), x)
 fst2 x = ((y1, y2), t ) where
   y1 = fst x
   y2 = (fst . snd) x
@@ -188,9 +192,9 @@ fst2M = return . fst2
 
 -- -- tuple unpacking stuff
 
--- fst2 :: (a, (b, c)) -> (a,b)
+
 fstOf2 = fst . snd
--- snd2 :: (a, (b, c)) -> c
+
 sndOf2 =  snd . snd
 
 both' f =  f *** f
