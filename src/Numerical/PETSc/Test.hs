@@ -35,12 +35,38 @@ t1' = do
   -- v <- vecCreateMPIFromVector comm lv v0
   v <- vecCreateMPIFromVectorDecideLocalSize comm v0
   vecViewStdout v
+  vecDestroy v
    where
      comm = commWorld
 
 t1 = withPetsc0 t1'
 
 -- --
+
+t2' = withVecCreateMPIFromVectorDecideLocalSize comm v0 $ \u -> do
+  let
+    -- v :: V.Vector PetscScalar_
+    v = V.map (+ 3) u --  
+  print v
+  where
+    comm = commWorld
+
+t2 = withPetsc0 t2'
+
+
+
+-- -- now let's package the above in ST
+
+
+
+
+
+
+
+
+
+
+
 
 
 

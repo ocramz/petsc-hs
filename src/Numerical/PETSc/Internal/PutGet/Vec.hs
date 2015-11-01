@@ -228,6 +228,14 @@ vecCreateMPIFromVectorDecideLocalSize comm w = do
   vecSetValuesUnsafeVector v ix w InsertValues
   return v
 
+withVecCreateMPIFromVectorDecideLocalSize ::
+  Comm -> V.Vector PetscScalar_ -> (V.Vector PetscScalar_ -> IO a) -> IO a
+withVecCreateMPIFromVectorDecideLocalSize comm w f =
+  bracket (vecCreateMPIFromVectorDecideLocalSize comm w) vecDestroy $ \v -> do
+    u <- vecGetVector v
+    f u
+  
+
 
 
 
