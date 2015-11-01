@@ -7,7 +7,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.Petsc.Raw.Internal
+-- Module      :  Numerical.Petsc.Internal.Internal
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  Marco Zocca
