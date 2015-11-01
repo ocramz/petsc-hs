@@ -11,9 +11,16 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.ST where
 
--- import Internal.Vector
--- import Internal.Matrix
--- import Internal.Vectorized
 import Control.Monad.ST (ST, runST)
 import Foreign.Storable (Storable, peekElemOff, pokeElemOff)
 import Control.Monad.ST.Unsafe (unsafeIOToST)
+
+import qualified Data.Vector.Storable as V
+import qualified Data.Vector.Storable.Mutable as VM
+
+
+
+
+
+
+
