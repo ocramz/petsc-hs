@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeFamilies, FlexibleInstances #-}
+{-# LANGUAGE BangPatterns #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -20,6 +21,11 @@ import Foreign
 
 import Control.Monad
 import Control.Arrow
+
+import GHC.Arr -- Ix
+
+
+
 
 
 withCStrings :: [String] -> ([CString] -> IO a) -> IO a
@@ -69,7 +75,7 @@ qsort (x:xs) = qsort l ++ [x] ++ qsort r where
 (~!~) :: Monad m => Bool -> String -> m ()
 c ~!~ es = when c (error es)
 
--- ifThenElse :: Bool -> a -> a -> a
+ifThenElse :: Bool -> a -> a -> a
 ifThenElse q i e
   | q = i
   | otherwise = e
@@ -96,7 +102,7 @@ listTooShortEorError n l = listTooShortE n l (error "list too short") l
 ifNeg :: Int -> a -> a -> a
 ifNeg n = ifThenElse (n < 0)
 
-listLongEnough n l = ifThenElse (length (take n l) == n)
+listLongerThan n l = length (take n l) == n
 
 -- listLongEnoughOrError n l f es
 --   | length l' == n = f
@@ -107,6 +113,16 @@ listLongEnough n l = ifThenElse (length (take n l) == n)
 --   | n >= a && n <= b = f
 --   | otherwise = error es
 
+inBounds :: Ord a => a -> (a, a) -> Bool
+inBounds !n !(a,b) = n >= a && n <= b
+
+inBoundsOrError :: Ord a => a -> (a, a) -> t -> String -> t
+inBoundsOrError n b x es 
+  | inBounds n b = x
+  | otherwise = error es
+
+
+  
 
 
 ifNegError :: Int -> String -> a -> a
