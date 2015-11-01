@@ -27,15 +27,6 @@ import Data.Vector.Storable (fromList, unsafeToForeignPtr, unsafeFromForeignPtr,
 
 
 
-malloc :: Storable a => Int -> a -> IO (ForeignPtr a)
-malloc n d = do
-  when (n < 0) $ error ("createVector : cannot allocate negative dim : "++show n)
-  mallocPlainForeignPtrBytes (n * sizeOf d)
-
-
--- -- 
-
-
 
 
 -- | create empty Vector
@@ -129,13 +120,6 @@ atIndex = (V.!)
 
 
 
-
-
-
--- vBounds :: Storable a => V.Vector a -> (Int, Int)
--- vBounds v = (0, V.length v - 1)
-
- 
 
 
 
@@ -302,14 +286,10 @@ unzipVector = unzipVectorWith id
 
 
 
--- -- -- -- --
 
--- unsafeFromForeignPtr0 :: Storable a => ForeignPtr a -> Int -> VSM.Vector a
--- unsafeFromForeignPtr0 = VSM.unsafeFromForeignPtr0
 
--- f fp t = do
---   p <- newForeignPtr fp
---   t p
 
--- f :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> IO b
--- f = unsafeWith
+malloc :: Storable a => Int -> a -> IO (ForeignPtr a)
+malloc n d = do
+  when (n < 0) $ error ("createVector : cannot allocate negative dim : "++show n)
+  mallocPlainForeignPtrBytes (n * sizeOf d)
