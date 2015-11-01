@@ -137,6 +137,14 @@ vecCopyDuplicate v = do
   v1 <- vecDuplicate v
   vecCopy v v1
 
+withVecCopyDuplicate :: Vec -> (Vec -> IO a) -> IO a
+withVecCopyDuplicate v = bracket
+                         ( do
+                             v1 <- vecDuplicate v
+                             vecCopy v v1
+                             return v1 )
+                         vecDestroy
+
 
 vecSetValuesUnsafe :: Vec -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO ()
 vecSetValuesUnsafe v ix y im =
@@ -145,7 +153,6 @@ vecSetValuesUnsafe v ix y im =
   where
   ni = toCInt $ length ix
 
-
 vecSetValuesSafe :: Vec -> [Int] -> [PetscScalar_] -> InsertMode_ -> IO ()
 vecSetValuesSafe v ix y im
   | safeFlag ix y sv = vecSetValuesUnsafe v ix' y im
@@ -153,11 +160,28 @@ vecSetValuesSafe v ix y im
       where
         sv = vecGetSizeUnsafe v
         ix' = map toCInt ix
-        safeFlag ix_ y_ sv_ = c1 && c2 where
-          c1 = length ix_ == length y_
-          c2 = a >= 0 && b <= sv_
-          ixs = qsort ix_
-          (a, b) = (head ixs, last ixs)
+
+
+
+safeFlag ix_ y_ sv_ = c1 && c2 where
+  c1 = length ix_ == length y_
+  c2 = a >= 0 && b <= sv_
+  ixs = qsort ix_
+  (a, b) = (head ixs, last ixs)
+
+
+
+
+-- | Data.Vector filling of Vec's
+
+vecSetValuesUnsafeVector ::
+  Vec -> V.Vector CInt -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
+vecSetValuesUnsafeVector v ix y im =
+  V.unsafeWith ix $ \ixx ->
+   V.unsafeWith y $ \yy -> chk0 (vecSetValues' v ni ixx yy im)
+    where
+      ni = toCInt (V.length ix)
+
 
 
 

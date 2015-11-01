@@ -22,8 +22,8 @@ import Foreign
 import Control.Monad
 import Control.Arrow
 
-import GHC.Arr -- Ix
-
+-- import GHC.Arr -- Ix
+-- import qualified Data.Vector as V
 
 
 
@@ -66,8 +66,7 @@ qsort :: Ord a => [a] -> [a]
 qsort []     = []
 qsort (x:xs) = qsort l ++ [x] ++ qsort r where
   l = filter (< x) xs
-  r = filter (> x) xs
-
+  r = filter (>= x) xs
 
 
 
