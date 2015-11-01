@@ -6,6 +6,8 @@ import Numerical.PETSc.Internal.Utils
 
 import Control.Monad
 
+import GHC.Arr -- for Ix
+
 import Foreign.Marshal.Array (peekArray)
 import Foreign.ForeignPtr
 import Foreign.Ptr
@@ -16,8 +18,10 @@ import Foreign.C.Types (CInt)
 import System.IO.Unsafe (unsafePerformIO)
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 
-import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Storable as V
 import Data.Vector.Storable (fromList, unsafeToForeignPtr, unsafeFromForeignPtr, unsafeWith)
+
+import qualified Data.Vector.Storable.Mutable as VM
 
 -- import qualified Data.Vector.Storable as VSM
 
@@ -25,59 +29,70 @@ import Data.Vector.Storable (fromList, unsafeToForeignPtr, unsafeFromForeignPtr,
 
 -- | C-Haskell vector adapter
 {-# INLINE avec #-}
-avec :: Storable a => (CInt -> Ptr a -> b) -> VS.Vector a -> b
-avec f v = unsafePerformIO (unsafeWith v (return . f (fromIntegral (VS.length v))))
+avec :: Storable a => (CInt -> Ptr a -> b) -> V.Vector a -> b
+avec f v = unsafePerformIO (unsafeWith v (return . f (fromIntegral (V.length v))))
 infixl 1 `avec`
 
-safeAvec :: Storable a => (CInt -> Ptr a -> b) -> VS.Vector a -> IO b
-safeAvec f v = unsafeWith v (return . f (fromIntegral $ VS.length v))
+safeAvec :: Storable a => (Int -> Ptr a -> b) -> V.Vector a -> IO b
+safeAvec f v = unsafeWith v (return . f (fromIntegral $ V.length v))
 
 
 
 
 
-createVector :: Storable a => Int -> IO (VS.Vector a)
+-- createVector :: Storable a => Int -> IO (VS.Vector a)
+-- createVector n = do
+--     -- when (n < 0) $ error ("trying to createVector of negative dim: "++show n)
+--     (n < 0) ~!~ ("createVector : cannot allocate negative dim : "++show n)
+--     fp <- doMalloc undefined
+--     return $ unsafeFromForeignPtr fp 0 n
+--   where
+--     -- Use the much cheaper Haskell heap allocated storage
+--     -- for foreign pointer space we control
+--     doMalloc :: Storable b => b -> IO (ForeignPtr b)
+--     doMalloc dummy = 
+--         mallocPlainForeignPtrBytes (n * sizeOf dummy)
+
+createVector :: Storable a => Int -> IO (V.Vector a)
 createVector n = do
-    -- when (n < 0) $ error ("trying to createVector of negative dim: "++show n)
-    (n < 0) ~!~ ("createVector : cannot allocate negative dim : "++show n)
-    fp <- doMalloc undefined
-    return $ unsafeFromForeignPtr fp 0 n
-  where
-    -- Use the much cheaper Haskell heap allocated storage
-    -- for foreign pointer space we control
-    doMalloc :: Storable b => b -> IO (ForeignPtr b)
-    doMalloc dummy = 
-        mallocPlainForeignPtrBytes (n * sizeOf dummy)
+  fp <- malloc n undefined
+  return $ unsafeFromForeignPtr fp 0 n
+
+malloc :: Storable a => Int -> a -> IO (ForeignPtr a)
+malloc n d = do
+  when (n < 0) $ error ("createVector : cannot allocate negative dim : "++show n)
+  mallocPlainForeignPtrBytes (n * sizeOf d)
+
+  
 
 
-
-
-readVector :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> b
+readVector :: Storable a => V.Vector a -> (Ptr a -> IO b) -> b
 readVector v = unsafePerformIO . readVectorSafe v
     
-readVectorSafe :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> IO b
+readVectorSafe :: Storable a => V.Vector a -> (Ptr a -> IO b) -> IO b
 readVectorSafe = unsafeWith 
 
 
 
-vdim :: Storable a => VS.Vector a -> Int
-vdim = VS.length
+vdim :: Storable a => V.Vector a -> Int
+vdim = V.length
 
 
 
-toList :: Storable a => VS.Vector a -> [a]
-toList v = readVector v $ peekArray (vdim v)
+-- toList :: Storable a => VS.Vector a -> [a]
+-- toList v = readVector v $ peekArray (vdim v)
 
-toListSafe :: Storable a => VS.Vector a -> IO [a]
-toListSafe v = readVectorSafe v $ peekArray (vdim v)
+toListSafe :: Storable a => V.Vector a -> IO [a]
+toListSafe v = unsafeWith v $ peekArray (vdim v)
 
+-- f0 v = unsafeWith v $ \x -> 
 
 
 
 --  5 |> [1..]
 -- fromList [1.0,2.0,3.0,4.0,5.0]
 
-(|>) :: (Storable a) => Int -> [a] -> VS.Vector a
+(|>) :: (Storable a) => Int -> [a] -> V.Vector a
 infixl 9 |>
 n |> l
     | length l' == n = fromList l'
@@ -85,7 +100,7 @@ n |> l
   where
     l' = take n l
 
-fromSizedList :: Storable a => Int -> [a] -> VS.Vector a
+fromSizedList :: Storable a => Int -> [a] -> V.Vector a
 fromSizedList n l =
   listLongEnoughOrError n l (fromList $ take n l) "fromSizedList : list too short"
 
@@ -97,10 +112,10 @@ fromSizedList n l =
 
 -- | access to Vector elements with range checking
 
-atIndex :: Storable a => VS.Vector a -> Int -> a
+atIndex :: Storable a => V.Vector a -> Int -> a
 atIndex v idx = inBoundsOrError idx (0, vdim v) (at' v idx) "@> : index out of bounds"
 
-atIndexSafe, (@:) :: Storable a => VS.Vector a -> Int -> IO a
+atIndexSafe, (@:) :: Storable a => V.Vector a -> Int -> IO a
 atIndexSafe v idx =
   inBoundsOrError idx (0, vdim v) (at'' v idx) "@> : index out of bounds"
 
@@ -108,19 +123,23 @@ atIndexSafe v idx =
 
 -- | access to Vector elements without range checking
 
-at' :: Storable a => VS.Vector a -> Int -> a
-at' v n = readVector v $ flip peekElemOff n
+at' :: Storable a => V.Vector a -> Int -> a
+at' v n = unsafePerformIO $ unsafeWith v $ flip peekElemOff n
 {-# INLINE at' #-}
 
-at'' :: Storable a => VS.Vector a -> Int -> IO a
-at'' v n = readVectorSafe v $ flip peekElemOff n
+at'' :: Storable a => V.Vector a -> Int -> IO a
+at'' v n = unsafeWith v $ flip peekElemOff n
 {-# INLINE at'' #-}
 
 
+modifyAt_ :: Storable a => V.Vector a -> Int -> a -> IO ()
+modifyAt_ v i x = unsafeWith v $ \p -> pokeElemOff p i x
 
-
-
-
+-- modifyAt v i x
+--   | compatDim = modifyAt_ v i x
+--   | otherwise = undefined
+--      where
+--        compatDim = 
 
 -- | maps
 
@@ -129,7 +148,7 @@ at'' v n = readVectorSafe v $ flip peekElemOff n
 
 
 mapVectorM ::
-  (Storable a, Storable b) => (a -> IO b) -> VS.Vector a -> IO (VS.Vector b)
+  (Storable a, Storable b) => (a -> IO b) -> V.Vector a -> IO (V.Vector b)
 mapVectorM f v = do
   w <- createVector vd -- allocate space
   go w 0 (vd - 1)
@@ -149,7 +168,7 @@ mapVectorM f v = do
 
 
 mapVectorM0 ::
-  (Storable a, Storable b, Monad m) => (a -> m b) -> VS.Vector a -> m (VS.Vector b)
+  (Storable a, Storable b, Monad m) => (a -> m b) -> V.Vector a -> m (V.Vector b)
 mapVectorM0 f v = do
     w <- return $! unsafePerformIO $! createVector (vdim v)
     go w 0 (vdim v -1)
@@ -170,7 +189,7 @@ mapVectorM0 f v = do
 -- | map over storable vector and passes index to mapping function
 
 mapVectorWithIndex ::
-  (Storable a, Storable b) => (Int -> a -> b) -> VS.Vector a -> IO (VS.Vector b)
+  (Storable a, Storable b) => (Int -> a -> b) -> V.Vector a -> IO (V.Vector b)
 mapVectorWithIndex f v = do
     w <- createVector vd
     unsafeWith v $ \p ->
@@ -187,11 +206,11 @@ mapVectorWithIndex f v = do
 
 
 
-buildVectorFromIdxs :: Storable a => Int -> (Int -> a) -> VS.Vector a
+buildVectorFromIdxs :: Storable a => Int -> (Int -> a) -> V.Vector a
 buildVectorFromIdxs len f =
     fromList $ map f [0 .. (len - 1)]
 
-mapFromList :: Storable b => [a] -> (a -> b) -> VS.Vector b
+mapFromList :: Storable b => [a] -> (a -> b) -> V.Vector b
 mapFromList l f = fromList (map f l)
 
 
@@ -211,7 +230,7 @@ mapFromList l f = fromList (map f l)
 -- | zipWith for Vectors
 zipVectorWith ::
   (Storable a, Storable b, Storable c) =>
-     (a-> b -> c) -> VS.Vector a -> VS.Vector b -> VS.Vector c
+     (a-> b -> c) -> V.Vector a -> V.Vector b -> V.Vector c
 zipVectorWith f u v = unsafePerformIO $ do
     let n = min (vdim u) (vdim v)
     w <- createVector n
@@ -229,7 +248,7 @@ zipVectorWith f u v = unsafePerformIO $ do
 
 -- | unzipWith for Vectors
 unzipVectorWith :: (Storable (a,b), Storable c, Storable d) 
-                   => ((a,b) -> (c,d)) -> VS.Vector (a,b) -> (VS.Vector c,VS.Vector d)
+                   => ((a,b) -> (c,d)) -> V.Vector (a,b) -> (V.Vector c,V.Vector d)
 unzipVectorWith f u = unsafePerformIO $ do
       let n = vdim u
       v <- createVector n
@@ -270,9 +289,9 @@ unzipVectorWith f u = unsafePerformIO $ do
 
 -- | testing testing
 
-v1 = 5 |> [3, 2 ..] :: VS.Vector Double
+v1 = 5 |> [3, 2 ..] :: V.Vector Double
 
-v2 = mapVectorM0 (return . (^2)) v1 :: IO (VS.Vector Double)
+v2 = mapVectorM0 (return . (^2)) v1 :: IO (V.Vector Double)
 v2u = unsafePerformIO v2
 
 v3 = zipVectorWith (+) v1 v2u
@@ -289,5 +308,5 @@ v3 = zipVectorWith (+) v1 v2u
 --   p <- newForeignPtr fp
 --   t p
 
-f :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> IO b
-f = unsafeWith
+-- f :: Storable a => VS.Vector a -> (Ptr a -> IO b) -> IO b
+-- f = unsafeWith

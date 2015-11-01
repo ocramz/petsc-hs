@@ -118,10 +118,13 @@ listLongEnoughOrError n l f es
   | otherwise = error es where
       l' = take n l
 
-inBoundsOrError n (a,b) f es
-  | n >= a && n <= b = f
-  | otherwise = error es
+-- inBoundsOrError :: Ord a => a -> (a, a) -> t -> String -> t
+-- inBoundsOrError n (a,b) f es
+--   | n >= a && n <= b = f
+--   | otherwise = error es
 
+
+-- inBounds :: 
 
 -- | tests whether smallest element of list is in bounds
 
