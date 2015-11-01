@@ -65,13 +65,32 @@ data PVec = PVec { vec     :: !Vec,
 vecCreate :: Comm -> IO Vec
 vecCreate comm = chk1 (vecCreate' comm)
 
-vecCreateMPI_ :: Comm -> Int -> Int -> IO Vec
-vecCreateMPI_ comm nLocal nGlobal = chk1 (vecCreateMPI' comm nLocal nGlobal)
+
 
 vecCreateMPI :: Comm -> Int -> Int -> IO Vec 
 vecCreateMPI comm nloc nglob
   | nloc>=0 && nloc<=nglob = vecCreateMPI_ comm nloc nglob
-  | otherwise = error "vecCreateMPI: nloc must be < =  nglob"
+  | otherwise = error "vecCreateMPI: [nloc] must sum to nglob"
+     where
+       vecCreateMPI_ :: Comm -> Int -> Int -> IO Vec
+       vecCreateMPI_ comm nLocal nGlobal = chk1 (vecCreateMPI' comm nLocal nGlobal)
+
+
+
+
+vecCreateMPIdecideLocalSize :: Comm -> Int -> IO Vec
+vecCreateMPIdecideLocalSize comm nglob
+  | nglob > 0 = vcmpidl comm nglob
+  | otherwise = error "vecCreateMPI1: global dim must be > 0"
+     where
+       vcmpidl c n  = chk1 (vecCreateMPIdecideLoc' c n)
+
+
+
+
+
+
+
 
 vecCreateMPIInfo :: VecInfo -> IO Vec
 vecCreateMPIInfo vi = chk1 (vecCreateMPI' comm nl ng) where
@@ -193,14 +212,21 @@ vecSetValuesUnsafeVector v ix y im =
       ni = toCInt (V.length ix)
 
 
-vecCreateFromVector :: Comm -> Int -> V.Vector PetscScalar_ -> IO Vec
-vecCreateFromVector comm nloc w = do
+vecCreateMPIFromVector :: Comm -> Int -> V.Vector PetscScalar_ -> IO Vec
+vecCreateMPIFromVector comm nloc w = do
   let dimv = V.length w
       ix = V.fromList [0 .. toCInt dimv - 1]
   v <- vecCreateMPI comm nloc dimv
   vecSetValuesUnsafeVector v ix w InsertValues
   return v
-  
+
+vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
+vecCreateMPIFromVectorDecideLocalSize comm w = do
+  let dimv = V.length w
+      ix = V.fromList [0 .. toCInt dimv - 1]
+  v <- vecCreateMPIdecideLocalSize comm dimv
+  vecSetValuesUnsafeVector v ix w InsertValues
+  return v
 
 
 

@@ -32,7 +32,8 @@ lv = V.length v0
 -- --
 
 t1' = do
-  v <- vecCreateFromVector comm lv v0
+  -- v <- vecCreateMPIFromVector comm lv v0
+  v <- vecCreateMPIFromVectorDecideLocalSize comm v0
   vecViewStdout v
    where
      comm = commWorld

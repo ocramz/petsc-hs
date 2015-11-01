@@ -162,7 +162,24 @@ vecCreateMPI0' comm m1' m2' p = [C.exp|int{VecCreateMPI($(int c), $(int m1), $(i
 vecCreateMPI' :: Comm -> Int -> Int -> IO (Vec, CInt)
 vecCreateMPI' c nlocal nglobal = withPtr (vecCreateMPI0' c nlocal nglobal) 
 
-vecCreateMPILocal c m = vecCreateMPI' c m m
+-- vecCreateMPILocal c m = vecCreateMPI' c m m
+
+
+
+-- -- have PETSc decide the local Vec dimension
+
+-- PetscErrorCode VecCreateMPI(MPI_Comm comm, int m, int M, Vec* x)
+vecCreateMPIdecideLoc0' comm nglob p =
+  [C.exp|int{VecCreateMPI($(int c), PETSC_DECIDE, $(int m1), $(Vec *p))}|] 
+    where c = unComm comm
+          m1 = toCInt nglob
+
+vecCreateMPIdecideLoc' comm nglob = withPtr (vecCreateMPIdecideLoc0' comm nglob)
+
+
+
+
+
 
 
 -- PetscErrorCode  VecSetBlockSize(Vec v,PetscInt bs)
