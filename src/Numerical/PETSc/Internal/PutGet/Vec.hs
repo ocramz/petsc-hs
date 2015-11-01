@@ -65,8 +65,13 @@ data PVec = PVec { vec     :: !Vec,
 vecCreate :: Comm -> IO Vec
 vecCreate comm = chk1 (vecCreate' comm)
 
-vecCreateMPI :: Comm -> Int -> Int -> IO Vec
-vecCreateMPI comm nLocal nGlobal = chk1 (vecCreateMPI' comm nLocal nGlobal)
+vecCreateMPI_ :: Comm -> Int -> Int -> IO Vec
+vecCreateMPI_ comm nLocal nGlobal = chk1 (vecCreateMPI' comm nLocal nGlobal)
+
+vecCreateMPI :: Comm -> Int -> Int -> IO Vec 
+vecCreateMPI comm nloc nglob
+  | nloc>=0 && nloc<=nglob = vecCreateMPI_ comm nloc nglob
+  | otherwise = error "vecCreateMPI: nloc must be < =  nglob"
 
 vecCreateMPIInfo :: VecInfo -> IO Vec
 vecCreateMPIInfo vi = chk1 (vecCreateMPI' comm nl ng) where
@@ -191,9 +196,7 @@ vecSetValuesUnsafeVector v ix y im =
 vecCreateFromVector :: Comm -> Int -> V.Vector PetscScalar_ -> IO Vec
 vecCreateFromVector comm nloc w = do
   let dimv = V.length w
-      dimvc = toCInt dimv
-      ix = V.fromList [0 .. dimvc-1]
-  -- if (nloc <= dimv) then
+      ix = V.fromList [0 .. toCInt dimv - 1]
   v <- vecCreateMPI comm nloc dimv
   vecSetValuesUnsafeVector v ix w InsertValues
   return v
