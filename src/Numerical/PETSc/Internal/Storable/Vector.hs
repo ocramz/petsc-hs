@@ -1,5 +1,16 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Numerical.PETSc.Internal.ST
+-- Copyright   :  (c) Marco Zocca 2015
+-- License     :  LGPL3
+-- Maintainer  :  Marco Zocca
+-- Stability   :  experimental
+--
+-- | operations on Storable Vector 
+--
+-----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Storable.Vector where
 
 import Numerical.PETSc.Internal.Utils

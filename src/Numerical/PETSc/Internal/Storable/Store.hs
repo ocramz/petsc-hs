@@ -1,5 +1,16 @@
 {-# LANGUAGE FlexibleInstances, ConstraintKinds, TypeFamilies #-}
-module Numerical.PETSc.Raw.Store where
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Numerical.PETSc.Internal.Storable.Store
+-- Copyright   :  (c) Marco Zocca 2015
+-- License     :  LGPL3
+-- Maintainer  :  Marco Zocca
+-- Stability   :  experimental
+--
+-- | classes for store polymorphism
+--
+-----------------------------------------------------------------------------
+module Numerical.PETSc.Internal.Storable.Store where
 
 -- | from HNetCDF
 
@@ -9,13 +20,14 @@ module Numerical.PETSc.Raw.Store where
 
 import Foreign.Storable
 import Foreign.ForeignPtr
-import GHC.Exts
 
 
 class PStore s where
   toForeignPtr :: Storable e => s e -> ForeignPtr e
   fromForeignPtr :: Storable e => ForeignPtr e -> [Int] -> s e
   smap :: (Storable a, Storable b) => (a -> b) -> s a -> s b
+
+
 
 
 
