@@ -43,15 +43,15 @@ import qualified Data.Vector.Storable.Mutable as VM
 
 
 
-
+data PetscVector = PetscVector { vec     :: !Vec,
+                                 vecInfo :: !VecInfo }
 
 data VecInfo = VecInfo 
  {vecInfoMpiComm :: Comm ,
   vecInfoSizeLocal :: !Int ,
   vecInfoSizeGlobal :: !Int } deriving (Eq, Show)
 
-data PVec = PVec { vec     :: !Vec,
-                   vecInfo :: !VecInfo }
+
 
 
 
@@ -76,8 +76,6 @@ vecCreateMPI comm nloc nglob
        vecCreateMPI_ comm nLocal nGlobal = chk1 (vecCreateMPI' comm nLocal nGlobal)
 
 
-
-
 vecCreateMPIdecideLocalSize :: Comm -> Int -> IO Vec
 vecCreateMPIdecideLocalSize comm nglob
   | nglob > 0 = vcmpidl comm nglob
@@ -87,12 +85,9 @@ vecCreateMPIdecideLocalSize comm nglob
 
 
 
+-- | " , using VecInfo
 
-
-
-
-
-vecCreateMPIInfo :: VecInfo -> IO Vec
+-- vecCreateMPIInfo :: VecInfo -> IO Vec
 vecCreateMPIInfo vi = chk1 (vecCreateMPI' comm nl ng) where
   nl = vecInfoSizeLocal vi
   ng = vecInfoSizeGlobal vi
@@ -101,11 +96,11 @@ vecCreateMPIInfo vi = chk1 (vecCreateMPI' comm nl ng) where
 vecDestroy :: Vec -> IO ()
 vecDestroy v = chk0 (vecDestroy' v)
 
-withVecCreate :: VecInfo -> (Vec -> IO a) -> IO a
+-- withVecCreate :: VecInfo -> (Vec -> IO a) -> IO a
 withVecCreate vv = bracket (vecCreate comm) vecDestroy where
   comm = vecInfoMpiComm vv
 
-withVecCreateMPI :: VecInfo -> (Vec -> IO a) -> IO a
+-- withVecCreateMPI :: VecInfo -> (Vec -> IO a) -> IO a
 withVecCreateMPI vv =
   bracket (vecCreateMPI comm nLoc nGlob) vecDestroy where
     nLoc = vecInfoSizeLocal vv

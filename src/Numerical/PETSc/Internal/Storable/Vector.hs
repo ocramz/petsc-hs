@@ -8,10 +8,20 @@
 -- Maintainer  :  Marco Zocca
 -- Stability   :  experimental
 --
--- | operations on Storable Vector 
+-- | operations on Storable Vector (most of these share functionality w Data.Vector)
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Internal.Storable.Vector where
+module Numerical.PETSc.Internal.Storable.Vector (createVectorSized,
+                                                 modifyVectorAt,
+                                                 modifyVectorBulk,
+                                                 readVector, readVectorSafe,
+                                                 toList, toListSafe,
+                                                 fromSizedList, (|>),
+                                                 atIndex, (@:),
+                                                 mapVectorM, mapVectorM0,
+                                                 zipVector, zipVectorWith,
+                                                 unzip, unzipVectorWith)
+       where
 
 import Numerical.PETSc.Internal.Utils
 
@@ -64,8 +74,8 @@ modifyVectorAt v i x = unsafeWith v $ \p -> pokeElemOff p i x
 
 -- -- | Vector.// : bulk update (at array of indices)
 
-modifyBulk :: Storable a => V.Vector a -> [(Int, a)] -> V.Vector a   -- safe
-modifyBulk = (V.//)
+modifyVectorBulk :: Storable a => V.Vector a -> [(Int, a)] -> V.Vector a   -- safe
+modifyVectorBulk = (V.//)
 
 
 

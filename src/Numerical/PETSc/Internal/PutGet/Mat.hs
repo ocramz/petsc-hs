@@ -39,6 +39,35 @@ import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, un
 
 
 
+-- | a datatype encapsulating matrix information and the typed pointer
+data PetscMatrix = PetscMatrix !MatrixInfo Mat
+
+data MatrixInfo =
+  MIConstNZPR MatrixInfoBase !Int
+  | MIVarNZPR MatrixInfoBase !(V.Vector Int)
+
+data MatrixInfoBase =
+  MatrixInfoBase { matComm  :: Comm
+                  ,matRows  :: !Int
+                  ,matCols  :: !Int
+                  -- ,matOrder :: !MatrixOrder
+                 } deriving (Eq, Show)
+
+
+data MatrixData a =
+  MatrixData { matDataRowIdxs :: !(V.Vector Int),
+               matDataColIdxs :: !(V.Vector Int),
+               matDataEntries :: !(V.Vector a)} deriving (Eq, Show)
+
+checkMatrixData :: MatrixData a -> Bool
+checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
+  (lr, lc, le) = (V.length idxx, V.length idxy, V.length vals)
+
+-- -- 
+
+                            
+
+
 
 withMat ::
   Comm -> (Mat -> IO a) -> IO a
@@ -165,14 +194,7 @@ matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 -- transposeOrder ColMajor = RowMajor
 -- -- matrixTranspose (Matrix r c d o)  = Matrix r c d (transposeOrder o)
 
-data MatrixData a =
-  MatrixData { matDataRowIdxs :: !(V.Vector Int),
-               matDataColIdxs :: !(V.Vector Int),
-               matDataEntries :: !(V.Vector a)} deriving (Eq, Show)
 
-checkMatrixData :: MatrixData a -> Bool
-checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
-  (lr, lc, le) = (V.length idxx, V.length idxy, V.length vals)
 
 
 identityMatrix :: Comm -> Int -> Mat -> PetscMatrix
@@ -190,19 +212,7 @@ mkMatrixInfoBase comm (MatrixData idxx idxy vals) =
 
 
 
--- | a datatype encapsulating matrix information and the typed pointer
-data PetscMatrix = PetscMatrix !MatrixInfo Mat
 
-data MatrixInfo =
-  MIConstNZPR MatrixInfoBase !Int
-  | MIVarNZPR MatrixInfoBase !(V.Vector Int)
-
-data MatrixInfoBase =
-  MatrixInfoBase { matComm  :: Comm
-                  ,matRows  :: !Int
-                  ,matCols  :: !Int
-                  -- ,matOrder :: !MatrixOrder
-                 } deriving (Eq, Show)
 
 petscMatrixBounds :: PetscMatrix -> ((Int, Int), (Int, Int))
 petscMatrixBounds pm = pmib (petscMatrixInfoB pm) where
