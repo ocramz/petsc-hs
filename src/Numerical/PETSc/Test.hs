@@ -18,12 +18,35 @@ import qualified Data.Vector.Storable as V
 import qualified Data.Vector.Storable.Mutable as VM
 
 
--- vinfo n = VecInfo commWorld n n
 
--- vtemplate n f = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
---   withVecGetVectorOverwrite v (V.map exp)    -- contents of Vec are changed 
---   print $ exp pi
---   f v
---   vecViewStdout v
---     where
---       vi = vinfo n
+vinfo n = VecInfo commWorld n n
+
+vecTemplate n f = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
+  -- withVecGetVectorOverwrite v (V.map exp)    -- contents of Vec are changed 
+  -- print $ exp pi
+  -- f v
+  f
+  vecViewStdout v
+    where
+      vi = vinfo n
+
+-- petsc0VecTemplate n f = withPetsc0 $ vecTemplate n f
+
+-- --
+
+v0 :: V.Vector PetscScalar_
+v0 = V.fromList [pi .. 10.005]
+
+lv = V.length v0
+
+
+
+t1' = do
+  v <- vecCreateFromVector comm lv v0
+  vecViewStdout v
+   where
+     comm = commWorld
+
+t1 = withPetsc0 t1'
+
+

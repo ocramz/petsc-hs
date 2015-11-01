@@ -169,6 +169,11 @@ safeFlag ix_ y_ sv_ = c1 && c2 where
   ixs = qsort ix_
   (a, b) = (head ixs, last ixs)
 
+-- safeFlagv ix_ y_ sv_ = c1 && c2 where
+--   c1 = V.length ix_ == V.length y_
+--   c2 = a >= 0 && b <= sv_
+--   ixs = V.sort ix_
+--   (a, b) = (V.head ixs, V.last ixs)
 
 
 
@@ -182,6 +187,17 @@ vecSetValuesUnsafeVector v ix y im =
     where
       ni = toCInt (V.length ix)
 
+
+vecCreateFromVector :: Comm -> Int -> V.Vector PetscScalar_ -> IO Vec
+vecCreateFromVector comm nloc w = do
+  let dimv = V.length w
+      dimvc = toCInt dimv
+      ix = V.fromList [0 .. dimvc-1]
+  -- if (nloc <= dimv) then
+  v <- vecCreateMPI comm nloc dimv
+  vecSetValuesUnsafeVector v ix w InsertValues
+  return v
+  
 
 
 
