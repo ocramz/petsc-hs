@@ -386,15 +386,19 @@ vecRestoreVector v w = do
 
 
 
--- | mutation in ST
+-- | mutation in ST hidden in IO
 
-modifyV1 v f = runST $ do
-  x <- unsafeIOToST $ vecGetVector v
-  stx <- newSTRef x
-  modifySTRef stx f
-
+  
+modifyV v f = do
+  x <- vecGetVector v
+  let y = runST $ do
+        s <- newSTRef x
+        writeSTRef s (f x)
+        readSTRef s
+  vecRestoreVector v y
 
 modifyV2 v f = liftM f (vecGetVector v) >>= vecRestoreVector v
+
 
 
 
