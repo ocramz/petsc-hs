@@ -137,6 +137,9 @@ cloneVector v = do
 unsafeFreezeVector (STVector x) = unsafeIOToST . return $ x
 
 {-# INLINE safeIndexV #-}
+safeIndexV ::
+   forall a c s. Storable c => 
+     (STVector s c -> Int -> a) -> STVector a c -> Int -> a
 safeIndexV f (STVector v) k
     | k < 0 || k>= dim v = error $ "out of range error in vector (dim="
                                    ++show (dim v)++", pos="++show k++")"
@@ -170,7 +173,7 @@ createVector n = do
     -- Use the much cheaper Haskell heap allocated storage
     -- for foreign pointer space we control
     doMalloc :: Storable b => b -> IO (ForeignPtr b)
-    doMalloc dummy = do
+    doMalloc dummy = 
         mallocPlainForeignPtrBytes (n * sizeOf dummy)
 
 
@@ -183,6 +186,25 @@ newVector x n = do
     let go (-1) = return v
         go !k = unsafeWriteVector v k x >> go (k-1 :: Int)
     go (n-1)
+
+
+
+
+
+vjoin :: Storable t => [V.Vector t] -> IO (V.Vector t)
+vjoin [] = return $ V.fromList []
+vjoin [v] = return v
+vjoin as = do
+    let tot = sum (map dim as)
+    r <- createVector tot
+    unsafeWith r $ \ptr ->
+        joiner as tot ptr
+    return r
+  where joiner [] _ _ = return ()
+        joiner (v:cs) _ p = do
+            let n = dim v
+            unsafeWith v $ \pb -> copyArray p pb n
+            joiner cs 0 (advancePtr p n)
 
 
 
