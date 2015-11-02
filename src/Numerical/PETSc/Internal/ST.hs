@@ -12,6 +12,7 @@
 module Numerical.PETSc.Internal.ST where
 
 -- import Linear
+import Data.Foldable (for_, Foldable)
 
 import Control.Monad.ST (ST, runST)
 import Data.STRef
@@ -22,7 +23,7 @@ import Control.Monad.ST.Unsafe (unsafeIOToST)
 import qualified Data.Vector.Storable as V
 import qualified Data.Vector.Storable.Mutable as VM
 
-import qualified Numerical.PETSc.Internal.PutGet.Vec as PV
+-- import qualified Numerical.PETSc.Internal.PutGet.Vec as PV
 
 
 {-
@@ -45,9 +46,9 @@ Be warned that modifySTRef does not apply the function strictly. This means if t
 modifySTRef' :: STRef s a -> (a -> a) -> ST s ()  -- Strict version of modifySTRef-}
 
 {-
-newVar :: a -> ST s (MutVar s a)
-readVar :: MutVar s a -> ST s a
-writeVar :: MutVar s a -> a -> ST s ()
+new :: a -> ST s (Muv s a)
+read :: Muv s a -> ST s a
+write :: Muv s a -> a -> ST s ()
 
 thenST :: ST s a -> (a -> ST s b) -> ST s b
 
@@ -56,7 +57,13 @@ thenST :: ST s a -> (a -> ST s b) -> ST s b
 
 -- newtype ST
 
-
+-- sumST :: Num a => [a] -> a
+sumST :: (Foldable t, Num a) => t a -> a
+sumST xs = runST $ do
+    n <- newSTRef 0
+    for_ xs $ \x ->
+        modifySTRef n (+x)
+    readSTRef n
 
 
 ---
