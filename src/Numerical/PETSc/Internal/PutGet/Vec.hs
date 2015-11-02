@@ -51,6 +51,9 @@ data VecInfo = VecInfo
   vecInfoSizeLocal :: !Int ,
   vecInfoSizeGlobal :: !Int } deriving (Eq, Show)
 
+data VectorData a = VectorData
+                    {vecIdxs :: !(V.Vector Int),
+                     vecDataEntries :: !(V.Vector a)} deriving (Eq, Show)
 
 
 
@@ -369,27 +372,27 @@ vecRestoreVector v w = do
 
 
 
--- | mutating operators, use at own risk
+-- -- | mutating operators, use at own risk
 
-withVecGetVectorOverwrite ::
-  Vec ->
-  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
-  IO ()
-withVecGetVectorOverwrite v modify = do
-  x <- vecGetVector v
-  let y = modify x
-  vecRestoreVector v y
+-- withVecGetVectorOverwrite ::
+--   Vec ->
+--   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+--   IO ()
+-- withVecGetVectorOverwrite v modify = do
+--   x <- vecGetVector v
+--   let y = modify x
+--   vecRestoreVector v y
 
--- -- ", monadic version
+-- -- -- ", monadic version
 
-withVecGetVectorOverwriteM ::
-  Vec ->
-  (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
-  IO ()
-withVecGetVectorOverwriteM v modifyM = do
-  x <- vecGetVector v
-  y <- modifyM x
-  vecRestoreVector v y
+-- withVecGetVectorOverwriteM ::
+--   Vec ->
+--   (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
+--   IO ()
+-- withVecGetVectorOverwriteM v modifyM = do
+--   x <- vecGetVector v
+--   y <- modifyM x
+--   vecRestoreVector v y
 
 
 
