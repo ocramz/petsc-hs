@@ -41,6 +41,19 @@ import qualified Data.Vector.Storable.Mutable as VM
 
 
 
+{- STATE : Vec, VectorData
+
+NB : state is replicated in the distributed memory and in local data. How do we keep these consistent ?
+
+For a given Vec; what stays constant is:
+* length (global and local)
+* MPI communicator
+
+-}
+
+
+
+
 
 
 data PetscVector = PetscVector { vec     :: !Vec,

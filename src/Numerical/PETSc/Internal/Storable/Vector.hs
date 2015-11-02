@@ -141,6 +141,21 @@ atIndex = (V.!)
 
 
 
+-- | function adapter if either argument is :t `a` rather than `V.Vector a` 
+
+adaptScalar ::
+     (Storable a, Storable b) =>
+     (a -> V.Vector b -> x) ->
+     (V.Vector a -> V.Vector b -> x) ->
+     (V.Vector a -> b  -> x) ->
+     V.Vector a ->
+     V.Vector b ->
+     x
+adaptScalar f1 f2 f3 x y
+    | V.length x == 1 = f1   (x @: 0) y
+    | V.length y == 1 = f3 x (y @: 0)
+    | otherwise = f2 x y
+
 
 
 

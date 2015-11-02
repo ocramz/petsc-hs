@@ -37,9 +37,11 @@ import Control.Monad.Primitive -- for V.copy
 -- import qualified Numerical.PETSc.Internal.PutGet.Vec as PV
 
 
-{-
-Instances   : Eq (STRef s a)
 
+
+
+
+{-
 newSTRef ::
    a -> ST s (STRef s a)    --Build a new STRef in the current state thread
 
@@ -226,5 +228,19 @@ vjoin as = do
 
 
 
+
+
+-- | testing testing
+
+-- newtype Vtest a = Vtest {unV :: Int} deriving Show
+
+-- v0 = Vtest 0
+
+-- testf0 = runST $ do
+--   x <- newSTRef v0
+--   writeSTRef x (Vtest 1)
+--   readSTRef x
+
+-- main = print testf0
 
 
