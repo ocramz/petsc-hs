@@ -32,6 +32,7 @@ import Control.Arrow
 import Control.Concurrent
 import Control.Exception
 
+import Data.STRef
 import Control.Monad.ST (ST, runST)
 import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
@@ -382,6 +383,19 @@ vecRestoreVector v w = do
   vecRestoreArrayPtr v p
     where
      len = vecSize v
+
+
+
+-- | mutation in ST
+
+modifyV1 v f = runST $ do
+  x <- unsafeIOToST $ vecGetVector v
+  stx <- newSTRef x
+  modifySTRef stx f
+
+
+modifyV2 v f = liftM f (vecGetVector v) >>= vecRestoreVector v
+
 
 
 

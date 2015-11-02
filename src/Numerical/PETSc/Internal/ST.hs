@@ -65,38 +65,39 @@ write :: Muv s a -> a -> ST s ()
 
 thenST :: ST s a -> (a -> ST s b) -> ST s b
 
-
 -}
 
--- newtype ST
 
--- sumST :: Num a => [a] -> a
-sumST :: (Foldable t, Num a) => t a -> a
-sumST xs = runST $ do
-    n <- newSTRef 0
-    for_ xs $ \x ->
-        modifySTRef n (+x)
-    readSTRef n
+
+
+
+
 
 
 --
 
 
+modifyMVector v f = runST $ do
+  x <- newSTRef v
+  modifySTRef x (V.map f)
+  readSTRef x
+
+
+
 -- from HMatrix : Internal.ST
 
 
-
 {-# INLINE ioReadV #-}
--- ioReadV :: Storable t => Vector t -> Int -> IO t
+ioReadV :: Storable t => V.Vector t -> Int -> IO t
 ioReadV v k = unsafeWith v $ \s -> peekElemOff s k
 
 {-# INLINE ioWriteV #-}
--- ioWriteV :: Storable t => Vector t -> Int -> t -> IO ()
+ioWriteV :: Storable t => V.Vector t -> Int -> t -> IO ()
 ioWriteV v k x = unsafeWith v $ \s -> pokeElemOff s k x
 
 newtype STVector s t = STVector (V.Vector t)
 
--- thawVector :: Storable t => Vector t -> ST s (STVector s t)
+-- thawVector :: Storable t => V.Vector t -> ST s (STVector s t)
 -- thawVector = unsafeIOToST . fmap STVector . cloneVector
 
 -- unsafeThawVector :: Storable t => Vector t -> ST s (STVector s t)
@@ -244,3 +245,10 @@ vjoin as = do
 -- main = print testf0
 
 
+-- -- sumST :: Num a => [a] -> a
+-- sumST :: (Foldable t, Num a) => t a -> a
+-- sumST xs = runST $ do
+--     n <- newSTRef 0
+--     for_ xs $ \x ->
+--         modifySTRef n (+x)
+--     readSTRef n
