@@ -76,6 +76,8 @@ petscTypesTable = Map.fromList
 
                   , (typeNameId "MatFDColoring", [t| MatFDColoring |])
                   , (typeNameId "ISColoring", [t| ISColoring |])
+
+                  , (typeNameId "MatFactorInfo", [t| MatFactorInfo |])
                   ]
 
 typeNameId :: CT.CIdentifier -> CT.TypeSpecifier
@@ -149,7 +151,7 @@ newtype MatFDColoring = MatFDColoring (Ptr MatFDColoring) deriving Storable
 
 newtype ISColoring = ISColoring (Ptr ISColoring) deriving Storable
 
-
+newtype MatFactorInfo = MatFactorInfo (Ptr MatFactorInfo) deriving Storable
 
 
 

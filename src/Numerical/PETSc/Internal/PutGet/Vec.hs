@@ -128,14 +128,14 @@ withVecCreateMPI vv =
 vecSetSizes :: Vec -> Int -> IO ()
 vecSetSizes v n = chk0 $ vecSetSizes1 v (toCInt n)
 
-withVecPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b
-withVecPipeline vv pre post = withVecCreate vv $ \v -> do
-  vecSetSizes v nDim
-  pre v
-  vecAssemblyChk v
-  post v
-    where
-      nDim = vecInfoSizeGlobal vv
+-- withVecPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b
+-- withVecPipeline vv pre post = withVecCreate vv $ \v -> do
+--   vecSetSizes v nDim
+--   pre v
+--   vecAssemblyChk v
+--   post v
+--     where
+--       nDim = vecInfoSizeGlobal vv
 
 withVecMPIPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b
 withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
@@ -269,56 +269,7 @@ vecGetOwnershipRange v =
   chk1 (vecGetOwnershipRange1 v) 
 
 
--- | Vec math. operations
 
-vecDot :: Vec -> Vec -> IO PetscScalar_
-vecDot v1 v2 = chk1 $ vecDot1 v1 v2
-
-vecNorm :: Vec -> VecNorm_ -> IO PetscScalar_
-vecNorm v nt = chk1 $ vecNorm1 nt v
-
-vecSum :: Vec -> IO PetscScalar_
-vecSum v = chk1 $ vecSum1 v
-
--- | Vec math (in-place, destructive) operations 
-vecLog_, vecExp_, vecAbs_ :: Vec -> IO ()
-vecLog, vecExp, vecAbs :: Vec -> IO Vec
-vecLog_ v = chk0 $ vecLog' v
-vecLog v = do {vecLog_ v; return v}
-vecExp_ v = chk0 $ vecExp' v
-vecExp v = do {vecExp_ v; return v}
-vecAbs_ v = chk0 $ vecAbs' v
-vecAbs v = do {vecAbs_ v ; return v}
-
-vecScale_ :: Vec -> PetscScalar_ -> IO ()
-vecScale_ v a = chk0 $ vecScale' v a
-vecScale :: Vec -> PetscScalar_ -> IO Vec
-vecScale v a = do {vecScale_ v a; return v}
-
--- | AXPY : y = a x + y
--- -- NB : x and y must be different vectors (i.e. distinct pointers)
-vecAxpy :: PetscScalar_ -> Vec -> Vec -> IO Vec
-vecAxpy a y x = do
-  chk0 $ vecAxpy' y a x
-  return y
-
--- | WAXPY : w = a x + y
--- -- NB : w cannot be either x or y, but x and y can be the same
-vecWaxpy_ w a x y = chk0 $ vecWaxpy' w a x y
-vecWaxpy w a x y = do {vecWaxpy_ w a x y; return w}
-
-vecWaxpySafe a vx vy = withVecCreate vi $ \w ->
-  vecWaxpy w a x y  -- NB: w is created on same Comm as x
-   where
-    vi = vecInfo vx
-    x = vec vx
-    y = vec vy
-
-vecVecSum , (.+) :: Vec -> Vec -> IO Vec
-vecVecSum = vecAxpy 1
-(.+) = vecVecSum
-
-vecVecSumSafe = vecWaxpySafe 1
 
 
 
@@ -388,18 +339,39 @@ vecRestoreVector v w = do
 
 -- | mutation in ST hidden in IO
 
+-- modifyV, modifyV2 :: Vec -> (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> IO ()
   
-modifyV v f = do
-  x <- vecGetVector v
-  let y = runST $ do
-        s <- newSTRef x
-        writeSTRef s (f x)
-        readSTRef s
-  vecRestoreVector v y
+-- modifyV v f = do
+--   x <- vecGetVector v
+--   let y = runST $ do
+--         s <- newSTRef x
+--         writeSTRef s (f x)
+--         readSTRef s
+--   vecRestoreVector v y
 
-modifyV2 v f = liftM f (vecGetVector v) >>= vecRestoreVector v
+-- modifyV2 v f = liftM f (vecGetVector v) >>= vecRestoreVector v
+
+-- modifyV' :: Vec -> (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> V.Vector PetscScalar_
+modifyV' u g = return $ runST $ do
+            x <- unsafeIOToST $ vecGetVector u
+            s <- newSTRef x
+            let y = g x
+            writeSTRef s y
+            unsafeIOToST $ vecRestoreVector u y
+            readSTRef s
 
 
+
+-- withSTRef v f = runST $ do
+--   s <- newSTRef v
+--   let y = f v
+--   writeSTRef s y
+--   readSTRef s
+
+data PVector a = PVector !Vec !(V.Vector a)
+
+instance (Show a, Storable a) => Show (PVector a) where
+  show (PVector _ x) = show x
 
 
 
@@ -482,6 +454,65 @@ bracket1 allocate release io = mask $ \restore -> do
 
 
 
+
+
+
+
+
+
+
+
+
+-- | Vec math. operations
+
+vecDot :: Vec -> Vec -> IO PetscScalar_
+vecDot v1 v2 = chk1 $ vecDot1 v1 v2
+
+vecNorm :: Vec -> VecNorm_ -> IO PetscScalar_
+vecNorm v nt = chk1 $ vecNorm1 nt v
+
+vecSum :: Vec -> IO PetscScalar_
+vecSum v = chk1 $ vecSum1 v
+
+-- | Vec math (in-place, destructive) operations 
+vecLog_, vecExp_, vecAbs_ :: Vec -> IO ()
+vecLog, vecExp, vecAbs :: Vec -> IO Vec
+vecLog_ v = chk0 $ vecLog' v
+vecLog v = do {vecLog_ v; return v}
+vecExp_ v = chk0 $ vecExp' v
+vecExp v = do {vecExp_ v; return v}
+vecAbs_ v = chk0 $ vecAbs' v
+vecAbs v = do {vecAbs_ v ; return v}
+
+vecScale_ :: Vec -> PetscScalar_ -> IO ()
+vecScale_ v a = chk0 $ vecScale' v a
+vecScale :: Vec -> PetscScalar_ -> IO Vec
+vecScale v a = do {vecScale_ v a; return v}
+
+-- | AXPY : y = a x + y
+-- -- NB : x and y must be different vectors (i.e. distinct pointers)
+vecAxpy :: PetscScalar_ -> Vec -> Vec -> IO Vec
+vecAxpy a y x = do
+  chk0 $ vecAxpy' y a x
+  return y
+
+-- | WAXPY : w = a x + y
+-- -- NB : w cannot be either x or y, but x and y can be the same
+vecWaxpy_ w a x y = chk0 $ vecWaxpy' w a x y
+vecWaxpy w a x y = do {vecWaxpy_ w a x y; return w}
+
+vecWaxpySafe a vx vy = withVecCreate vi $ \w ->
+  vecWaxpy w a x y  -- NB: w is created on same Comm as x
+   where
+    vi = vecInfo vx
+    x = vec vx
+    y = vec vy
+
+vecVecSum , (.+) :: Vec -> Vec -> IO Vec
+vecVecSum = vecAxpy 1
+(.+) = vecVecSum
+
+vecVecSumSafe = vecWaxpySafe 1
 
 
 

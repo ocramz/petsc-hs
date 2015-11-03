@@ -915,6 +915,20 @@ matGetOwnershipRange' m = do
   return ((fi r2, fi r1), e)
 
 
+
+
+-- PetscErrorCode  MatLUFactor(Mat mat,IS row,IS col,const MatFactorInfo *info)
+matLUFactor' mat is col info =
+  [C.exp|int{MatLUFactor($(Mat mat),$(IS is),$(IS col),$(MatFactorInfo* info))}|]
+
+-- PetscErrorCode  MatFactorInfoInitialize(MatFactorInfo *info)
+matFactorInfoInitialize' = withPtr $ \i -> mfii i where
+  mfii info = [C.exp|int{MatFactorInfoInitialize($(MatFactorInfo* info))}|]
+
+
+
+
+
   
 
 -- -- -- Mat experiments

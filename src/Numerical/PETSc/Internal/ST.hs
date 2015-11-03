@@ -77,10 +77,46 @@ thenST :: ST s a -> (a -> ST s b) -> ST s b
 --
 
 
-modifyMVector v f = runST $ do
+modifyV0 v f = runST $ do
   x <- newSTRef v
   modifySTRef x (V.map f)
   readSTRef x
+
+
+
+-- | some basics: State and StateT
+
+newtype State s a = State { runState :: s -> (a, s) }
+
+instance Monad (State s) where
+  return a = State $ \s -> (a, s)
+  (State m) >>= k = State $ \s ->
+    let (v, s') = m s
+    in runState (k v) s' 
+
+
+
+newtype StateT s m a = StateT {runStateT :: s -> m (a, s)}
+
+
+returnStateT :: Monad m => a -> StateT s m a
+returnStateT a = StateT $ \s -> return (a, s)
+
+bindStateT :: Monad m => StateT s m a -> (a -> StateT s m b) -> StateT s m b
+(StateT x) `bindStateT` k = StateT $ \s -> do
+  (v, s') <- x s
+  runStateT (k v) s'
+
+instance Monad m => Monad (StateT s m) where
+  return = returnStateT
+  (>>=) = bindStateT
+
+
+-- -- --
+
+
+
+
 
 
 
