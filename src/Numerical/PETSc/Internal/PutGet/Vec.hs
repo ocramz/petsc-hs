@@ -328,13 +328,13 @@ withVecCreateMPIFromVectorDecideLocalSize comm w f =
 --    vecRestoreVector v y
 --    return y
 
-updateVecViaVector = wvf
 
-wvf ::
+
+modifyVecVector ::
   IO Vec ->
   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
   IO (V.Vector PetscScalar_)
-wvf vecget f = do
+modifyVecVector vecget f = do
   v <- vecget
   u <- vecGetVector v
   let y = f u
@@ -355,21 +355,23 @@ wvf vecget f = do
 
 
 
+-- | view Vec contents 
 
 vecView :: Vec -> PetscViewer -> IO ()
 vecView v vi = chk0 $ vecView1 v vi
 
+vecViewStdout :: Vec -> IO ()
+vecViewStdout v = chk0 $ vecViewStdout1 v
 
+
+
+
+
+-- | get Vec properties 
 
 vecGetOwnershipRange :: Vec -> IO (Int, Int)
 vecGetOwnershipRange v = 
   chk1 (vecGetOwnershipRange1 v) 
-
-
-
-
-
-
 
 vecGetSize :: Vec -> IO Int
 vecGetSize v = liftM fi $ chk1 ( vecGetSize' v) 
@@ -382,33 +384,35 @@ vecSize = vecGetSizeUnsafe
 
 
 
--- | print a Vec tor stdout 
 
-vecViewStdout :: Vec -> IO ()
-vecViewStdout v = chk0 $ vecViewStdout1 v
+
 
 
 
 
 -- | getting/restoring a contiguous array from/to a Vec 
 
-vecGetArray :: Vec -> Int -> IO [PetscScalar_]
-vecGetArray v sz = chk1 $ vecGetArray' v sz
+-- vecGetArray :: Vec -> Int -> IO [PetscScalar_]
+-- vecGetArray v sz = chk1 $ vecGetArray' v sz
 
-vecGetArraySafe :: Vec -> IO [PetscScalar_]
-vecGetArraySafe v = do
-  sz <- vecGetSize v
-  vecGetArray v sz
+-- vecGetArraySafe :: Vec -> IO [PetscScalar_]
+-- vecGetArraySafe v = do
+--   sz <- vecGetSize v
+--   vecGetArray v sz
+
+-- -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
+-- vecRestoreArray v c = chk0 $ vecRestoreArray' v c
+
+
 
 vecGetArrayPtr :: Vec -> IO (Ptr PetscScalar_)
 vecGetArrayPtr v = chk1 (vecGetArray1' v)
 
--- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
-vecRestoreArray v c = chk0 $ vecRestoreArray' v c
-
-
 vecRestoreArrayPtr :: Vec -> Ptr PetscScalar_ -> IO ()
 vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
+
+
+
 
 
 
@@ -431,6 +435,10 @@ vecRestoreVector v w = do
   vecRestoreArrayPtr v p
     where
      len = vecSize v
+
+
+
+
 
 
 

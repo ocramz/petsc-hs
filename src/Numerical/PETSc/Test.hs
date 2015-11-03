@@ -43,13 +43,9 @@ t1 = withPetsc0 t1'
 
 --
 
-toVec = vecCreateMPIFromVectorDecideLocalSize commWorld
+-- toVec = vecCreateMPIFromVectorDecideLocalSize commWorld
 
 
-
-
-
--- combine = \ a b f -> (b >>=) . (return .) . f =<< a
 
 
 
