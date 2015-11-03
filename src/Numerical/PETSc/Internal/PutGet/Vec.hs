@@ -77,14 +77,36 @@ data VecInfo = VecInfo
 
 
 data PVector a = PVector !Vec !(V.Vector a)
+
 instance (Storable a, Show a) => Show (PVector a) where
   show (PVector _ a) = show a
 
-data MPVector a = MPVector (MVar (PVector a))
+newtype MPVector a = MPVector (MVar (PVector a)) 
 
 
 
-type Scalar = PetscScalar_
+
+-- | new : IO (MPVector a)    
+
+new :: Storable a => VecInfo -> IO (MPVector a)
+new vi = do
+  v <- vecCreateMPIInfo vi
+  x <- newMVar (PVector v V.empty)
+  return $ MPVector x
+
+modify ::
+  MPVector PetscScalar_ ->
+  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+  IO (MPVector PetscScalar_)
+modify (MPVector mv) f = do
+  (PVector v vdata) <- takeMVar mv
+  x <- vecGetVector v
+  let y = f x
+  vecRestoreVector v y
+  let pv = (PVector v y)
+  putMVar mv pv
+  return (MPVector mv)
+  
 
 
 
@@ -98,13 +120,13 @@ type Scalar = PetscScalar_
 vecCreate :: Comm -> IO Vec
 vecCreate comm = chk1 (vecCreate' comm)
 
+vecCreateMPI_ :: Comm -> Int -> Int -> IO Vec
+vecCreateMPI_ comm nLocal nGlobal = chk1 (vecCreateMPI' comm nLocal nGlobal)
+
 vecCreateMPI :: Comm -> Int -> Int -> IO Vec 
 vecCreateMPI comm nloc nglob
   | nloc>=0 && nloc<=nglob = vecCreateMPI_ comm nloc nglob
   | otherwise = error "vecCreateMPI: [nloc] must sum to nglob"
-     where
-       vecCreateMPI_ :: Comm -> Int -> Int -> IO Vec
-       vecCreateMPI_ comm nLocal nGlobal = chk1 (vecCreateMPI' comm nLocal nGlobal)
 
 
 vecCreateMPIdecideLocalSize :: Comm -> Int -> IO Vec
@@ -331,11 +353,10 @@ withVecCreateMPIFromVectorDecideLocalSize comm w f =
 
 
 modifyVecVector ::
-  IO Vec ->
+  Vec ->
   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
   IO (V.Vector PetscScalar_)
-modifyVecVector vecget f = do
-  v <- vecget
+modifyVecVector v f = do
   u <- vecGetVector v
   let y = f u
   vecRestoreVector v y
@@ -410,6 +431,8 @@ vecGetArrayPtr v = chk1 (vecGetArray1' v)
 
 vecRestoreArrayPtr :: Vec -> Ptr PetscScalar_ -> IO ()
 vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
+
+
 
 
 
@@ -581,7 +604,14 @@ vecNorm v nt = chk1 $ vecNorm1 nt v
 vecSum :: Vec -> IO PetscScalar_
 vecSum v = chk1 $ vecSum1 v
 
--- | Vec math (in-place, destructive) operations 
+
+
+
+
+
+
+-- | Vec math (in-place, destructive) operations
+
 vecLog_, vecExp_, vecAbs_ :: Vec -> IO ()
 vecLog, vecExp, vecAbs :: Vec -> IO Vec
 vecLog_ v = chk0 $ vecLog' v

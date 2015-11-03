@@ -53,7 +53,7 @@ petscDecide = -1
 
 -- * IS
 
-isCreateStride' c n first step is = [C.exp|
+isCreateStride_ c n first step is = [C.exp|
      int{ISCreateStride(
             $(int c),
             $(PetscInt n),
@@ -61,8 +61,8 @@ isCreateStride' c n first step is = [C.exp|
             $(PetscInt step),
             $(IS* is)) }|]
 
-isCreateStride comm n first step =
-  withPtr $ \is -> isCreateStride' c n first step is
+isCreateStride' comm n first step =
+  withPtr $ \is -> isCreateStride_ c n first step is
    where c = unComm comm
 
 
@@ -86,22 +86,22 @@ isCreateStride comm n first step =
 --    distributed sets of indices and thus certain operations on them are
 --    collective.
 
-isCreateGeneral' c n idxp mo isp  =
+isCreateGeneral_ c n idxp mo isp  =
   [C.exp|int{ISCreateGeneral($(int c),
                              $(PetscInt n),
                              $(PetscInt* idxp),
                              $(int mo),
                              $(IS* isp))}|]
 
-isCreateGeneral comm n idx mode =
+isCreateGeneral' comm n idx mode =
    withArray idx $ \idxp ->
-    withPtr $ \isp -> isCreateGeneral' c n idxp mo isp 
+    withPtr $ \isp -> isCreateGeneral_ c n idxp mo isp 
      where mo = fromIntegral $ petscCopyModeToInt mode
            c = unComm comm
 
-isDestroy' iisp = [C.exp|int{ISDestroy($(IS* iisp))} |]
+isDestroy_ iisp = [C.exp|int{ISDestroy($(IS* iisp))} |]
 
-isDestroy iis = with iis isDestroy' 
+isDestroy' iis = with iis isDestroy_
 
 
 -- withIsCreateGeneral comm n idx mode = bracket (isCreateGeneral comm n idx mode) isDestroy
@@ -1958,10 +1958,6 @@ snesGetLineSearch' snes =
   withPtr ( \ls ->
      [C.exp|int{SNESGetLineSearch($(SNES snes),
                                   $(SNESLineSearch* ls))}|]) 
-
-
-
-
 
 
 

@@ -49,9 +49,15 @@ type ISI = (IS, IsInfo)
 data PetscIs = PIs (MVar ISI)
 
 
-withIsCreateGeneral :: IsInfo -> PetscCopyMode_ -> (IS -> IO a) -> IO a
+isCreateGeneral comm n idx mode = chk1 (isCreateGeneral' comm n idx mode)
+
+isDestroy is = chk0 $ isDestroy' is
+
+
+
+-- withIsCreateGeneral :: IsInfo -> PetscCopyMode_ -> (IS -> IO a) -> IO a
 withIsCreateGeneral iis mode =
-  bracketChk (isCreateGeneral comm n idx mode) isDestroy where
+  bracket (isCreateGeneral comm n idx mode) isDestroy where
     comm = isInfoMpiComm iis
     n = toCInt $ length idxi
     idx = map toCInt idxi
