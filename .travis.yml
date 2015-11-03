@@ -7,6 +7,8 @@ matrix:
     #- env: GHCVER=head   CABALVER=head COVOPT=--enable-coverage
 
 env:
+ - PETSC_DIR=/home/travis/build/ocramz/petsc-hs/petsc/petsc-3.6.2
+ - PETSC_ARCH=arch-linux2-c-debug
  # - GHCVER=7.10.1 CABALVER=1.22 COVOPT=--enable-coverage
  - GHCVER=7.8.3  CABALVER=1.18 COVOPT=--enable-library-coverage
  # - GHCVER=7.6.3  CABALVER=1.18 COVOPT=--enable-library-coverage
@@ -22,16 +24,16 @@ addons:
 before_install:
  # - ./download-petsc.sh
  # - ./install-petsc.sh
- - mkdir -p petsc
- - cd petsc
- - wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz
- - tar xvf petsc-lite-3.6.2.tar.gz
- - cd petsc-3.6.2
- - ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
 
- - make PETSC_DIR=/home/travis/build/ocramz/petsc-hs/petsc/petsc-3.6.2 PETSC_ARCH=arch-linux2-c-debug all
+ # - mkdir -p petsc     ### 
+ # - cd petsc
+ # - wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz
+ # - tar xvf petsc-lite-3.6.2.tar.gz
+ # - cd petsc-3.6.2
+ # - ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
+ # - make PETSC_DIR=/home/travis/build/ocramz/petsc-hs/petsc/petsc-3.6.2 PETSC_ARCH=arch-linux2-c-debug all
+ # - cd ../..
 
- - cd ../..
  # - sudo add-apt-repository -y ppa:hvr/ghc
  # - travis_retry sudo apt-get update
  # - travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER

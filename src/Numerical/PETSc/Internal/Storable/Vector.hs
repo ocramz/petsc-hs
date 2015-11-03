@@ -253,7 +253,7 @@ mapVectorFromList l f = fromList (map f l)
 -- | zipWith for Vectors
 zipVectorWith ::
   (Storable a, Storable b, Storable c) =>
-     (a-> b -> c) -> V.Vector a -> V.Vector b -> V.Vector c
+     (a -> b -> c) -> V.Vector a -> V.Vector b -> V.Vector c
 zipVectorWith f u v = unsafePerformIO $ do
     let n = min (V.length u) (V.length v)
     w <- createVector n
@@ -270,8 +270,10 @@ zipVectorWith f u v = unsafePerformIO $ do
 {-# INLINE zipVectorWith #-}
 
 -- | unzipWith for Vectors
-unzipVectorWith :: (Storable (a,b), Storable c, Storable d) 
-                   => ((a,b) -> (c,d)) -> V.Vector (a,b) -> (V.Vector c,V.Vector d)
+unzipVectorWith :: (Storable (a, b), Storable c, Storable d) =>
+                   ((a, b) -> (c, d)) ->
+                   V.Vector (a, b) ->
+                   (V.Vector c,V.Vector d)
 unzipVectorWith f u = unsafePerformIO $ do
       let n = V.length u
       v <- createVector n

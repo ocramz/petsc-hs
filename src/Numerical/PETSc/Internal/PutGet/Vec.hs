@@ -37,10 +37,10 @@ import Control.Monad.ST (ST, runST)
 import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
 -- import qualified Data.Vector as V
-import qualified Data.Vector.Storable as V 
+import qualified Data.Vector.Storable as V
 import qualified Data.Vector.Storable.Mutable as VM
 
-
+import qualified Data.Map as Map
 
 {- STATE : Vec, VectorData
 
@@ -65,9 +65,26 @@ data VecInfo = VecInfo
   vecInfoSizeLocal :: !Int ,
   vecInfoSizeGlobal :: !Int } deriving (Eq, Show)
 
-data VectorData a = VectorData
-                    {vecIdxs :: !(V.Vector Int),
-                     vecDataEntries :: !(V.Vector a)} deriving (Eq, Show)
+-- data VectorData a = VectorData
+--                     {vecIdxs :: !(V.Vector Int),
+--                      vecDataEntries :: !(V.Vector a)} deriving (Eq, Show)
+
+-- Q : how do we carry data-on-mesh ?
+-- 1 -- data VectorData a = VectorData !(V.Vector (Int, a))
+-- 2 -- data VectorData a = VectorData (Map.Map Int a)  -- for sparse fills, reads
+-- 3 -- isn't this implemented in Data.Vector already ?
+
+
+
+data PVector a = PVector !Vec !(V.Vector a)
+instance (Storable a, Show a) => Show (PVector a) where
+  show (PVector _ a) = show a
+
+data MPVector a = MPVector (MVar (PVector a))
+
+
+
+type Scalar = PetscScalar_
 
 
 
@@ -76,13 +93,10 @@ data VectorData a = VectorData
 
 
 
-
-
+-- | vecCreate
 
 vecCreate :: Comm -> IO Vec
 vecCreate comm = chk1 (vecCreate' comm)
-
-
 
 vecCreateMPI :: Comm -> Int -> Int -> IO Vec 
 vecCreateMPI comm nloc nglob
@@ -104,8 +118,8 @@ vecCreateMPIdecideLocalSize comm nglob
 
 -- | " , using VecInfo
 
--- vecCreateMPIInfo :: VecInfo -> IO Vec
-vecCreateMPIInfo vi = chk1 (vecCreateMPI' comm nl ng) where
+vecCreateMPIInfo :: VecInfo -> IO Vec
+vecCreateMPIInfo vi = vecCreateMPI comm nl ng where
   nl = vecInfoSizeLocal vi
   ng = vecInfoSizeGlobal vi
   comm = vecInfoMpiComm vi
@@ -113,29 +127,32 @@ vecCreateMPIInfo vi = chk1 (vecCreateMPI' comm nl ng) where
 vecDestroy :: Vec -> IO ()
 vecDestroy v = chk0 (vecDestroy' v)
 
--- withVecCreate :: VecInfo -> (Vec -> IO a) -> IO a
-withVecCreate vv = bracket (vecCreate comm) vecDestroy where
+
+
+-- vecSetSizes :: Vec -> Int -> IO ()
+-- vecSetSizes v n = chk0 $ vecSetSizes1 v (toCInt n)
+
+
+
+
+
+
+
+-- | `withVec` brackets
+
+withVec :: IO Vec -> (Vec -> IO b) -> IO b
+withVec vc = bracket vc vecDestroy
+
+
+withVecCreate :: VecInfo -> (Vec -> IO a) -> IO a
+withVecCreate vv = withVec (vecCreate comm)  where
   comm = vecInfoMpiComm vv
 
--- withVecCreateMPI :: VecInfo -> (Vec -> IO a) -> IO a
-withVecCreateMPI vv =
-  bracket (vecCreateMPI comm nLoc nGlob) vecDestroy where
-    nLoc = vecInfoSizeLocal vv
-    nGlob = vecInfoSizeGlobal vv
-    comm = vecInfoMpiComm vv
+
+withVecCreateMPI :: VecInfo -> (Vec -> IO a) -> IO a
+withVecCreateMPI vi = withVec (vecCreateMPIInfo vi) 
 
 
-vecSetSizes :: Vec -> Int -> IO ()
-vecSetSizes v n = chk0 $ vecSetSizes1 v (toCInt n)
-
--- withVecPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b
--- withVecPipeline vv pre post = withVecCreate vv $ \v -> do
---   vecSetSizes v nDim
---   pre v
---   vecAssemblyChk v
---   post v
---     where
---       nDim = vecInfoSizeGlobal vv
 
 withVecMPIPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b
 withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
@@ -149,6 +166,15 @@ withVecMPIPipeline1 vv pre post = withVecCreateMPI vv $ \v -> do
   vecAssemblyChk v'
   post v'
 
+
+
+
+
+
+
+
+-- | assembly 
+
 vecAssemblyChk :: Vec -> IO ()
 vecAssemblyChk v = chk0 (vecAssemblyBegin' v) >> chk0 (vecAssemblyEnd' v)
 
@@ -158,9 +184,21 @@ vecAssemblyChk v = chk0 (vecAssemblyBegin' v) >> chk0 (vecAssemblyEnd' v)
 withVecAssemblyChk :: Vec -> IO a -> IO a
 withVecAssemblyChk v = bracket_ (chk0 $ vecAssemblyBegin' v) (chk0 $ vecAssemblyEnd' v)
 
+
+
+
+
+
 -- | vecEqual : compares two vectors. Returns true if the two vectors are either pointing to the same memory buffer, or if the two vectors have the same local and global layout as well as bitwise equality of all entries. Does NOT take round-off errors into account.
 vecEqual :: Vec -> Vec -> IO Bool
 vecEqual v1 v2 = chk1 $ vecEqual1 v1 v2
+
+
+
+
+
+
+-- | vecCopy, vecDuplicate
 
 vecCopy_ vorig vcopy = chk0 $ vecCopy1 vorig vcopy
 vecCopy vorig vcopy = do {vecCopy_ vorig vcopy ;  return vcopy}
@@ -168,6 +206,7 @@ vecCopy vorig vcopy = do {vecCopy_ vorig vcopy ;  return vcopy}
 vecDuplicate v = chk1 $ vecDuplicate1 v
 
 -- | vecCopyDuplicate : duplicates Vec and copies content
+
 vecCopyDuplicate :: Vec -> IO Vec
 vecCopyDuplicate v = do
   v1 <- vecDuplicate v
@@ -181,6 +220,30 @@ withVecCopyDuplicate v = bracket
                              return v1 )
                          vecDestroy
 
+
+
+
+
+
+-- | setting Vec attributes
+
+vecSetName :: Vec -> String -> IO ()
+vecSetName v name = chk0 $ vecSetName1 v name
+
+vecSet_ :: Vec -> PetscScalar_ -> IO ()
+vecSet_ v n = chk0 $ vecSet1 v n
+
+vecSet :: Vec -> PetscScalar_ -> IO Vec
+vecSet v n = do {vecSet_ v n ; return v}
+
+
+
+
+
+
+
+
+-- | setting Vec values 
 
 vecSetValuesUnsafe :: Vec -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO ()
 vecSetValuesUnsafe v ix y im =
@@ -197,7 +260,7 @@ vecSetValuesSafe v ix y im
         sv = vecGetSizeUnsafe v
         ix' = map toCInt ix
 
-
+-- --  helper
 
 safeFlag ix_ y_ sv_ = c1 && c2 where
   c1 = length ix_ == length y_
@@ -213,7 +276,7 @@ safeFlag ix_ y_ sv_ = c1 && c2 where
 
 
 
--- | Data.Vector filling of Vec's
+-- | setting Vec values, Data.Vector interface
 
 vecSetValuesUnsafeVector ::
   Vec -> V.Vector CInt -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
@@ -223,6 +286,11 @@ vecSetValuesUnsafeVector v ix y im =
     where
       ni = toCInt (V.length ix)
 
+
+
+
+
+-- | creating Vec reference and setting its content from Data.Vector
 
 vecCreateMPIFromVector :: Comm -> Int -> V.Vector PetscScalar_ -> IO Vec
 vecCreateMPIFromVector comm nloc w = do
@@ -240,13 +308,49 @@ vecCreateMPIFromVectorDecideLocalSize comm w = do
   vecSetValuesUnsafeVector v ix w InsertValues
   return v
 
-withVecCreateMPIFromVectorDecideLocalSize ::
-  Comm -> V.Vector PetscScalar_ -> (V.Vector PetscScalar_ -> IO a) -> IO a
+-- withVecCreateMPIFromVectorDecideLocalSize ::
+--   Comm ->
+--   V.Vector PetscScalar_ ->
+--   (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
+--   IO (V.Vector PetscScalar_  )
 withVecCreateMPIFromVectorDecideLocalSize comm w f =
   bracket (vecCreateMPIFromVectorDecideLocalSize comm w) vecDestroy $ \v -> do
     u <- vecGetVector v
-    f u
+    let y = f u
+    vecRestoreVector v y
+    -- return y
   
+
+-- wvf vcreate f =
+--   bracket vcreate vecDestroy $ \v -> do
+--    u <- vecGetVector v
+--    let y = f u
+--    vecRestoreVector v y
+--    return y
+
+updateVecViaVector = wvf
+
+wvf ::
+  IO Vec ->
+  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+  IO (V.Vector PetscScalar_)
+wvf vecget f = do
+  v <- vecget
+  u <- vecGetVector v
+  let y = f u
+  vecRestoreVector v y
+  return y
+
+
+
+-- --
+
+
+
+
+
+
+
 
 
 
@@ -255,14 +359,7 @@ withVecCreateMPIFromVectorDecideLocalSize comm w f =
 vecView :: Vec -> PetscViewer -> IO ()
 vecView v vi = chk0 $ vecView1 v vi
 
-vecSetName :: Vec -> String -> IO ()
-vecSetName v name = chk0 $ vecSetName1 v name
 
-vecSet_ :: Vec -> PetscScalar_ -> IO ()
-vecSet_ v n = chk0 $ vecSet1 v n
-
-vecSet :: Vec -> PetscScalar_ -> IO Vec
-vecSet v n = do {vecSet_ v n ; return v}
 
 vecGetOwnershipRange :: Vec -> IO (Int, Int)
 vecGetOwnershipRange v = 
@@ -352,7 +449,7 @@ vecRestoreVector v w = do
 -- modifyV2 v f = liftM f (vecGetVector v) >>= vecRestoreVector v
 
 -- modifyV' :: Vec -> (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> V.Vector PetscScalar_
-modifyV' u g = return $ runST $ do
+modifyV' u g = runST $ do
             x <- unsafeIOToST $ vecGetVector u
             s <- newSTRef x
             let y = g x
@@ -368,10 +465,8 @@ modifyV' u g = return $ runST $ do
 --   writeSTRef s y
 --   readSTRef s
 
-data PVector a = PVector !Vec !(V.Vector a)
 
-instance (Show a, Storable a) => Show (PVector a) where
-  show (PVector _ x) = show x
+
 
 
 

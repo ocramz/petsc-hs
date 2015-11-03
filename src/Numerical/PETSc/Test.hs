@@ -24,7 +24,7 @@ import qualified Data.Vector.Storable.Mutable as VM
 -- --
 
 v0 :: V.Vector PetscScalar_
-v0 = V.fromList [pi .. 10.005]
+v0 = V.fromList [pi .. 10]
 
 lv = V.length v0
 
@@ -41,17 +41,16 @@ t1' = do
 
 t1 = withPetsc0 t1'
 
--- --
+--
 
-t2' = withVecCreateMPIFromVectorDecideLocalSize comm v0 $ \u -> do
-  let
-    -- v :: V.Vector PetscScalar_
-    v = V.map (+ 3) u --  
-  print v
-  where
-    comm = commWorld
+toVec = vecCreateMPIFromVectorDecideLocalSize commWorld
 
-t2 = withPetsc0 t2'
+
+
+
+
+-- combine = \ a b f -> (b >>=) . (return .) . f =<< a
+
 
 
 
