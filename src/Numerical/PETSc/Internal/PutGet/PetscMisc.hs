@@ -45,6 +45,8 @@ commWorld, commSelf :: Comm
 commWorld = commWorld1
 commSelf = commSelf1
 
+mpiCommSize comm = chk1 (mpiCommSize' comm)
+mpiCommRank comm = chk1 (mpiCommRank' comm)
 
 
 -- * misc PETSc
@@ -52,10 +54,10 @@ commSelf = commSelf1
 -- -- NB : all PETSc functions must appear within a withPetsc* bracket
 
 petscInit0 :: IO ()
-petscInit0 = chk0 petscInit01
+petscInit0 = chk0 petscInit01 >> putStrLn "PETSc : initialized with default options"
 
 petscFin :: IO ()
-petscFin = chk0 petscFin1
+petscFin = chk0 petscFin1 >> putStrLn "PETSc : finalized"
 
 withPetsc0 :: IO a -> IO a
 withPetsc0 = bracket_ petscInit0 petscFin
@@ -65,7 +67,8 @@ petscInit ::
   String ->     -- options string
   String ->     -- help string
   IO ()
-petscInit args opts help = chk0 $ petscInitialize1 args opts help
+petscInit args opts help = 
+  chk0 (petscInitialize1 args opts help) >> putStrLn "PETSc : initialized"
 
 withPetsc ::
   [String] -> String -> String -> IO a -> IO a

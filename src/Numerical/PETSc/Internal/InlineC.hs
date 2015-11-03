@@ -2585,7 +2585,8 @@ petscErrorMessage' nn mp =
 mpiCommSize' comm = withPtr (\p -> [C.exp| int{ MPI_Comm_size($(int c), $(int *p))}|] )
   where
    c = unComm comm
-mpiCommSize c =  unsafePerformIO $ mpiCommSize' c 
+-- mpiCommSize c =  unsafePerformIO $ mpiCommSize' c 
+
 
 mpiCommRank' comm =
   withPtr

@@ -416,7 +416,11 @@ vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
 
 
 
--- | interface with Data.Vector
+
+
+
+
+-- | Vec get/set interface with Data.Vector
 -- -- using ".Storable and ".Storable.Mutable
 
 vecGetVector :: Vec -> IO (V.Vector PetscScalar_)
