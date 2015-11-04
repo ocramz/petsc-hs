@@ -38,20 +38,23 @@ import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, un
 
 
 
-
+-- | create KSP
 
 kspCreate :: Comm -> IO KSP
 kspCreate comm = chk1 (kspCreate' comm)
 
-kspDestroy :: KSP -> IO ()
-kspDestroy ksp = chk0 (kspDestroy' ksp)
 
-kspSetType :: KSP -> KspType_ -> IO ()
-kspSetType ksp kt = chk0 (kspSetType' ksp kt)
+-- | with KSP brackets
+
+-- withKsp :: Comm -> (KSP -> IO a) -> IO a
+-- withKsp comm =
+--   bracket (kspCreate comm) kspDestroy
+
+withKsp_ :: IO KSP -> (KSP -> IO a) -> IO a
+withKsp_ kc = bracket kc kspDestroy
 
 withKsp :: Comm -> (KSP -> IO a) -> IO a
-withKsp comm =
-  bracket (kspCreate comm) kspDestroy
+withKsp comm = withKsp_ (kspCreate comm)
 
 withKspSetup ::
   Comm ->
@@ -82,6 +85,31 @@ withKspSetupSolve comm kt amat pmat ignz rhsv solnv post =
   withKspSetup comm kt amat pmat ignz $ \ksp -> do
     kspSolve ksp rhsv solnv
     post ksp
+
+
+
+
+
+
+    
+
+-- | destroy KSP
+
+kspDestroy :: KSP -> IO ()
+kspDestroy ksp = chk0 (kspDestroy' ksp)
+
+
+
+
+
+
+
+-- | set KSP properties
+
+kspSetType :: KSP -> KspType_ -> IO ()
+kspSetType ksp kt = chk0 (kspSetType' ksp kt)
+
+
 
 
 kspSetOperators :: KSP -> Mat -> Mat -> IO ()

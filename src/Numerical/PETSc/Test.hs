@@ -11,8 +11,10 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Test where
 
+import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.PutGet
 import Numerical.PETSc.Internal.Internal
+import Numerical.PETSc.Internal.Managed
 
 import qualified Data.Vector.Storable as V
 import qualified Data.Vector.Storable.Mutable as VM
@@ -47,10 +49,35 @@ t1 = withPetsc0 t1'
 
 
 
+-- -- using Managed
+
+vecManage :: Comm -> Managed Vec
+vecManage comm = managed $ withVec (vecCreate comm)
+
+matManage :: Comm -> Managed Mat
+matManage comm = managed $ withMat (matCreate comm)
+
+-- kspManage :: Comm -> Managed KSP
+kspManage comm = managed $ withKsp1 (kspCreate comm)
 
 
 
--- -- now let's package the above in ST
+-- t2' = runManaged $ do
+--   v1 <- vecManage cs
+--   m1 <- matManage cs
+--   k <- kspManage cs
+--    where
+--      cs = commSelf
+
+
+
+-- --
+
+
+
+
+
+-- -- 
 
 
 

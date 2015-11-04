@@ -18,6 +18,7 @@ import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
+import Numerical.PETSc.Internal.Managed
 
 import Numerical.PETSc.Internal.Internal
 
@@ -45,7 +46,9 @@ import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 import qualified Data.Vector.Storable as V
 import qualified Data.Vector.Storable.Mutable as VM
 
-import qualified Data.Map as Map
+
+
+
 
 {- STATE : Vec, VectorData
 
@@ -87,6 +90,8 @@ instance (Storable a, Show a) => Show (PVector a) where
   show (PVector _ a) = show a
 
 -- newtype MPVector a = MPVector (MVar (PVector a)) 
+
+
 
 
 
@@ -541,17 +546,11 @@ vecRestoreVector v w = do
 
 -- modifyV, modifyV2 :: Vec -> (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> IO ()
   
--- modifyV v f = do
---   x <- vecGetVector v
---   let y = runST $ do
---         s <- newSTRef x
---         writeSTRef s (f x)
---         readSTRef s
---   vecRestoreVector v y
 
--- modifyV2 v f = liftM f (vecGetVector v) >>= vecRestoreVector v
-
--- modifyV' :: Vec -> (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> V.Vector PetscScalar_
+modifyV' ::
+  Vec ->
+  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+  V.Vector PetscScalar_
 modifyV' u g = runST $ do
             x <- unsafeIOToST $ vecGetVector u
             s <- newSTRef x
@@ -671,6 +670,10 @@ vecNorm v nt = chk1 $ vecNorm1 nt v
 
 vecSum :: Vec -> IO PetscScalar_
 vecSum v = chk1 $ vecSum1 v
+
+
+
+
 
 
 

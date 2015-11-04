@@ -8,10 +8,12 @@
 -- Stability   :  experimental
 --
 -- | IO resource management abstraction (anything that is acquired using `with-`),
---   from `managed` (by G.Gonzalez)
+--   taken from the `managed` package
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Internal.Managed where
+module Numerical.PETSc.Internal.Managed
+       (Managed, runManaged, managed, withManaged)
+       where
 
 import Data.Monoid
 import Data.Functor
@@ -19,19 +21,22 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class (MonadIO(liftIO))
 
-
 import System.IO
-import Foreign.C.Types
+-- import Foreign.C.Types
 
--- newtype Managed a r = Managed {runManaged :: IO a -> (a -> IO r) -> IO r}
 newtype Managed a = Managed { (>>-) :: forall r . (a -> IO r) -> IO r}
 
+managed :: forall a. (forall r. (a -> IO r) -> IO r) -> Managed a
 managed = Managed
 
-withManaged :: forall a b . Managed a -> (a -> IO b) -> IO b
+withManaged :: forall a r . Managed a -> (a -> IO r) -> IO r
 withManaged = (>>-)
 
+runManaged :: forall r . Managed r -> IO r
 runManaged m = m >>- return
+
+
+
 
 
 
@@ -81,3 +86,11 @@ instance Monoid a => Monoid (Managed a) where
     
 -- newtype Managed2 a =
 --   Managed2 { runMng2 :: forall r1 r2 . (a -> IO r1) -> IO r2}
+
+
+
+
+
+{- $reexports
+    "Control.Monad.IO.Class" re-exports 'MonadIO'
+-}

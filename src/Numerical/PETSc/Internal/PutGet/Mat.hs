@@ -63,15 +63,17 @@ checkMatrixData :: MatrixData a -> Bool
 checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
   (lr, lc, le) = (V.length idxx, V.length idxy, V.length vals)
 
--- -- 
+
+
+
+
+
+
+
+
 
                             
-
-
-
-withMat ::
-  Comm -> (Mat -> IO a) -> IO a
-withMat comm = bracketChk (matCreate' comm) matDestroy'
+-- | create Mat
 
 matCreate ::
   Comm -> IO Mat
@@ -92,10 +94,38 @@ matCreateMPIAIJWithArrays ::
 matCreateMPIAIJWithArrays comm idxx idxy vals =
   chk1 (matCreateMPIAIJWithArrays' comm idxx idxy vals)
 
-matDestroy ::
-  Mat -> IO ()
+
+
+
+
+
+
+
+
+  
+
+-- | destroy Mat
+
+matDestroy :: Mat -> IO ()
 matDestroy = chk0 . matDestroy'
 
+
+
+
+
+
+
+
+
+
+-- | `with` Mat brackets
+
+-- withMat ::
+--   Comm -> (Mat -> IO a) -> IO a
+-- withMat comm = bracketChk (matCreate' comm) matDestroy'
+
+withMat :: IO Mat -> (Mat -> IO a) -> IO a
+withMat mc = bracket mc matDestroy 
 
 -- withVecCreateMPI :: VecInfo -> (Vec -> IO a) -> IO a
 -- withVecCreateMPI vv =
@@ -111,7 +141,12 @@ matDestroy = chk0 . matDestroy'
      
 
 
--- | setting matrix values 
+
+
+
+
+
+-- | set Mat values 
 
 matSetValues ::
   Mat ->
@@ -147,9 +182,20 @@ matSetValuesSafe m idxx idxy vals im
 
 
 
+
+
+
+-- | setup Mat
+
 matSetup ::
   Mat -> IO ()
 matSetup = chk0 . matSetup'
+
+
+
+
+
+-- | assemble Mat
 
 matAssemblyBegin, matAssemblyEnd :: 
   Mat -> IO ()
@@ -160,6 +206,7 @@ matAssembly ::
   Mat -> IO ()
 matAssembly = matAssemblyBegin >> matAssemblyEnd
 
+
 -- | withMatAssembly : we can perform some computation while data are in flight
 
 withMatAssembly ::
@@ -168,6 +215,14 @@ withMatAssembly m f = do
   matAssemblyBegin m
   f 
   matAssemblyEnd m
+
+
+
+
+
+
+
+-- | get Mat properties
 
 matGetOwnershipRange ::
   Mat -> IO (Int, Int)
