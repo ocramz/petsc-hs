@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.PutGet.Vec
@@ -31,6 +32,10 @@ import Control.Applicative
 import Control.Arrow
 import Control.Concurrent
 import Control.Exception
+
+import Control.Monad.Trans.Reader
+import Control.Monad.Trans.State
+-- import Control.Monad.State.Strict -- for execStateT
 
 import Data.STRef
 import Control.Monad.ST (ST, runST)
@@ -81,32 +86,89 @@ data PVector a = PVector !Vec !(V.Vector a)
 instance (Storable a, Show a) => Show (PVector a) where
   show (PVector _ a) = show a
 
-newtype MPVector a = MPVector (MVar (PVector a)) 
+-- newtype MPVector a = MPVector (MVar (PVector a)) 
 
 
 
 
--- | new : IO (MPVector a)    
 
-new :: Storable a => VecInfo -> IO (MPVector a)
-new vi = do
-  v <- vecCreateMPIInfo vi
-  x <- newMVar (PVector v V.empty)
-  return $ MPVector x
 
-modify ::
-  MPVector PetscScalar_ ->
-  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
-  IO (MPVector PetscScalar_)
-modify (MPVector mv) f = do
-  (PVector v vdata) <- takeMVar mv
-  x <- vecGetVector v
-  let y = f x
-  vecRestoreVector v y
-  let pv = (PVector v y)
-  putMVar mv pv
-  return (MPVector mv)
+
+
+-- | a standardized interface:
+-- -- * IO resource management (see e.g. ResourceT or `managed`) with auto-cleanup
+-- -- * withNew-, modify- : 
+-- -- -- * act on references
+
+
+{- we want to manage a resource of type `a` :
+new : x -> IO a
+with : IO a -> (a -> IO b) -> IO b
+cleanup : a -> IO () 
+-}
+
+wv :: IO Vec -> (Vec -> IO a) -> IO a
+wv = withVec
+
+-- type Config = VecInfo
+-- type Resource = Vec
+
+-- newtype MPVector a =
+--   MPV {runMPVector :: ReaderT Config (StateT Resource IO) a}
+--     deriving (Functor, Applicative, Monad)
+
+
+
+
+
+
+-- withNewVec vcreate f = withVec vcreate $ \v -> do
+--   let vref = v
+--   vout <- f V.empty
+--   x <- newMVar (PVector vref vout)
+--   return $ MPVector x
+
+
+-- new :: Storable a => VecInfo -> IO (MPVector a)
+-- new vi = do
+--   v <- vecCreateMPIInfo vi
+--   x <- newMVar (PVector v V.empty)
+--   return $ MPVector x
+
+
+-- modify ::
+--   MPVector PetscScalar_ ->
+--   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+--   IO (MPVector PetscScalar_)
+-- modify (MPVector mv) f = do
+--   (PVector v vdata) <- takeMVar mv
+--   x <- vecGetVector v
+--   let y = f x
+--   vecRestoreVector v y
+--   let pv = (PVector v y)
+--   putMVar mv pv
+--   return (MPVector mv)
   
+
+
+-- bulkMod :: Storable a => V.Vector a -> [(Int, a)] -> V.Vector a
+-- bulkMod = (V.//)
+
+
+
+-- type DestroyAction = IO ()
+-- type SFMLState = [DestroyAction]
+-- newtype SFML a = SFML { unSFML :: StateT SFMLState IO a }
+--   deriving (Functor, Applicative, Monad, MonadIO)
+
+-- runS :: SFML a -> IO ()
+-- runS (SFML m) = join . fmap sequence_ . flip execStateT [] $ m
+
+
+
+
+
+
 
 
 
@@ -153,6 +215,12 @@ vecDestroy v = chk0 (vecDestroy' v)
 
 -- vecSetSizes :: Vec -> Int -> IO ()
 -- vecSetSizes v n = chk0 $ vecSetSizes1 v (toCInt n)
+
+
+
+
+
+
 
 
 
