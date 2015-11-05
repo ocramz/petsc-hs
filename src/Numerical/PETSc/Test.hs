@@ -11,6 +11,9 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Test where
 
+import Data.Functor
+import Control.Applicative
+
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.PutGet
 import Numerical.PETSc.Internal.Internal
@@ -19,8 +22,9 @@ import Numerical.PETSc.Internal.Managed
 import qualified Data.Vector.Storable as V
 import qualified Data.Vector.Storable.Mutable as VM
 
+import Control.Monad
 
-
+import System.IO.Unsafe
 
 
 -- --
@@ -47,34 +51,70 @@ t1 = withPetsc0 t1'
 
 -- toVec = vecCreateMPIFromVectorDecideLocalSize commWorld
 
-
+vDot v1 v2 = unsafePerformIO $ vecDot v1 v2
 
 -- -- using Managed
+vecm :: IO Vec -> Managed Vec
+vecm vc = managed (withVec vc)
 
-vecManage :: Comm -> Managed Vec
-vecManage comm = managed $ withVec (vecCreate comm)
+matm :: IO Mat -> Managed Mat
+matm mc = managed (withMat mc)
 
-matManage :: Comm -> Managed Mat
-matManage comm = managed $ withMat (matCreate comm)
+kspm :: IO KSP -> Managed KSP
+kspm kc = managed (withKsp_ kc)
 
--- kspManage :: Comm -> Managed KSP
-kspManage comm = managed $ withKsp1 (kspCreate comm)
+t2' v = runManaged $ do
+  v1 <- vecm $ do
+    x <- vecCreateMPIFromVectorDecideLocalSize comm v
+    vecAssemblyChk x
+    vecViewStdout x
+    return x
+  vecm $ vecCopyDuplicate v1
+  
+--   -- return (v1, v2)
+--   -- withManaged v1 $ \pv1 ->
+--   --   withManaged v2 $ \pv2 ->
+--   --    vecDot pv1 pv2
+    where comm = commWorld
+
+t2 = withPetsc0 $ t2' v0
+
+
+-- kspManage :: Comm -> KspType_ -> Mat -> Mat -> Bool -> Vec -> Vec -> Managed KSP
+-- kspManage comm kt a p ignz rhs soln =
+--   managed $ withKspSetupSolve comm kt a p ignz rhs soln 
 
 
 
--- t2' = runManaged $ do
---   v1 <- vecManage cs
---   m1 <- matManage cs
---   k <- kspManage cs
+
+-- t2' n = runManaged $ do
+--   vrhs <- vecManage cs n 
+--   vsoln <- vecManage cs n 
+--   amat <- matManage cs
+--   k <- kspManage cs KspChebyshev amat amat True vrhs vsoln
 --    where
 --      cs = commSelf
+
 
 
 
 -- --
 
 
+-- vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
 
+t3' = do
+  v <- vecCreateMPIFromVectorDecideLocalSize cs v0
+  vecViewStdout v
+  let x = modifyV' v (V.map (+1))
+  print x       -- NB : `print x` cannot occur after `vecDestroy`
+  vecViewStdout v
+  vecDestroy v
+    where cs = commSelf
+          
+t3 = withPetsc0 t3'
+
+-- -- 
 
 
 -- -- 

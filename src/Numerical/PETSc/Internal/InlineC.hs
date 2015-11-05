@@ -1,5 +1,4 @@
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.InlineC
@@ -712,8 +711,8 @@ matCreateSeqAIJconstNZperRow1 comm m' n' nz' =
 --     Output Parameter :
 -- mat -the matrix 
 
-matCreateMPIAIJWithArrays' ::
-  Comm -> [PetscInt_] -> [PetscInt_] -> [PetscScalar_] -> IO (Mat, CInt)
+-- matCreateMPIAIJWithArrays' ::
+--   Comm -> [PetscInt_] -> [PetscInt_] -> [PetscScalar_] -> IO (Mat, CInt)
 matCreateMPIAIJWithArrays' comm i j a =
   withArray i $ \ip ->
    withArray j $ \jp ->

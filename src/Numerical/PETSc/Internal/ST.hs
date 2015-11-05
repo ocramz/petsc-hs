@@ -15,16 +15,16 @@ module Numerical.PETSc.Internal.ST where
 import Control.Monad
 
 -- import Linear
-import Data.Foldable (for_, Foldable)
+-- import Data.Foldable (for_, Foldable)
 
 import Control.Monad.ST (ST, runST)
 import Data.STRef
 
 import Foreign
-import Foreign.ForeignPtr
+-- import Foreign.ForeignPtr
 import GHC.ForeignPtr
 
-import Foreign.Storable (Storable, peekElemOff, pokeElemOff)
+-- import Foreign.Storable (Storable, peekElemOff, pokeElemOff)
 
 import Control.Monad.ST.Unsafe (unsafeIOToST)
 
@@ -32,11 +32,19 @@ import qualified Data.Vector.Storable as V
 import Data.Vector.Storable (unsafeWith)
 import qualified Data.Vector.Storable.Mutable as VM
 
-import Control.Monad.Primitive -- for V.copy
+-- import Control.Monad.Primitive -- for V.copy
 
 -- import qualified Numerical.PETSc.Internal.PutGet.Vec as PV
 
 
+
+
+
+{-
+
+(State (Managed a)
+
+-}
 
 
 
@@ -92,8 +100,12 @@ instance Monad (State s) where
   return a = State $ \s -> (a, s)
   (State m) >>= k = State $ \s ->
     let (v, s') = m s
-    in runState (k v) s' 
+    in runState (k v) s'
+       
+-- instance Functor (State s) where
+--   fmap = fmapState
 
+-- fmapState f a = State $ \s -> runState f s
 
 
 newtype StateT s m a = StateT {runStateT :: s -> m (a, s)}
@@ -133,14 +145,19 @@ ioWriteV v k x = unsafeWith v $ \s -> pokeElemOff s k x
 
 newtype STVector s t = STVector (V.Vector t)
 
--- thawVector :: Storable t => V.Vector t -> ST s (STVector s t)
--- thawVector = unsafeIOToST . fmap STVector . cloneVector
+runSTVector :: Storable t => (forall s . ST s (STVector s t)) -> V.Vector t
+runSTVector st = runST (st >>= unsafeFreezeVector)
 
--- unsafeThawVector :: Storable t => Vector t -> ST s (STVector s t)
+
+
+
+thawVector :: Storable t => V.Vector t -> ST s (STVector s t)
+thawVector = unsafeIOToST . fmap STVector . cloneVector
+
+unsafeThawVector :: Storable t => V.Vector t -> ST s (STVector s t)
 unsafeThawVector = unsafeIOToST . return . STVector
 
--- runSTVector :: Storable t => (forall s . ST s (STVector s t)) -> Vector t
--- runSTVector st = runST (st >>= unsafeFreezeVector)
+
 
 {-# INLINE unsafeReadVector #-}
 unsafeReadVector :: Storable t => STVector s t -> Int -> ST s t
@@ -154,15 +171,15 @@ unsafeWriteVector  (STVector x) k = unsafeIOToST . ioWriteV x k
 -- modifyVector :: (Storable t) => STVector s t -> Int -> (t -> t) -> ST s ()
 -- modifyVector x k f = readVector x k >>= return . f >>= unsafeWriteVector x k
 
--- liftSTVector :: (Storable t) => (Vector t -> a) -> STVector s t -> ST s a
--- liftSTVector f (STVector x) = unsafeIOToST . fmap f . cloneVector $ x
+liftSTVector :: (Storable t) => (V.Vector t -> a) -> STVector s t -> ST s a
+liftSTVector f (STVector x) = (unsafeIOToST . fmap f . cloneVector) x
 
 
--- cloneVector :: Storable t => V.Vector t -> IO (V.Vector t)
+cloneVector :: Storable t => V.Vector t -> IO (V.Vector t)
 cloneVector v = do
-        let n = VM.length v
+        let n = V.length v
         r <- VM.new n
-        VM.copy r v
+        V.copy r v
         -- r <- createVector n
         -- let f _ s _ d =  copyArray d s n >> return 0
         -- f $ v $ r 
@@ -172,12 +189,12 @@ cloneVector v = do
 -- freezeVector :: (Storable t) => STVector s t -> ST s (Vector t)
 -- freezeVector v = liftSTVector id v
 
--- unsafeFreezeVector :: (Storable t) => STVector s t -> ST s (Vector t)
+unsafeFreezeVector :: (Storable t) => STVector s t -> ST s (V.Vector t)
 unsafeFreezeVector (STVector x) = unsafeIOToST . return $ x
 
 {-# INLINE safeIndexV #-}
 safeIndexV ::
-   forall a c s. Storable c => 
+   Storable c => 
      (STVector s c -> Int -> a) -> STVector a c -> Int -> a
 safeIndexV f (STVector v) k
     | k < 0 || k>= dim v = error $ "out of range error in vector (dim="
@@ -187,21 +204,27 @@ safeIndexV f (STVector v) k
 dim :: Storable a => V.Vector a -> Int
 dim = V.length
 
+
 -- {-# INLINE readVector #-}
--- readVector :: Storable a => STVector s a -> Int -> ST s a
+-- readVector :: Storable a => STVector s a -> Int -> s
 -- readVector = safeIndexV unsafeReadVector
 
 -- {-# INLINE writeVector #-}
--- -- writeVector :: Storable t => STVector s t -> Int -> t -> ST s ()
+-- writeVector :: Storable t => STVector s t -> Int -> t -> ST s ()
 -- writeVector = safeIndexV unsafeWriteVector
+
+
+
+{-# INLINE newVector #-}
+newVector :: Storable t => t -> Int -> ST s (STVector s t)
+newVector x n = do
+    v <- newUndefinedVector n
+    let go (-1) = return v
+        go !k = unsafeWriteVector v k x >> go (k-1 :: Int)
+    go (n-1)
 
 newUndefinedVector :: Storable t => Int -> ST s (STVector s t)
 newUndefinedVector = unsafeIOToST . fmap STVector . createVector
-
-
--- createVector n = do
---   r <- VM.new n
---   V.freeze r
 
 createVector :: Storable a => Int -> IO (V.Vector a)
 createVector n = do
@@ -218,13 +241,7 @@ createVector n = do
 
 
 
-{-# INLINE newVector #-}
-newVector :: Storable t => t -> Int -> ST s (STVector s t)
-newVector x n = do
-    v <- newUndefinedVector n
-    let go (-1) = return v
-        go !k = unsafeWriteVector v k x >> go (k-1 :: Int)
-    go (n-1)
+
 
 
 

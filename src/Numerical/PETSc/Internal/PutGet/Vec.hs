@@ -104,7 +104,7 @@ instance (Storable a, Show a) => Show (PVector a) where
 -- -- * IO resource management (see e.g. ResourceT or `managed`) with auto-cleanup
 -- -- * withNew-, modify- : 
 -- -- -- * act on references
-
+-- -- -- * @when@ to copy data (through MVectors) to Hs side?
 
 {- we want to manage a resource of type `a` :
 new : x -> IO a
@@ -114,6 +114,11 @@ cleanup : a -> IO ()
 
 wv :: IO Vec -> (Vec -> IO a) -> IO a
 wv = withVec
+
+
+
+
+-- --
 
 -- type Config = VecInfo
 -- type Resource = Vec
@@ -199,7 +204,7 @@ vecCreateMPI comm nloc nglob
 vecCreateMPIdecideLocalSize :: Comm -> Int -> IO Vec
 vecCreateMPIdecideLocalSize comm nglob
   | nglob > 0 = vcmpidl comm nglob
-  | otherwise = error "vecCreateMPI1: global dim must be > 0"
+  | otherwise = error "vecCreateMPIdecideLocalSize: global dim must be > 0"
      where
        vcmpidl c n  = chk1 (vecCreateMPIdecideLoc' c n)
 
@@ -255,11 +260,6 @@ withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
   vecAssemblyChk v
   post v
 
-withVecMPIPipeline1 :: VecInfo -> (Vec -> IO Vec) -> (Vec -> IO a) -> IO a
-withVecMPIPipeline1 vv pre post = withVecCreateMPI vv $ \v -> do
-  v' <- pre v
-  vecAssemblyChk v'
-  post v'
 
 
 
@@ -340,6 +340,10 @@ vecSet v n = do {vecSet_ v n ; return v}
 
 -- | setting Vec values 
 
+vecSetValuesUnsafe0 ::
+  Vec -> CInt -> Ptr CInt -> Ptr PetscScalar_ -> InsertMode_ -> IO ()
+vecSetValuesUnsafe0 v ni ix y im = chk0 (vecSetValues' v ni ix y im)
+
 vecSetValuesUnsafe :: Vec -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO ()
 vecSetValuesUnsafe v ix y im =
   withArray ix $ \ixx ->
@@ -348,20 +352,25 @@ vecSetValuesUnsafe v ix y im =
   ni = toCInt $ length ix
 
 vecSetValuesSafe :: Vec -> [Int] -> [PetscScalar_] -> InsertMode_ -> IO ()
-vecSetValuesSafe v ix y im
-  | safeFlag ix y sv = vecSetValuesUnsafe v ix' y im
-  | otherwise = error "vecSetValuesSafe : "
-      where
-        sv = vecGetSizeUnsafe v
-        ix' = map toCInt ix
+vecSetValuesSafe = safeInsertIndicesVec vsvu
+  where vsvu v ix = vecSetValuesUnsafe v (map toCInt ix)
 
--- --  helper
-
-safeFlag ix_ y_ sv_ = c1 && c2 where
+safeInsertIndicesVec ::
+  (Vec -> [Int] -> [a] -> b -> c) -> Vec -> [Int] -> [a] -> b -> c
+safeInsertIndicesVec f v ix_ y_  im
+  |c1 && c2 = f v ix_ y_  im
+  |otherwise = error "safeInsertIndicesVec : size error "
+   where
   c1 = length ix_ == length y_
-  c2 = a >= 0 && b <= sv_
-  ixs = qsort ix_
-  (a, b) = (head ixs, last ixs)
+  c2 = a >= 0 && b <= ub
+  (a, b) = (head ix_, last ix_) -- Hp: ix_ is ordered
+  ub = vecGetSizeUnsafe v - 1
+
+-- safeFlag ix_ y_ sv_ = c1 && c2 where
+--   c1 = length ix_ == length y_
+--   c2 = a >= 0 && b <= sv_
+--   ixs = qsort ix_
+--   (a, b) = (head ixs, last ixs)
 
 -- safeFlagv ix_ y_ sv_ = c1 && c2 where
 --   c1 = V.length ix_ == V.length y_
@@ -374,12 +383,13 @@ safeFlag ix_ y_ sv_ = c1 && c2 where
 -- | setting Vec values, Data.Vector interface
 
 vecSetValuesUnsafeVector ::
-  Vec -> V.Vector CInt -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
+  Vec -> V.Vector Int -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
 vecSetValuesUnsafeVector v ix y im =
-  V.unsafeWith ix $ \ixx ->
+  V.unsafeWith ixc $ \ixx ->
    V.unsafeWith y $ \yy -> chk0 (vecSetValues' v ni ixx yy im)
     where
       ni = toCInt (V.length ix)
+      ixc = V.map toCInt ix
 
 
 
@@ -390,7 +400,7 @@ vecSetValuesUnsafeVector v ix y im =
 vecCreateMPIFromVector :: Comm -> Int -> V.Vector PetscScalar_ -> IO Vec
 vecCreateMPIFromVector comm nloc w = do
   let dimv = V.length w
-      ix = V.fromList [0 .. toCInt dimv - 1]
+      ix = V.fromList [0 .. dimv - 1]
   v <- vecCreateMPI comm nloc dimv
   vecSetValuesUnsafeVector v ix w InsertValues
   return v
@@ -398,7 +408,7 @@ vecCreateMPIFromVector comm nloc w = do
 vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
 vecCreateMPIFromVectorDecideLocalSize comm w = do
   let dimv = V.length w
-      ix = V.fromList [0 .. toCInt dimv - 1]
+      ix = V.fromList [0 .. dimv - 1]
   v <- vecCreateMPIdecideLocalSize comm dimv
   vecSetValuesUnsafeVector v ix w InsertValues
   return v

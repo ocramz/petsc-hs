@@ -23,8 +23,8 @@ import Foreign.ForeignPtr
 
 
 class PStore s where
-  toForeignPtr :: Storable e => s e -> ForeignPtr e
-  fromForeignPtr :: Storable e => ForeignPtr e -> [Int] -> s e
+  toForeignPtr :: Storable e => s e -> (ForeignPtr e, Int, Int)
+  fromForeignPtr :: Storable e => ForeignPtr e -> Int -> Int -> s e
   smap :: (Storable a, Storable b) => (a -> b) -> s a -> s b
 
 
