@@ -38,8 +38,7 @@ reload:
 
 
 
-asdf:
-	ghc ${SRCDIR}/Internal/InlineC/IS.hs -isrc/
+
 
 
 
