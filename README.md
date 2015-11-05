@@ -4,6 +4,7 @@ petsc-hs - Haskell bindings for the scientific computation library PETSc
 (Portable Extensible Toolkit for Scientific Computation)
 
 Copyright (c) 2015 - , Marco Zocca ( zocca at marco dot gmail at com )
+
 [![Haskell](http://b.repl.ca/v1/language-haskell-blue.png)](http://www.haskell.org)
 
 
