@@ -12,29 +12,29 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.InlineC where
 
-import Numerical.PETSc.Internal.Internal
-import Numerical.PETSc.Internal.Types
-import Numerical.PETSc.Internal.Utils
+import           Numerical.PETSc.Internal.Internal
+import           Numerical.PETSc.Internal.Types
+import           Numerical.PETSc.Internal.Utils
 
-import Language.C.Inline as C
-import Language.C.Inline.Context
-import Control.Exception
-import Foreign
-import Foreign.Marshal.Array
-import Foreign.Marshal.Alloc (alloca)
-import Foreign.Ptr (Ptr)
-import Control.Monad
-import Control.Monad.Primitive
+import           Language.C.Inline                 as C
+import           Language.C.Inline.Context
+import           Control.Exception
+import           Foreign
+import           Foreign.Marshal.Array
+import           Foreign.Marshal.Alloc             (alloca)
+import           Foreign.Ptr                       (Ptr)
+import           Control.Monad
+import           Control.Monad.Primitive
 -- import Control.Arrow ((***), (&&&))
-import Control.Applicative ( (<$>), (<*>) )
-import Foreign.C.Types
-import Foreign.C.String
-import qualified Foreign.ForeignPtr.Safe         as FPS
+import           Control.Applicative               ( (<$>), (<*>) )
+import           Foreign.C.Types
+import           Foreign.C.String
+import qualified Foreign.ForeignPtr.Safe           as FPS
 
-import qualified Data.Vector.Storable as V
-import qualified Data.Vector.Storable.Mutable as VM
+import qualified Data.Vector.Storable              as V
+import qualified Data.Vector.Storable.Mutable      as VM
 
-import System.IO.Unsafe (unsafePerformIO)
+import           System.IO.Unsafe                  (unsafePerformIO)
 
 context petscCtx
 
@@ -822,7 +822,7 @@ matSetValueUnsafe' m row col val im =
 -- addv	- either ADD_VALUES or INSERT_VALUES, where ADD_VALUES adds values to any existing entries, and INSERT_VALUES replaces existing entries with new values
 -- Notes
 
--- If you create the matrix yourself (that is not with a call to DMCreateMatrix()) then you MUST call MatXXXXSetPreallocation() or MatSetUp() before using this routine
+-- If you create the matrix yourself (that is not with a call to DMCreateMatrix()) then you MUST call MatXXXXSetPreallocation() or MatSetUp() _before_ using this routine
 -- By default the values, v, are row-oriented. See MatSetOption() for other options.
 
 -- Calls to MatSetValues() with the INSERT_VALUES and ADD_VALUES options cannot be mixed without intervening calls to the assembly routines.
@@ -2012,7 +2012,13 @@ tsSetDuration' ts ms' mt =
 -- F	- function vector
 -- ctx	- [optional] user-defined function context
 -- Notes: You must call this function or TSSetIFunction() to define your ODE. You cannot use this function when solving a DAE.
-
+tsSetRHSFunction0' ts r f ctx =
+  [C.exp|int{TSSetRHSFunction(
+                $(TS ts),
+                $(Vec r),
+                $fun:(int (*f)(TS, PetscReal,Vec,Vec,void*)),
+                $(void* ctx))}
+        |]
 
 
 -- PetscErrorCode  TSSetRHSJacobian(TS ts,Mat Amat,Mat Pmat,TSRHSJacobian f,void *ctx)

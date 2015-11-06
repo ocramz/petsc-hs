@@ -1,6 +1,4 @@
 {-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.PutGet.Vec
@@ -14,37 +12,37 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.PutGet.Vec where
 
-import Numerical.PETSc.Internal.InlineC
-import Numerical.PETSc.Internal.Types
-import Numerical.PETSc.Internal.Exception
-import Numerical.PETSc.Internal.Utils
-import Numerical.PETSc.Internal.Managed
+import           Numerical.PETSc.Internal.InlineC
+import           Numerical.PETSc.Internal.Types
+import           Numerical.PETSc.Internal.Exception
+import           Numerical.PETSc.Internal.Utils
+import           Numerical.PETSc.Internal.Managed
 
-import Numerical.PETSc.Internal.Internal
+import           Numerical.PETSc.Internal.Internal
 
-import Foreign
-import Foreign.ForeignPtr.Unsafe
-import Foreign.C.Types
+import           Foreign
+import           Foreign.ForeignPtr.Unsafe
+import           Foreign.C.Types
 
-import System.IO.Unsafe (unsafePerformIO)
+import           System.IO.Unsafe                   (unsafePerformIO)
 
-import Control.Monad
-import Control.Applicative
-import Control.Arrow
-import Control.Concurrent
-import Control.Exception
+import           Control.Monad
+import           Control.Applicative
+import           Control.Arrow
+import           Control.Concurrent
+import           Control.Exception
 
-import Control.Monad.Trans.Reader
-import Control.Monad.Trans.State
+import           Control.Monad.Trans.Reader
+import           Control.Monad.Trans.State
 -- import Control.Monad.State.Strict -- for execStateT
 
-import Data.STRef
-import Control.Monad.ST (ST, runST)
-import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
+import           Data.STRef
+import           Control.Monad.ST                   (ST, runST)
+import           Control.Monad.ST.Unsafe            (unsafeIOToST)    -- for HMatrix bits
 
 -- import qualified Data.Vector as V
-import qualified Data.Vector.Storable as V
-import qualified Data.Vector.Storable.Mutable as VM
+import qualified Data.Vector.Storable               as V
+import qualified Data.Vector.Storable.Mutable       as VM
 
 
 

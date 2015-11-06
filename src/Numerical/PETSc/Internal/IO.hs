@@ -11,16 +11,15 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.IO where
 
-import Data.List
+import           Data.List
 
 -- import Numerical.PETSc.Internal.InlineC
-import Numerical.PETSc.Internal.Types
-import Numerical.PETSc.Internal.Exception
-import Numerical.PETSc.Internal.Utils
+import           Numerical.PETSc.Internal.Types
+import           Numerical.PETSc.Internal.Utils
 -- import Numerical.PETSc.Internal.PutGet
 -- import Numerical.PETSc.Internal.Internal
 
-import qualified Data.Vector as V
+import qualified Data.Vector                    as V
 
 -- | printing
 

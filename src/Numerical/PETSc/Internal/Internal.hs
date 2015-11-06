@@ -20,18 +20,18 @@
 
 module Numerical.PETSc.Internal.Internal where
 
-import qualified Language.C.Inline as C
-import qualified Language.C.Types as CT
-import Language.C.Inline.Context
+import qualified Language.C.Inline         as C
+import qualified Language.C.Types          as CT
+import           Language.C.Inline.Context
 
-import Foreign.C.Types 
-import Foreign.C.String
-import Foreign
+import           Foreign.C.Types
+import           Foreign.C.String
+import           Foreign
 
-import qualified Language.Haskell.TH as TH
+import qualified Language.Haskell.TH       as TH
 
-import Data.Monoid ((<>), mempty)
-import qualified Data.Map as Map
+import           Data.Monoid               ((<>), mempty)
+import qualified Data.Map                  as Map
 
 -- import qualified Data.Vector.Storable.Mutable as V
 

@@ -59,6 +59,9 @@ tsSetInitialTimeStep ::
   IO ()
 tsSetInitialTimeStep ts it dt = chk0 $ tsSetInitialTimeStep' ts it dt
 
+
+-- tsSetRHSFunction ts r f ctx = chk0 $ tsSetRHSFunction0' ts r f ctx
+
 tsSetDuration ::
   TS ->
   Int ->  -- max. # steps

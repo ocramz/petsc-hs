@@ -33,9 +33,8 @@ import Control.Exception
 import Control.Monad.ST (ST, runST)
 import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
-import qualified Data.Vector as V
-import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, unsafeToForeignPtr)
-
+import qualified Data.Vector as V 
+import qualified Data.Vector.Storable as VS (unsafeWith, Vector)
 
 
 
@@ -118,6 +117,11 @@ matDestroy = chk0 . matDestroy'
 
 
 
+
+
+
+
+
 -- | `with` Mat brackets
 
 -- withMat ::
@@ -146,7 +150,56 @@ withMat mc = bracket mc matDestroy
 
 
 
--- | set Mat values 
+
+
+
+
+
+-- | set Mat values
+
+
+matSetValuesVector ::
+  Mat ->
+  V.Vector Int ->
+  V.Vector Int ->
+  V.Vector PetscScalar_ ->
+  InsertMode_ ->
+  IO ()
+matSetValuesVector m x y v = msvv0 m nx0 ny0 xc yc vc
+  where
+    xc = V.convert $ V.map toCInt x :: VS.Vector CInt
+    yc = V.convert $ V.map toCInt y :: VS.Vector CInt
+    vc = V.convert v :: VS.Vector PetscScalar_
+    nx0 = toCInt $ V.length x
+    ny0 = toCInt $ V.length y
+    msvv0 ma nx ny idxx idxy vals im =
+      VS.unsafeWith idxx $ \ix ->
+      VS.unsafeWith idxy $ \iy ->
+      VS.unsafeWith vals $ \iv -> chk0 (matSetValues0' ma nx ix ny iy iv im)
+
+
+matSetValuesVectorSafe ::
+  Mat ->
+  V.Vector Int ->
+  V.Vector Int ->
+  V.Vector PetscScalar_ ->
+  InsertMode_ ->
+  IO ()
+matSetValuesVectorSafe m ix iy v
+  | c1 && c2 = matSetValuesVector m ix iy v
+  | otherwise = error "matSetValuesVectorSafe : incompatible indices"
+     where
+       (mx, my) = matSize m
+       (lx, ly) = (V.length ix, V.length iy)
+       c1 = lx == ly
+       c2 = allIn0mV mx ix && allIn0mV my iy
+
+
+
+-- convert :: (Vector v a, Vector w a) => v a -> w a
+
+
+    
 
 matSetValues ::
   Mat ->
@@ -202,8 +255,7 @@ matAssemblyBegin, matAssemblyEnd ::
 matAssemblyBegin = chk0 . matAssemblyBegin'
 matAssemblyEnd = chk0 . matAssemblyEnd'
 
-matAssembly ::
-  Mat -> IO ()
+matAssembly :: Mat -> IO ()
 matAssembly = matAssemblyBegin >> matAssemblyEnd
 
 
@@ -236,9 +288,10 @@ matGetSize ::
   Mat -> IO (Int, Int)
 matGetSize mat = matGetSizeCInt mat >>= \(m,n) -> return (fi m, fi n)
 
-matGetSizeUnsafe ::
-  Mat -> (Int, Int)
+matGetSizeUnsafe, matSize :: Mat -> (Int, Int)
 matGetSizeUnsafe = unsafePerformIO . matGetSize
+
+matSize = matGetSizeUnsafe
 
 matGetSizeCIntUnsafe ::
   Mat -> (CInt, CInt)

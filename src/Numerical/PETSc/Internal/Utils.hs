@@ -23,7 +23,7 @@ import Control.Monad
 import Control.Arrow
 
 -- import GHC.Arr -- Ix
--- import qualified Data.Vector as V
+import qualified Data.Vector as V
 
 
 
@@ -113,8 +113,18 @@ listLongerThan n l = length (take n l) == n
 --   | n >= a && n <= b = f
 --   | otherwise = error es
 
+-- allInBounds b = all (inBounds' b)
+
+inBounds' :: Ord a => (a, a) -> a -> Bool
+inBounds' = flip inBounds
+
 inBounds :: Ord a => a -> (a, a) -> Bool
 inBounds !n !(a,b) = n >= a && n <= b
+
+in0m :: Int -> Int -> Bool
+in0m m i = i >= 0 && i < m
+allIn0m = all . in0m
+allIn0mV = V.all . in0m
 
 inBoundsOrError :: Ord a => a -> (a, a) -> t -> String -> t
 inBoundsOrError n b x es 
@@ -234,8 +244,21 @@ fromIntegralTup2 t = both t fromIntegralTup
 fromIntegralTup3 t = both t (`all3` fi)
 
 
+
+
+
+
+
+-- |  C <-> Haskell numeric formats
+
 fi :: CInt -> Int
 fi = fromIntegral
 
 toCInt :: Int -> CInt
 toCInt = CInt . fromIntegral
+
+fromCDouble :: CDouble -> Double
+fromCDouble (CDouble x) = x
+
+toCDouble :: Double -> CDouble
+toCDouble = CDouble
