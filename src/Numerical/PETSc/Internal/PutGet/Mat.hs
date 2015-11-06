@@ -17,15 +17,21 @@ import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
+import Numerical.PETSc.Internal.Managed
 
 import Numerical.PETSc.Internal.Internal
 
-import Foreign
+-- import Foreign
 import Foreign.C.Types
 
 import System.IO.Unsafe (unsafePerformIO)
 
 import Control.Monad
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Reader
+import Control.Monad.Trans.State
+
+
 import Control.Arrow
 import Control.Concurrent
 import Control.Exception
@@ -61,6 +67,29 @@ data MatrixData a =
 checkMatrixData :: MatrixData a -> Bool
 checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
   (lr, lc, le) = (V.length idxx, V.length idxy, V.length vals)
+
+
+
+-- | monad transformer :
+
+-- ask :
+-- -- -- configuration, [(i, j, dataij)]
+
+-- manage :
+-- -- -- resource
+
+
+
+
+
+
+-- f1 cf = runState $ do
+--   x <- get
+--   put cf
+  
+-- f3 cf = do
+--   res <- managed cf
+--   lift ask
 
 
 
@@ -267,6 +296,11 @@ withMatAssembly m f = do
   matAssemblyBegin m
   f 
   matAssemblyEnd m
+
+
+
+
+
 
 
 
