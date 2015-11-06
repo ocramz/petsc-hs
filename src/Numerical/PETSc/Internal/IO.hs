@@ -1,4 +1,4 @@
------------------------------------------------------------------------------
+-- | ------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.IO
 -- Copyright   :  (c) Marco Zocca 2015
@@ -24,7 +24,6 @@ import qualified Data.Vector as V
 
 -- | printing
 
-v0 = V.fromList [1..21]
 
 
 -- | show only first n elements and last of Vector v
@@ -43,5 +42,3 @@ showV l = showVn l 20
 
 
 
--- instance Show a => Show (V.Vector a) where
---   show = flip showN 80
