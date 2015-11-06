@@ -48,7 +48,16 @@ import qualified Data.Vector.Storable.Mutable as VM
 
 
 
+-- | instances
 
+-- -- instance Show Vec where ...
+
+
+
+
+
+-- | data
+            
 
 {- STATE : Vec, VectorData
 
@@ -129,50 +138,6 @@ wv = withVec
 
 
 
-
-
-
--- withNewVec vcreate f = withVec vcreate $ \v -> do
---   let vref = v
---   vout <- f V.empty
---   x <- newMVar (PVector vref vout)
---   return $ MPVector x
-
-
--- new :: Storable a => VecInfo -> IO (MPVector a)
--- new vi = do
---   v <- vecCreateMPIInfo vi
---   x <- newMVar (PVector v V.empty)
---   return $ MPVector x
-
-
--- modify ::
---   MPVector PetscScalar_ ->
---   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
---   IO (MPVector PetscScalar_)
--- modify (MPVector mv) f = do
---   (PVector v vdata) <- takeMVar mv
---   x <- vecGetVector v
---   let y = f x
---   vecRestoreVector v y
---   let pv = (PVector v y)
---   putMVar mv pv
---   return (MPVector mv)
-  
-
-
--- bulkMod :: Storable a => V.Vector a -> [(Int, a)] -> V.Vector a
--- bulkMod = (V.//)
-
-
-
--- type DestroyAction = IO ()
--- type SFMLState = [DestroyAction]
--- newtype SFML a = SFML { unSFML :: StateT SFMLState IO a }
---   deriving (Functor, Applicative, Monad, MonadIO)
-
--- runS :: SFML a -> IO ()
--- runS (SFML m) = join . fmap sequence_ . flip execStateT [] $ m
 
 
 
@@ -546,6 +511,17 @@ vecGetVector v = do
   V.freeze (VM.unsafeFromForeignPtr0 pf len)
    where
      len = vecSize v
+
+vecGetVectorN :: Vec -> Int -> IO (Maybe (V.Vector PetscScalar_))
+vecGetVectorN v n
+  | n > 0 && n <= len = do
+     p <- vecGetArrayPtr v
+     pf <- newForeignPtr_ p
+     y <- V.freeze (VM.unsafeFromForeignPtr0 pf n)
+     return $ Just y
+  | otherwise = return Nothing
+       where
+         len = vecSize v
 
 vecRestoreVector :: Vec -> V.Vector PetscScalar_ -> IO ()
 vecRestoreVector v w = do
