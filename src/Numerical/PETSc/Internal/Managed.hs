@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Managed
@@ -23,6 +23,16 @@ import Control.Monad.IO.Class (MonadIO(liftIO))
 
 import System.IO
 -- import Foreign.C.Types
+
+
+-- | a `Manageable` typeclass ?
+
+-- class Mng a where
+--   mng :: forall r . (a -> IO r) -> IO r
+
+
+
+-- |
 
 newtype Managed a = Managed { (>>-) :: forall r . (a -> IO r) -> IO r}
 

@@ -392,6 +392,14 @@ vecSetValuesUnsafeVector v ix y im =
       ixc = V.map toCInt ix
 
 
+-- vectorShow v n = do
+--   let vd = vecSize v
+--       if vd <= n
+--         then 
+
+
+-- instance Show Vec where
+--   show = unsafePerformIO 
 
 
 
@@ -403,6 +411,7 @@ vecCreateMPIFromVector comm nloc w = do
       ix = V.fromList [0 .. dimv - 1]
   v <- vecCreateMPI comm nloc dimv
   vecSetValuesUnsafeVector v ix w InsertValues
+  vecAssemblyChk v
   return v
 
 vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
@@ -411,6 +420,7 @@ vecCreateMPIFromVectorDecideLocalSize comm w = do
       ix = V.fromList [0 .. dimv - 1]
   v <- vecCreateMPIdecideLocalSize comm dimv
   vecSetValuesUnsafeVector v ix w InsertValues
+  vecAssemblyChk v
   return v
 
 -- withVecCreateMPIFromVectorDecideLocalSize ::

@@ -66,15 +66,9 @@ kspm kc = managed (withKsp_ kc)
 t2' v = runManaged $ do
   v1 <- vecm $ do
     x <- vecCreateMPIFromVectorDecideLocalSize comm v
-    vecAssemblyChk x
     vecViewStdout x
     return x
   vecm $ vecCopyDuplicate v1
-  
---   -- return (v1, v2)
---   -- withManaged v1 $ \pv1 ->
---   --   withManaged v2 $ \pv2 ->
---   --    vecDot pv1 pv2
     where comm = commWorld
 
 t2 = withPetsc0 $ t2' v0
