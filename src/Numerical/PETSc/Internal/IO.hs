@@ -24,19 +24,22 @@ import qualified Data.Vector as V
 
 -- | printing
 
-v0 = V.fromList [1..100]
+v0 = V.fromList [1..21]
 
 
 -- | show only first n elements and last of Vector v
 
-showN :: Show a => V.Vector a -> Int -> IO ()
-showN l n = print $ "[" ++ s0 ++ s1 ++ "]"
+showVn :: Show a => V.Vector a -> Int -> IO ()
+showVn l n = print $ "[" ++ s0 ++ s1 ++ "]"
   where
    len = V.length l
    s0 = intercalate ", " $ map show $ V.toList (V.take n l)
-   s1 | len > n = " .. " ++ show (V.last l)
-      | otherwise = []
+   s1
+     | len == n + 1 = []
+     | len > n = " .. " ++ show (V.last l)
+     | otherwise = []
 
+showV l = showVn l 20
 
 
 
