@@ -20,8 +20,10 @@ import Numerical.PETSc.Internal.PutGet
 import Numerical.PETSc.Internal.Internal
 import Numerical.PETSc.Internal.Managed
 
-import qualified Data.Vector.Storable as V
-import qualified Data.Vector.Storable.Mutable as VM
+
+import qualified Data.Vector.Storable as VS
+-- import qualified Data.Vector.Storable.Mutable as VM
+import qualified Data.Vector as V 
 
 import Control.Monad
 
@@ -38,12 +40,14 @@ v0 = V.fromList [pi .. 10]
 
 lv = V.length v0
 
+v0s = VS.fromList [pi .. 10]
+
 
 -- --
 
 t1' = do
   -- v <- vecCreateMPIFromVector comm lv v0
-  v <- vecCreateMPIFromVectorDecideLocalSize comm v0
+  v <- vecCreateMPIFromVectorDecideLocalSize comm v0s
   vecViewStdout v
   vecDestroy v
    where
@@ -61,11 +65,12 @@ vDot v1 v2 = unsafePerformIO $ vecDot v1 v2
 vecm :: IO Vec -> Managed Vec
 vecm vc = managed (withVec vc)
 
-matm :: IO Mat -> Managed Mat
-matm mc = managed (withMat mc)
+-- matm :: IO Mat -> Managed Mat
+-- matm mc = managed (withMat mc)
 
-kspm :: IO KSP -> Managed KSP
-kspm kc = managed (withKsp_ kc)
+-- kspm :: IO KSP -> Managed KSP
+-- kspm kc = managed (withKsp_ kc)
+
 
 t2' v = runManaged $ do
   v1 <- vecm $ do
@@ -75,7 +80,7 @@ t2' v = runManaged $ do
   vecm $ vecCopyDuplicate v1
     where comm = commWorld
 
-t2 = withPetsc0 $ t2' v0
+t2 = withPetsc0 $ t2' v0s
 
 
 -- kspManage :: Comm -> KspType_ -> Mat -> Mat -> Bool -> Vec -> Vec -> Managed KSP
@@ -102,9 +107,9 @@ t2 = withPetsc0 $ t2' v0
 -- vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
 
 t3' = do
-  v <- vecCreateMPIFromVectorDecideLocalSize cs v0
+  v <- vecCreateMPIFromVectorDecideLocalSize cs v0s
   vecViewStdout v
-  let x = modifyV' v (V.map (+1))
+  let x = modifyV' v (VS.map (+1))
   print x       -- NB : `print x` cannot occur after `vecDestroy`
   vecViewStdout v
   vecDestroy v
@@ -114,40 +119,55 @@ t3 = withPetsc0 t3'
 
 -- --
 
-wsv2 :: Show a =>
-        (Comm, V.Vector PetscScalar_) -> (PVector PetscScalar_ -> IO a) -> IO ()
-wsv2 c f = runResourceT $ do
-  x <- withScalarVector f c
-  lift $ print x
+-- wsv2 :: Show a =>
+--         (Comm, V.Vector PetscScalar_) -> (PVector PetscScalar_ -> IO a) -> IO ()
+-- wsv2 c f = runResourceT $ do
+--   x <- withScalarVector f c
+--   lift $ print x
 
-withPVectorConfig ::
-  (MonadBaseControl IO m, MonadThrow m, MonadIO m) =>
-  (Comm, V.Vector PetscScalar_) -> (PVector PetscScalar_ -> m a) -> m a
+-- withPVectorConfig ::
+--   (MonadBaseControl IO m, MonadThrow m, MonadIO m) =>
+--   (Comm, V.Vector PetscScalar_) -> (PVector PetscScalar_ -> m a) -> m a
 withPVectorConfig config f =
   runResourceT $ withScalarVector f config
 
 t4' :: IO ()
-t4' = withPVectorConfig (commWorld, v0) $ \(PVector v vecdata) -> do
+t4' = withPVectorConfig (commWorld, v0s) $ \(PVector v vecdata) -> do
   x <- vecGetVector v
   print x
   print vecdata
-  vecRestoreVector v (V.map (/2) x)
+  vecRestoreVector v (VS.map (/2) x)
   vecViewStdout v
 
 
 t4 = withPetsc0 t4'
 
+
+
 -- --
 
--- t5' = 
+vix, viy :: V.Vector Int
+va :: V.Vector PetscScalar_
+vix = V.fromList [0, 1, 2]
+viy = V.fromList [1, 0, 1]
+va = V.fromList [pi, pi, pi]
+
+-- t5' =
+--   withMat (matCreateMPIAIJWithVectors commWorld (3,3) (3,3)  vix viy va) $ \m -> do
+--     matAssembly m
+--     matViewStdout m
+
+t5' =
+  withMatSetupSetValuesAssembly (matCreate commWorld) vix viy va InsertValues $ \m -> do
+   matViewStdout m
+
+
+t5 = withPetsc0 t5'
 
 
 
 
-
-
-
-
+ 
 
 
 

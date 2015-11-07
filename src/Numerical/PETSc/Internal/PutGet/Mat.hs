@@ -282,6 +282,11 @@ matSetup = chk0 . matSetup'
 
 
 
+
+
+
+
+
 -- | assemble Mat
 
 matAssemblyBegin, matAssemblyEnd :: 
@@ -340,6 +345,21 @@ matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 -- transposeOrder RowMajor = ColMajor
 -- transposeOrder ColMajor = RowMajor
 -- -- matrixTranspose (Matrix r c d o)  = Matrix r c d (transposeOrder o)
+
+
+
+
+
+
+
+
+-- | view Mat on stdout
+
+matViewStdout m = chk0 (matViewStdout' m)
+
+
+
+
 
 
 

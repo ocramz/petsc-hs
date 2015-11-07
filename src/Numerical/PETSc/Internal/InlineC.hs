@@ -748,7 +748,7 @@ matCreateMPIAIJWithArrays' comm i j a =
 --     body mat
 
 
-matViewStdout v = [C.exp|int{MatView($(Mat v), PETSC_VIEWER_STDOUT_SELF)}|]
+matViewStdout' v = [C.exp|int{MatView($(Mat v), PETSC_VIEWER_STDOUT_SELF)}|]
 
 
 -- PETSC_EXTERN PetscErrorCode MatCreateMPIAIJWithSplitArrays(MPI_Comm,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt[],PetscInt[],PetscScalar[],PetscInt[],PetscInt[],PetscScalar[],Mat*);
