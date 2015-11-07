@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Test
@@ -24,6 +25,9 @@ import qualified Data.Vector.Storable.Mutable as VM
 
 import Control.Monad
 
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Resource
+import Control.Monad.IO.Class
 import System.IO.Unsafe
 
 
@@ -110,7 +114,28 @@ t3 = withPetsc0 t3'
 
 -- --
 
+wsv2 :: Show a =>
+        (Comm, V.Vector PetscScalar_) -> (PVector PetscScalar_ -> IO a) -> IO ()
+wsv2 c f = runResourceT $ do
+  x <- withScalarVector f c
+  lift $ print x
 
+withPVectorConfig ::
+  (MonadBaseControl IO m, MonadThrow m, MonadIO m) =>
+  (Comm, V.Vector PetscScalar_) -> (PVector PetscScalar_ -> m a) -> m a
+withPVectorConfig config f =
+  runResourceT $ withScalarVector f config
+
+t4' :: IO ()
+t4' = withPVectorConfig (commWorld, v0) $ \(PVector v vecdata) -> do
+  x <- vecGetVector v
+  print x
+  print vecdata
+  vecRestoreVector v (V.map (/2) x)
+  vecViewStdout v
+
+
+t4 = withPetsc0 t4'
 
 
 

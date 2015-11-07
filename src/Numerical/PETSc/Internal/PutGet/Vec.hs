@@ -36,6 +36,8 @@ import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
 import           Control.Monad.Trans.Resource
 import           Control.Monad.Trans.Class
+
+import Control.Monad.IO.Class
 -- import Control.Monad.State.Strict -- for execStateT
 
 import           Data.STRef
@@ -96,68 +98,48 @@ data VecInfo = VecInfo
 data PVector a = PVector !Vec !(V.Vector a)
 
 instance (Storable a, Show a) => Show (PVector a) where
-  show (PVector _ a) = show a
+  show (PVector v a) = show a
 
--- newtype MPVector a = MPVector (MVar (PVector a)) 
 
 type ScalarVector = PVector PetscScalar_
 
--- | fmap
-f1ScalarVector f (PVector vec vdata) = PVector vec (f vdata)
-f2ScalarVector f (PVector vec vdata) = PVector (f vec) vdata
 
--- | "bind" (?!)
-fSvM ::
-  Monad m =>
-  m (PVector a) ->
-  (V.Vector a -> m (V.Vector b)) ->
-  (Vec -> m Vec) ->
-  m (PVector b)
-fSvM pvm f g = do
-  (PVector vec vdata) <- pvm
-  y <- f vdata
-  z <- g vec
-  return $ PVector z y
+-- | "fmap" for PVector
 
-fSv ::
-  Monad m =>
-  PVector a ->
-  (V.Vector a -> V.Vector b) ->
-  (Vec -> Vec) ->
-  m (PVector b)
-fSv (PVector vec vdata) f g = do
-  let y = f vdata
-      z = g vec
-  return $ PVector z y
+fVdata f (PVector vec vdata) = PVector vec (f vdata)
+fVec f (PVector vec vdata) = PVector (f vec) vdata
 
--- f1ScalarVectorM pv f = return $ f1ScalarVector f pv
--- f2ScalarVectorM pv f = return $ f2ScalarVector f pv
+-- | "bind" for PVector (?!)
+
+-- bindPV :: Monad m => m (PVector a) -> (a -> m (PVector b)) -> m (PVector b)
 
 
 
-withScalarVector ::
-  MonadResource m =>
-  (ScalarVector -> m a) ->
-  (Comm, V.Vector PetscScalar_) ->
-  m a
+
+-- withScalarVector :: (Monad m, MonadTrans t, MonadResource (t m))
 withScalarVector f = runReaderT $ do
   (comm, v0) <- ask
   (_k, res) <- lift (allocate (vcmpi comm v0) vdestroy)
-  x <- lift $ f res
+  x <- lift $ lift $ f res
   lift $ release _k
   return x
 
-vdestroy :: ScalarVector -> IO ()
+-- vdestroy :: ScalarVector -> IO ()
 vdestroy (PVector v _) = 
   vecDestroy v
 
-vcmpi :: Comm -> V.Vector PetscScalar_ -> IO ScalarVector  -- "sync" Vector -> Vec
+-- vcmpi :: Comm -> V.Vector PetscScalar_ -> IO ScalarVector 
+         -- "sync" Vector -> Vec
 vcmpi comm vdata = do
      x <- vecCreateMPIFromVector comm n vdata
      return $ PVector x vdata
        where n = V.length vdata
 
 -- vcmpo :: ScalarVector -> IO (V.Vector PetscScalar_)   -- inverse sync
+
+
+
+
 
 
 
@@ -176,8 +158,7 @@ with : IO a -> (a -> IO b) -> IO b
 cleanup : a -> IO () 
 -}
 
-wv :: IO Vec -> (Vec -> IO a) -> IO a
-wv = withVec
+
 
 
 
