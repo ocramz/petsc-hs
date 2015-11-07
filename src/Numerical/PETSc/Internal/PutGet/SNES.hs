@@ -49,8 +49,46 @@ snesDestroy snes = chk0 (snesDestroy' snes)
 snesSetType :: SNES -> SnesType_ -> IO ()
 snesSetType snes st = chk0 $ snesSetType' snes st
 
-withSnes :: Comm -> (SNES -> IO a) -> IO a
-withSnes comm = bracket (snesCreate comm) snesDestroy
+withSnes :: IO SNES -> (SNES -> IO a) -> IO a
+withSnes cf = bracket cf snesDestroy
+
+
+
+snesCreateSetup ::
+  Comm ->
+  Vec ->
+  Mat ->
+  Mat ->
+  (SNES -> Vec -> IO a) ->
+  (SNES -> Vec -> Mat -> Mat -> IO b) ->
+  IO SNES
+snesCreateSetup comm v amat pmat f fj = do
+  s <- snesCreate comm
+  snesSetFunction s v f'
+  snesSetJacobian s amat pmat fj'
+  return s
+   where
+     f' s v = do              -- eww 
+       f s v
+       return (0 :: CInt)
+     fj' s v a p = do
+       fj s v a p
+       return (0 :: CInt)
+
+
+
+
+-- | `with` brackets
+
+
+withSnesCrateSetup comm v amat pmat f fj =
+  withSnes (snesCreateSetup comm v amat pmat f fj)
+
+
+       
+
+
+
 
 -- | snesSetFunction, snesSetJacobian : 
 --   Newton-like methods typically solve linear systems of the form
@@ -77,29 +115,26 @@ snesSetFunctionVector s r f = chk0 $ snesSetFunction' s r f'
   where f' = liftVectorF f
 
 
--- liftF1 ::
---   (Functor m, Monad m) =>
---   (a -> b ) ->          -- pure unary f
---   (d -> m a) ->         -- getter
---   (d -> b -> m e) ->    -- setter
---   d ->
---   m CInt
--- liftF1 f getter setter b = do
---   y <- f <$> getter b
---   setter b y
---   return (0 :: CInt)
+liftF1 ::
+  (Functor m, Monad m) =>
+  (a -> b ) ->          -- pure unary f
+  (d -> m a) ->         -- getter
+  (d -> b -> m e) ->    -- setter
+  d ->
+  m CInt
+liftF1 f getter setter b = do
+  y <- f <$> getter b
+  setter b y
+  return (0 :: CInt)
 
 
-
-
-
- 
 liftVectorF ::
   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> s -> Vec -> IO CInt
 liftVectorF f s vec = do
   v <- f <$> vecGetVector vec
   vecRestoreVector vec v
   return (0 :: CInt)
+
   
 
 

@@ -89,37 +89,6 @@ checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
 
 
 
-  
-
-
-
-
-
-
-
-
-
-
-
--- | monad transformer :
-
--- ask :
--- -- -- configuration, [(i, j, dataij)]
-
--- manage :
--- -- -- resource
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                             
@@ -170,31 +139,30 @@ matDestroy = chk0 . matDestroy'
 
 
 
-
-
-
 -- | `with` Mat brackets
-
--- withMat ::
---   Comm -> (Mat -> IO a) -> IO a
--- withMat comm = bracketChk (matCreate' comm) matDestroy'
 
 withMat :: IO Mat -> (Mat -> IO a) -> IO a
 withMat mc = bracket mc matDestroy 
 
--- withVecCreateMPI :: VecInfo -> (Vec -> IO a) -> IO a
--- withVecCreateMPI vv =
---   bracket (vecCreateMPI comm nLoc nGlob) vecDestroy where
---     nLoc = vecInfoSizeLocal vv
---     nGlob = vecInfoSizeGlobal vv
---     comm = vecInfoMpiComm vv
 
--- withMatCreateSeqAIJVarNZPR mi =
---   bracket (matCreateSeqAIJVarNZPR comm m n nnz) matDestroy
---    where
---      comm = 
      
+withMatSetupSetValuesAssembly ::
+  IO Mat ->
+  V.Vector Int ->
+  V.Vector Int ->
+  V.Vector PetscScalar_ ->
+  InsertMode_ ->
+  (Mat -> IO a) ->
+  IO a
+withMatSetupSetValuesAssembly mc ix iy vals imode f =
+  withMat mc $ \mat -> do
+   matSetup mat
+   matSetValuesVectorSafe mat ix iy vals imode
+   matAssembly mat
+   f mat
 
+
+   
 
 
 

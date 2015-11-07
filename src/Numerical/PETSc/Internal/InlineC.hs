@@ -29,7 +29,7 @@ import           Control.Monad.Primitive
 import           Control.Applicative               ( (<$>), (<*>) )
 import           Foreign.C.Types
 import           Foreign.C.String
-import qualified Foreign.ForeignPtr.Safe           as FPS
+-- import qualified Foreign.ForeignPtr.Safe           as FPS
 
 import qualified Data.Vector.Storable              as V
 import qualified Data.Vector.Storable.Mutable      as VM
@@ -101,6 +101,7 @@ isCreateGeneral' comm n idx mode =
 isDestroy_ iisp = [C.exp|int{ISDestroy($(IS* iisp))} |]
 
 isDestroy' iis = with iis isDestroy_
+
 
 
 -- withIsCreateGeneral comm n idx mode = bracket (isCreateGeneral comm n idx mode) isDestroy

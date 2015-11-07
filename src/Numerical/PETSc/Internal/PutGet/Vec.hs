@@ -100,8 +100,18 @@ data PVector a = PVector !Vec !(V.Vector a)
 instance (Storable a, Show a) => Show (PVector a) where
   show (PVector v a) = show a
 
+-- instance (Storable a, Num a) => Num (V.Vector a) where
+--   (+) = V.zipWith (+)
+--   (-) = V.zipWith (-)
+--   (*) = V.zipWith (*)
+--   abs = V.map abs
+--   signum = V.map signum
+--   fromInteger = undefined
 
-type ScalarVector = PVector PetscScalar_
+
+-- type ScalarVector = PVector PetscScalar_
+
+
 
 
 -- | "fmap" for PVector
@@ -116,7 +126,23 @@ fVec f (PVector vec vdata) = PVector (f vec) vdata
 
 
 
--- withScalarVector :: (Monad m, MonadTrans t, MonadResource (t m))
+
+
+
+
+
+
+
+
+
+
+
+
+withScalarVector ::
+  (Monad m, MonadTrans t, MonadResource (t m)) =>
+  (PVector PetscScalar_ -> m a) ->
+  (Comm, V.Vector PetscScalar_) ->
+  t m a 
 withScalarVector f = runReaderT $ do
   (comm, v0) <- ask
   (_k, res) <- lift (allocate (vcmpi comm v0) vdestroy)
@@ -124,12 +150,12 @@ withScalarVector f = runReaderT $ do
   lift $ release _k
   return x
 
--- vdestroy :: ScalarVector -> IO ()
+vdestroy :: PVector PetscScalar_ -> IO ()
 vdestroy (PVector v _) = 
   vecDestroy v
 
--- vcmpi :: Comm -> V.Vector PetscScalar_ -> IO ScalarVector 
-         -- "sync" Vector -> Vec
+vcmpi ::
+  Comm -> V.Vector PetscScalar_ -> IO (PVector PetscScalar_) -- Vector -> create Vec
 vcmpi comm vdata = do
      x <- vecCreateMPIFromVector comm n vdata
      return $ PVector x vdata
@@ -393,14 +419,12 @@ vecSetValuesUnsafeVector v ix y im =
       ixc = V.map toCInt ix
 
 
--- vectorShow v n = do
---   let vd = vecSize v
---       if vd <= n
---         then 
 
 
--- instance Show Vec where
---   show = unsafePerformIO 
+
+
+
+
 
 
 
@@ -548,6 +572,17 @@ vecGetVector v = do
    where
      len = vecSize v
 
+vecRestoreVector :: Vec -> V.Vector PetscScalar_ -> IO ()
+vecRestoreVector v w = do
+  p <- vecGetArrayPtr v
+  pf <- newForeignPtr_ p
+  V.copy (VM.unsafeFromForeignPtr0 pf len) w
+  vecRestoreArrayPtr v p
+    where
+     len = vecSize v
+
+-- get the first n entries
+
 vecGetVectorN :: Vec -> Int -> IO (Maybe (V.Vector PetscScalar_))
 vecGetVectorN v n
   | n > 0 && n <= len = do
@@ -559,14 +594,7 @@ vecGetVectorN v n
        where
          len = vecSize v
 
-vecRestoreVector :: Vec -> V.Vector PetscScalar_ -> IO ()
-vecRestoreVector v w = do
-  p <- vecGetArrayPtr v
-  pf <- newForeignPtr_ p
-  V.copy (VM.unsafeFromForeignPtr0 pf len) w
-  vecRestoreArrayPtr v p
-    where
-     len = vecSize v
+
 
 
 
