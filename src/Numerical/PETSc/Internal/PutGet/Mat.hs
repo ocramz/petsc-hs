@@ -70,6 +70,37 @@ checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
 
 
 
+
+
+-- | PETSc matrix usage :
+{-
+
+* create
+* configure
+* setup  (preallocation : required unless one uses DMCreateMatrix )
+* fill
+* assemble
+* _use_
+* destroy
+
+
+
+-}
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
 -- | monad transformer :
 
 -- ask :
@@ -81,15 +112,6 @@ checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
 
 
 
-
-
--- f1 cf = runState $ do
---   x <- get
---   put cf
-  
--- f3 cf = do
---   res <- managed cf
---   lift ask
 
 
 
@@ -269,8 +291,7 @@ matSetValuesSafe m idxx idxy vals im
 
 -- | setup Mat
 
-matSetup ::
-  Mat -> IO ()
+matSetup :: Mat -> IO ()
 matSetup = chk0 . matSetup'
 
 

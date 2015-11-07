@@ -12,10 +12,11 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.ST where
 
-import Control.Monad
-
 -- import Linear
 -- import Data.Foldable (for_, Foldable)
+import Data.Functor
+import Control.Applicative
+import Control.Monad
 
 import Control.Monad.ST (ST, runST)
 import Data.STRef
@@ -62,7 +63,11 @@ writeSTRef ::
 modifySTRef ::
    STRef s a -> (a -> a) -> ST s ()     -- Mutate the contents of an STRef.
 
-Be warned that modifySTRef does not apply the function strictly. This means if the program calls modifySTRef many times, but seldomly uses the value, thunks will pile up in memory resulting in a space leak. This is a common mistake made when using an STRef as a counter.   To avoid this problem, use modifySTRef' instead.
+Be warned that modifySTRef does not apply the function strictly.
+This means if the program calls modifySTRef many times, but seldomly uses the value,
+thunks will pile up in memory resulting in a space leak.
+This is a common mistake made when using an STRef as a counter.
+To avoid this problem, use modifySTRef' instead.
 
 modifySTRef' :: STRef s a -> (a -> a) -> ST s ()  -- Strict version of modifySTRef-}
 
@@ -84,7 +89,7 @@ thenST :: ST s a -> (a -> ST s b) -> ST s b
 
 --
 
-
+modifyV0 :: Storable a => V.Vector a -> (a -> a) -> V.Vector a
 modifyV0 v f = runST $ do
   x <- newSTRef v
   modifySTRef x (V.map f)
@@ -102,10 +107,14 @@ instance Monad (State s) where
     let (v, s') = m s
     in runState (k v) s'
        
--- instance Functor (State s) where
---   fmap = fmapState
+fmapp :: Functor f => (a -> b) -> StateT s f a -> StateT s f b
+fmapp f m = StateT $ \ s ->
+         (\ ~(a, s') -> (f a, s')) <$> runStateT m s
 
--- fmapState f a = State $ \s -> runState f s
+
+
+
+
 
 
 newtype StateT s m a = StateT {runStateT :: s -> m (a, s)}
