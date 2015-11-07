@@ -148,17 +148,17 @@ t4 = withPetsc0 t4'
 
 vix, viy :: V.Vector Int
 va :: V.Vector PetscScalar_
-vix = V.fromList [0, 1, 2]
-viy = V.fromList [1, 0, 1]
-va = V.fromList [pi, pi, pi]
+vix = V.fromList [2, 1, 0]
+viy = V.fromList [0, 1, 2]
+va = V.fromList [6, 5, 4]
 
--- t5' =
+-- t5'' =
 --   withMat (matCreateMPIAIJWithVectors commWorld (3,3) (3,3)  vix viy va) $ \m -> do
 --     matAssembly m
 --     matViewStdout m
 
 t5' =
-  withMatSetupSetValuesAssembly (matCreate commWorld) vix viy va InsertValues $ \m -> do
+  withMatSetupSetValuesAssembly (matCreate commWorld) 3 3 vix viy va InsertValues $ \m -> do
    matViewStdout m
 
 

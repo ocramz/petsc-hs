@@ -164,14 +164,16 @@ withMat mc = bracket mc matDestroy
      
 withMatSetupSetValuesAssembly ::
   IO Mat ->
-  V.Vector Int ->
-  V.Vector Int ->
-  V.Vector PetscScalar_ ->
-  InsertMode_ ->
+  Int -> Int ->              -- Mat sizes
+  V.Vector Int ->            -- i indices
+  V.Vector Int ->            -- j " 
+  V.Vector PetscScalar_ ->   -- mat values
+  InsertMode_ ->             
   (Mat -> IO a) ->
   IO a
-withMatSetupSetValuesAssembly mc ix iy vals imode f =
+withMatSetupSetValuesAssembly mc m n ix iy vals imode f =
   withMat mc $ \mat -> do
+   matSetSizes mat m n
    matSetup mat
    matSetValuesVectorSafe mat ix iy vals imode
    matAssembly mat
@@ -273,6 +275,17 @@ matSetValuesSafe m idxx idxy vals im
 
 
 
+
+
+-- | set Mat properties
+
+matSetSizes mat m n = chk0 (matSetSizes' mat m n)
+
+
+
+
+
+
 -- | setup Mat
 
 matSetup :: Mat -> IO ()
@@ -320,16 +333,13 @@ withMatAssembly m f = do
 
 -- | get Mat properties
 
-matGetOwnershipRange ::
-  Mat -> IO (Int, Int)
+matGetOwnershipRange :: Mat -> IO (Int, Int)
 matGetOwnershipRange m = chk1 (matGetOwnershipRange' m)
 
-matGetSizeCInt ::
-  Mat -> IO (CInt, CInt)
+matGetSizeCInt :: Mat -> IO (CInt, CInt)
 matGetSizeCInt m = chk1 (matGetSize' m)
 
-matGetSize ::
-  Mat -> IO (Int, Int)
+matGetSize :: Mat -> IO (Int, Int)
 matGetSize mat = matGetSizeCInt mat >>= \(m,n) -> return (fi m, fi n)
 
 matGetSizeUnsafe, matSize :: Mat -> (Int, Int)
@@ -337,8 +347,7 @@ matGetSizeUnsafe = unsafePerformIO . matGetSize
 
 matSize = matGetSizeUnsafe
 
-matGetSizeCIntUnsafe ::
-  Mat -> (CInt, CInt)
+matGetSizeCIntUnsafe :: Mat -> (CInt, CInt)
 matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 
 -- data MatrixOrder = RowMajor | ColMajor deriving (Eq, Show)
@@ -354,6 +363,7 @@ matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 
 
 -- | view Mat on stdout
+
 
 matViewStdout m = chk0 (matViewStdout' m)
 
