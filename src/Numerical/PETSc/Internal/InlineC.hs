@@ -628,16 +628,6 @@ matDestroy' m = with m matDestroy0'
 -- withMat :: Comm -> (Mat -> IO a) -> IO a
 -- withMat c = bracket (matCreate c) matDestroy
 
--- withMatPipeline :: Comm -> CInt -> CInt -> MatType_ -> (Mat -> IO a) -> (Mat -> IO b) -> IO b
--- withMatPipeline comm m n ti pre post =
---   withMat comm $ \mat -> do
---      matSetSizes mat m n
---      matSetType mat ti 
---      matSetUp mat
---      pre mat
---      matAssembly mat
---      post mat
-
 matSetSizes' :: Mat -> Int -> Int -> IO CInt
 matSetSizes' mat m n = [C.exp|int{MatSetSizes($(Mat mat), PETSC_DECIDE, PETSC_DECIDE,
                                              $(int mc), $(int nc))}|]
@@ -646,6 +636,7 @@ matSetSizes' mat m n = [C.exp|int{MatSetSizes($(Mat mat), PETSC_DECIDE, PETSC_DE
 
 -- f1 i m = [C.exp|int{ ($(int i) % $(int m))  }|] -- mod
 -- f2 i m = [C.exp|int{ $(int i) / $(int m)}|]     -- div
+
 
 -- PetscErrorCode  MatCreateSeqAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt nz,const PetscInt nnz[],Mat *A)
 
@@ -797,6 +788,11 @@ matGetSizeUnsafeCInt' = unsafePerformIO . matGetSize'
 -- f'' g = f' g g
 
 matSetFromOptions p = [C.exp| int{MatSetFromOptions($(Mat p))} |] 
+
+
+
+-- PetscErrorCode  MatCreateSeqAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt nz,const PetscInt nnz[],Mat *A)
+
 
 -- PetscErrorCode  MatSeqAIJSetPreallocation(Mat B,PetscInt nz,const PetscInt nnz[])
 -- -- Collective on MPI_Comm, CSR format

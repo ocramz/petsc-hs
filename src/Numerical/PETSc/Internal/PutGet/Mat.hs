@@ -173,11 +173,12 @@ withMatSetupSetValuesAssembly ::
   IO a
 withMatSetupSetValuesAssembly mc m n ix iy vals imode f =
   withMat mc $ \mat -> do
-   matSetSizes mat m n
+   -- matSetSizes mat m n
    matSetup mat
    matSetValuesVectorSafe mat ix iy vals imode
    matAssembly mat
    f mat
+
 
 
    
