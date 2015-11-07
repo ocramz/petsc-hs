@@ -114,7 +114,23 @@ matCreateMPIAIJWithArrays comm idxx idxy vals =
   chk1 (matCreateMPIAIJWithArrays' comm idxx idxy vals)
 
 
-
+matCreateMPIAIJWithVectors ::
+  Comm -> (Int, Int) -> (Int, Int) ->
+  V.Vector Int ->
+  V.Vector Int ->
+  V.Vector PetscScalar_ ->
+  IO Mat
+matCreateMPIAIJWithVectors comm (m, n) (mm, nn) ix iy ia =
+  VS.unsafeWith ixc $ \ip ->
+  VS.unsafeWith iyc $ \jp ->
+  VS.unsafeWith iac $ \aap ->
+   chk1 (matCreateMPIAIJWithArrays0' comm m' n' mm' nn' ip jp aap)
+     where
+           ixc = V.convert $ V.map toCInt ix :: VS.Vector CInt
+           iyc = V.convert $ V.map toCInt iy :: VS.Vector CInt
+           iac = V.convert ia :: VS.Vector PetscScalar_
+           (m', n') = (toCInt m, toCInt n)
+           (mm', nn') = (toCInt mm, toCInt nn)
 
 
 

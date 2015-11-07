@@ -712,8 +712,18 @@ matCreateSeqAIJconstNZperRow1 comm m' n' nz' =
 --     Output Parameter :
 -- mat -the matrix 
 
--- matCreateMPIAIJWithArrays' ::
---   Comm -> [PetscInt_] -> [PetscInt_] -> [PetscScalar_] -> IO (Mat, CInt)
+
+matCreateMPIAIJWithArrays0' comm m n mm nn ip jp aap =
+  withPtr ( \mat -> [C.exp|int{MatCreateMPIAIJWithArrays($(PetscInt c),
+                                    $(PetscInt m),
+                                    $(PetscInt n),
+                                    $(PetscInt mm), $(PetscInt nn),
+                                    $(PetscInt* ip), $(PetscInt* jp),
+                                    $(PetscScalar* aap), 
+                                    $(Mat* mat))}|] )
+    where c = unComm comm 
+
+        
 matCreateMPIAIJWithArrays' comm i j a =
   withArray i $ \ip ->
    withArray j $ \jp ->
