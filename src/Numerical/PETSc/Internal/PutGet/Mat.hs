@@ -160,12 +160,6 @@ matDestroy = chk0 . matDestroy'
 withMat :: IO Mat -> (Mat -> IO a) -> IO a
 withMat mc = bracket mc matDestroy 
 
-withMatCreateSetup :: Comm -> Int -> Int -> (Mat -> IO a) -> IO a
-withMatCreateSetup comm m n after = withMat (matCreate comm) $ \mat -> do
-  matSetSizes mat m n
-  matSetup mat
-  after mat         -- set values, assemble can be done here
-
 -- | withMatNew :  creation, setup, fill, use, cleanup ; batteries included
 withMatNew ::
   Comm ->                               -- MPI communicator
@@ -179,6 +173,14 @@ withMatNew comm m n v_ imode after =
   withMatCreateSetup comm m n $ \mat -> 
     withMatSetValueVectorSafe mat m n v_ imode after
 
+-- | withMatCreateSetup : (create, setSizes, setup, <body>, cleanup) bracket
+withMatCreateSetup :: Comm -> Int -> Int -> (Mat -> IO a) -> IO a
+withMatCreateSetup comm m n after = withMat (matCreate comm) $ \mat -> do
+  matSetSizes mat m n
+  matSetup mat
+  after mat         -- set values, assemble can be done here
+
+-- | withMatSetValueVectorSafe :  fill + setup Mat with index bound checks
 withMatSetValueVectorSafe ::
   Mat ->
   Int -> Int ->
@@ -192,24 +194,6 @@ withMatSetValueVectorSafe mat m n v_ imode after = do
   after mat 
 
 -- data MatWithState = MatAssembled Mat | MatNotAssembled Mat -- not sure good idea
-
--- withMatSetupSetValueVectorAssembly ::
---   IO Mat ->
---   Int ->                                -- # rows
---   Int ->                                -- # cols
---   V.Vector (Int, Int, PetscScalar_) ->  -- (rowIdx, colIdx, value)
---   InsertMode_ ->
---   (Mat -> IO a) ->                      -- bracket body
---   IO a 
--- withMatSetupSetValueVectorAssembly mc m n v_ imode f =
---   withMat mc $ \mat -> do
---    matSetSizes mat m n 
---    matSetup mat
---    matSetValueVectorSafe mat (m,n) v_ imode
---    matAssembly mat
---    f mat
-
-
    
 
 
