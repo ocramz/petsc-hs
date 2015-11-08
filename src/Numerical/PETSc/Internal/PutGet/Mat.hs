@@ -181,8 +181,22 @@ withMatSetupSetValuesAssembly mc m n ix iy vals imode f =
 
 
 
-   
 
+withMatSetupSetValuesAssembly2 ::
+  IO Mat ->
+  Int ->                                -- # rows
+  Int ->                                -- # cols
+  V.Vector (Int, Int, PetscScalar_) ->  -- (rowIdx, colIdx, value)
+  InsertMode_ ->
+  (Mat -> IO a) ->                      -- bracket body
+  IO a 
+withMatSetupSetValuesAssembly2 mc m n v_ imode f =
+  withMat mc $ \mat -> do
+   matSetSizes mat m n 
+   matSetup mat
+   matSetValuesVectorSafe2 mat (m,n) v_ imode
+   matAssembly mat
+   f mat
 
 
 
@@ -194,6 +208,26 @@ withMatSetupSetValuesAssembly mc m n ix iy vals imode f =
 
 
 -- | set Mat values
+
+matSetValue :: Mat -> Int -> Int -> PetscScalar_ -> InsertMode_ -> IO ()
+matSetValue m irow icol val mode = chk0 (matSetValueUnsafe' m irow icol val mode)
+
+matSetValueSafe ::
+  Mat -> (Int, Int) -> Int -> Int -> PetscScalar_ -> InsertMode_ -> IO ()
+matSetValueSafe m (mm, nn) irow icol val mode
+  | in0m mm irow && in0m nn icol = matSetValue m irow icol val mode
+  | otherwise =
+     error $ "matSetValueSafe : index "++ show (irow,icol) ++" out of bounds"
+
+matSetValuesVectorSafe2 ::
+  Mat -> (Int, Int) -> V.Vector (Int, Int, PetscScalar_) -> InsertMode_ -> IO ()
+matSetValuesVectorSafe2 m (mx, my) v_ mode =
+  V.mapM_ (\(ix,iy,val) -> matSetValueSafe m (mx, my) ix iy val mode) v_
+
+-- matSetValuesVector2 ::
+--   Mat -> V.Vector (Int, Int, PetscScalar_) -> InsertMode_ -> IO ()
+-- matSetValuesVector2 m v_ mode =
+--   V.mapM_ (\(irow,icol,val) -> matSetValue m irow icol val mode) v_
 
 
 matSetValuesVector ::

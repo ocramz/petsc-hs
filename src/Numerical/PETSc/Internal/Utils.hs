@@ -184,6 +184,7 @@ mean x = sum x / fromIntegral (length x)
 
 
 
+
 sndM :: Monad m => m (a, b) -> m b
 sndM = liftM snd
 
