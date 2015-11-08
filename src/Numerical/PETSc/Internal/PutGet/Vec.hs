@@ -448,25 +448,8 @@ vecCreateMPIFromVectorDecideLocalSize comm w = do
   vecAssemblyChk v
   return v
 
--- -- withVecCreateMPIFromVectorDecideLocalSize ::
--- --   Comm ->
--- --   V.Vector PetscScalar_ ->
--- --   (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
--- --   IO (V.Vector PetscScalar_  )
--- withVecCreateMPIFromVectorDecideLocalSize comm w f =
---   bracket (vecCreateMPIFromVectorDecideLocalSize comm w) vecDestroy $ \v -> do
---     u <- vecGetVector v
---     let y = f u
---     vecRestoreVector v y
---     -- return y
   
 
--- wvf vcreate f =
---   bracket vcreate vecDestroy $ \v -> do
---    u <- vecGetVector v
---    let y = f u
---    vecRestoreVector v y
---    return y
 
 
 

@@ -1353,20 +1353,15 @@ dmdaSetUniformCoordinates' da xmin xmax ymin ymax zmin zmax =
 -- appropriate DMGlobalToLocalBegin() and DMGlobalToLocalEnd() to have correct values in the ghost locations.
 
 -- dmdaVecGetArray' :: DM -> Vec -> Ptr PetscScalar_ -> IO CInt
-dmdaVecGetArray' dm v vvp =   
+dmdaVecGetArray' dm v = withPtr $ \vvp -> 
   [C.exp|int{DMDAVecGetArray($(DM dm),
                              $(Vec v),
-                             $(PetscScalar* vvp))}|]
+                             $(PetscScalar** vvp))}|]
 
--- dmdaVecGetArray'' dm v =   
---   withPtr ( \vvp -> [C.exp|int{DMDAVecGetArray($(DM dm),
---                              $(Vec v),
---                              $(PetscScalar** vvp))}|] ) >>= handleErrTup >>= peekArray n where n = fromIntegral $ vecGetSizeUnsafe v
 
--- dmdaVecGetArray = dmdaVecGetArray''
 
 -- PetscErrorCode  DMDARestoreArray(DM da,PetscBool ghosted,void *vptr)
-dmdaRestoreArray dm ghosted vptr = withArray vptr ( \vp -> 
+dmdaRestoreArray' dm ghosted vptr = withArray vptr ( \vp -> 
   [C.exp|int{DMDARestoreArray($(DM dm),
                               $(PetscBool ghosted),
                               $(PetscScalar* vp))}|] ) 

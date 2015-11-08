@@ -32,8 +32,9 @@ import Control.Exception
 import Control.Monad.ST (ST, runST)
 import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
-import qualified Data.Vector as V
-import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, unsafeToForeignPtr)
+-- import qualified Data.Vector as V (Vector, freeze)
+import qualified Data.Vector.Storable as V --  (unsafeWith, unsafeFromForeignPtr, unsafeToForeignPtr)
+import qualified Data.Vector.Storable.Mutable as VM
 
 
 
@@ -182,10 +183,26 @@ dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
 
 -- | get/set arrays from DMDA Vec's (NB : in gen. > 1 DOF/node !)
 
--- dmdaVecGetArray dm v vvp = chk1 (dmdaVecGetArray' dm v vvp)
+dmdaVecGetArrayPtr :: DM -> Vec -> IO (Ptr PetscScalar_)
+dmdaVecGetArrayPtr dm v = chk1 (dmdaVecGetArray' dm v)
 
--- dmdaVecRestoreArray dm v vvp = chk0 (dmdaVecRestoreArray' dm v vvp)
+dmdaVecRestoreArrayPtr :: DM -> Vec -> Ptr PetscScalar_ -> IO ()
+dmdaVecRestoreArrayPtr dm v vvp = chk0 (dmdaVecRestoreArray' dm v vvp)
 
+
+dmdaVecGetVector :: DM -> Vec -> Int -> IO (V.Vector PetscScalar_)
+dmdaVecGetVector dm v len = do
+  p <- dmdaVecGetArrayPtr dm v
+  pf <- newForeignPtr_ p
+  V.freeze (VM.unsafeFromForeignPtr0 pf len)
+
+
+dmdaVecRestoreVector :: DM -> Vec -> V.Vector PetscScalar_ -> Int -> IO ()
+dmdaVecRestoreVector dm v w len = do
+  p <- dmdaVecGetArrayPtr dm v
+  pf <- newForeignPtr_ p
+  V.copy (VM.unsafeFromForeignPtr0 pf len) w
+  dmdaVecRestoreArrayPtr dm v p
 
 
 
