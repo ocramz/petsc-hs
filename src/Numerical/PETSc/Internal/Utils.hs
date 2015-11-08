@@ -19,6 +19,8 @@ import Foreign.C.String
 import Foreign.Ptr
 import Foreign
 
+import Data.Functor ((<$>))
+import Control.Applicative ((<*>))
 import Control.Monad
 import Control.Arrow
 
@@ -27,6 +29,8 @@ import qualified Data.Vector as V
 
 
 
+
+-- | [String] -> C arrays
 
 withCStrings :: [String] -> ([CString] -> IO a) -> IO a
 withCStrings ss f = case ss of
@@ -79,6 +83,7 @@ ifThenElse q i e
   | q = i
   | otherwise = e
 
+ifThenElseE :: Bool -> a -> b -> Either a b
 ifThenElseE q a b
   | q = Left a
   | otherwise = Right b
@@ -89,11 +94,13 @@ ifThenElseE q a b
 
 -- indexing
 
+ifNegE :: (Ord a, Num a) => a -> b -> c -> Either b c 
 ifNegE n = ifThenElseE (n<0)
 
+listTooShortE :: Int -> [a] -> b -> c -> Either b c 
 listTooShortE n l = ifThenElseE (length (take n l) /= n)
 
-listTooShortEorError n l = listTooShortE n l (error "list too short") l
+
 
 
 
@@ -139,10 +146,6 @@ ifNegError :: Int -> String -> a -> a
 ifNegError n es = ifNeg n (error es)
 
 
-listLongEnoughOrError n l f es
-  | length l' == n = f
-  | otherwise = error es where
-      l' = take n l
 
 -- inBoundsOrError :: Ord a => a -> (a, a) -> t -> String -> t
 -- inBoundsOrError n (a,b) f es
@@ -200,7 +203,13 @@ fst2 x = ((y1, y2), t ) where
 fst2M :: Monad m => (a, (b, c)) -> m ((a, b), c)
 fst2M = return . fst2
 
--- -- tuple unpacking stuff
+
+
+
+
+
+
+-- |-- tuple unpacking stuff
 
 
 fstOf2 = fst . snd
@@ -253,15 +262,55 @@ fromIntegralTup3 t = both t (`all3` fi)
 
 
 
--- |
 
-cInt2Adapt :: Monad m => a -> b -> c -> (a -> b -> c -> m d) -> m CInt
-cInt2Adapt s v1 v2 f = do
+
+
+
+
+
+
+-- | lift pure function in get/set monad
+
+liftF1 ::
+  (Functor m, Monad m) =>
+  (a -> b) ->           -- pure unary f
+  (d -> m a) ->         -- getter
+  (d -> b -> m e) ->    -- setter
+  d ->
+  m e
+liftF1 f getter setter b = do
+  y <- f <$> getter b
+  setter b y
+
+liftF1' ::             -- ", no Functor constraint
+  Monad m =>
+  (a -> b) ->          -- pure unary f
+  (d -> m a) ->        -- getter
+  (d -> b -> m e) ->   -- setter
+  d ->
+  m e
+liftF1' f get set b = get b >>= \x -> set b (f x)
+
+
+
+
+
+
+
+
+
+
+
+
+-- | C-style ("return 0") function adapters
+
+cInt2Adapt :: Monad m =>  (a -> b -> c -> m d) -> a -> b -> c -> m CInt
+cInt2Adapt f s v1 v2 = do
   f s v1 v2
   return (0 :: CInt)
 
-cInt3Adapt :: Monad m => a -> b -> c -> d -> (a -> b -> c -> d -> m e) -> m CInt
-cInt3Adapt s v m1 m2 k = do
+cInt3Adapt :: Monad m => (a -> b -> c -> d -> m e) -> a -> b -> c -> d -> m CInt
+cInt3Adapt k s v m1 m2 = do
   k s v m1 m2
   return (0 :: CInt)
 
