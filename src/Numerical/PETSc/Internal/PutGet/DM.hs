@@ -37,76 +37,6 @@ import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, un
 
 
 
--- | create DM
-
-dmCreate :: Comm -> IO DM
-dmCreate comm = chk1 (dmCreate' comm)
-
-
-
-
-
-
-
-
-
-
-
--- | global and local vectors from/to DM
-
-dmCreateGlobalVector, dmCreateLocalVector, dmGetGlobalVector, dmGetLocalVector :: 
-  DM -> IO Vec
-dmRestoreGlobalVector, dmRestoreLocalVector :: DM -> Vec -> IO ()
-
-dmCreateGlobalVector dm = chk1 (dmCreateGlobalVector' dm)
-dmCreateLocalVector dm = chk1 (dmCreateLocalVector' dm)
-
-dmGetGlobalVector dm = chk1 (dmGetGlobalVector' dm)
-dmRestoreGlobalVector dm v = chk0 (dmRestoreGlobalVector' dm v)
-
-dmGetLocalVector dm = chk1 (dmGetLocalVector' dm)
-dmRestoreLocalVector dm v = chk0 (dmRestoreLocalVector' dm v)
-
-
-
-
-
-
-
-
-
-
-
--- | destroy DM
-
-dmDestroy :: DM -> IO ()
-dmDestroy dm = chk0 (dmDestroy' dm)
-
-
-
-
-
-
-
-
-
-
-
-
--- | with DM brackets
-
-withDm :: IO DM -> (DM -> IO a) -> IO a
-withDm dc = bracket dc dmDestroy
-
-
-
-
-
-
-
-
--- -- * DMDA 
-
 -- | Dmda 1D + info
 
 data PetscDmda1d = PetscDmda1d !Dmda2dInfo DM
@@ -137,6 +67,72 @@ data Dmda2dInfo =
     dmdaBoundsX :: !(PetscReal_, PetscReal_),
     dmdaBoundsY :: !(PetscReal_, PetscReal_)
     } deriving (Eq, Show)
+
+
+
+
+
+
+
+               
+
+
+
+
+-- | create DM
+
+dmCreate :: Comm -> IO DM
+dmCreate comm = chk1 (dmCreate' comm)
+
+
+
+-- | global and local vectors from/to DM
+
+dmCreateGlobalVector, dmCreateLocalVector, dmGetGlobalVector, dmGetLocalVector :: 
+  DM -> IO Vec
+dmRestoreGlobalVector, dmRestoreLocalVector :: DM -> Vec -> IO ()
+
+dmCreateGlobalVector dm = chk1 (dmCreateGlobalVector' dm)
+dmCreateLocalVector dm = chk1 (dmCreateLocalVector' dm)
+
+dmGetGlobalVector dm = chk1 (dmGetGlobalVector' dm)
+dmRestoreGlobalVector dm v = chk0 (dmRestoreGlobalVector' dm v)
+
+dmGetLocalVector dm = chk1 (dmGetLocalVector' dm)
+dmRestoreLocalVector dm v = chk0 (dmRestoreLocalVector' dm v)
+
+
+
+
+
+-- | destroy DM
+
+dmDestroy :: DM -> IO ()
+dmDestroy dm = chk0 (dmDestroy' dm)
+
+
+
+
+-- | with DM brackets
+
+withDm :: IO DM -> (DM -> IO a) -> IO a
+withDm dc = bracket dc dmDestroy
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- -- * DMDA 
+
+
 
 
 
