@@ -37,32 +37,75 @@ import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, un
 
 
 
-
+-- | create DM
 
 dmCreate :: Comm -> IO DM
 dmCreate comm = chk1 (dmCreate' comm)
 
+
+
+
+
+
+
+
+
+
+
+-- | global and local vectors from/to DM
+
+dmCreateGlobalVector, dmCreateLocalVector, dmGetGlobalVector, dmGetLocalVector :: 
+  DM -> IO Vec
+dmRestoreGlobalVector, dmRestoreLocalVector :: DM -> Vec -> IO ()
+
+dmCreateGlobalVector dm = chk1 (dmCreateGlobalVector' dm)
+dmCreateLocalVector dm = chk1 (dmCreateLocalVector' dm)
+
+dmGetGlobalVector dm = chk1 (dmGetGlobalVector' dm)
+dmRestoreGlobalVector dm v = chk0 (dmRestoreGlobalVector' dm v)
+
+dmGetLocalVector dm = chk1 (dmGetLocalVector' dm)
+dmRestoreLocalVector dm v = chk0 (dmRestoreLocalVector' dm v)
+
+
+
+
+
+
+
+
+
+
+
+-- | destroy DM
+
 dmDestroy :: DM -> IO ()
 dmDestroy dm = chk0 (dmDestroy' dm)
 
-dmCreateGlobalVector, dmCreateLocalVector :: DM -> IO Vec
-dmCreateGlobalVector dm = chk1 (dmCreateGlobalVector' dm)
-dmCreateLocalVector dm = chk1 (dmCreateLocalVector' dm)
+
+
+
+
+
+
+
+
+
+
+
+-- | with DM brackets
+
+withDm :: IO DM -> (DM -> IO a) -> IO a
+withDm dc = bracket dc dmDestroy
+
+
+
+
+
 
 
 
 -- -- * DMDA 
-
-dmdaCreate :: Comm -> IO DM
-dmdaCreate comm = chk1 (dmdaCreate' comm)
-
-dmdaSetDim :: DM -> Int -> IO ()
-dmdaSetDim dm d = chk0 (dmdaSetDim' dm d') where
-  d' = toCInt d
-
--- dmdaSetSizes dm x y z = chk0 (dmdaSetSizes' dm x' y' z') where
---   (x',y',z') = (toCInt x, toCInt y, toCInt z)
-
 
 -- | a datatype for Dmda1d + info
 
@@ -77,6 +120,10 @@ data Dmda1dInfo =
     dmda1dStenWidth :: !PetscInt_,
     dmda1dBoundsX :: !(PetscReal_, PetscReal_)
     } deriving (Eq, Show)
+               
+
+dmdaCreate :: Comm -> IO DM
+dmdaCreate comm = chk1 (dmdaCreate' comm)
 
 
 
@@ -104,6 +151,25 @@ dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
   chk1 (dmdaCreate2d' comm bx by sten mm nn dof s)
 
 
+
+
+
+
+-- dmdaVecGetArray dm v vvp = chk1 (dmdaVecGetArray' dm v vvp)
+
+-- dmdaVecRestoreArray dm v vvp = chk0 (dmdaVecRestoreArray' dm v vvp)
+
+
+
+
+-- | setting DMDA properties 
+
+dmdaSetDim :: DM -> Int -> IO ()
+dmdaSetDim dm d = chk0 (dmdaSetDim' dm d') where
+  d' = toCInt d
+
+-- dmdaSetSizes dm x y z = chk0 (dmdaSetSizes' dm x' y' z') where
+--   (x',y',z') = (toCInt x, toCInt y, toCInt z)
 
 dmdaSetUniformCoordinates ::
   DM ->
@@ -157,6 +223,14 @@ withDmda2d0 comm (bx, by) sten (m, n) dof s =
   bracket (dmdaCreate2d comm (bx, by) sten (m, n) dof s) dmDestroy
 
 
+
+
+
+
+
+
+
+-- | get DMDA info
 
 dmdaGetInfoCInt da = chk1 (dmdaGetInfo__' da)
 
@@ -270,6 +344,13 @@ withDmdaUniform2d0 comm (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
 
 
 
+
+
+
+
+-- | DMDA local and global Vectors
+
+-- dmCreateGlobalVector dm = chk1 (dmCreateGlobalVector' dm)
 
 
 

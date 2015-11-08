@@ -135,7 +135,29 @@ snesComputeJacobianDefault0 :: SNES -> Vec -> Mat -> Mat -> Ptr () -> IO ()
 snesComputeJacobianDefault0 snes x j b ctx =
   chk0 (snesComputeJacobianDefault0' snes x j b ctx)
 
+-- snesLineSearchSetPostCheck ::
+--   SNESLineSearch ->
+--     (SNESLineSearch ->
+--      Vec ->
+--      Vec ->
+--      Vec ->
+--      Ptr PetscBool_ ->
+--      Ptr PetscBool_ ->
+--      Ptr () ->
+--      IO CInt) ->
+--     IO ()
+snesLineSearchSetPostCheck sls f =
+  chk0 (snesLineSearchSetPostCheck0' sls f) where
+    -- g = adaptF f
   
+
+adaptF f s v1 v2 v3 pb1 pb2 pv =
+  with pb1 $ \b1 ->
+  with pb2 $ \b2 -> do 
+  f s v1 v2 v3 b1 b2 pv
+  return (0 :: CInt)
+      
+      
 
 
 -- snesSetFunction0 snes r f = undefined

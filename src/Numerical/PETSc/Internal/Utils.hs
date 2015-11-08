@@ -315,6 +315,13 @@ cInt3Adapt k s v m1 m2 = do
   return (0 :: CInt)
 
 
+-- nested `with`
+cInt7Adapt f s v1 v2 v3 pb1 pb2 pv =
+  with pb1 $ \b1 ->
+  with pb2 $ \b2 -> do 
+  f s v1 v2 v3 b1 b2 pv
+  return (0 :: CInt)
+
 
 
 

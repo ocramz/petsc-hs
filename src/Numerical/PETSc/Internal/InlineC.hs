@@ -1044,19 +1044,19 @@ dmCreateGlobalVector' dm = withPtr ( \v -> [C.exp|int{DMCreateGlobalVector($(DM 
 dmCreateLocalVector' dm = withPtr ( \v -> [C.exp|int{DMCreateLocalVector($(DM dm), $(Vec* v))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode DMGetLocalVector(DM,Vec *);
-dmGetLocalVector dm = withPtr ( \v -> [C.exp|int{DMGetLocalVector($(DM dm),$(Vec* v))}|]) 
+dmGetLocalVector' dm = withPtr ( \v -> [C.exp|int{DMGetLocalVector($(DM dm),$(Vec* v))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode DMRestoreLocalVector(DM,Vec *);
-dmRestoreLocalVector dm vv = with vv ( \v -> [C.exp|int{DMRestoreLocalVector($(DM dm),$(Vec* v))}|]) 
+dmRestoreLocalVector' dm vv = with vv ( \v -> [C.exp|int{DMRestoreLocalVector($(DM dm),$(Vec* v))}|]) 
 
 -- withDmLocalVector dm = bracket (dmGetLocalVector dm) (dmRestoreLocalVector dm)
 
 
 -- PETSC_EXTERN PetscErrorCode DMGetGlobalVector(DM,Vec *);
-dmGetGlobalVector dm = withPtr ( \v -> [C.exp|int{DMGetGlobalVector($(DM dm),$(Vec* v))}|])
+dmGetGlobalVector' dm = withPtr ( \v -> [C.exp|int{DMGetGlobalVector($(DM dm),$(Vec* v))}|])
 
 -- PETSC_EXTERN PetscErrorCode DMRestoreGlobalVector(DM,Vec *);
-dmRestoreGlobalVector dm vv = with vv ( \v -> [C.exp|int{DMRestoreGlobalVector($(DM dm),$(Vec* v))}|]) 
+dmRestoreGlobalVector' dm vv = with vv ( \v -> [C.exp|int{DMRestoreGlobalVector($(DM dm),$(Vec* v))}|]) 
 
 
 -- withDmGlobalVector dm = bracket (dmGetGlobalVector dm) (dmRestoreGlobalVector dm)
@@ -1338,6 +1338,20 @@ dmdaSetUniformCoordinates' da xmin xmax ymin ymax zmin zmax =
 
 
 -- PetscErrorCode  DMDAVecGetArray(DM da,Vec vec,void *array)
+-- Logically collective on Vec
+-- Input Parameters : 
+-- da	- the distributed array
+-- vec	- the vector, either a vector the same size as one obtained with DMCreateGlobalVector() or DMCreateLocalVector()
+-- Output Parameter :
+-- array -the array 
+-- Notes :
+-- Call DMDAVecRestoreArray() once you have finished accessing the vector entries.
+-- In C, the indexing is "backwards" from what expects: array[k][j][i] NOT array[i][j][k]!
+
+-- If vec is a local vector (obtained with DMCreateLocalVector() etc) then the ghost point locations are accessible. If it is a global vector then the ghost points are not accessible. Of course with the local vector you will have had to do the
+
+-- appropriate DMGlobalToLocalBegin() and DMGlobalToLocalEnd() to have correct values in the ghost locations.
+
 -- dmdaVecGetArray' :: DM -> Vec -> Ptr PetscScalar_ -> IO CInt
 dmdaVecGetArray' dm v vvp =   
   [C.exp|int{DMDAVecGetArray($(DM dm),
@@ -1799,6 +1813,10 @@ pfSetVec' pf applyvec =
 
 
 
+
+
+
+
 -- * SNES
 
 
@@ -1989,6 +2007,50 @@ snesGetLineSearch' snes =
   withPtr ( \ls ->
      [C.exp|int{SNESGetLineSearch($(SNES snes),
                                   $(SNESLineSearch* ls))}|]) 
+
+
+
+-- PetscErrorCode  SNESLineSearchSetPostCheck(SNESLineSearch linesearch, PetscErrorCode (*func)(SNESLineSearch,Vec,Vec,Vec,PetscBool*,PetscBool*,void*),void *ctx)
+-- Sets a user function that is called after the line search has been applied to determine the step direction and length. Allows the user a chance to change or override the decision of the line search routine  -- Logically Collective on SNESLineSearch
+-- Input Parameters :
+-- linesearch	- the SNESLineSearch context
+-- func	- [optional] function evaluation routine, see SNESLineSearchPostCheckFunction for the calling sequence
+-- ctx	- [optional] user-defined context for private data for the function evaluation routine (may be NULL)
+
+snesLineSearchSetPostCheck' snesls f ctx =
+  [C.exp|
+   int{SNESLineSearchSetPostCheck(
+          $(SNESLineSearch snesls),
+          $fun:(int(*f)(SNESLineSearch,Vec,Vec,Vec,PetscBool*,PetscBool*,void*)),
+          $(void* ctx))}|]
+
+snesLineSearchSetPostCheck0' snesls f =
+  [C.exp|
+   int{SNESLineSearchSetPostCheck(
+          $(SNESLineSearch snesls),
+          $fun:(int(*f)(SNESLineSearch,Vec,Vec,Vec,PetscBool*,PetscBool*,void*)),
+          NULL)}|]
+
+-- syntax of callback : 
+-- SNESLineSearchPostheckFunction(SNESLineSearch linesearch,Vec x,Vec y,  Vec w, *changed_y, PetscBool *changed_w);
+-- Input Parameters
+
+-- x	- old solution vector
+-- y	- search direction vector
+-- w	- new solution vector
+-- changed_y	- indicates that the line search changed y
+-- changed_w	- indicates that the line search changed w
+
+
+                   -- $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
+
+
+
+
+
+
+
+
 
 
 
