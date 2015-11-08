@@ -107,7 +107,7 @@ withDm dc = bracket dc dmDestroy
 
 -- -- * DMDA 
 
--- | a datatype for Dmda1d + info
+-- | Dmda 1D + info
 
 data PetscDmda1d = PetscDmda1d !Dmda2dInfo DM
 
@@ -120,13 +120,34 @@ data Dmda1dInfo =
     dmda1dStenWidth :: !PetscInt_,
     dmda1dBoundsX :: !(PetscReal_, PetscReal_)
     } deriving (Eq, Show)
+
                
+-- | Dmda 2D + info
+
+data PetscDmda2d = PetscDmda2d !Dmda2dInfo DM
+
+data Dmda2dInfo =
+  Dmda2dInfo {
+    dmdaComm :: !Comm,
+    dmdaBdryType :: !(DMBoundaryType_, DMBoundaryType_),
+    dmdaStenType :: !DMDAStencilType,
+    dmdaSizes :: !(PetscInt_, PetscInt_),
+    dmdaNdofPN :: !PetscInt_,
+    dmdaStenWidth :: !PetscInt_,
+    dmdaBoundsX :: !(PetscReal_, PetscReal_),
+    dmdaBoundsY :: !(PetscReal_, PetscReal_)
+    } deriving (Eq, Show)
+
+
+
+
+
+
+
+-- | create DMDA 
 
 dmdaCreate :: Comm -> IO DM
 dmdaCreate comm = chk1 (dmdaCreate' comm)
-
-
-
 
 dmdaCreate1d ::
   Comm ->             
@@ -155,6 +176,16 @@ dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
 
 
 
+
+
+
+
+
+
+
+
+-- | get/set arrays from DMDA Vec's (NB : in gen. > 1 DOF/node !)
+
 -- dmdaVecGetArray dm v vvp = chk1 (dmdaVecGetArray' dm v vvp)
 
 -- dmdaVecRestoreArray dm v vvp = chk0 (dmdaVecRestoreArray' dm v vvp)
@@ -162,7 +193,13 @@ dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
 
 
 
--- | setting DMDA properties 
+
+
+
+
+
+
+-- | set DMDA properties 
 
 dmdaSetDim :: DM -> Int -> IO ()
 dmdaSetDim dm d = chk0 (dmdaSetDim' dm d') where
@@ -196,7 +233,16 @@ dmdaSetUniformCoordinates2d da (xmin, xmax) (ymin, ymax)  =
   dmdaSetUniformCoordinates da (xmin, xmax) (ymin, ymax) (0,0)
 
 
--- | brackets for distributed arrays
+
+
+
+
+
+
+
+
+
+-- | DMDA brackets
 
 withDmda1d ::
   Comm ->
@@ -221,6 +267,70 @@ withDmda2d0 ::
   IO a
 withDmda2d0 comm (bx, by) sten (m, n) dof s =
   bracket (dmdaCreate2d comm (bx, by) sten (m, n) dof s) dmDestroy
+
+withDmda2d1 ::
+  Dmda2dInfo ->
+  (DM ->  IO a) ->
+  IO a
+withDmda2d1 (Dmda2dInfo comm bdry sten szs dof sw _ _) =
+  bracket (dmdaCreate2d comm bdry sten szs dof sw) dmDestroy 
+
+
+
+
+
+
+
+
+
+-- | DMDA brackets, uniform coordinates
+
+withDmdaUniform1d ::
+  Comm ->
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
+  PetscInt_ ->        -- mm : global array dimension 
+  PetscInt_ ->        -- dof : # DOF / node
+  PetscInt_ ->        -- sw : stencil width 
+  [CInt] ->           -- # nodes in X dir / processor
+  (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
+  (DM -> IO a) ->
+  IO a
+withDmdaUniform1d comm b m dof sw lx (x1,x2) f=
+  withDmda1d comm b m dof sw lx $ \dm -> do
+   dmdaSetUniformCoordinates1d dm (x1,x2)
+   f dm 
+
+
+
+withDmdaUniform2d ::
+  Dmda2dInfo -> (DM -> IO a) -> IO a
+withDmdaUniform2d (Dmda2dInfo comm bdryt sten szs dof sw bx by) f =
+  withDmda2d0 comm bdryt sten szs dof sw $ \dm -> do
+    dmdaSetUniformCoordinates2d dm bx by
+    f dm
+
+withDmdaUniform2d0 ::
+  Comm ->
+  (DMBoundaryType_, DMBoundaryType_) ->  -- b : type of boundary ghost cells
+  DMDAStencilType ->
+  (PetscInt_, PetscInt_) ->    -- (m, n) : global array dimensions 
+  PetscInt_ ->                 -- dof : # DOF / node
+  PetscInt_ ->                 -- sw : stencil width 
+  (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
+  (PetscReal_, PetscReal_) ->  -- (ymin, ymax)
+  (DM -> IO a) ->
+  IO a
+withDmdaUniform2d0 comm (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
+  withDmda2d0 comm (bx,by) sten (m,n) dof sw $ \dm -> do
+    dmdaSetUniformCoordinates2d dm (x1,x2) (y1,y2)
+    f dm
+
+
+
+
+
+
+
 
 
 
@@ -262,83 +372,12 @@ dmdaGetInfo2d da = do
   return (d,(mm,nn),(m,n),dof,s,(bx,by),st)
 
 
--- | a datatype for Dmda2d + info
-
-data PetscDmda2d = PetscDmda2d !Dmda2dInfo DM
-
-data Dmda2dInfo =
-  Dmda2dInfo {
-    dmdaComm :: !Comm,
-    dmdaBdryType :: !(DMBoundaryType_, DMBoundaryType_),
-    dmdaStenType :: !DMDAStencilType,
-    dmdaSizes :: !(PetscInt_, PetscInt_),
-    dmdaNdofPN :: !PetscInt_,
-    dmdaStenWidth :: !PetscInt_,
-    dmdaBoundsX :: !(PetscReal_, PetscReal_),
-    dmdaBoundsY :: !(PetscReal_, PetscReal_)
-    } deriving (Eq, Show)
-
-
-
-
-withDmda2d1 ::
-  Dmda2dInfo ->
-  (DM ->  IO a) ->
-  IO a
-withDmda2d1 (Dmda2dInfo comm bdry sten szs dof sw _ _) =
-  bracket (dmdaCreate2d comm bdry sten szs dof sw) dmDestroy 
-
-
--- withDmda2d Dmda2dInfo{..} pre post =
---   withDmda2d1 di $ \p -> do
---    pre dm 
---    post dm 
 
 
 
 
 
--- | brackets for distributed arrays, uniform coordinates
 
-withDmdaUniform1d ::
-  Comm ->
-  DMBoundaryType_ ->  -- b : type of boundary ghost cells
-  PetscInt_ ->        -- mm : global array dimension 
-  PetscInt_ ->        -- dof : # DOF / node
-  PetscInt_ ->        -- sw : stencil width 
-  [CInt] ->           -- # nodes in X dir / processor
-  (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
-  (DM -> IO a) ->
-  IO a
-withDmdaUniform1d comm b m dof sw lx (x1,x2) f=
-  withDmda1d comm b m dof sw lx $ \dm -> do
-   dmdaSetUniformCoordinates1d dm (x1,x2)
-   f dm 
-
-
-
-withDmdaUniform2d ::
-  Dmda2dInfo -> (DM -> IO a) -> IO a
-withDmdaUniform2d (Dmda2dInfo comm bdryt sten szs dof sw bx by) f =
-  withDmda2d0 comm bdryt sten szs dof sw $ \dm -> do
-    dmdaSetUniformCoordinates2d dm bx by
-    f dm
-
-withDmdaUniform2d0 ::
-  Comm ->
-  (DMBoundaryType_, DMBoundaryType_) ->  -- b : type of boundary ghost cells
-  DMDAStencilType ->
-  (PetscInt_, PetscInt_) ->    -- (m, n) : global array dimensions 
-  PetscInt_ ->                 -- dof : # DOF / node
-  PetscInt_ ->                 -- sw : stencil width 
-  (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
-  (PetscReal_, PetscReal_) ->  -- (ymin, ymax)
-  (DM -> IO a) ->
-  IO a
-withDmdaUniform2d0 comm (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
-  withDmda2d0 comm (bx,by) sten (m,n) dof sw $ \dm -> do
-    dmdaSetUniformCoordinates2d dm (x1,x2) (y1,y2)
-    f dm
 
 
 
