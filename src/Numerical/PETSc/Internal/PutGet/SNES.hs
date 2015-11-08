@@ -59,21 +59,15 @@ snesCreateSetup ::
   Vec ->
   Mat ->
   Mat ->
-  (SNES -> Vec -> IO a) ->
-  (SNES -> Vec -> Mat -> Mat -> IO b) ->
+  (SNES -> Vec -> Vec -> IO CInt) ->
+  (SNES -> Vec -> Mat -> Mat -> IO CInt) ->
   IO SNES
 snesCreateSetup comm v amat pmat f fj = do
   s <- snesCreate comm
-  snesSetFunction s v f'
-  snesSetJacobian s amat pmat fj'
+  snesSetFunction s v f
+  snesSetJacobian s amat pmat fj
   return s
-   where
-     f' s v = do              -- eww 
-       f s v
-       return (0 :: CInt)
-     fj' s v a p = do
-       fj s v a p
-       return (0 :: CInt)
+
 
 
 
@@ -85,15 +79,14 @@ withSnesCreateSetup ::
   Vec ->
   Mat ->
   Mat ->
-  (SNES -> Vec -> IO a) ->
-  (SNES -> Vec -> Mat -> Mat -> IO b) ->
+  (SNES -> Vec -> Vec -> IO CInt) ->
+  (SNES -> Vec -> Mat -> Mat -> IO CInt) ->
   (SNES -> IO c) ->
   IO c
 withSnesCreateSetup comm v amat pmat f fj =
   withSnes (snesCreateSetup comm v amat pmat f fj)
 
 
-       
 
 
 
@@ -108,19 +101,22 @@ snesSetFunction ::
   Vec ->        -- r : storage for function value
     (SNES ->       
      Vec ->        -- vector at which to compute residual
+     Vec ->        -- residual
      IO CInt) -> 
   IO ()
-snesSetFunction snes r f = chk0 $ snesSetFunction' snes r f
+snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g where
+  g s a b _ = f s a b
 
+-- snesSetFunction0 snes r f = undefined
 
-snesSetFunctionVector ::
-  SNES ->
-  Vec ->        -- r : storage for function value
-    (V.Vector PetscScalar_ ->       -- NB pure function, SNES not used 
-     V.Vector PetscScalar_ ) ->
-  IO ()
-snesSetFunctionVector s r f = chk0 $ snesSetFunction' s r f'
-  where f' = liftVectorF f
+-- snesSetFunctionVector ::
+--   SNES ->
+--   Vec ->        -- r : storage for function value
+--     (V.Vector PetscScalar_ ->       -- NB pure function, SNES not used 
+--      V.Vector PetscScalar_ ) ->
+--   IO ()
+-- snesSetFunctionVector s r f = chk0 $ snesSetFunction' s r f'
+--   where f' = liftVectorF f
 
 
 liftF1 ::

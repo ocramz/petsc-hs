@@ -239,10 +239,33 @@ bothM t f = return (both t f)
 -- isSorted x = all (\(a,b) -> a <= b) $ zip x (tail x)
 
 
-
+fromIntegralTup :: (CInt, CInt) -> (Int, Int)
 fromIntegralTup t = both t fi
+
+fromIntegralTup2 :: ((CInt, CInt),(CInt, CInt)) -> ((Int, Int), (Int, Int))
 fromIntegralTup2 t = both t fromIntegralTup
+
+fromIntegralTup3 :: ((CInt, CInt, CInt),(CInt, CInt, CInt)) -> ((Int, Int, Int), (Int, Int, Int))
 fromIntegralTup3 t = both t (`all3` fi)
+
+
+
+
+
+
+-- |
+
+cInt2Adapt :: Monad m => a -> b -> c -> (a -> b -> c -> m d) -> m CInt
+cInt2Adapt s v1 v2 f = do
+  f s v1 v2
+  return (0 :: CInt)
+
+cInt3Adapt :: Monad m => a -> b -> c -> d -> (a -> b -> c -> d -> m e) -> m CInt
+cInt3Adapt s v m1 m2 k = do
+  k s v m1 m2
+  return (0 :: CInt)
+
+
 
 
 

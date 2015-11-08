@@ -1839,19 +1839,24 @@ Output Parameter
 f -vector to put residual (function value) 
 -}
 
+
 snesSetFunction0' snes r f ctx =
   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
-                             $fun:(int (*f)(SNES, Vec, void*) ),
+                             $fun:(int (*f)(SNES, Vec, Vec, void*) ),
                              $(void* ctx))}|]
 snesSetFunction_' snes r f =
   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
-                             $fun:(int (*f)(SNES, Vec, void*) ),
+                             $fun:(int (*f)(SNES, Vec, Vec, void*) ),
                              NULL )}|]
 
-snesSetFunction' :: SNES -> Vec -> (SNES -> Vec -> IO CInt) -> IO CInt
-snesSetFunction' snes v f =
-  snesSetFunction_' snes v f' where
-    f' s a _ = f s a 
+-- snesSetFunction' :: SNES -> Vec -> (SNES -> Vec -> IO CInt) -> IO CInt
+-- snesSetFunction' snes v f =
+--   snesSetFunction_' snes v f' where
+--     f' s a _ = f s a
+
+
+
+    
 
 
 -- PETSC_EXTERN PetscErrorCode SNESDestroy(SNES*);
