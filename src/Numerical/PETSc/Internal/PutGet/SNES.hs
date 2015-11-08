@@ -72,6 +72,9 @@ snesCreateSetup comm v amat pmat f fj = do
 
 
 
+
+
+
 -- | `with` brackets
 
 withSnesCreateSetup ::
@@ -135,6 +138,16 @@ snesComputeJacobianDefault0 :: SNES -> Vec -> Mat -> Mat -> Ptr () -> IO ()
 snesComputeJacobianDefault0 snes x j b ctx =
   chk0 (snesComputeJacobianDefault0' snes x j b ctx)
 
+
+
+
+
+
+
+
+
+-- | tamper with SNES line search
+
 -- snesLineSearchSetPostCheck ::
 --   SNESLineSearch ->
 --     (SNESLineSearch ->
@@ -147,20 +160,14 @@ snesComputeJacobianDefault0 snes x j b ctx =
 --      IO CInt) ->
 --     IO ()
 snesLineSearchSetPostCheck sls f =
-  chk0 (snesLineSearchSetPostCheck0' sls f) where
-    -- g = adaptF f
+  chk0 (snesLineSearchSetPostCheck0' sls f) 
   
 
-adaptF f s v1 v2 v3 pb1 pb2 pv =
-  with pb1 $ \b1 ->
-  with pb2 $ \b2 -> do 
-  f s v1 v2 v3 b1 b2 pv
-  return (0 :: CInt)
+
       
       
 
 
--- snesSetFunction0 snes r f = undefined
 
 -- snesSetFunctionVector ::
 --   SNES ->
@@ -172,7 +179,6 @@ adaptF f s v1 v2 v3 pb1 pb2 pv =
 --   where f' = liftVectorF f
 
 
-liftVFC = cInt2Adapt liftVectorF
 
 
 
@@ -188,6 +194,13 @@ liftVectorF f s vec = do
 
 
 
+
+
+
+
+
+
+-- | setup, solve SNES
 
 snesSetUp :: SNES -> IO ()
 snesSetUp snes = chk0 $ snesSetUp' snes
