@@ -2151,7 +2151,8 @@ tsSetRHSFunction0' ts r f ctx =
 -- Amat	- (approximate) Jacobian matrix
 -- Pmat	- matrix from which preconditioner is to be constructed (usually the same as Amat)
 -- ctx	- [optional] user-defined context for matrix evaluation routine
-
+tsSetRHSJacobian' ts amat pmat f ctx =
+  [C.exp|int{TSSetRHSJacobian($(TS ts),$(Mat amat),$(Mat pmat),$fun:(int(*f)(TS, PetscReal, Vec, Mat, Mat, void*)),$(void* ctx))}|]
 
 
 -- PetscErrorCode  TSSetDM(TS ts,DM dm)
@@ -2222,6 +2223,71 @@ tsViewStdout' ts =
 
 
 
+
+
+-- | TS adjoint solve ()
+
+
+
+-- PetscErrorCode  TSSetCostGradients(TS ts,PetscInt numcost,Vec *lambda,Vec *mu)
+-- Sets the initial value of the gradients of the cost function w.r.t. initial conditions and w.r.t. the problem parameters for use by the TSAdjoint routines.
+-- Logically Collective on TS and Vec
+-- Input Parameters :
+-- ts	- the TS context obtained from TSCreate()
+-- lambda	- gradients with respect to the initial condition variables, the dimension and parallel layout of these vectors is the same as the ODE solution vector
+-- mu	- gradients with respect to the parameters, the number of entries in these vectors is the same as the number of parameters
+-- Notes: the entries in these vectors must be correctly initialized with the values
+-- -- lamda_i = df/dy|finaltime ; mu_i = df/dp|finaltime
+
+tsSetCostGradients' ts numcost lambda mu =
+  [C.exp|int{TSSetCostGradients($(TS ts),$(PetscInt numcost),$(Vec* lambda),$(Vec* mu))}|]
+
+
+
+
+-- PetscErrorCode  TSAdjointSetRHSJacobian(TS ts,Mat Amat,PetscErrorCode (*func)(TS,PetscReal,Vec,Mat,void*),void *ctx)   -- Logically Collective on TS
+-- Sets the function that computes the Jacobian of G w.r.t. the parameters p where y_t = G(y,p,t), as well as the location to store the matrix.
+-- Synopsis
+-- Input Parameters :
+-- ts	- The TS context obtained from TSCreate()
+-- func	- The function
+-- Calling sequence of func :
+-- func (TS ts,PetscReal t,Vec y,Mat A,void *ctx);
+-- t	- current timestep
+-- y	- input vector (current ODE solution)
+-- A	- output matrix
+-- ctx	- [optional] user-defined function context
+-- Notes: Amat has the same number of rows and the same row parallel layout as u, Amat has the same number of columns and parallel layout as p
+tsAdjointSetRHSJacobian' ts amat f ctx =
+  [C.exp|int{TSAdjointSetRHSJacobian($(TS ts),$(Mat amat),$fun:(int (*f)(TS, PetscReal,Vec, Mat, void*)), $(void* ctx))}|]
+  
+
+-- PetscErrorCode TSAdjointSolve(TS ts)
+tsAdjointSolve' ts = [C.exp|int{TSAdjointSolve($(TS ts))}|]
+
+
+
+
+-- | TS Trajectory (state history)
+
+-- PETSC_EXTERN PetscErrorCode TSSetSaveTrajectory(TS);
+tsSetSaveTrajectory' ts = [C.exp|int{TSSetSaveTrajectory($(TS ts))}|]
+
+-- PETSC_EXTERN PetscErrorCode TSTrajectoryCreate(MPI_Comm,TSTrajectory*);
+tsTrajectoryCreate' comm = withPtr $ \tst ->
+  [C.exp|int{TSTrajectoryCreate($(int c),$(TSTrajectory* tst))}|] where
+    c = unComm comm
+  
+-- PETSC_EXTERN PetscErrorCode TSTrajectoryDestroy(TSTrajectory*);
+tsTrajectoryDestroy' tst =
+  with tst $ \tstp -> [C.exp|int{TSTrajectoryDestroy($(TSTrajectory* tstp))}|]
+    
+-- PETSC_EXTERN PetscErrorCode TSTrajectorySetType(TSTrajectory,const TSTrajectoryType);
+
+-- PETSC_EXTERN PetscErrorCode TSTrajectorySet(TSTrajectory,TS,PetscInt,PetscReal,Vec);
+-- PETSC_EXTERN PetscErrorCode TSTrajectoryGet(TSTrajectory,TS,PetscInt,PetscReal*);
+-- PETSC_EXTERN PetscErrorCode TSTrajectorySetFromOptions(TSTrajectory);
+-- PETSC_EXTERN PetscErrorCode TSTrajectoryRegisterAll(void);
 
 
 

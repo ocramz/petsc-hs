@@ -81,4 +81,28 @@ tsSolveWithInitialCondition ts isolnv = do
   tsSetSolution ts isolnv
   tsSolve_ ts
 
+tsSetDm :: TS -> DM -> IO ()
 tsSetDm ts dm = chk0 (tsSetDm' ts dm)
+
+
+
+tsSetRHSJacobian ts amat pmat f ctx = chk0 (tsSetRHSJacobian' ts amat pmat f ctx)
+
+
+
+-- | adjoint TS solve
+
+tsSetSaveTrajectory :: TS -> IO ()
+tsSetSaveTrajectory ts = chk0 $ tsSetSaveTrajectory' ts
+
+tsTrajectoryCreate :: Comm -> IO TSTrajectory
+tsTrajectoryCreate comm = chk1 (tsTrajectoryCreate' comm)
+
+tsTrajectoryDestroy :: TSTrajectory -> IO ()
+tsTrajectoryDestroy ts = chk0 (tsTrajectoryDestroy' ts)
+
+tsAdjointSetRHSJacobian ts amat f ctx =
+  chk0 $ tsAdjointSetRHSJacobian' ts amat f ctx
+
+tsAdjointSolve :: TS -> IO ()
+tsAdjointSolve ts = chk0 (tsAdjointSolve' ts)

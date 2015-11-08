@@ -67,6 +67,7 @@ petscTypesTable = Map.fromList
                   , (typeNameId "PetscQuadrature", [t| PetscQuadrature |])  
                     
                   , (typeNameId "TS", [t| TS |])
+                  , (typeNameId "TSTrajectory", [t|TSTrajectory|])
                    
                   , (typeNameId "Tao", [t| Tao |])
 

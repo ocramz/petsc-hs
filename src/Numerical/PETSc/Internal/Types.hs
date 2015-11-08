@@ -73,6 +73,7 @@ newtype SNESLineSearch = SNESLineSearch (Ptr SNESLineSearch) deriving Storable
 newtype PF = PF (Ptr PF) deriving Storable
 
 newtype TS = TS (Ptr TS) deriving Storable
+newtype TSTrajectory = TSTrajectory (Ptr TSTrajectory) deriving Storable
 
 newtype Tao = Tao (Ptr Tao) deriving Storable 
 
