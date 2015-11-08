@@ -19,9 +19,6 @@ import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 import Numerical.PETSc.Internal.Managed
 
-import Numerical.PETSc.Internal.Internal
-
--- import Foreign
 import Foreign.C.Types
 
 import System.IO.Unsafe (unsafePerformIO)

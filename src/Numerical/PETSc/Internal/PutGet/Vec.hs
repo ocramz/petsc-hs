@@ -18,8 +18,6 @@ import           Numerical.PETSc.Internal.Exception
 import           Numerical.PETSc.Internal.Utils
 import           Numerical.PETSc.Internal.Managed
 
-import           Numerical.PETSc.Internal.Internal
-
 import           Foreign
 import           Foreign.ForeignPtr.Unsafe
 import           Foreign.C.Types

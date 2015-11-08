@@ -1,6 +1,5 @@
 {-# LANGUAGE TypeFamilies, FlexibleInstances #-}
 {-# LANGUAGE BangPatterns #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Utils

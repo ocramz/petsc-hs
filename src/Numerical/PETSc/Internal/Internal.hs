@@ -1,10 +1,8 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving, StandaloneDeriving #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.Petsc.Internal.Internal
@@ -13,12 +11,12 @@
 -- Maintainer  :  Marco Zocca
 -- Stability   :  experimental
 --
--- | inline-c context (i.e. the C-Haskell type map), and the necessary newtypes
---   and type synonyms necessary to its definition
+-- | inline-c context (i.e. the C-Haskell type map)
 --
 -----------------------------------------------------------------------------
-
 module Numerical.PETSc.Internal.Internal where
+
+import Numerical.PETSc.Internal.Types
 
 import qualified Language.C.Inline         as C
 import qualified Language.C.Types          as CT
@@ -84,74 +82,7 @@ typeNameId :: CT.CIdentifier -> CT.TypeSpecifier
 typeNameId = CT.TypeName 
 
 
--- * type synonyms
 
-type PetscLogStage_ = CInt
-type PetscError_ = CInt
-
-type PetscInt_ = CInt
-type PetscBool_ = Bool
-type PetscScalar_ = CDouble
-type PetscReal_ = CDouble
-
-type MatConst = CInt
-
-
--- -- FIXME : robust approach would be to infer the Hs types with c2hs
-
--- type PetscInt_ = PetscInt
--- type PetscBool_ = PetscBool
--- type PetscScalar_ = PetscScalar
--- type PetscReal_ = PetscReal
-
-
-
--- * newtypes
-
-newtype PetscMPIInt_ = PetscMPIInt_ (Ptr PetscMPIInt_ ) deriving (Show, Storable)
-
-newtype PetscReal = PetscReal (Ptr PetscReal)
-instance Storable PetscReal where
-  sizeOf _ = sizeOf (undefined :: PetscReal_)
-  alignment = sizeOf
-  peek = peek
-  poke = poke 
-
-
-newtype IS = IS (Ptr IS) deriving Storable
-
-newtype Vec = Vec (Ptr Vec) deriving Storable
-
-newtype Mat = Mat (Ptr Mat) deriving Storable
-
-newtype DM = DM (Ptr DM) deriving Storable
-newtype DMDALocalInfo = DMDALocalInfo (Ptr DMDALocalInfo) deriving Storable
-
-newtype KSP = KSP (Ptr KSP) deriving Storable
-
-newtype KSPConvergedReason = KSPConvergedReason (Ptr KSPConvergedReason) deriving (Eq, Storable)
-
-newtype SNES = SNES (Ptr SNES) deriving Storable
-newtype SNESLineSearch = SNESLineSearch (Ptr SNESLineSearch) deriving Storable
-
-newtype PF = PF (Ptr PF) deriving Storable
-
-newtype TS = TS (Ptr TS) deriving Storable
-
-newtype Tao = Tao (Ptr Tao) deriving Storable 
-
-newtype PetscSpace = PetscSpace (Ptr PetscSpace) deriving Storable
-newtype PetscDualSpace = PetscDualSpace (Ptr PetscDualSpace) deriving Storable
-newtype PetscFE = PetscFE (Ptr PetscFE) deriving Storable
-newtype PetscQuadrature = PetscQuadrature (Ptr PetscQuadrature) deriving Storable
-
-newtype PetscViewer = PetscViewer (Ptr PetscViewer) deriving Storable
-
-newtype MatFDColoring = MatFDColoring (Ptr MatFDColoring) deriving Storable
-
-newtype ISColoring = ISColoring (Ptr ISColoring) deriving Storable
-
-newtype MatFactorInfo = MatFactorInfo (Ptr MatFactorInfo) deriving Storable
 
 
 

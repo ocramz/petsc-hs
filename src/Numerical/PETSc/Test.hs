@@ -17,7 +17,7 @@ import Control.Applicative
 
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.PutGet
-import Numerical.PETSc.Internal.Internal
+
 import Numerical.PETSc.Internal.Managed
 
 
