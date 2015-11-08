@@ -310,7 +310,10 @@ matSetValuesVectorSafe m ix iy v
 
 -- | set Mat properties
 
-matSetSizes mat m n = chk0 (matSetSizes' mat m n)
+matSetSizes :: Mat -> Int -> Int -> IO ()
+matSetSizes mat m n
+  | m > 0 && n > 0 = chk0 (matSetSizes' mat m n)
+  | otherwise = error $ "matSetSizes : invalid size " ++ show (m,n)
 
 
 

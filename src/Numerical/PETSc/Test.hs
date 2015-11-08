@@ -42,6 +42,13 @@ lv = V.length v0
 
 v0s = VS.fromList [pi .. 10]
 
+vix, viy :: V.Vector Int
+va :: V.Vector PetscScalar_
+vix = V.fromList [0,1,2,0,1,2]
+viy = V.fromList [0,0,0,1,1,1]
+va = V.fromList [0 .. 8]
+
+
 
 -- --
 
@@ -57,11 +64,9 @@ t1 = withPetsc0 t1'
 
 --
 
--- toVec = vecCreateMPIFromVectorDecideLocalSize commWorld
 
-vDot v1 v2 = unsafePerformIO $ vecDot v1 v2
 
--- -- using Managed
+-- | using Managed
 vecm :: IO Vec -> Managed Vec
 vecm vc = managed (withVec vc)
 
@@ -87,9 +92,6 @@ t2 = withPetsc0 $ t2' v0s
 -- kspManage comm kt a p ignz rhs soln =
 --   managed $ withKspSetupSolve comm kt a p ignz rhs soln 
 
-
-
-
 -- t2' n = runManaged $ do
 --   vrhs <- vecManage cs n 
 --   vsoln <- vecManage cs n 
@@ -98,13 +100,10 @@ t2 = withPetsc0 $ t2' v0s
 --    where
 --      cs = commSelf
 
-
-
-
 -- --
 
 
--- vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
+-- | modify Vec via Vector via vecGetVector/vecRestoreVector
 
 t3' = do
   v <- vecCreateMPIFromVectorDecideLocalSize cs v0s
@@ -118,6 +117,8 @@ t3' = do
 t3 = withPetsc0 t3'
 
 -- --
+
+-- | managing config and resource abstractly with ReaderT and ResourceT
 
 -- wsv2 :: Show a =>
 --         (Comm, V.Vector PetscScalar_) -> (PVector PetscScalar_ -> IO a) -> IO ()
@@ -146,11 +147,7 @@ t4 = withPetsc0 t4'
 
 -- --
 
-vix, viy :: V.Vector Int
-va :: V.Vector PetscScalar_
-vix = V.fromList [0,1,2,0,1,2]
-viy = V.fromList [0,0,0,1,1,1]
-va = V.fromList [0 .. 8]
+-- | BROKEN : matSetValuesVector passes junk data to C side 
 
 t5''' =
   withMatSetupSetValuesAssembly
@@ -174,6 +171,8 @@ t5 = withPetsc0 t5'''
 
 -- --
 
+-- | simplified interface for Mat setup, usage with Vector
+
 v0_ :: V.Vector (Int, Int, PetscScalar_)
 v0_ = V.zip3 vix viy va
 
@@ -185,6 +184,8 @@ t6 = withPetsc0 t6'
 
 
 -- -- 
+
+
 
 
 
