@@ -97,7 +97,6 @@ withSnesCreateSetup comm v amat pmat f fj =
 
 
 
-
 -- | snesSetFunction, snesSetJacobian : 
 --   Newton-like methods typically solve linear systems of the form
 --      f'(x) x = -f(x)
@@ -129,6 +128,14 @@ snesSetJacobian snes amat pmat fj = chk0 $ snesSetJacobian_' snes amat pmat fj'
   where
     fj' = cInt3Adapt fj
 
+
+
+
+snesComputeJacobianDefault0 :: SNES -> Vec -> Mat -> Mat -> Ptr () -> IO ()
+snesComputeJacobianDefault0 snes x j b ctx =
+  chk0 (snesComputeJacobianDefault0' snes x j b ctx)
+
+  
 
 
 -- snesSetFunction0 snes r f = undefined

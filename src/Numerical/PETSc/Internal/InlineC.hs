@@ -1946,6 +1946,26 @@ snesSetJacobian0mono' snes amat pmat f col =
 
 
 
+
+-- | compute Jacobian by FD
+-- PetscErrorCode  SNESComputeJacobianDefault(SNES snes,Vec x1,Mat J,Mat B,void *ctx)
+-- Collective on SNES
+-- Input Parameters :
+-- x1	- compute Jacobian at this point
+-- ctx	- application's function context, as set with SNESSetFunction()
+-- Output Parameters :
+-- J	- Jacobian matrix (not altered in this routine)
+-- B	- newly computed Jacobian matrix to use with preconditioner (generally the same as J)
+-- Options Database Key :
+-- -snes_fd	- Activates SNESComputeJacobianDefault()
+-- -snes_test_err	- Square root of function error tolerance, default square root of machine epsilon (1.e-8 in double, 3.e-4 in single)
+-- -mat_fd_type	- Either wp or ds (see MATMFFD_WP or MATMFFD_DS)
+
+snesComputeJacobianDefault0' snes x1 jj bb ctx =
+  [C.exp|int{SNESComputeJacobianDefault($(SNES snes),$(Vec x1),$(Mat jj),$(Mat bb),$(void* ctx))}|]
+
+
+
 snesSetJacobianComputeDefaultColor' :: SNES -> Mat -> Mat -> MatFDColoring -> IO CInt
 snesSetJacobianComputeDefaultColor' snes amat pmat =
   snesSetJacobian0mono' snes amat pmat snesComputeJacobianDefaultColor0' 
@@ -2010,6 +2030,31 @@ tsSetDuration' ts ms' mt =
 
 
 
+
+
+
+-- PetscErrorCode  TSSetIFunction(TS ts,Vec res,TSIFunction f,void *ctx)
+-- Set the function to compute F(t,U,U_t) where F() = 0 is the DAE to be solved.
+-- Logically Collective on TS
+-- Input Parameters :
+-- ts	- the TS context obtained from TSCreate()
+-- r	- vector to hold the residual (or NULL to have it created internally)
+-- f	- the function evaluation routine
+-- ctx	- user-defined context for private data for the function evaluation routine (may be NULL)
+-- Calling sequence of f :
+--  f(TS ts,PetscReal t,Vec u,Vec u_t,Vec F,ctx);
+-- t	- time at step/stage being solved
+-- u	- state vector
+-- u_t	- time derivative of state vector
+-- F	- function vector
+-- ctx	- [optional] user-defined context for matrix evaluation routine
+-- Important :
+-- The user MUST call either this routine or TSSetRHSFunction() to define the ODE. When solving DAEs you must use this function.
+
+
+
+
+
 -- PetscErrorCode  TSSetRHSFunction(TS ts,Vec r,PetscErrorCode (*f)(TS,PetscReal,Vec,Vec,void*),void *ctx)        -- Logically Collective on TS
 -- -- Sets the routine for evaluating the function, where U_t = G(t,u).
 -- Input Parameters :
@@ -2051,7 +2096,17 @@ tsSetRHSFunction0' ts r f ctx =
 -- ctx	- [optional] user-defined context for matrix evaluation routine
 
 
-    
+
+-- PetscErrorCode  TSSetDM(TS ts,DM dm)
+-- Sets the DM that may be used by some preconditioners
+-- Logically Collective on TS and DM
+-- Input Parameters :
+-- ts	- the preconditioner context
+-- dm	- the dm
+
+tsSetDm' ts dm = [C.exp|int{TSSetDM($(TS ts),$(DM dm))}|]
+
+
 
 
 -- withTSSolve c pt t0 dt0 maxsteps maxtime v pre post = withTs c $ \ts -> do

@@ -48,7 +48,12 @@ vix = V.fromList [0,1,2,0,1,2]
 viy = V.fromList [0,0,0,1,1,1]
 va = V.fromList [0 .. 8]
 
-
+csrAllNxN_ :: Int -> V.Vector (Int, Int, PetscScalar_)
+csrAllNxN_ n = V.zip3 x y a where
+  x = V.fromList $ concat $ replicate n [0 .. n-1]
+  y = V.fromList $ concatMap (replicate n) [0 .. n-1]
+  a = V.fromList [0 .. nc^2-1 :: PetscScalar_ ] where
+    nc = fromIntegral n
 
 -- --
 
@@ -176,11 +181,12 @@ t5 = withPetsc0 t5'''
 v0_ :: V.Vector (Int, Int, PetscScalar_)
 v0_ = V.zip3 vix viy va
 
-t6' =
-  withMatNew commWorld 3 3 v0_ InsertValues $ \m ->
-   matViewStdout m
-
-t6 = withPetsc0 t6'
+t6' n =
+  withMatNew commWorld n n vi InsertValues $ \m ->
+   matViewStdout m where
+     vi = csrAllNxN_ n    -- test mtx ( NB : dense )
+ 
+t6 = withPetsc0 $ t6' 5
 
 
 -- -- 

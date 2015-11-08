@@ -46,8 +46,8 @@ tsCreate comm = chk1 $ tsCreate' comm
 tsDestroy :: TS -> IO ()
 tsDestroy ts = chk0 $ tsDestroy' ts
 
-withTs :: Comm -> (TS -> IO a) -> IO a
-withTs comm = bracket (tsCreate comm) tsDestroy
+-- withTs :: Comm -> (TS -> IO a) -> IO a
+withTs tsc = bracket tsc tsDestroy
 
 tsSetProblemType :: TS -> TsProblemType -> IO ()
 tsSetProblemType ts ty = chk0 $ tsSetProblemType' ts ty
@@ -82,3 +82,5 @@ tsSolveWithInitialCondition :: TS -> Vec -> IO ()
 tsSolveWithInitialCondition ts isolnv = do
   tsSetSolution ts isolnv
   tsSolve_ ts
+
+tsSetDm ts dm = chk0 (tsSetDm' ts dm)
