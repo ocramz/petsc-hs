@@ -178,70 +178,55 @@ snesTypeToStr SnesNgmres = "ngmres"
 snesTypeToStr _ = "newtonls" -- default
 
 
--- typedef enum {/* converged */
---               SNES_CONVERGED_FNORM_ABS         =  2, /* ||F|| < atol */
 data SnesConvergedReason = SnesConvergedFnormAbs
---               SNES_CONVERGED_FNORM_RELATIVE    =  3, /* ||F|| < rtol*||F_initial|| */    
                            | SnesConvergedFnormRelative
---               SNES_CONVERGED_SNORM_RELATIVE    =  4, /* Newton computed step size small; || delta x || < stol || x ||*/
                            | SnesConvergedSnormRelative  
---               SNES_CONVERGED_ITS               =  5, /* maximum iterations reached */
                            | SnesConvergedIts   
---               SNES_CONVERGED_TR_DELTA          =  7,
                            | SnesConvergedTRDelta  
---               /* diverged */
---               SNES_DIVERGED_FUNCTION_DOMAIN     = -1, /* the new x location passed the function is not in the domain of F */
                            | SnesDivergedFunctionDomain  
---               SNES_DIVERGED_FUNCTION_COUNT      = -2,
                            | SnesDivergedFunctionCount   
---               SNES_DIVERGED_LINEAR_SOLVE        = -3, /* the linear solve failed */
                            | SnesDivergedLinearSolve  
---               SNES_DIVERGED_FNORM_NAN           = -4,
                            | SnesDivergedFnormNaN  
---               SNES_DIVERGED_MAX_IT              = -5,
                            | SnesDivergedMaxIts  
---               SNES_DIVERGED_LINE_SEARCH         = -6, /* the line search failed */
                            | SnesDivergedLineSearch  
---               SNES_DIVERGED_INNER               = -7, /* inner solve failed */
                            | SnesDivergedInnerSolve  
---               SNES_DIVERGED_LOCAL_MIN           = -8, /* || J^T b || is small, implies converged to local minimum of F() */
                            | SnesDivergedLocalMin  
---               SNES_CONVERGED_ITERATING          =  0} SNESConvergedReason;
                            | SnesConvergedIterating
                            | SnesDivergedOtherReason Int
                               deriving (Eq, Show)  
 
 snesConvergedIntToReason x =
-  case x of 2 -> SnesConvergedFnormAbs
+  case x of 
 --               SNES_CONVERGED_FNORM_ABS         =  2, /* ||F|| < atol */
+    2 -> SnesConvergedFnormAbs
 --               SNES_CONVERGED_FNORM_RELATIVE    =  3, /* ||F|| < rtol*||F_initial|| */
-            3 -> SnesConvergedFnormRelative
+    3 -> SnesConvergedFnormRelative
 --               SNES_CONVERGED_SNORM_RELATIVE    =  4, /* Newton computed step size small; || delta x || < stol || x ||*/
-            4 -> SnesConvergedSnormRelative
+    4 -> SnesConvergedSnormRelative
 --               SNES_CONVERGED_ITS               =  5, /* maximum iterations reached */
-            5 -> SnesConvergedIts
+    5 -> SnesConvergedIts
 --               SNES_CONVERGED_TR_DELTA          =  7,
-            7 -> SnesConvergedTRDelta
+    7 -> SnesConvergedTRDelta
 --               /* diverged */
 --               SNES_DIVERGED_FUNCTION_DOMAIN     = -1, /* the new x location passed the function is not in the domain of F */
-            (-1) -> SnesDivergedFunctionDomain
+    (-1) -> SnesDivergedFunctionDomain
 --               SNES_DIVERGED_FUNCTION_COUNT      = -2,
-            (-2) -> SnesDivergedFunctionCount
+    (-2) -> SnesDivergedFunctionCount
 --               SNES_DIVERGED_LINEAR_SOLVE        = -3, /* the linear solve failed */
-            (-3) -> SnesDivergedLinearSolve
+    (-3) -> SnesDivergedLinearSolve
 --               SNES_DIVERGED_FNORM_NAN           = -4,
-            (-4) -> SnesDivergedFnormNaN
+    (-4) -> SnesDivergedFnormNaN
 --               SNES_DIVERGED_MAX_IT              = -5,
-            (-5) -> SnesDivergedMaxIts
+    (-5) -> SnesDivergedMaxIts
 --               SNES_DIVERGED_LINE_SEARCH         = -6, /* the line search failed */
-            (-6) -> SnesDivergedLineSearch
+    (-6) -> SnesDivergedLineSearch
 --               SNES_DIVERGED_INNER               = -7, /* inner solve failed */
-            (-7) -> SnesDivergedInnerSolve
+    (-7) -> SnesDivergedInnerSolve
 --               SNES_DIVERGED_LOCAL_MIN           = -8, /* || J^T b || is small, implies converged to local minimum of F() */
-            (-8) -> SnesDivergedLocalMin
+    (-8) -> SnesDivergedLocalMin
 --               SNES_CONVERGED_ITERATING          =  0} SNESConvergedReason;
-            0 -> SnesConvergedIterating
-            n -> SnesDivergedOtherReason n
+    0 -> SnesConvergedIterating
+    n -> SnesDivergedOtherReason n
 
 -- * TS
 
