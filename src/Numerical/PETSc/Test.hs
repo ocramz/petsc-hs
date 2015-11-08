@@ -20,6 +20,7 @@ import Numerical.PETSc.Internal.PutGet
 
 import Numerical.PETSc.Internal.Managed
 
+import Foreign
 
 import qualified Data.Vector.Storable as VS
 -- import qualified Data.Vector.Storable.Mutable as VM
@@ -40,6 +41,7 @@ v0 = V.fromList [pi .. 10]
 
 lv = V.length v0
 
+v0s :: (Storable a, Floating a, Enum a) => VS.Vector a
 v0s = VS.fromList [pi .. 10]
 
 vix, viy :: V.Vector Int
@@ -57,15 +59,15 @@ csrAllNxN_ n = V.zip3 x y a where
 
 -- --
 
-t1' = do
-  -- v <- vecCreateMPIFromVector comm lv v0
-  v <- vecCreateMPIFromVectorDecideLocalSize comm v0s
-  vecViewStdout v
-  vecDestroy v
-   where
-     comm = commWorld
+-- t1' = do
+--   -- v <- vecCreateMPIFromVector comm lv v0
+--   v <- vecCreateMPIFromVectorDecideLocalSize comm v0s
+--   vecViewStdout v
+--   vecDestroy v
+--    where
+--      comm = commWorld
 
-t1 = withPetsc0 t1'
+-- t1 = withPetsc0 t1'
 
 --
 
@@ -90,7 +92,7 @@ t2' v = runManaged $ do
   vecm $ vecCopyDuplicate v1
     where comm = commWorld
 
-t2 = withPetsc0 $ t2' v0s
+t2 = withPetsc0 $ t2' v0
 
 
 -- kspManage :: Comm -> KspType_ -> Mat -> Mat -> Bool -> Vec -> Vec -> Managed KSP
@@ -111,9 +113,9 @@ t2 = withPetsc0 $ t2' v0s
 -- | modify Vec via Vector via vecGetVector/vecRestoreVector
 
 t3' = do
-  v <- vecCreateMPIFromVectorDecideLocalSize cs v0s
+  v <- vecCreateMPIFromVectorDecideLocalSize cs v0
   vecViewStdout v
-  let x = modifyV' v (VS.map (+1))
+  let x = modifyVS v (VS.map (+1))
   print x       -- NB : `print x` cannot occur after `vecDestroy`
   vecViewStdout v
   vecDestroy v
@@ -138,7 +140,7 @@ withPVectorConfig config f =
   runResourceT $ withScalarVector f config
 
 t4' :: IO ()
-t4' = withPVectorConfig (commWorld, v0s) $ \(PVector v vecdata) -> do
+t4' = withPVectorConfig (commWorld, v0) $ \(PVector v vecdata) -> do
   x <- vecGetVector v
   print x
   print vecdata
@@ -190,8 +192,24 @@ t6 = withPetsc0 $ t6' 5
 
 
 -- -- 
+t7' = withVecNew commWorld vd1 $ \e1 ->
+  withVecNew commWorld vd2 $ \e2 -> do
+    x <- vecDot e1 e2
+    print x
+      where
+        vd1 = V.convert $ V.fromList [0 , 1]
+        vd2 = V.convert $ V.fromList [1 , 0]
+
+t7 = withPetsc0 t7'
+
+-- 
 
 
+-- t7' n = withMatNew cw n n vi InsertValues $ \amat ->
+--   withVec (vecCreateMPIFromVectorDecideLocalSize cw v0) $ \v1 ->
+--   withSnesCreateSetup cw v1 amat amat f fj
+--    where
+--      cw = commWorld
 
 
 

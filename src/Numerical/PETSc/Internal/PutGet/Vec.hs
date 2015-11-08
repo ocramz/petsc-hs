@@ -42,8 +42,9 @@ import           Data.STRef
 import           Control.Monad.ST                   (ST, runST)
 import           Control.Monad.ST.Unsafe            (unsafeIOToST)    -- for HMatrix bits
 
--- import qualified Data.Vector as V
-import qualified Data.Vector.Storable               as V
+import qualified Data.Vector.Generic as VG
+import qualified Data.Vector as V
+import qualified Data.Vector.Storable               as VS 
 import qualified Data.Vector.Storable.Mutable       as VM
 
 
@@ -295,14 +296,16 @@ withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
 
 -- | assembly 
 
-vecAssemblyChk :: Vec -> IO ()
-vecAssemblyChk v = chk0 (vecAssemblyBegin' v) >> chk0 (vecAssemblyEnd' v)
+vecAssemblyBegin v = chk0 (vecAssemblyBegin' v)
+vecAssemblyEnd v = chk0 (vecAssemblyEnd' v)
 
--- withVecAssemblyChk v f = chk0 (vecAssemblyBegin' v) >> f >> chk0 (vecAssemblyEnd' v)
+vecAssemblyChk :: Vec -> IO ()
+vecAssemblyChk v = vecAssemblyBegin v  >> vecAssemblyEnd v 
+
 
 -- | withVecAssemblyChk : perform a computation while vector assembly takes place
 withVecAssemblyChk :: Vec -> IO a -> IO a
-withVecAssemblyChk v = bracket_ (chk0 $ vecAssemblyBegin' v) (chk0 $ vecAssemblyEnd' v)
+withVecAssemblyChk v = bracket_ (vecAssemblyBegin v) (vecAssemblyEnd v)
 
 
 
@@ -329,16 +332,15 @@ vecDuplicate v = chk1 $ vecDuplicate1 v
 
 vecCopyDuplicate :: Vec -> IO Vec
 vecCopyDuplicate v = do
-  v1 <- vecDuplicate v
-  vecCopy v v1
+  x <- vecDuplicate v
+  vecCopy v x
 
 withVecCopyDuplicate :: Vec -> (Vec -> IO a) -> IO a
-withVecCopyDuplicate v = bracket
-                         ( do
-                             v1 <- vecDuplicate v
-                             vecCopy v v1
-                             return v1 )
-                         vecDestroy
+withVecCopyDuplicate v = withVec (vecCopyDuplicate v) 
+
+withVecNew :: Comm -> V.Vector PetscScalar_ -> (Vec -> IO a) -> IO a
+withVecNew comm v =
+  withVec (vecCreateMPIFromVectorDecideLocalSize comm v)
 
 
 
@@ -410,11 +412,23 @@ safeInsertIndicesVec f v ix_ y_  im
 vecSetValuesUnsafeVector ::
   Vec -> V.Vector Int -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
 vecSetValuesUnsafeVector v ix y im =
-  V.unsafeWith ixc $ \ixx ->
-   V.unsafeWith y $ \yy -> chk0 (vecSetValues' v ni ixx yy im)
+  VS.unsafeWith ixc $ \ixx ->
+   VS.unsafeWith yc $ \yy -> chk0 (vecSetValues' v ni ixx yy im)
     where
       ni = toCInt (V.length ix)
-      ixc = V.map toCInt ix
+      ixc = V.convert $ V.map toCInt ix
+      yc = V.convert y
+
+vecSetValuesUnsafeVector1 ::
+  Vec -> V.Vector (Int, PetscScalar_) -> InsertMode_ -> IO ()
+vecSetValuesUnsafeVector1 v ixy im =
+  VS.unsafeWith ixc $ \ixx ->
+   VS.unsafeWith yc $ \yy -> chk0 (vecSetValues' v ni ixx yy im)
+    where
+      ni = toCInt (V.length ix)
+      ixc = V.convert $ V.map toCInt ix
+      yc = V.convert y
+      (ix, y) = V.unzip ixy
 
 
 
@@ -451,14 +465,14 @@ vecCreateMPIFromVectorDecideLocalSize comm w = do
 
 
 
-modifyVecVector ::
-  Vec ->
-  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
-  IO (V.Vector PetscScalar_)
+-- modifyVecVector ::
+--   Vec ->
+--   (VS.Vector PetscScalar_ -> VS.Vector PetscScalar_) ->
+--   IO (VS.Vector PetscScalar_)
 modifyVecVector v f = do
   u <- vecGetVector v
-  let y = f u
-  vecRestoreVector v y
+  let y = f (V.convert u)
+  vecRestoreVector v (V.convert y)
   return y
 
 
@@ -545,31 +559,31 @@ vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
 -- | Vec get/set interface with Data.Vector
 -- -- using ".Storable and ".Storable.Mutable
 
-vecGetVector :: Vec -> IO (V.Vector PetscScalar_)
+vecGetVector :: Vec -> IO (VS.Vector PetscScalar_)
 vecGetVector v = do
   p <- vecGetArrayPtr v
   pf <- newForeignPtr_ p
-  V.freeze (VM.unsafeFromForeignPtr0 pf len)
+  VS.freeze (VM.unsafeFromForeignPtr0 pf len)
    where
      len = vecSize v
 
-vecRestoreVector :: Vec -> V.Vector PetscScalar_ -> IO ()
+vecRestoreVector :: Vec -> VS.Vector PetscScalar_ -> IO ()
 vecRestoreVector v w = do
   p <- vecGetArrayPtr v
   pf <- newForeignPtr_ p
-  V.copy (VM.unsafeFromForeignPtr0 pf len) w
+  VS.copy (VM.unsafeFromForeignPtr0 pf len) (V.convert w)
   vecRestoreArrayPtr v p
     where
      len = vecSize v
 
 -- get the first n entries
 
-vecGetVectorN :: Vec -> Int -> IO (Maybe (V.Vector PetscScalar_))
+vecGetVectorN :: Vec -> Int -> IO (Maybe (VS.Vector PetscScalar_))
 vecGetVectorN v n
   | n > 0 && n <= len = do
      p <- vecGetArrayPtr v
      pf <- newForeignPtr_ p
-     y <- V.freeze (VM.unsafeFromForeignPtr0 pf n)
+     y <- VS.freeze (VM.unsafeFromForeignPtr0 pf n)
      return $ Just y
   | otherwise = return Nothing
        where
@@ -583,16 +597,15 @@ vecGetVectorN v n
 
 
 
--- | mutation in ST hidden in IO
+-- | mutation of Storable Vectors in ST hidden in IO
 
 -- modifyV, modifyV2 :: Vec -> (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> IO ()
-  
 
-modifyV' ::
+modifyVS ::
   Vec ->
-  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
-  V.Vector PetscScalar_
-modifyV' u g = runST $ do
+  (VS.Vector PetscScalar_ -> VS.Vector PetscScalar_) ->
+  VS.Vector PetscScalar_
+modifyVS u g = runST $ do
             x <- unsafeIOToST $ vecGetVector u
             s <- newSTRef x
             let y = g x
@@ -600,13 +613,13 @@ modifyV' u g = runST $ do
             unsafeIOToST $ vecRestoreVector u y
             readSTRef s
 
-
-
 -- withSTRef v f = runST $ do
 --   s <- newSTRef v
 --   let y = f v
 --   writeSTRef s y
 --   readSTRef s
+
+
 
 
 
