@@ -197,6 +197,8 @@ withMatSetValueVectorSafe mat m n v_ imode after = do
    
 
 
+
+
 {- -- BROKEN due to matSetValuesVector, see t5 -}
 withMatSetupSetValuesAssembly ::  
   IO Mat ->
@@ -231,7 +233,8 @@ withMatSetupSetValuesAssembly mc m n ix iy vals imode f =
 
 -- | set Mat values
 
-matSetValue :: Mat -> Int -> Int -> PetscScalar_ -> InsertMode_ -> IO ()
+matSetValue ::
+  Mat -> Int -> Int -> PetscScalar_ -> InsertMode_ -> IO ()
 matSetValue m irow icol val mode = chk0 (matSetValueUnsafe' m irow icol val mode)
 
 matSetValueSafe ::

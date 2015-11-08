@@ -80,8 +80,16 @@ snesCreateSetup comm v amat pmat f fj = do
 
 -- | `with` brackets
 
-
-withSnesCrateSetup comm v amat pmat f fj =
+withSnesCreateSetup ::
+  Comm ->
+  Vec ->
+  Mat ->
+  Mat ->
+  (SNES -> Vec -> IO a) ->
+  (SNES -> Vec -> Mat -> Mat -> IO b) ->
+  (SNES -> IO c) ->
+  IO c
+withSnesCreateSetup comm v amat pmat f fj =
   withSnes (snesCreateSetup comm v amat pmat f fj)
 
 
