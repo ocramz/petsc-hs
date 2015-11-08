@@ -178,7 +178,7 @@ v0_ :: V.Vector (Int, Int, PetscScalar_)
 v0_ = V.zip3 vix viy va
 
 t6' =
-  withMatSetupSetValuesAssembly2 (matCreate commWorld) 3 3 v0_ InsertValues $ \m ->
+  withMatNew commWorld 3 3 v0_ InsertValues $ \m ->
    matViewStdout m
 
 t6 = withPetsc0 t6'
@@ -186,7 +186,7 @@ t6 = withPetsc0 t6'
 
 -- -- 
 
- 
+
 
 
 
