@@ -11,11 +11,23 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Indexing where
 
-import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
 import Numerical.PETSc.Internal.PutGet
 
-aasd = mpiCommRank commWorld
+-- mpiComm = mkMPIComm commWorld
+
+-- (comm, commSize, commRank) = getMPICommData mpiComm
+
+-- localRange :: Int -> (Int, Int)
+-- localRange m = ( istart, iend) where
+--   istart = cr * (m `div` cs) + if t < cr then t else cr
+--   iend = istart + (m `div` cs) + if t > cr then 1 else 0
+--   t = m `mod` cs
+--   cs = commSize
+--   cr = commRank
+
+--   -- start = rank*(mm /size) + ((mm %size) < rank ? (mm %size) : rank);
+--   -- end   = start + mm /size + ((mm %size) > rank);

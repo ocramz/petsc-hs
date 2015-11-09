@@ -12,20 +12,18 @@
 --
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.PutGet.PetscMisc
-       -- (
-       --   commWorld, commSelf, mkMPIComm, getMPICommData,
-       --   petscInit0, petscInit, petscFin,
-       --   withPetsc0, withPetsc,
-       --   petscGetVersion
-       -- )
+       (
+         commWorld, commSelf, mkMPIComm, getMPICommData,
+         petscInit0, petscInit, petscFin,
+         withPetsc0, withPetsc,
+         petscGetVersion
+       )
        where
 
 import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
-
--- import qualified Data.ByteString as BS
 
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 
@@ -54,11 +52,11 @@ commSelf = commSelf1
 mpiCommSize comm = unsafePerformIO $ liftM fi $ chk1 (mpiCommSize' comm)
 mpiCommRank comm = unsafePerformIO $ liftM fi $ chk1 (mpiCommRank' comm)
 
-data MpiCommSize = MpiCommSz Int deriving (Eq, Show)
+
+
 mkMpiCommSize comm = MpiCommSz (mpiCommSize comm)
-data MpiCommRank = MpiCommRk Int deriving (Eq, Show)
 mkMpiCommRank comm = MpiCommRk (mpiCommRank comm)
-data MPIComm = MPIComm Comm MpiCommSize MpiCommRank deriving (Eq, Show)
+
 mkMPIComm c = MPIComm c (mkMpiCommSize c) (mkMpiCommRank c)
 getMPICommData (MPIComm c sz rk) = (c, getMpiCommSize sz, getMpiCommRank rk)
 
@@ -74,10 +72,10 @@ getMpiCommRank (MpiCommRk r) = r
 petscInit0 :: IO ()
 petscInit0 = do
   chk0 petscInit01
-  putStrLn (vs ++ ": initialized with default options")
+  putStrLn (header ++ " with default options\n")
 
 petscFin :: IO ()
-petscFin = chk0 petscFin1 >> putStrLn "PETSc : finalized"
+petscFin = chk0 petscFin1 >> putStrLn ("\nPETSc : finalized\n" ++ sep)
 
 withPetsc0 :: IO a -> IO a
 withPetsc0 = bracket_ petscInit0 petscFin
@@ -89,20 +87,25 @@ petscInit ::
   IO ()
 petscInit args opts help = do
   chk0 (petscInitialize1 args opts help)
-  putStrLn ( vs ++ ": initialized"  )
+  putStrLn header
 
 withPetsc ::
   [String] -> String -> String -> IO a -> IO a
 withPetsc a o h = bracket_ (petscInit a o h) petscFin
 
+sep, header :: String 
+sep = "======"
 
+header =
+  sep ++ "\npetsc-hs : Haskell bindings for PETSc\n" ++
+  "\nPETSc " ++ vs ++ ": initialized"
 
 
 -- | Version string
 
 {-# NOINLINE vs #-}
 vs :: String
-vs = unsafePerformIO $ petscGetVersion 50 
+vs = drop 6 $ unsafePerformIO $ petscGetVersion 50 
 
 petscGetVersion :: Int -> IO String
 petscGetVersion l = do

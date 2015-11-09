@@ -406,6 +406,10 @@ data Comm = Comm {unComm :: CInt} deriving (Eq, Show)
 
 
 
+data MpiCommSize = MpiCommSz Int deriving (Eq, Show)
+data MpiCommRank = MpiCommRk Int deriving (Eq, Show)
+data MPIComm = MPIComm Comm MpiCommSize MpiCommRank deriving (Eq, Show)
+
 
 -- -- Rank
 newtype Rank = MkRank { rankId :: CInt -- ^ Extract numeric value of the 'Rank'
