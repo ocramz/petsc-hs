@@ -18,6 +18,8 @@ import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
+import Numerical.PETSc.Internal.PutGet.Vec
+
 import Foreign
 import Foreign.C.Types
 
@@ -28,8 +30,8 @@ import Control.Arrow
 import Control.Concurrent
 import Control.Exception
 
-import Control.Monad.ST (ST, runST)
-import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
+-- import Control.Monad.ST (ST, runST)
+-- import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
 -- import qualified Data.Vector as V (Vector, freeze)
 import qualified Data.Vector.Storable as V --  (unsafeWith, unsafeFromForeignPtr, unsafeToForeignPtr)
@@ -45,9 +47,9 @@ data Dmda1dInfo =
   Dmda1dInfo {
     dmda1dComm :: !Comm,
     dmda1dBdryType :: !DMBoundaryType_,
-    dmda1dSizes :: !PetscInt_,
-    dmda1dNdofPN :: !PetscInt_,
-    dmda1dStenWidth :: !PetscInt_,
+    dmda1dSizes :: !Int,
+    dmda1dNdofPN :: !Int,
+    dmda1dStenWidth :: !Int,
     dmda1dBoundsX :: !(PetscReal_, PetscReal_)
     } deriving (Eq, Show)
 
@@ -61,9 +63,9 @@ data Dmda2dInfo =
     dmdaComm :: !Comm,
     dmdaBdryType :: !(DMBoundaryType_, DMBoundaryType_),
     dmdaStenType :: !DMDAStencilType,
-    dmdaSizes :: !(PetscInt_, PetscInt_),
-    dmdaNdofPN :: !PetscInt_,
-    dmdaStenWidth :: !PetscInt_,
+    dmdaSizes :: !(Int, Int),
+    dmdaNdofPN :: !Int,
+    dmdaStenWidth :: !Int,
     dmdaBoundsX :: !(PetscReal_, PetscReal_),
     dmdaBoundsY :: !(PetscReal_, PetscReal_)
     } deriving (Eq, Show)
@@ -120,6 +122,9 @@ dmDestroy dm = chk0 (dmDestroy' dm)
 withDm :: IO DM -> (DM -> IO a) -> IO a
 withDm dc = bracket dc dmDestroy
 
+withDmCreateGlobalVector :: DM -> (Vec -> IO a) -> IO a
+withDmCreateGlobalVector dm = withVec (dmCreateGlobalVector dm)
+
 withDmGetLocalVector :: DM -> (Vec -> IO a) -> IO a
 withDmGetLocalVector dm =
   bracket (dmGetLocalVector dm) (dmRestoreLocalVector dm)
@@ -132,31 +137,48 @@ withDmGetGlobalVector dm =
 -- | get/restore a V.Vector rather than a Vec
 
 withDmdaVecGetVector ::
-  DM -> Vec -> Int -> (V.Vector PetscScalar_ -> IO a) -> IO a
+  DM ->
+  Vec ->
+  Int ->                              -- length of vector to be copied
+  (V.Vector PetscScalar_ -> IO a) ->
+  IO a
 withDmdaVecGetVector dm v len =
-  bracket (dmdaVecGetVector dm v len) (dmdaVecRestoreVector dm v len)
+  bracket (dmdaVecGetVector dm v len) (dmdaVecRestoreVector dm v len) 
+
+-- withDmdaCornersVecGetVector ::
+--   DM -> 
+--   Vec -> 
+--   (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
+--   IO ()
+withDmdaCornersVecGetVector dm v f = do
+  (x0, len) <- dmdaGetCorners1d dm
+  x <- dmdaVecGetVector dm v len
+  y <- f x
+  dmdaVecRestoreVector dm v len y
+
+
 
 
 
 -- | composite DM -> Vec -> V.Vector -> Vec -> DM brackets
 
-withDmdaLocalVector ::
-  DM ->
-  Int ->
-  (V.Vector PetscScalar_ -> IO a) ->
-  IO a
-withDmdaLocalVector dm len body =
-  withDmGetLocalVector dm $ \v ->
-   withDmdaVecGetVector dm v len body
+-- withDmdaLocalVector ::
+--   DM ->
+--   Int ->
+--   (V.Vector PetscScalar_ -> IO a) ->
+--   IO a
+-- withDmdaLocalVector dm len body =
+--   withDmGetLocalVector dm $ \v ->
+--    withDmdaVecGetVector dm v len body
 
-withDmdaGlobalVector ::
-  DM ->
-  Int ->
-  (V.Vector PetscScalar_ -> IO a) ->
-  IO a
-withDmdaGlobalVector dm len body =
-  withDmGetGlobalVector dm $ \v ->
-   withDmdaVecGetVector dm v len body
+-- withDmdaGlobalVector ::
+--   DM ->
+--   Int ->
+--   (V.Vector PetscScalar_ -> IO a) ->
+--   IO a
+-- withDmdaGlobalVector dm len body =
+--   withDmGetGlobalVector dm $ \v ->
+--    withDmdaVecGetVector dm v len body
 
 
 
@@ -173,28 +195,29 @@ withDmdaGlobalVector dm len body =
 dmdaCreate :: Comm -> IO DM
 dmdaCreate comm = chk1 (dmdaCreate' comm)
 
-dmdaCreate1d ::
-  Comm ->             
-  DMBoundaryType_ ->  -- b : type of boundary ghost cells
-  PetscInt_ ->        -- mm : global array dimension 
-  PetscInt_ ->        -- dof : # DOF / node
-  PetscInt_ ->        -- sw : stencil width 
-  [CInt] ->           -- # nodes in X dir / processor
-  IO DM
+-- dmdaCreate1d ::
+--   Comm ->             
+--   DMBoundaryType_ ->  -- b : type of boundary ghost cells
+--   PetscInt_ ->        -- mm : global array dimension 
+--   PetscInt_ ->        -- dof : # DOF / node
+--   PetscInt_ ->        -- sw : stencil width 
+--   [CInt] ->           -- # nodes in X dir / processor
+--   IO DM
 dmdaCreate1d comm b mm dof sw lx =
-  chk1 (dmdaCreate1d' comm b mm dof sw lx)
+  chk1 (dmdaCreate1d' comm b mm' dof' sw' lx) where
+    (mm', dof', sw') = (toCInt mm, toCInt dof, toCInt sw)
 
-dmdaCreate2d ::
-  Comm ->
-  (DMBoundaryType_, DMBoundaryType_) -> -- (bx, by) : type of bdry ghost cells 
-  DMDAStencilType ->                    -- sten : box or star stencil type
-  (PetscInt_, PetscInt_) ->             -- (mm, nn) : global array dimensions
-  PetscInt_ ->                          -- dof : # DOF / node
-  PetscInt_ ->
-  IO DM
+-- dmdaCreate2d ::
+--   Comm ->
+--   (DMBoundaryType_, DMBoundaryType_) -> -- (bx, by) : type of bdry ghost cells 
+--   DMDAStencilType ->                    -- sten : box or star stencil type
+--   (PetscInt_, PetscInt_) ->             -- (mm, nn) : global array dimensions
+--   PetscInt_ ->                          -- dof : # DOF / node
+--   PetscInt_ ->                          -- stencil width
+--   IO DM
 dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
-  chk1 (dmdaCreate2d' comm bx by sten mm nn dof s)
-
+  chk1 (dmdaCreate2d' comm bx by sten mm' nn' dof' s') where
+    (mm', nn', dof', s') = (toCInt mm, toCInt nn, toCInt dof, toCInt s)
 
 
 
@@ -287,33 +310,34 @@ dmdaSetUniformCoordinates2d da (xmin, xmax) (ymin, ymax)  =
 withDmda1d ::
   Comm ->
   DMBoundaryType_ ->  -- b : type of boundary ghost cells
-  PetscInt_ ->        -- mm : global array dimension 
-  PetscInt_ ->        -- dof : # DOF / node
-  PetscInt_ ->        -- sw : stencil width 
-  [CInt] ->           -- # nodes in X dir / processor
+  Int ->        -- mm : global array dimension 
+  Int ->        -- dof : # DOF / node
+  Int ->        -- sw : stencil width 
+  [Int] ->           -- # nodes in X dir / processor
   (DM -> IO a) ->
   IO a
 withDmda1d comm b m dof sw lx =
-  bracket (dmdaCreate1d comm b m dof sw lx) dmDestroy
+  withDm (dmdaCreate1d comm b m dof sw lx')
+   where lx' = map toCInt lx 
 
 withDmda2d0 ::
   Comm ->
   (DMBoundaryType_, DMBoundaryType_) ->
   DMDAStencilType ->
-  (PetscInt_, PetscInt_) ->
-  PetscInt_ ->
-  PetscInt_ ->
+  (Int, Int) ->
+  Int ->
+  Int ->
   (DM -> IO a) ->
   IO a
 withDmda2d0 comm (bx, by) sten (m, n) dof s =
-  bracket (dmdaCreate2d comm (bx, by) sten (m, n) dof s) dmDestroy
+  withDm (dmdaCreate2d comm (bx, by) sten (m, n) dof s) 
 
 withDmda2d1 ::
   Dmda2dInfo ->
   (DM ->  IO a) ->
   IO a
 withDmda2d1 (Dmda2dInfo comm bdry sten szs dof sw _ _) =
-  bracket (dmdaCreate2d comm bdry sten szs dof sw) dmDestroy 
+  withDm (dmdaCreate2d comm bdry sten szs dof sw) 
 
 
 
@@ -328,10 +352,10 @@ withDmda2d1 (Dmda2dInfo comm bdry sten szs dof sw _ _) =
 withDmdaUniform1d ::
   Comm ->
   DMBoundaryType_ ->  -- b : type of boundary ghost cells
-  PetscInt_ ->        -- mm : global array dimension 
-  PetscInt_ ->        -- dof : # DOF / node
-  PetscInt_ ->        -- sw : stencil width 
-  [CInt] ->           -- # nodes in X dir / processor
+  Int ->        -- mm : global array dimension 
+  Int ->        -- dof : # DOF / node
+  Int ->        -- sw : stencil width 
+  [Int] ->           -- # nodes in X dir / processor
   (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
   (DM -> IO a) ->
   IO a
@@ -353,9 +377,9 @@ withDmdaUniform2d0 ::
   Comm ->
   (DMBoundaryType_, DMBoundaryType_) ->  -- b : type of boundary ghost cells
   DMDAStencilType ->
-  (PetscInt_, PetscInt_) ->    -- (m, n) : global array dimensions 
-  PetscInt_ ->                 -- dof : # DOF / node
-  PetscInt_ ->                 -- sw : stencil width 
+  (Int, Int) ->    -- (m, n) : global array dimensions 
+  Int ->                 -- dof : # DOF / node
+  Int ->                 -- sw : stencil width 
   (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
   (PetscReal_, PetscReal_) ->  -- (ymin, ymax)
   (DM -> IO a) ->
@@ -417,48 +441,27 @@ dmdaGetInfo2d da = do
 
 
 dmdaGetCorners1d ::
-  DM -> IO (PetscInt_, PetscInt_)
-dmdaGetCorners1d dm = chk1 $ dmdaGetCorners1d' dm >>= \x -> return $ f1d x
+  DM ->
+  IO (Int,     -- index of first entry
+      Int)     -- # entries
+dmdaGetCorners1d dm = do
+  t <- chk1 $ dmdaGetCorners1d' dm >>= \x -> return $ f1d x
+  return $ fromIntegralTup t
+
 
 dmdaGetCorners2d ::
-  DM -> IO ((PetscInt_, PetscInt_), (PetscInt_, PetscInt_))
-dmdaGetCorners2d dm = chk1 $ dmdaGetCorners2d' dm >>= \x -> return $ f2d x
+  DM ->
+  IO ((Int,    -- 1. dim, index of 1st entry
+       Int),   -- ", # entries
+      (Int,    -- 2. dim, index of 1st entry
+       Int))   -- ", # entries
+dmdaGetCorners2d dm = do
+  x <- chk1 $ dmdaGetCorners2d' dm >>= \x -> return $ f2d x
+  return $ fromIntegralTup2 x
 
 dmdaGetCorners3d ::
-  DM -> IO ((PetscInt_, PetscInt_, PetscInt_), (PetscInt_, PetscInt_, PetscInt_))
-dmdaGetCorners3d dm = chk1 $ dmdaGetCorners3d' dm >>= \x -> return $ f3d x 
-
-
-
-
-
-
-
-
-
-
-
-
--- | DMDA local and global Vectors
-
--- dmCreateGlobalVector dm = chk1 (dmCreateGlobalVector' dm)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  DM -> IO ((Int,Int,Int), (Int,Int,Int))
+dmdaGetCorners3d dm = do
+  x <- chk1 $ dmdaGetCorners3d' dm >>= \x -> return $ f3d x
+  return $ fromIntegralTup3 x
 

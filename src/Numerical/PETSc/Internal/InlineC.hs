@@ -277,23 +277,6 @@ vecAssemblyEnd' v = [C.exp|int{VecAssemblyEnd($(Vec v))}|]
 
 -- -- -- vecAssembly' = (,) <$> vecAssemblyBegin <*> vecAssemblyEnd 
 
--- withVec :: Comm -> (Vec -> IO a) -> IO a
--- withVec c = bracket (vecCreate c) vecDestroy
-
--- -- withVecPipeline :: Comm -> CInt -> (Vec -> IO a) -> (Vec -> IO c) -> IO c
--- withVecPipeline c nDim pre f = bracket (vecCreate c) vecDestroy $ \v -> do
---   vecSetSizes v (fromIntegral $ abs nDim)
---   pre v
---   vecAssembly v
---   f v
-
--- -- withVecMPIPipeline :: Comm -> CInt -> (Vec -> IO a) -> (Vec -> IO c) -> IO c
--- withVecMPIPipeline c nDim pre post = bracket (vecCreateMPILocal c nDim) vecDestroy $ \v -> do
---   pre v
---   vecAssembly v
---   post v
-
-
 vecSet1 v n = [C.exp|int{VecSet( $(Vec v), $(PetscScalar n))}|] 
 
 vecSetSizes1 v n = [C.exp|int{VecSetSizes( $(Vec v), PETSC_DECIDE, $(int n))}|] 
@@ -425,17 +408,6 @@ vecRestoreArray' v c = withArray c $ \cp ->
 
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArrayRead(Vec,const PetscScalar**);
-
--- withVecGetArray :: Vec -> Int -> ([PetscScalar_] -> IO c) -> IO c
--- withVecGetArray v sz
---   | sz >0 =  bracket (vecGetArray v sz) (vecRestoreArray v)
---   | otherwise = error "withVecGetArray: temp array size must be nonnegative"
-
--- withVecGetArraySafe v =
---   bracket (vecGetArray v sz) (vecRestoreArray v)  where
---    sz = vecSize v
-
-
 
 
 
@@ -627,8 +599,6 @@ matCreate' = matCreate0'
 matDestroy0' m = [C.exp|int{MatDestroy($(Mat *m))}|]
 matDestroy' m = with m matDestroy0' 
 
--- withMat :: Comm -> (Mat -> IO a) -> IO a
--- withMat c = bracket (matCreate c) matDestroy
 
 matSetSizes' :: Mat -> Int -> Int -> IO CInt
 matSetSizes' mat m n = [C.exp|int{MatSetSizes($(Mat mat), PETSC_DECIDE, PETSC_DECIDE,
@@ -732,13 +702,6 @@ matCreateMPIAIJWithArrays' comm i j a =
         m = fromIntegral $ length i -- # local rows
         n = fromIntegral $ length j -- # local rows
 
--- withMatMPIAIJWithArrays comm i j a =
---   bracket (matCreateMPIAIJWithArrays comm i j a) matDestroy
-
--- withMatMPIAIJWithArraysPipeline comm i j a body =
---   withMatMPIAIJWithArrays comm i j a $ \mat -> do
---     matAssembly mat
---     body mat
 
 
 matViewStdout' v = [C.exp|int{MatView($(Mat v), PETSC_VIEWER_STDOUT_SELF)}|]
@@ -805,12 +768,30 @@ matSetFromOptions p = [C.exp| int{MatSetFromOptions($(Mat p))} |]
 -- -- nnz	- array containing the number of nonzeros in the various rows (possibly different for each row) or NULL
 -- -- -- NB : If nnz is given then nz is ignored
 
-matSeqAIJSetPreallocation mat nz nnz =
+matSeqAIJSetPreallocation' mat nz nnz =
     withArray nnz ( \nnzp ->
                      [C.exp|int{MatSeqAIJSetPreallocation( $(Mat mat),
-                                                           $(PetscInt nz),
-                                                           $(PetscInt *nnzp))} |]
+                                                           $(int nz),
+                                                           $(int *nnzp))} |]
                   ) 
+
+
+-- PetscErrorCode  MatMPIAIJSetPreallocation(Mat B,PetscInt d_nz,const PetscInt d_nnz[],PetscInt o_nz,const PetscInt o_nnz[])  -- Collective on MPI_Comm
+-- Input Parameters :
+-- B	- the matrix
+-- d_nz	- number of nonzeros per row in DIAGONAL portion of local submatrix (same value is used for all local rows)
+-- d_nnz	- array containing the number of nonzeros in the various rows of the DIAGONAL portion of the local submatrix (possibly different for each row) or NULL (PETSC_NULL_INTEGER in Fortran), if d_nz is used to specify the nonzero structure. The size of this array is equal to the number of local rows, i.e 'm'. For matrices that will be factored, you must leave room for (and set) the diagonal entry even if it is zero.
+-- o_nz	- number of nonzeros per row in the OFF-DIAGONAL portion of local submatrix (same value is used for all local rows).
+-- o_nnz	- array containing the number of nonzeros in the various rows of the OFF-DIAGONAL portion of the local submatrix (possibly different for each row) or NULL (PETSC_NULL_INTEGER in Fortran), if o_nz is used to specify the nonzero structure. The size of this array is equal to the number of local rows, i.e 'm'.
+-- If the *_nnz parameter is given then the *_nz parameter is ignored
+matMPIAIJSetPreallocation' b dnz dnnz onz onnz =
+  withArray dnnz $ \dnnzp ->
+  withArray onnz $ \onnzp ->
+  [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
+                                       $(int dnz),
+                                       $(int* dnnzp),
+                                       $(int onz),
+                                       $(int* onnzp))}|]
 
 
 
@@ -1033,9 +1014,6 @@ dmCreate' comm = withPtr ( \dm -> [C.exp|int{DMCreate($(int c), $(DM* dm))} |] )
 
 dmDestroy' dm = with dm ( \dmp -> [C.exp|int{DMDestroy($(DM* dmp))}|] ) 
 
--- withDm comm = bracket (dmCreate comm) dmDestroy
-
-
 -- -- DMCreate* are for setting up longer-lived data
 -- -- DMGet* and DMRestore* are for temporary access (always go in pairs)
 
@@ -1057,8 +1035,6 @@ dmGetLocalVector' dm = withPtr ( \v -> [C.exp|int{DMGetLocalVector($(DM dm),$(Ve
 -- PETSC_EXTERN PetscErrorCode DMRestoreLocalVector(DM,Vec *);
 dmRestoreLocalVector' dm vv = with vv ( \v -> [C.exp|int{DMRestoreLocalVector($(DM dm),$(Vec* v))}|]) 
 
--- withDmLocalVector dm = bracket (dmGetLocalVector dm) (dmRestoreLocalVector dm)
-
 
 -- PETSC_EXTERN PetscErrorCode DMGetGlobalVector(DM,Vec *);
 dmGetGlobalVector' dm = withPtr ( \v -> [C.exp|int{DMGetGlobalVector($(DM dm),$(Vec* v))}|])
@@ -1067,19 +1043,10 @@ dmGetGlobalVector' dm = withPtr ( \v -> [C.exp|int{DMGetGlobalVector($(DM dm),$(
 dmRestoreGlobalVector' dm vv = with vv ( \v -> [C.exp|int{DMRestoreGlobalVector($(DM dm),$(Vec* v))}|]) 
 
 
--- withDmGlobalVector dm = bracket (dmGetGlobalVector dm) (dmRestoreGlobalVector dm)
-
-
--- withDmCreateGlobalVector dm = bracket (dmCreateGlobalVector dm) vecDestroy
-
--- withDmCreateLocalVector dm = bracket (dmCreateLocalVector dm) vecDestroy
-
-
 
 dmCreateMatrix' dm mat = [C.exp|int{DMCreateMatrix($(DM dm),$(Mat* mat))}|]
 dmCreateMatrix dm = withPtr (dmCreateMatrix' dm) 
 
--- withDmCreateMatrix dm = bracket (dmCreateMatrix dm) matDestroy
 
 
 -- PetscErrorCode DMGetCoordinates(DM dm, Vec *c)
@@ -1159,9 +1126,6 @@ dmdaCreate1d' comm bx m dof s lx_ =
   where c = unComm comm
         bxe = toEnum $ dmBoundaryTypeToInt bx
 
--- withDmda1d comm bx m dof s lx =
---   bracket (dmdaCreate1d comm bx m dof s lx) dmDestroy
-
 
 
 -- PetscErrorCode  DMDACreate2d(MPI_Comm comm,DMBoundaryType bx,DMBoundaryType by,DMDAStencilType stencil_type, PetscInt M,PetscInt N,PetscInt m,PetscInt n,PetscInt dof,PetscInt s,const PetscInt lx[],const PetscInt ly[],DM *da)
@@ -1214,9 +1178,6 @@ dmdaCreate2d0' comm bx by sten mm nn m n dof s lx_ ly_ =
 -- (customary in PETSc examples )
 dmdaCreate2d' c bx by sten mm nn dof s =
   dmdaCreate2d0' c bx by sten mm nn petscDecide petscDecide dof s [] []
-
--- withDmda2d comm bx by sten mm nn dof s =
---   bracket (dmdaCreate2d' comm bx by sten mm nn dof s) dmDestroy
 
 
 
@@ -1546,8 +1507,6 @@ kspSetType' ksp kt = withCString strk $ \strp -> [C.exp|int{KSPSetType($(KSP ksp
 
 kspDestroy0' p = [C.exp| int{KSPDestroy($(KSP *p))}  |]
 kspDestroy' p = with p kspDestroy0' 
-
--- withKsp c = bracket (kspCreate c) kspDestroy
 
 -- withKspSetupSolve c mat1 mat2 ignz kt x v post = withKsp c $ \ksp -> do
 --   kspSetOperators ksp mat1 mat2
@@ -1907,18 +1866,6 @@ snesGetSolution' s = withPtr ( \v ->
 
 
 
--- withSnes comm = bracket (snesCreate comm) snesDestroy
-
--- withSnesSetupSolve comm st b x pre post = 
---   withSnes comm $ \s -> do
---    snesSetType s st
---    snesSetUp s
---    -- missing : function, Jacobian
---    pre s
---    snesSolve s b x
---    post s
-
-
 
 
 
@@ -2083,8 +2030,6 @@ tsCreate' comm =
 
 tsDestroy0' ts = [C.exp| int{TSDestroy($(TS* ts))} |] 
 tsDestroy' ts = with ts tsDestroy0'
-
--- withTs c = bracket (tsCreate c) tsDestroy
 
 
 -- PetscErrorCode  TSSetProblemType(TS ts, TSProblemType type)
@@ -2347,8 +2292,6 @@ taoCreate' comm = withPtr (\p -> [C.exp| int{TaoCreate($(int c), $(Tao *p))} |] 
   c = unComm comm
 
 taoDestroy' p = with p ( \pp -> [C.exp| int{TaoDestroy($(Tao *pp))}  |] ) 
-
--- withTao c = bracket (taoCreate c) taoDestroy
 
 taoSetType' tao ti = withCString ti_ ( \tip -> [C.exp|int{TaoSetType($(Tao tao), $(char* tip ))}|] )
   where
@@ -2855,17 +2798,7 @@ petscSynchronizedFlushStdout comm =
 
 -- * misc parallelism stuff
 
--- localRange :: Comm -> Int -> (Int, Int)
--- localRange c m = ( istart, iend) where
---   istart = cr * (m `div` cs) + if t < cr then t else cr
---   iend = istart + (m `div` cs) + if t > cr then 1 else 0
---   cr = fromIntegral $ rankId ( mpiCommRank c )
---   cs = fromIntegral $ mpiCommSize c
---   t = m `mod` cs
 
-
-  -- start = rank*(mm /size) + ((mm %size) < rank ? (mm %size) : rank);
-  -- end   = start + mm /size + ((mm %size) > rank);
 
 
 

@@ -317,6 +317,14 @@ matSetSizes mat m n
 
 
 
+matSeqAIJSetPreallocation mat nz nnz = chk0 (matSeqAIJSetPreallocation' mat nz nnz)
+
+matMPIAIJSetPreallocation mat dnz dnnz onz onnz =
+  chk0 (matMPIAIJSetPreallocation' mat dnz dnnz onz onnz)
+
+
+
+
 
 
 

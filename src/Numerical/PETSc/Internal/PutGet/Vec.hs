@@ -341,12 +341,21 @@ vecCopyDuplicate v = do
   x <- vecDuplicate v
   vecCopy v x
 
+
+
+
+withVecDuplicate :: Vec -> (Vec -> IO a) -> IO a
+withVecDuplicate v = withVec (vecDuplicate v)
+
 withVecCopyDuplicate :: Vec -> (Vec -> IO a) -> IO a
 withVecCopyDuplicate v = withVec (vecCopyDuplicate v) 
 
 withVecNew :: Comm -> V.Vector PetscScalar_ -> (Vec -> IO a) -> IO a
 withVecNew comm v =
   withVec (vecCreateMPIFromVectorDecideLocalSize comm v)
+
+
+
 
 
 
@@ -630,17 +639,14 @@ vecRestoreVector v w = do
 
 -- get the first n entries
 
-vecGetVectorN :: Vec -> Int -> IO (Maybe (VS.Vector PetscScalar_))
+vecGetVectorN :: Vec -> Int -> IO (VS.Vector PetscScalar_)
 vecGetVectorN v n
   | n > 0 && n <= len = do
      p <- vecGetArrayPtr v
      pf <- newForeignPtr_ p
-     y <- VS.freeze (VM.unsafeFromForeignPtr0 pf n)
-     return $ Just y
-  | otherwise = return Nothing
-       where
-         len = vecSize v
-
+     VS.freeze (VM.unsafeFromForeignPtr0 pf n)
+  | otherwise = error "vecGetVectorN :" where
+     len = vecSize v
 
 
 

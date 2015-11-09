@@ -211,6 +211,35 @@ t7 = withPetsc0 t7'
 --    where
 --      cw = commWorld
 
+--
+
+-- | SNES ex.3
+--    www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex3.c.html
+
+snesEx3 = do           
+  let n = 10
+      h = 1 / fromIntegral (n-1)
+      snesFunc = undefined
+      snesJacF = undefined
+  withDmda1d cw DmBNone n 1 1 [] $ \da ->             -- DA
+   withMatCreateSetup cw n n $ \jac -> do             -- Jacobian
+    matSeqAIJSetPreallocation jac 3 []               -- " preallocation
+    withDmCreateGlobalVector da $ \x ->              -- solution
+     withVecDuplicate x $ \r ->
+     withVecDuplicate x $ \f ->
+     withVecDuplicate x $ \u -> do
+       (xs, xm) <- dmdaGetCorners1d da
+       let xp = h*xs 
+       withSnesCreateSetup cw x jac jac snesFunc snesJacF $ \snes ->
+         return
+
+
+          where
+            cw = commWorld
+
+
+-- t8 = withPetsc0 snesEx3
+
 
 
 
