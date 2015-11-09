@@ -209,12 +209,18 @@ liftVectorF f s vec = do
 snesSetUp :: SNES -> IO ()
 snesSetUp snes = chk0 $ snesSetUp' snes
 
-snesSolve ::
+snesSolve ::  -- solve F(x) = b
   SNES ->
   Vec ->   -- r.h.s
   Vec ->   -- solution (WILL BE OVERWRITTEN)
   IO ()
 snesSolve snes rhsv solnv = chk0 $ snesSolve' snes rhsv solnv
+
+snesSolve0 ::  -- this version assumes b = 0
+  SNES ->
+  Vec ->
+  IO ()
+snesSolve0 snes solnv = chk0 $ snesSolve0' snes solnv
 
 snesGetSolution :: SNES -> IO Vec
 snesGetSolution snes = chk1 $ snesGetSolution' snes

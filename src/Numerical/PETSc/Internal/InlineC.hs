@@ -1859,6 +1859,9 @@ snesSetUp' s = [C.exp|int{SNESSetUp($(SNES s))}|]
 -- PETSC_EXTERN PetscErrorCode SNESSolve(SNES,Vec,Vec);
 snesSolve' s b x = [C.exp|int{SNESSolve($(SNES s), $(Vec b), $(Vec x))}|]
 
+snesSolve0' s x = [C.exp|int{SNESSolve($(SNES s), NULL, $(Vec x))}|]
+
+
 
 -- PETSC_EXTERN PetscErrorCode SNESGetSolution(SNES,Vec*);
 snesGetSolution' s = withPtr ( \v ->

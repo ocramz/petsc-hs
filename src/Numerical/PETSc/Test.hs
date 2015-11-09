@@ -228,10 +228,13 @@ snesEx3 = do
      withVecDuplicate x $ \r ->
      withVecDuplicate x $ \f ->
      withVecDuplicate x $ \u -> do
-       (xs, xm) <- dmdaGetCorners1d da
-       let xp = h*xs 
-       withSnesCreateSetup cw x jac jac snesFunc snesJacF $ \snes ->
-         return
+       (xs, lenLocal) <- dmdaGetCorners1d da
+       let xp = h * (fromIntegral xs)
+       withDmdaVecGetVector da f lenLocal $ \ff ->
+        withDmdaVecGetVector da u lenLocal $ \uu ->
+         withSnesCreateSetup cw x jac jac snesFunc snesJacF $ \snes ->
+
+          snesSolve snes x x
 
 
           where
