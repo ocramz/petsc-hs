@@ -33,7 +33,8 @@ import Control.Exception
 import Control.Monad.ST (ST, runST)
 import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
-import qualified Data.Vector.Storable as V 
+import qualified Data.Vector as V
+import qualified Data.Vector.Storable as VS 
 
 
 
@@ -70,8 +71,9 @@ snesCreateSetup comm v amat pmat f fj = do
 
 snesFunctionAdapter vIn vOut ix fv = do    --- | what type for this contraption?
   x <- vecGetVector vIn
-  let y = fv (V.convert x)
-  vecSetValuesUnsafeVector vOut ix y InsertValues
+  let y = fv x
+      ixy = V.zip ix y
+  vecSetValuesUnsafeVector1A vOut ixy InsertValues
 
 
 
