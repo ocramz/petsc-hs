@@ -14,5 +14,6 @@ module Numerical.PETSc.Internal.Storable.Matrix where
 
 import Numerical.PETSc.Internal.Utils
 import Numerical.PETSc.Internal.Storable.Store
+import Numerical.PETSc.Internal.Storable.Vector
 
 import Control.Monad

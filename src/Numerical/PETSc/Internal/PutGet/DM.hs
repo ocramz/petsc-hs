@@ -118,13 +118,39 @@ dmDestroy dm = chk0 (dmDestroy' dm)
 withDm :: IO DM -> (DM -> IO a) -> IO a
 withDm dc = bracket dc dmDestroy
 
+withDmGetLocalVector :: DM -> (Vec -> IO a) -> IO a
+withDmGetLocalVector dm =
+  bracket (dmGetLocalVector dm) (dmRestoreLocalVector dm)
+
+withDmGetGlobalVector :: DM -> (Vec -> IO a) -> IO a    
+withDmGetGlobalVector dm =
+  bracket (dmGetGlobalVector dm) (dmRestoreGlobalVector dm)
+
+
+-- | get/restore a V.Vector rather than a Vec
+
+withDmdaVecGetVector ::
+  DM -> Vec -> Int -> (V.Vector PetscScalar_ -> IO a) -> IO a
+withDmdaVecGetVector dm v len =
+  bracket (dmdaVecGetVector dm v len) (dmdaVecRestoreVector dm v len)
 
 
 
+-- | composite DM -> Vec -> V.Vector -> Vec -> DM brackets
 
+withDmdaLocalVector ::
+  DM ->
+  Int ->
+  (V.Vector PetscScalar_ -> IO a) ->
+  IO a
+withDmdaLocalVector dm len body =
+  withDmGetLocalVector dm $ \v ->
+   withDmdaVecGetVector dm v len body
 
-
-
+withDmdaGlobalVector :: DM -> Int -> (V.Vector PetscScalar_ -> IO a) -> IO a
+withDmdaGlobalVector dm len body =
+  withDmGetGlobalVector dm $ \v ->
+   withDmdaVecGetVector dm v len body
 
 
 
@@ -196,8 +222,8 @@ dmdaVecGetVector dm v len = do
   V.freeze (VM.unsafeFromForeignPtr0 pf len)
 
 
-dmdaVecRestoreVector :: DM -> Vec -> V.Vector PetscScalar_ -> Int -> IO ()
-dmdaVecRestoreVector dm v w len = do
+dmdaVecRestoreVector :: DM -> Vec -> Int -> V.Vector PetscScalar_ -> IO ()
+dmdaVecRestoreVector dm v len w = do
   p <- dmdaVecGetArrayPtr dm v
   pf <- newForeignPtr_ p
   V.copy (VM.unsafeFromForeignPtr0 pf len) w

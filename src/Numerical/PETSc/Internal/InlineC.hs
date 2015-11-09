@@ -1043,7 +1043,13 @@ dmCreateGlobalVector' dm = withPtr ( \v -> [C.exp|int{DMCreateGlobalVector($(DM 
 -- PETSC_EXTERN PetscErrorCode DMCreateLocalVector(DM,Vec*);
 dmCreateLocalVector' dm = withPtr ( \v -> [C.exp|int{DMCreateLocalVector($(DM dm), $(Vec* v))}|]) 
 
+
 -- PETSC_EXTERN PetscErrorCode DMGetLocalVector(DM,Vec *);
+-- The vector values are NOT initialized and may have garbage in them, so you may need to zero them.
+-- The output parameter, g, is a regular PETSc vector that should be returned with DMRestoreLocalVector() DO NOT call VecDestroy() on it.
+-- This is intended to be used for vectors you need for a short time, like within a single function call. For vectors that you intend to keep around (for example in a C struct) or pass around large parts of your code you should use DMCreateLocalVector().
+-- VecStride*() operations can be useful when using DM with dof > 1
+
 dmGetLocalVector' dm = withPtr ( \v -> [C.exp|int{DMGetLocalVector($(DM dm),$(Vec* v))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode DMRestoreLocalVector(DM,Vec *);
@@ -1373,6 +1379,20 @@ dmdaVecRestoreArray' dm v arr_ =
 
 
 
+-- PetscErrorCode  DMGlobalToLocalBegin(DM dm,Vec g,InsertMode mode,Vec l)
+-- Neighbor-wise Collective on DM
+-- Input Parameters : 
+-- dm	- the DM object
+-- g	- the global vector
+-- mode	- INSERT_VALUES or ADD_VALUES
+-- l	- the local vector
+dmGlobalToLocalBegin dm g mode l = [C.exp|int{DMGlobalToLocalBegin($(DM dm),$(Vec g),$(int imode),$(Vec l))}|] where
+  imode = toCInt $ insertModeToInt mode
+
+
+-- PetscErrorCode  DMGlobalToLocalEnd(DM dm,Vec g,InsertMode mode,Vec l)
+dmGlobalToLocalEnd dm g mode l = [C.exp|int{DMGlobalToLocalEnd($(DM dm),$(Vec g),$(int imode),$(Vec l))}|] where
+  imode = toCInt $ insertModeToInt mode
 
 -- PetscErrorCode DMDASNESSetFunctionLocal(DM dm,InsertMode imode,PetscErrorCode (*func)(DMDALocalInfo*,void*,void*,void*),void *ctx)  -- Logically Collective
 -- Input Arguments :
