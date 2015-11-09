@@ -68,6 +68,10 @@ snesCreateSetup comm v amat pmat f fj = do
 
 
 
+snesFunctionAdapter vIn vOut ix fv = do    --- | what type for this contraption?
+  x <- vecGetVector vIn
+  let y = fv (V.convert x)
+  vecSetValuesUnsafeVector vOut ix y InsertValues
 
 
 

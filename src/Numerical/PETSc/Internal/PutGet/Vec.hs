@@ -436,13 +436,9 @@ vecSetValuesUnsafeVector1 ::
   V.Vector (Int, PetscScalar_) ->      -- (idx, value)
   InsertMode_ ->
   IO ()
-vecSetValuesUnsafeVector1 v ixy im =
-  VS.unsafeWith ixc $ \ixx ->
-   VS.unsafeWith yc $ \yy -> chk0 (vecSetValues' v ni ixx yy im)
+vecSetValuesUnsafeVector1 v ixy =
+  vecSetValuesUnsafeVector v ix y
     where
-      ni = toCInt (V.length ix)
-      ixc = V.convert $ V.map toCInt ix
-      yc = V.convert y
       (ix, y) = V.unzip ixy
 
 
