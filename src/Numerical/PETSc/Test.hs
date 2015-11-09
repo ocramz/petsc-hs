@@ -24,8 +24,11 @@ import Foreign
 
 import qualified Data.Vector.Storable as VS
 -- import qualified Data.Vector.Storable.Mutable as VM
-import qualified Data.Vector as V 
+import qualified Data.Vector as V
+import qualified Data.Vector.Generic as VG
 
+-- import Control.Applicative
+import Control.Arrow ((***),(&&&))
 import Control.Monad
 
 import Control.Monad.Trans.Class
@@ -216,7 +219,16 @@ t7 = withPetsc0 t7'
 -- | SNES ex.3
 --    www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex3.c.html
 
-snesEx3 = do           
+-- t8rhsAndSolution :: (Storable a, Num a, Enum a) => Int -> Float -> Int -> VS.Vector a
+
+
+
+
+
+iot :: (Storable a, Num a, Enum a) => a -> a -> Int -> VS.Vector a
+iot x0 h n = VS.fromList $ take n [x0, x0+h ..]
+
+t8snesEx3 = do           
   let n = 10
       h = 1 / fromIntegral (n-1)
       snesFunc = undefined
@@ -230,18 +242,21 @@ snesEx3 = do
      withVecDuplicate x $ \u -> do
        (xs, lenLocal) <- dmdaGetCorners1d da
        let xp = h * (fromIntegral xs)
-       withDmdaVecGetVector da f lenLocal $ \ff ->
-        withDmdaVecGetVector da u lenLocal $ \uu ->
-         withSnesCreateSetup cw x jac jac snesFunc snesJacF $ \snes ->
+           localIdx :: VS.Vector PetscScalar_
+           localIdx = iot xp h (fromIntegral lenLocal)
+           f1 x = 6*x + (x + 1e-12)^6
+           u1 x = x^3
+           (f_, u_) = (VS.map f1 localIdx, VS.map u1 localIdx)
+       dmdaVecReplaceWVectorF da f lenLocal (return f_)
+       -- dmdaVecReplaceWVectorF da u lenLocal (return u_)
+       withSnesCreateSetup cw x jac jac snesFunc snesJacF $ \snes ->
 
-          snesSolve snes x x
-
-
+        snesSolve snes x x
           where
             cw = commWorld
 
 
--- t8 = withPetsc0 snesEx3
+-- t8 = withPetsc0 t8snesEx3
 
 
 

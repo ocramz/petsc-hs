@@ -145,11 +145,26 @@ withDmdaVecGetVector ::
 withDmdaVecGetVector dm v len =
   bracket (dmdaVecGetVector dm v len) (dmdaVecRestoreVector dm v len) 
 
--- withDmdaCornersVecGetVector ::
---   DM -> 
---   Vec -> 
---   (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
---   IO ()
+
+
+-- | overwrite local vector of values taken from Vec bound to DM
+
+dmdaVecReplaceWVectorF ::
+  DM ->
+  Vec ->
+  Int ->
+  (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
+  IO ()
+dmdaVecReplaceWVectorF dm v len f = do
+  x <- dmdaVecGetVector dm v len
+  y <- f x
+  dmdaVecRestoreVector dm v len y
+
+withDmdaCornersVecGetVector ::
+  DM -> 
+  Vec -> 
+  (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
+  IO ()
 withDmdaCornersVecGetVector dm v f = do
   (x0, len) <- dmdaGetCorners1d dm
   x <- dmdaVecGetVector dm v len
