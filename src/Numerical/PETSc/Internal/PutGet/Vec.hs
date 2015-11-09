@@ -180,6 +180,7 @@ vcmpi comm vdata = do
 {- we want to manage a resource of type `a` :
 new : x -> IO a
 with : IO a -> (a -> IO b) -> IO b
+modify : IO a -> (a -> IO b) -> IO ()
 cleanup : a -> IO () 
 -}
 
@@ -407,10 +408,21 @@ safeInsertIndicesVec f v ix_ y_  im
 
 
 
+
+
+
+
+
+
+
 -- | setting Vec values, Data.Vector interface
 
 vecSetValuesUnsafeVector ::
-  Vec -> V.Vector Int -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
+  Vec ->
+  V.Vector Int ->
+  V.Vector PetscScalar_ ->            -- NB! `y` must be same size as `ix`
+  InsertMode_ ->
+  IO ()
 vecSetValuesUnsafeVector v ix y im =
   VS.unsafeWith ixc $ \ixx ->
    VS.unsafeWith yc $ \yy -> chk0 (vecSetValues' v ni ixx yy im)
@@ -420,7 +432,10 @@ vecSetValuesUnsafeVector v ix y im =
       yc = V.convert y
 
 vecSetValuesUnsafeVector1 ::
-  Vec -> V.Vector (Int, PetscScalar_) -> InsertMode_ -> IO ()
+  Vec ->
+  V.Vector (Int, PetscScalar_) ->      -- (idx, value)
+  InsertMode_ ->
+  IO ()
 vecSetValuesUnsafeVector1 v ixy im =
   VS.unsafeWith ixc $ \ixx ->
    VS.unsafeWith yc $ \yy -> chk0 (vecSetValues' v ni ixx yy im)
@@ -429,6 +444,38 @@ vecSetValuesUnsafeVector1 v ixy im =
       ixc = V.convert $ V.map toCInt ix
       yc = V.convert y
       (ix, y) = V.unzip ixy
+
+
+
+
+
+
+
+
+-- | "Assembly" typeclass ?
+
+
+{- what if we forget to assemble Vec ? CLASS Assembly : data that needs to be assembled before use -}
+
+
+
+
+
+
+
+-- | set Vec values via (idx, value) Vector + assemble
+
+vecSetValuesUnsafeVector1A ::
+  Vec ->
+  V.Vector (Int, PetscScalar_) ->
+  InsertMode_ ->
+  IO Vec
+vecSetValuesUnsafeVector1A v ixy im = do
+  vecSetValuesUnsafeVector1 v ixy im
+  vecAssemblyChk v                   
+  return v 
+
+
 
 
 
