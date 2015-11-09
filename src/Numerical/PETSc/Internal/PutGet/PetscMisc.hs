@@ -112,3 +112,37 @@ petscGetVersion l = do
     peekCString p
     where
      pgv v sz = chk0 (petscGetVersion0' v sz)
+
+
+getCString :: Int -> (Ptr CChar -> IO a) -> IO String
+getCString l act = do
+  fp <- mallocPlainForeignPtrBytes l
+  withForeignPtr fp $ \p -> do
+    act p
+    peekCString p
+
+
+
+-- | Error messages :
+-- text strings directly from PETSc 
+-- -- usually we generate them using the CInt return code (see Internal.Exception)
+
+{-
+BROKEN :
+
+petscErrorMessage :: Int -> IO String
+petscErrorMessage n = alloca $ \p -> do
+  chk0 $ petscErrorMessage' (toCInt n) p
+  x <- peek p
+  peekCString x
+
+-- petscErrorMessage n = do
+--   (x, _) <- withPtr $ \p -> chk0 (petscErrorMessage' (toCInt n) p)
+--   peekCString x
+
+-- pem n len = getCString len (\p -> chk0 (petscErrorMessage' (toCInt n) p))
+
+-- petscErrorMessage n = getCString n $ \p l ->
+--   petscErrorMessage' (toCInt l) p
+-
+-}
