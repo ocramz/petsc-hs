@@ -147,7 +147,11 @@ withDmdaLocalVector dm len body =
   withDmGetLocalVector dm $ \v ->
    withDmdaVecGetVector dm v len body
 
-withDmdaGlobalVector :: DM -> Int -> (V.Vector PetscScalar_ -> IO a) -> IO a
+withDmdaGlobalVector ::
+  DM ->
+  Int ->
+  (V.Vector PetscScalar_ -> IO a) ->
+  IO a
 withDmdaGlobalVector dm len body =
   withDmGetGlobalVector dm $ \v ->
    withDmdaVecGetVector dm v len body
@@ -156,15 +160,11 @@ withDmdaGlobalVector dm len body =
 
 
 
+
+
+
+
 -- -- * DMDA 
-
-
-
-
-
-
-
-
 
 -- | create DMDA 
 
@@ -409,10 +409,22 @@ dmdaGetInfo2d da = do
   (d,(mm,nn,_),(m,n,_),dof,s,(bx,by,_),st) <- dmdaGetInfo3d da
   return (d,(mm,nn),(m,n),dof,s,(bx,by),st)
 
+-- dmdaGetInfo1d da = do       -- not sure good idea
+--   (d,(mm,_,_),(m,_,_),dof,s,(bx,_,_),st) <- dmdaGetInfo3d da
+--   return (d, mm , m ,dof,s, bx ,st)
 
 
+dmdaGetCorners1d ::
+  DM -> IO (PetscInt_, PetscInt_)
+dmdaGetCorners1d dm = chk1 $ dmdaGetCorners1d' dm >>= \x -> return $ f1d x
 
+dmdaGetCorners2d ::
+  DM -> IO ((PetscInt_, PetscInt_), (PetscInt_, PetscInt_))
+dmdaGetCorners2d dm = chk1 $ dmdaGetCorners2d' dm >>= \x -> return $ f2d x
 
+dmdaGetCorners3d ::
+  DM -> IO ((PetscInt_, PetscInt_, PetscInt_), (PetscInt_, PetscInt_, PetscInt_))
+dmdaGetCorners3d dm = chk1 $ dmdaGetCorners3d' dm >>= \x -> return $ f3d x 
 
 
 

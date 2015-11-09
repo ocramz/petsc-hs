@@ -406,6 +406,7 @@ data Comm = Comm {unComm :: CInt} deriving (Eq, Show)
 
 
 
+
 -- -- Rank
 newtype Rank = MkRank { rankId :: CInt -- ^ Extract numeric value of the 'Rank'
                       }

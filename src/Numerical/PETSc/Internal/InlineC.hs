@@ -31,6 +31,8 @@ import           Foreign.C.Types
 import           Foreign.C.String
 -- import qualified Foreign.ForeignPtr.Safe           as FPS
 
+import qualified Data.ByteString as BS
+
 import qualified Data.Vector.Storable              as V
 import qualified Data.Vector.Storable.Mutable      as VM
 
@@ -1268,10 +1270,6 @@ dmdaGetCorners3d' dm =
 f1d (a, (b, c)) = ((a, b), c)
 f2d (a,(b,(c,(d,e)))) = (((a,b), (c, d)), e)
 f3d (a, (b, (c, (d, (e, (f, g)))))) = (((a, b, c), (d, e, f)), g)
-
--- dmdaGetCorners1d dm = dmdaGetCorners1d' dm >>= \l -> f1d l
--- dmdaGetCorners2d dm = dmdaGetCorners2d' dm >>= \l -> f2d l
--- dmdaGetCorners3d dm = dmdaGetCorners3d' dm >>= \l -> f3d l
 
 
 -- PETSC_EXTERN PetscErrorCode DMDAGetGhostCorners(DM,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
@@ -2741,12 +2739,6 @@ withPetsc0'' f =
   
 withPetsc01' = bracket_ petscInit01 petscFin1 -- returns IO a
 
--- withPetsc :: Argv -> OptsStr -> HelpStr -> IO a -> IO ()
--- withPetsc argv opts help f = do
---   petscInitialize argv opts help
---   f
---   petscFin
-
 withPetsc' :: Argv -> OptsStr -> HelpStr -> IO a -> IO a
 withPetsc' a o h = bracket_ (petscInitialize1 a o h) petscFin1
 
@@ -2757,12 +2749,31 @@ withPetsc'' a o h f = petscInitialize1 a o h >> (f `finally` petscFin1)
 
 
 
--- * error codes
+
+
+
+-- | version string
+
+-- -- PetscErrorCode PetscGetVersion(char version[], size_t len)
+petscGetVersion0' version szt =
+  [C.exp|int{PetscGetVersion($(char* version), $(int szt))}|]
+
+
+
+
+
+
+
+-- | error codes
 
 -- -- PETSC_EXTERN PetscErrorCode PetscErrorMessage(int,const char*[],char **);
 
 petscErrorMessage' nn mp =
   [C.exp|int{PetscErrorMessage($(int nn), $(char** mp), NULL)} |]
+
+
+
+
 
 
 -- PETSC_EXTERN PetscErrorCode PetscMemoryShowUsage(PetscViewer,const char[]);
