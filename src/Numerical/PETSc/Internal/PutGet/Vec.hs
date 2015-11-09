@@ -16,22 +16,22 @@ import           Numerical.PETSc.Internal.InlineC
 import           Numerical.PETSc.Internal.Types
 import           Numerical.PETSc.Internal.Exception
 import           Numerical.PETSc.Internal.Utils
-import           Numerical.PETSc.Internal.Managed
+-- import           Numerical.PETSc.Internal.Managed
 
 import           Foreign
-import           Foreign.ForeignPtr.Unsafe
+-- import           Foreign.ForeignPtr.Unsafe
 import           Foreign.C.Types
 
 import           System.IO.Unsafe                   (unsafePerformIO)
 
 import           Control.Monad
-import           Control.Applicative
-import           Control.Arrow
-import           Control.Concurrent
+-- import           Control.Applicative
+-- import           Control.Arrow
+-- import           Control.Concurrent
 import           Control.Exception
 
 import           Control.Monad.Trans.Reader
-import           Control.Monad.Trans.State
+-- import           Control.Monad.Trans.State
 import           Control.Monad.Trans.Resource
 import           Control.Monad.Trans.Class
 
@@ -42,7 +42,7 @@ import           Data.STRef
 import           Control.Monad.ST                   (ST, runST)
 import           Control.Monad.ST.Unsafe            (unsafeIOToST)    -- for HMatrix bits
 
-import qualified Data.Vector.Generic as VG
+-- import qualified Data.Vector.Generic as VG
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable               as VS 
 import qualified Data.Vector.Storable.Mutable       as VM
@@ -99,7 +99,7 @@ data PVector a = PVector !Vec !(V.Vector a)
 instance (Storable a, Show a) => Show (PVector a) where
   show (PVector v a) = show a
 
--- instance (Storable a, Num a) => Num (V.Vector a) where
+-- instance Num a => Num (V.Vector a) where
 --   (+) = V.zipWith (+)
 --   (-) = V.zipWith (-)
 --   (*) = V.zipWith (*)
@@ -115,8 +115,8 @@ instance (Storable a, Show a) => Show (PVector a) where
 
 -- | "fmap" for PVector
 
-fVdata f (PVector vec vdata) = PVector vec (f vdata)
-fVec f (PVector vec vdata) = PVector (f vec) vdata
+-- fVdata f (PVector vec vdata) = PVector vec (f vdata)
+-- fVec f (PVector vec vdata) = PVector (f vec) vdata
 
 -- | "bind" for PVector (?!)
 
@@ -250,8 +250,8 @@ vecDestroy v = chk0 (vecDestroy' v)
 
 
 
--- vecSetSizes :: Vec -> Int -> IO ()
--- vecSetSizes v n = chk0 $ vecSetSizes1 v (toCInt n)
+vecSetSizes :: Vec -> Int -> IO ()
+vecSetSizes v n = chk0 $ vecSetSizes1 v (toCInt n)
 
 
 
@@ -297,6 +297,7 @@ withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
 
 -- | assembly 
 
+vecAssemblyBegin, vecAssemblyEnd :: Vec -> IO ()
 vecAssemblyBegin v = chk0 (vecAssemblyBegin' v)
 vecAssemblyEnd v = chk0 (vecAssemblyEnd' v)
 
@@ -324,9 +325,13 @@ vecEqual v1 v2 = chk1 $ vecEqual1 v1 v2
 
 -- | vecCopy, vecDuplicate
 
+vecCopy_ :: Vec -> Vec -> IO ()
 vecCopy_ vorig vcopy = chk0 $ vecCopy1 vorig vcopy
+
+vecCopy :: Vec -> Vec -> IO Vec
 vecCopy vorig vcopy = do {vecCopy_ vorig vcopy ;  return vcopy}
 
+vecDuplicate :: Vec -> IO Vec
 vecDuplicate v = chk1 $ vecDuplicate1 v
 
 -- | vecCopyDuplicate : duplicates Vec and copies content
@@ -379,19 +384,19 @@ vecSetValuesUnsafe v ix y im =
   where
   ni = toCInt $ length ix
 
-vecSetValuesSafe :: Vec -> [Int] -> [PetscScalar_] -> InsertMode_ -> IO ()
-vecSetValuesSafe = safeInsertIndicesVec vsvu
-  where vsvu v ix = vecSetValuesUnsafe v (map toCInt ix)
+-- vecSetValuesSafe :: Vec -> [Int] -> [PetscScalar_] -> InsertMode_ -> IO ()
+-- vecSetValuesSafe = safeInsertIndicesVec vsvu
+--   where vsvu v ix = vecSetValuesUnsafe v (map toCInt ix)
 
-safeInsertIndicesVec ::
-  (Vec -> [Int] -> [a] -> b -> c) -> Vec -> [Int] -> [a] -> b -> c
+-- safeInsertIndicesVec ::
+--   (Vec -> [Int] -> [a] -> b -> c) -> Vec -> [Int] -> [a] -> b -> c
 safeInsertIndicesVec f v ix_ y_  im
   |c1 && c2 = f v ix_ y_  im
   |otherwise = error "safeInsertIndicesVec : size error "
    where
-  c1 = length ix_ == length y_
+  c1 = V.length ix_ == V.length y_
   c2 = a >= 0 && b <= ub
-  (a, b) = (head ix_, last ix_) -- Hp: ix_ is ordered
+  (a, b) = (V.head ix_, V.last ix_) -- Hp: ix_ is ordered
   ub = vecGetSizeUnsafe v - 1
 
 -- safeFlag ix_ y_ sv_ = c1 && c2 where
@@ -440,6 +445,10 @@ vecSetValuesUnsafeVector1 v ixy =
   vecSetValuesUnsafeVector v ix y
     where
       (ix, y) = V.unzip ixy
+
+
+
+
 
 
 
