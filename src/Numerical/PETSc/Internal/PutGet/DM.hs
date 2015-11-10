@@ -107,6 +107,22 @@ dmRestoreLocalVector dm v = chk0 (dmRestoreLocalVector' dm v)
 
 
 
+-- | fill DM local vector with global vector
+
+dmGlobalToLocalBegin dm g mode l = chk0 (dmGlobalToLocalBegin' dm g mode l)
+dmGlobalToLocalEnd dm g mode l = chk0 (dmGlobalToLocalEnd' dm g mode l)
+
+withDmGlobalToLocal :: DM -> Vec -> InsertMode_ -> Vec -> IO a -> IO a
+withDmGlobalToLocal dm g mode l =
+  bracket_ (dmGlobalToLocalBegin dm g mode l) (dmGlobalToLocalEnd dm g mode l)
+
+dmdaG2L :: DM -> Vec -> InsertMode_ -> Vec -> IO ()
+dmdaG2L dm g mode l =
+  (dmGlobalToLocalBegin dm g mode l) >> (dmGlobalToLocalEnd dm g mode l)
+
+
+
+
 -- | destroy DM
 
 dmDestroy :: DM -> IO ()
@@ -147,6 +163,13 @@ withDmdaVecGetVector dm v len =
 
 
 
+
+
+
+
+
+
+
 -- | overwrite local vector of values taken from Vec bound to DM
 
 dmdaVecReplaceWVectorF ::
@@ -175,16 +198,19 @@ withDmdaCornersVecGetVector dm v f = do
 
 
 
--- | composite DM -> Vec -> V.Vector -> Vec -> DM brackets
 
--- withDmdaLocalVector ::
---   DM ->
---   Int ->
---   (V.Vector PetscScalar_ -> IO a) ->
---   IO a
--- withDmdaLocalVector dm len body =
---   withDmGetLocalVector dm $ \v ->
---    withDmdaVecGetVector dm v len body
+
+
+-- | composite DM -> Vec -> V.Vector brackets
+
+withDmdaLocalVector ::
+  DM ->
+  Int ->
+  (V.Vector PetscScalar_ -> IO a) ->
+  IO a
+withDmdaLocalVector dm len body =
+  withDmGetLocalVector dm $ \v ->
+   withDmdaVecGetVector dm v len body
 
 -- withDmdaGlobalVector ::
 --   DM ->

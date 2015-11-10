@@ -17,6 +17,7 @@ import Control.Applicative
 
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.PutGet
+import Numerical.PETSc.Internal.Utils
 
 import Numerical.PETSc.Internal.Managed
 
@@ -230,9 +231,7 @@ iot x0 h n = VS.fromList $ take n [x0, x0+h ..]
 
 t8snesEx3 = do           
   let n = 10
-      h = 1 / fromIntegral (n-1)
-      snesFunc = undefined
-      snesJacF = undefined
+      h = 1 / fromIntegral (n-1) 
   withDmda1d cw DmBNone n 1 1 [] $ \da ->             -- DA
    withMatCreateSetup cw n n $ \jac -> do             -- Jacobian
     matSeqAIJSetPreallocation jac 3 []               -- " preallocation
@@ -240,25 +239,34 @@ t8snesEx3 = do
      withVecDuplicate x $ \r ->
      withVecDuplicate x $ \f ->
      withVecDuplicate x $ \u -> do
-       (xs, lenLocal) <- dmdaGetCorners1d da
+       (xs, nloc) <- dmdaGetCorners1d da
        let xp = h * (fromIntegral xs)
-           localIdx :: VS.Vector PetscScalar_
-           localIdx = iot xp h (fromIntegral lenLocal)
-           f1 x = 6*x + (x + 1e-12)^6
+           localIdx :: VS.Vector PetscScalar_          -- local index array
+           localIdx = iot xp h (fromIntegral nloc)
+           f1 x = 6*x + (x + 1e-12)^6                  
            u1 x = x^3
            (f_, u_) = (VS.map f1 localIdx, VS.map u1 localIdx)
-       dmdaVecReplaceWVectorF da f lenLocal (return f_)
-       -- dmdaVecReplaceWVectorF da u lenLocal (return u_)
-       withSnesCreateSetup cw x jac jac snesFunc snesJacF $ \snes ->
-
-        snesSolve snes x x
+       dmdaVecReplaceWVectorF da f nloc (const $ return f_)
+       dmdaVecReplaceWVectorF da u nloc (const $ return u_)
+       vecSet x 0.5                                    -- set initial solution
+       let formFunc sns vx vf =
+             withDmGetLocalVector da $ \xlocal -> do
+              dmdaG2L da x InsertValues xlocal           -- fill local vector
+              let d = 1 /  (h**2) 
+              withDmdaVecGetVector da xlocal nloc $ \xx ->
+                return xx
+           formJacF = undefined
+       withSnesCreateSetup cw x jac jac formFunc formJacF $ \snes -> do
+        snesSolve0 snes x                              -- solve
+        xsoln <- snesGetSolution snes           
+        vecViewStdout xsoln                            -- view solution
           where
             cw = commWorld
 
 
 -- t8 = withPetsc0 t8snesEx3
 
-
+asfasdf x = const $ return x
 
 
 

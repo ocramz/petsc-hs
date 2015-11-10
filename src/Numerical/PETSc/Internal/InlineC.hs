@@ -1345,12 +1345,12 @@ dmdaVecRestoreArray' dm v arr_ =
 -- g	- the global vector
 -- mode	- INSERT_VALUES or ADD_VALUES
 -- l	- the local vector
-dmGlobalToLocalBegin dm g mode l = [C.exp|int{DMGlobalToLocalBegin($(DM dm),$(Vec g),$(int imode),$(Vec l))}|] where
+dmGlobalToLocalBegin' dm g mode l = [C.exp|int{DMGlobalToLocalBegin($(DM dm),$(Vec g),$(int imode),$(Vec l))}|] where
   imode = toCInt $ insertModeToInt mode
 
 
 -- PetscErrorCode  DMGlobalToLocalEnd(DM dm,Vec g,InsertMode mode,Vec l)
-dmGlobalToLocalEnd dm g mode l = [C.exp|int{DMGlobalToLocalEnd($(DM dm),$(Vec g),$(int imode),$(Vec l))}|] where
+dmGlobalToLocalEnd' dm g mode l = [C.exp|int{DMGlobalToLocalEnd($(DM dm),$(Vec g),$(int imode),$(Vec l))}|] where
   imode = toCInt $ insertModeToInt mode
 
 -- PetscErrorCode DMDASNESSetFunctionLocal(DM dm,InsertMode imode,PetscErrorCode (*func)(DMDALocalInfo*,void*,void*,void*),void *ctx)  -- Logically Collective
