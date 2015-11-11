@@ -234,6 +234,9 @@ tsSetCostIntegrand ts n rf drdyf drdpf = tsSetCostIntegrand_ ts n fa fb fc where
   fc a b c d _ = drdpf a b c d
 
 
+
+
+
 -- | output integral cost at each time step
 
 tsGetCostIntegral :: TS -> IO Vec
