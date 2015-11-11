@@ -236,26 +236,26 @@ withDmdaLocalVector dm len body =
 dmdaCreate :: Comm -> IO DM
 dmdaCreate comm = chk1 (dmdaCreate' comm)
 
--- dmdaCreate1d ::
---   Comm ->             
---   DMBoundaryType_ ->  -- b : type of boundary ghost cells
---   PetscInt_ ->        -- mm : global array dimension 
---   PetscInt_ ->        -- dof : # DOF / node
---   PetscInt_ ->        -- sw : stencil width 
---   [CInt] ->           -- # nodes in X dir / processor
---   IO DM
+dmdaCreate1d ::
+  Comm ->             
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
+  Int ->        -- mm : global array dimension 
+  Int ->        -- dof : # DOF / node
+  Int ->        -- sw : stencil width 
+  [Int] ->           -- # nodes in X dir / processor
+  IO DM
 dmdaCreate1d comm b mm dof sw lx =
-  chk1 (dmdaCreate1d' comm b mm' dof' sw' lx) where
-    (mm', dof', sw') = (toCInt mm, toCInt dof, toCInt sw)
+  chk1 (dmdaCreate1d' comm b mm' dof' sw' lx') where
+    (mm', dof', sw', lx') = (toCInt mm, toCInt dof, toCInt sw, map toCInt lx)
 
--- dmdaCreate2d ::
---   Comm ->
---   (DMBoundaryType_, DMBoundaryType_) -> -- (bx, by) : type of bdry ghost cells 
---   DMDAStencilType ->                    -- sten : box or star stencil type
---   (PetscInt_, PetscInt_) ->             -- (mm, nn) : global array dimensions
---   PetscInt_ ->                          -- dof : # DOF / node
---   PetscInt_ ->                          -- stencil width
---   IO DM
+dmdaCreate2d ::
+  Comm ->
+  (DMBoundaryType_, DMBoundaryType_) -> -- (bx, by) : type of bdry ghost cells 
+  DMDAStencilType ->                    -- sten : box or star stencil type
+  (Int, Int) ->             -- (mm, nn) : global array dimensions
+  Int ->                          -- dof : # DOF / node
+  Int ->                          -- stencil width
+  IO DM
 dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
   chk1 (dmdaCreate2d' comm bx by sten mm' nn' dof' s') where
     (mm', nn', dof', s') = (toCInt mm, toCInt nn, toCInt dof, toCInt s)
@@ -358,8 +358,7 @@ withDmda1d ::
   (DM -> IO a) ->
   IO a
 withDmda1d comm b m dof sw lx =
-  withDm (dmdaCreate1d comm b m dof sw lx')
-   where lx' = map toCInt lx 
+  withDm (dmdaCreate1d comm b m dof sw lx)
 
 withDmda2d0 ::
   Comm ->

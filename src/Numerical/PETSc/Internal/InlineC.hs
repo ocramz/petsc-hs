@@ -1176,8 +1176,28 @@ dmdaCreate2d0' comm bx by sten mm nn m n dof s lx_ ly_ =
 
 -- | Hp : lx == ly == NULL
 -- (customary in PETSc examples )
-dmdaCreate2d' c bx by sten mm nn dof s =
-  dmdaCreate2d0' c bx by sten mm nn petscDecide petscDecide dof s [] []
+
+dmdaCreate2d' comm bx by sten mm nn dof s  =
+    withPtr ( \dm -> [C.exp|int{DMDACreate2d($(int c),
+                          $(int bxe),
+                          $(int bye),
+                          $(int stene),
+                          $(PetscInt mm),
+                          $(PetscInt nn),
+                          PETSC_DECIDE, 
+                          PETSC_DECIDE,
+                          $(PetscInt dof),
+                          $(PetscInt s),
+                          NULL,
+                          NULL,
+                          $(DM* dm))}|] ) 
+  where c = unComm comm
+        bxe = toEnum $ dmBoundaryTypeToInt bx
+        bye = toEnum $ dmBoundaryTypeToInt by
+        stene = toEnum $ dmdaStencilTypeToInt sten
+        
+-- dmdaCreate2d' c bx by sten mm nn dof s =
+--   dmdaCreate2d0' c bx by sten mm nn petscDecide petscDecide dof s [] []
 
 
 
