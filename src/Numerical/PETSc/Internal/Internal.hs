@@ -8,7 +8,7 @@
 -- Module      :  Numerical.Petsc.Internal.Internal
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
--- Maintainer  :  Marco Zocca
+-- Maintainer  :  zocca . marco . gmail . com
 -- Stability   :  experimental
 --
 -- | inline-c context (i.e. the C-Haskell type map)
