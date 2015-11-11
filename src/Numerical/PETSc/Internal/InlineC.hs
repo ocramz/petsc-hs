@@ -2213,7 +2213,12 @@ tsSetSolution' ts u = [C.exp|int{TSSetSolution($(TS ts),$(Vec u))}|]
 tsSolve' ts u = [C.exp|int{TSSolve($(TS ts),$(Vec u))}|]
 
 tsSolve_' ts = [C.exp|int{TSSolve($(TS ts), NULL)}|]
-    
+
+
+
+tsStep' ts = [C.exp|int{TSStep($(TS ts))}|]
+
+
 --    TSGetTimeStepNumber(ts,&steps);
 
 --    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
