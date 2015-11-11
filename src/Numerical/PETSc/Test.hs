@@ -266,7 +266,7 @@ t8snesEx3 = do
 
 -- t8 = withPetsc0 t8snesEx3
 
-asfasdf x = const $ return x
+
 
 
 

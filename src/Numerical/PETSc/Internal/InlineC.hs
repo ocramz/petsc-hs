@@ -1373,6 +1373,24 @@ dmGlobalToLocalBegin' dm g mode l = [C.exp|int{DMGlobalToLocalBegin($(DM dm),$(V
 dmGlobalToLocalEnd' dm g mode l = [C.exp|int{DMGlobalToLocalEnd($(DM dm),$(Vec g),$(int imode),$(Vec l))}|] where
   imode = toCInt $ insertModeToInt mode
 
+
+
+-- PetscErrorCode  DMLocalToGlobalBegin(DM dm,Vec l,InsertMode mode,Vec g)
+dmLocalToGlobalBegin' dm locv im globv = [C.exp|int{DMLocalToGlobalBegin($(DM dm),$(Vec locv),$(int imode),$(Vec globv))}|]
+  where imode = toCInt $ insertModeToInt im
+-- Neighbor-wise Collective on DM
+-- Input Parameters :
+-- dm	- the DM object
+-- l	- the local vector
+-- mode	- if INSERT_VALUES then no parallel communication is used, if ADD_VALUES then all ghost points from the same base point accumulate into that base point.
+-- g	- the global vector
+-- Notes: In the ADD_VALUES case you normally would zero the receiving vector before beginning this operation. INSERT_VALUES is not supported for DMDA, in that case simply compute the values directly into a global vector instead of a local one.
+
+
+dmLocalToGlobalEnd' dm locv im globv = [C.exp|int{DMLocalToGlobalEnd($(DM dm),$(Vec locv),$(int imode),$(Vec globv))}|]
+  where imode = toCInt $ insertModeToInt im
+
+
 -- PetscErrorCode DMDASNESSetFunctionLocal(DM dm,InsertMode imode,PetscErrorCode (*func)(DMDALocalInfo*,void*,void*,void*),void *ctx)  -- Logically Collective
 -- Input Arguments :
 -- dm	- DM to associate callback with
@@ -1385,6 +1403,9 @@ dmGlobalToLocalEnd' dm g mode l = [C.exp|int{DMGlobalToLocalEnd($(DM dm),$(Vec g
 -- x	- dimensional pointer to state at which to evaluate residual (e.g. PetscScalar *x or **x or ***x)
 -- f	- dimensional pointer to residual, write the residual here (e.g. PetscScalar *f or **f or ***f)
 -- ctx	- optional context passed above
+
+
+
 
 
 dmdaSnesSetFunctionLocal' ::

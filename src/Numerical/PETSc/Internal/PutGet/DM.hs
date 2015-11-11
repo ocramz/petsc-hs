@@ -116,9 +116,29 @@ withDmGlobalToLocal :: DM -> Vec -> InsertMode_ -> Vec -> IO a -> IO a
 withDmGlobalToLocal dm g mode l =
   bracket_ (dmGlobalToLocalBegin dm g mode l) (dmGlobalToLocalEnd dm g mode l)
 
-dmdaG2L :: DM -> Vec -> InsertMode_ -> Vec -> IO ()
-dmdaG2L dm g mode l =
-  (dmGlobalToLocalBegin dm g mode l) >> (dmGlobalToLocalEnd dm g mode l)
+dmG2L :: DM -> Vec -> InsertMode_ -> Vec -> IO ()
+dmG2L dm g mode l =
+  dmGlobalToLocalBegin dm g mode l >> dmGlobalToLocalEnd dm g mode l
+
+
+dmLocalToGlobalBegin dm l imode g = chk0 (dmLocalToGlobalBegin' dm l imode g)
+dmLocalToGlobalEnd dm l imode g = chk0 (dmLocalToGlobalEnd' dm l imode g)
+
+dmL2G :: DM -> Vec -> InsertMode_ -> Vec -> IO ()
+dmL2G dm locv imode globv =
+  dmLocalToGlobalBegin dm locv imode globv >> dmLocalToGlobalEnd dm locv imode globv
+
+
+-- do something else while data is in flight
+
+withDmG2L, withDmL2G :: DM -> Vec -> InsertMode_ -> Vec -> IO a -> IO a
+withDmG2L dm l mode g =
+  bracket_ (  dmGlobalToLocalBegin dm g mode l ) ( dmGlobalToLocalEnd dm g mode l)
+
+withDmL2G dm l mode g =
+  bracket_ (  dmLocalToGlobalBegin dm g mode l ) ( dmLocalToGlobalEnd dm g mode l)
+
+
 
 
 
@@ -183,16 +203,16 @@ dmdaVecReplaceWVectorF dm v len f = do
   y <- f x
   dmdaVecRestoreVector dm v len y
 
-withDmdaCornersVecGetVector ::
-  DM -> 
-  Vec -> 
-  (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
-  IO ()
-withDmdaCornersVecGetVector dm v f = do
-  (x0, len) <- dmdaGetCorners1d dm
-  x <- dmdaVecGetVector dm v len
-  y <- f x
-  dmdaVecRestoreVector dm v len y
+-- withDmdaCornersVecGetVector ::
+--   DM -> 
+--   Vec -> 
+--   (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
+--   IO ()
+-- withDmdaCornersVecGetVector dm v f = do
+--   (x0, len) <- dmdaGetCorners1d dm
+--   x <- dmdaVecGetVector dm v len
+--   y <- f x
+--   dmdaVecRestoreVector dm v len y
 
 
 
