@@ -793,6 +793,12 @@ matMPIAIJSetPreallocation' b dnz dnnz onz onnz =
                                        $(int onz),
                                        $(int* onnzp))}|]
 
+matMPIAIJSetPreallocationConstNZPR' b dnz onz =
+  [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
+                                       $(int dnz),
+                                       NULL,
+                                       $(int onz),
+                                       NULL)}|]
 
 
 -- PetscErrorCode MatSetValue(Mat m,PetscInt row,PetscInt col,PetscScalar value,InsertMode mode)
@@ -1114,6 +1120,18 @@ dmdaSetSizes' dm x y z = [C.exp|int{DMDASetSizes($(DM dm), $(PetscInt x), $(Pets
 -- dof	- number of degrees of freedom per node
 -- s	- stencil width
 -- lx	- array containing number of nodes in the X direction on each processor, or NULL. If non-null, must be of length as the number of processes in the MPI_Comm.
+
+dmdaCreate1d0' comm bx m dof s =
+   withPtr ( \ dm -> [C.exp|int{DMDACreate1d($(int c),
+                                              $(int bxe),
+                                              $(PetscInt m),
+                                              $(PetscInt dof),
+                                              $(PetscInt s),
+                                              NULL,
+                                              $(DM* dm))}|]  )
+  where c = unComm comm
+        bxe = toEnum $ dmBoundaryTypeToInt bx
+
 dmdaCreate1d' comm bx m dof s lx_ =
   withArray lx_ ( \ lx ->
    withPtr ( \ dm -> [C.exp|int{DMDACreate1d($(int c),

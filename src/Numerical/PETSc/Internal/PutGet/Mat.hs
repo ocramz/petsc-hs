@@ -319,8 +319,27 @@ matSetSizes mat m n
 
 matSeqAIJSetPreallocation mat nz nnz = chk0 (matSeqAIJSetPreallocation' mat nz nnz)
 
-matMPIAIJSetPreallocation mat dnz dnnz onz onnz =
+
+-- | nonzero preallocation of AIJ parallel matrix format
+-- -- NB : if (onnz, dnnz) are specified, (onz,dnz) are ignored
+
+matMPIAIJSetPreallocation0 ::
+  Mat ->
+  CInt ->    -- # nonzeros/row in diagonal block of process-local matrix slice
+  [CInt] ->  -- # " in various rows of diagonal part of "" (alternative to ^)
+  CInt ->    -- # NZ/row in off-diagonal block of local mtx slice
+  [CInt] ->  -- # " in various rows of off-diagonal part of " (alt.to ^)
+  IO ()
+matMPIAIJSetPreallocation0 mat dnz dnnz onz onnz =
   chk0 (matMPIAIJSetPreallocation' mat dnz dnnz onz onnz)
+
+matMPIAIJSetPreallocationConstNZPR ::
+  Mat ->
+  CInt ->    -- # nonzeros/row in diagonal block of process-local matrix block
+  CInt ->    -- # NZ/row in off-diagonal block of local mtx block
+  IO ()
+matMPIAIJSetPreallocationConstNZPR mat dnz onz =
+  chk0 (matMPIAIJSetPreallocationConstNZPR' mat dnz onz)
 
 
 

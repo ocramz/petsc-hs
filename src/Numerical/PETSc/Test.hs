@@ -4,10 +4,10 @@
 -- Module      :  Numerical.PETSc.Test
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
--- Maintainer  :  Marco Zocca
+-- Maintainer  :  zocca . marco . gmail . com
 -- Stability   :  experimental
 --
--- | tests, but not in the quickcheck sense :D
+-- | misc. tests
 --
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Test where
@@ -22,6 +22,7 @@ import Numerical.PETSc.Internal.Utils
 import Numerical.PETSc.Internal.Managed
 
 import Foreign
+import Foreign.C.Types
 
 import qualified Data.Vector.Storable as VS
 -- import qualified Data.Vector.Storable.Mutable as VM
@@ -251,7 +252,7 @@ t8snesEx3 = do
        vecSet x 0.5                                    -- set initial solution
        let formFunc sns vx vf =
              withDmGetLocalVector da $ \xlocal -> do
-              dmdaG2L da x InsertValues xlocal           -- fill local vector
+              dmG2L da x InsertValues xlocal           -- fill local vector
               let d = 1 /  (h**2) 
               withDmdaVecGetVector da xlocal nloc $ \xx ->
                 return xx
@@ -266,7 +267,37 @@ t8snesEx3 = do
 
 -- t8 = withPetsc0 t8snesEx3
 
+-- -- t9
 
+dotS, (<.>) :: (Num a, Storable a) => VS.Vector a -> VS.Vector a -> a
+dotS x y = VS.sum $ VS.zipWith (*) x y
+
+(<.>) = dotS
+
+constS :: (Storable a) => Int -> a -> VS.Vector a
+constS = VS.replicate
+
+timesConstS :: (Storable a, Num a) => a -> VS.Vector a -> VS.Vector a
+timesConstS a = VS.map (* a) 
+
+t9' = do
+  let
+    formFunction snes x f = do
+        xv <- vecGetVector x
+        fv <- vecGetVector f
+        vecRestoreVector f (constS n $ xv <.> xv)
+        vecRestoreVector x xv
+        return (0 :: CInt)
+    formJacobian snes x amat = undefined
+    n = 1
+  withDmda1d0 cw DmBNone n 1 1 $ \da ->   -- distributed array
+    withMatCreateSetup cw n n $ \jac -> do
+      matMPIAIJSetPreallocationConstNZPR jac 1 0 
+    where
+      cw = commWorld
+
+
+        
 
 
 

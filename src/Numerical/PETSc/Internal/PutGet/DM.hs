@@ -88,6 +88,10 @@ dmCreate comm = chk1 (dmCreate' comm)
 
 
 
+
+
+
+
 -- | global and local vectors from/to DM
 
 dmCreateGlobalVector, dmCreateLocalVector, dmGetGlobalVector, dmGetLocalVector :: 
@@ -268,6 +272,17 @@ dmdaCreate1d comm b mm dof sw lx =
   chk1 (dmdaCreate1d' comm b mm' dof' sw' lx') where
     (mm', dof', sw', lx') = (toCInt mm, toCInt dof, toCInt sw, map toCInt lx)
 
+dmdaCreate1d0 ::  -- lx = NULL
+  Comm ->             
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
+  Int ->        -- mm : global array dimension 
+  Int ->        -- dof : # DOF / node
+  Int ->        -- sw : stencil width 
+  IO DM
+dmdaCreate1d0 comm b mm dof sw =
+  chk1 (dmdaCreate1d0' comm b mm' dof' sw') where
+    (mm', dof', sw') = (toCInt mm, toCInt dof, toCInt sw)
+
 dmdaCreate2d ::
   Comm ->
   (DMBoundaryType_, DMBoundaryType_) -> -- (bx, by) : type of bdry ghost cells 
@@ -379,6 +394,17 @@ withDmda1d ::
   IO a
 withDmda1d comm b m dof sw lx =
   withDm (dmdaCreate1d comm b m dof sw lx)
+
+withDmda1d0 ::
+  Comm ->
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
+  Int ->        -- mm : global array dimension 
+  Int ->        -- dof : # DOF / node
+  Int ->        -- sw : stencil width 
+  (DM -> IO a) ->
+  IO a
+withDmda1d0 comm b m dof sw =
+  withDm (dmdaCreate1d0 comm b m dof sw)
 
 withDmda2d0 ::
   Comm ->
