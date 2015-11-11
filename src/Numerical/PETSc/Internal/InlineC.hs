@@ -2068,6 +2068,38 @@ tsSetIFunction' ts res f ctx =
 
 
   
+-- PetscErrorCode  TSSetIJacobian(TS ts,Mat Amat,Mat Pmat,TSIJacobian f,void *ctx)
+
+tsSetIJacobian0' ts amat pmat f =
+  [C.exp|int{TSSetIJacobian($(TS ts),
+                     $(Mat amat),
+                     $(Mat pmat),
+                     $fun:(int (*f)(TS,PetscReal,Vec,Vec,PetscReal,Mat,Mat,void*)), NULL)}|]
+
+tsSetIJacobian' ts amat pmat f ctx =
+  [C.exp|int{TSSetIJacobian($(TS ts),$(Mat amat),$(Mat pmat),$fun:(int (*f)(TS,PetscReal,Vec,Vec,PetscReal,Mat,Mat,void*)),$(void* ctx))}|]
+
+  
+-- Logically Collective on TS
+-- Input Parameters :
+-- ts	- the TS context obtained from TSCreate()
+-- Amat	- (approximate) Jacobian matrix
+-- Pmat	- matrix used to compute preconditioner (usually the same as Amat)
+-- f	- the Jacobian evaluation routine
+-- ctx	- user-defined context for private data for the Jacobian evaluation routine (may be NULL)
+-- Calling sequence of f :
+--  f(TS ts,PetscReal t,Vec U,Vec U_t,PetscReal a,Mat Amat,Mat Pmat,void *ctx);
+-- t	- time at step/stage being solved
+-- U	- state vector
+-- U_t	- time derivative of state vector
+-- a	- shift
+-- Amat	- (approximate) Jacobian of F(t,U,W+a*U), equivalent to dF/dU + a*dF/dU_t
+-- Pmat	- matrix used for constructing preconditioner, usually the same as Amat
+-- ctx	- [optional] user-defined context for matrix evaluation routine
+-- Notes :
+-- The matrices Amat and Pmat are exactly the matrices that are used by SNES for the nonlinear solve.
+-- If you know the operator Amat has a null space you can use MatSetNullSpace() and MatSetTransposeNullSpace() to supply the null space to Amat and the KSP solvers will automatically use that null space as needed during the solution process.
+-- The matrix dF/dU + a*dF/dU_t you provide turns out to be the Jacobian of F(t,U,W+a*U) where F(t,U,U_t) = 0 is the DAE to be solved. The time integrator internally approximates U_t by W+a*U where the positive "shift" a and vector W depend on the integration method, step size, and past states. For example with the backward Euler method a = 1/dt and W = -a*U(previous timestep) so W + a*U = a*(U - U(previous timestep)) = (U - U(previous timestep))/dt
 
 
 

@@ -91,7 +91,7 @@ petscErrCodeFromInt n =
 
 
 
-errCodeInRange n = (n < maxErrCode && n > minErrCode) || n == 0 || n==256 where
+errCodeInRange n = (n < maxErrCode && n >= minErrCode) || n == 0 || n==256 where
   maxErrCode = 90
   minErrCode = 55
 
@@ -128,6 +128,41 @@ chk0 act = do
                256 -> return ()
                m -> throwPetscException m
     else  error ("unforeseen case : " ++ show e)             
+
+
+
+
+
+-- from HMatrix.Internal.Devel
+
+-- -- | check the error code
+-- check :: String -> IO CInt -> IO ()
+-- check msg f = do
+-- --  finit
+--     err <- f
+--     when (err/=0) $ error (msg++": "++errorCode err)
+--     return ()
+
+
+-- infixl 1 #
+-- a # b = apply a b
+-- {-# INLINE (#) #-}
+
+-- -- | postfix error code check
+-- infixl 0 #|
+-- (#|) = flip check
+
+-- -- | Error capture and conversion to Maybe
+-- mbCatch :: IO x -> IO (Maybe x)
+-- mbCatch act = E.catch (Just `fmap` act) f
+--     where f :: SomeException -> IO (Maybe x)
+--           f _ = return Nothing
+
+
+
+
+
+
 
 
 

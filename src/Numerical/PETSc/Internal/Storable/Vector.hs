@@ -27,6 +27,8 @@ import Foreign.C.Types
 import System.IO.Unsafe (unsafePerformIO)
 -- import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 
+import Data.Complex
+
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
 
@@ -81,9 +83,16 @@ mapVectorFromList l f = VS.fromList (map f l)
 
 
 
+toList :: Storable a => VS.Vector a -> [a]
+toList = VS.toList
 
 
 
+subVector :: Storable t => Int       -- ^ index of the starting element
+                        -> Int       -- ^ number of elements to extract
+                        -> VS.Vector t  -- ^ source
+                        -> VS.Vector t  -- ^ result
+subVector = VS.slice
 
   
 
@@ -230,6 +239,25 @@ mapVectorWithIndex f v = do
 
 
 
+
+
+
+
+
+-- | real <-> complex
+
+-- | transforms a complex vector into a real vector with alternating real and imaginary parts 
+asReal ::
+  (RealFloat a, Storable a, Storable (Complex a)) =>
+  VS.Vector (Complex a) -> VS.Vector a
+asReal v = VS.unsafeFromForeignPtr (FPR.castForeignPtr fp) (2*i) (2*n)
+    where (fp,i,n) = VS.unsafeToForeignPtr v
+
+-- | transforms a real vector into a complex vector with alternating real and imaginary parts
+asComplex :: (RealFloat a, Storable a, Storable (Complex a)) =>
+             VS.Vector a -> VS.Vector (Complex a)
+asComplex v = VS.unsafeFromForeignPtr (FPR.castForeignPtr fp) (i `div` 2) (n `div` 2)
+    where (fp,i,n) = VS.unsafeToForeignPtr v
 
 
 

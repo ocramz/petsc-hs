@@ -93,10 +93,40 @@ tsSetIFunction_ ts res f = chk0 (tsSetIFunction0' ts res f)
 tsSetIFunction ::
   TS ->
   Vec ->
-  (TS -> PetscReal_ -> Vec -> Vec -> Vec -> IO CInt) ->
+     (TS ->          
+      PetscReal_ ->   -- time
+      Vec ->          -- current state : u(tn)
+      Vec ->          -- du/dt
+      Vec ->          -- updated state : u(tn+1)
+      IO CInt) ->
   IO ()
 tsSetIFunction ts res f = tsSetIFunction_ ts res g where
   g t r a b c _ = f t r a b c
+
+
+
+-- | dF/du = del F / del u_dot + del F / del u
+
+tsSetIJacobian_ ts amat pmat f =
+  chk0 (tsSetIJacobian0' ts amat pmat f)
+
+tsSetIJacobian ::
+  TS ->
+  Mat ->
+  Mat ->
+      (TS ->
+       PetscReal_ ->    -- time
+       Vec ->           -- u(tn)
+       Vec ->           -- du/dt(tn)
+       PetscReal_ ->    -- shift = d(u_dot)/dt
+       Mat ->           -- system mtx
+       Mat ->           -- preconditioner (can be == amat)
+       IO CInt) ->
+  IO ()
+tsSetIJacobian ts amat pmat fun = tsSetIJacobian_ ts amat pmat fun' where
+  fun' t a b c d e f _ = fun t a b c d e f
+
+
 
 
 -- | G(t, u)
@@ -106,7 +136,11 @@ tsSetRHSFunction_ ts r f = chk0 (tsSetRHSFunction0' ts r f)
 tsSetRHSFunction ::
   TS ->
   Vec ->
-  (TS -> PetscReal_ -> Vec -> Vec -> IO CInt) ->
+      (TS ->          
+       PetscReal_ ->  -- time
+       Vec ->         -- u(tn) 
+       Vec ->         -- u(tn+1)
+       IO CInt) ->
   IO ()
 tsSetRHSFunction ts r f = tsSetRHSFunction_ ts r g where
   g t a b c _ = f t a b c
@@ -119,7 +153,12 @@ tsSetRHSJacobian ::
   TS ->
   Mat ->
   Mat ->
-  (TS -> PetscReal_ -> Vec -> Mat -> Mat -> IO CInt) ->
+      (TS ->          
+       PetscReal_ ->   -- time
+       Vec ->          -- u(tn)
+       Mat ->
+       Mat ->
+       IO CInt) ->
   IO ()
 tsSetRHSJacobian ts amat pmat f = tsSetRHSJacobian_ ts amat pmat g where
   g t a b c d _ = f t a b c d
