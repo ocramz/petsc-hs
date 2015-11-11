@@ -5,7 +5,7 @@
 -- Module      :  Numerical.PETSc.Raw.PutGet.PetscMisc
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
--- Maintainer  :  Marco Zocca
+-- Maintainer  :  zocca . marco . gmail . com
 -- Stability   :  experimental
 --
 -- | PETSc misc. functions, Mid-level interface

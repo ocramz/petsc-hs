@@ -3,7 +3,7 @@
 -- Module      :  Numerical.PETSc.Internal.PutGet
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
--- Maintainer  :  Marco Zocca
+-- Maintainer  :  zocca . marco . gmail . com
 -- Stability   :  experimental
 --
 -- | Mid-level interface: catching exceptions and hiding pointers in lexical

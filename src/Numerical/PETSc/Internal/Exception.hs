@@ -5,7 +5,7 @@
 -- Module      :  Numerical.PETSc.Internal.Exception
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
--- Maintainer  :  Marco Zocca
+-- Maintainer  :  zocca . marco . gmail . com
 -- Stability   :  experimental
 --
 -- | Exception handling for calls wrapped by PutGet interfaces

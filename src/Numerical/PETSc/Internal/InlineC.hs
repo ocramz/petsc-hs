@@ -4,7 +4,7 @@
 -- Module      :  Numerical.PETSc.Internal.InlineC
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
--- Maintainer  :  Marco Zocca
+-- Maintainer  :  zocca . marco . gmail . com
 -- Stability   :  experimental
 --
 -- | Foreign signatures, + everything that requires an inline-c pass
