@@ -1595,9 +1595,6 @@ kspGetSolution' ksp = withPtr $ \v -> [C.exp|int{KSPGetSolution($(KSP ksp), $(Ve
 -- PETSC_EXTERN PetscErrorCode KSPGetResidualNorm(KSP,PetscReal*);
 kspGetResidualNorm' ksp = withPtr $ \v -> [C.exp|int{KSPGetResidualNorm($(KSP ksp), $(PetscReal *v))}|]
 
--- kspGetResidualNorm :: KSP -> IO PetscReal_
--- kspGetResidualNorm ksp = kspGetResidualNorm' ksp 
-
 -- PETSC_EXTERN PetscErrorCode KSPGetIterationNumber(KSP,PetscInt*);
 kspGetIterationNumber' ksp = withPtr ( \v -> [C.exp|int{KSPGetIterationNumber($(KSP ksp), $(int *v))}|] ) 
 
@@ -1634,19 +1631,6 @@ kspSetComputeRHS__' ksp f = kspSetComputeRHS_' ksp g where
 
 
 
--- KSP experiments
-
--- class LinSolve a u b where
---   linsolve :: a -> b -> u
-
--- instance LinSolve 
-
-
-
-
-
-
-
 
 
 
@@ -1657,11 +1641,6 @@ kspSetComputeRHS__' ksp f = kspSetComputeRHS_' ksp g where
 
 
 -- * PF
-
-
-
-
-
 
 -- PetscErrorCode  PFCreate(MPI_Comm comm,PetscInt dimin,PetscInt dimout,PF *pf)
 -- Collective on MPI_Comm
@@ -2057,6 +2036,7 @@ tsSetDuration' ts ms' mt =
 
 
 -- PetscErrorCode  TSSetIFunction(TS ts,Vec res,TSIFunction f,void *ctx)
+
 -- Set the function to compute F(t,U,U_t) where F() = 0 is the DAE to be solved.
 -- Logically Collective on TS
 -- Input Parameters :
@@ -2074,6 +2054,20 @@ tsSetDuration' ts ms' mt =
 -- Important :
 -- The user MUST call either this routine or TSSetRHSFunction() to define the ODE. When solving DAEs you must use this function.
 
+tsSetIFunction0' ts res f =
+  [C.exp|int{TSSetIFunction($(TS ts),
+                            $(Vec res),
+                            $fun:(int (*f)(TS,PetscReal,Vec,Vec,Vec,void*)),
+                            NULL)}|]
+
+tsSetIFunction' ts res f ctx =
+  [C.exp|int{TSSetIFunction($(TS ts),
+                            $(Vec res),
+                            $fun:(int (*f)(TS,PetscReal,Vec,Vec,Vec,void*)),
+                            $(void* ctx))}|]
+
+
+  
 
 
 
@@ -2092,14 +2086,21 @@ tsSetDuration' ts ms' mt =
 -- F	- function vector
 -- ctx	- [optional] user-defined function context
 -- Notes: You must call this function or TSSetIFunction() to define your ODE. You cannot use this function when solving a DAE.
-tsSetRHSFunction0' ts r f ctx =
+tsSetRHSFunction0' ts r f =
+  [C.exp|int{TSSetRHSFunction(
+                $(TS ts),
+                $(Vec r),
+                $fun:(int (*f)(TS, PetscReal,Vec,Vec,void*)),
+                NULL)}
+        |]
+
+tsSetRHSFunction' ts r f ctx =
   [C.exp|int{TSSetRHSFunction(
                 $(TS ts),
                 $(Vec r),
                 $fun:(int (*f)(TS, PetscReal,Vec,Vec,void*)),
                 $(void* ctx))}
         |]
-
 
 -- PetscErrorCode  TSSetRHSJacobian(TS ts,Mat Amat,Mat Pmat,TSRHSJacobian f,void *ctx)
 -- --Sets the function to compute the Jacobian of G, where U_t = G(U,t), as well as the location to store the matrix.
@@ -2117,6 +2118,10 @@ tsSetRHSFunction0' ts r f ctx =
 -- Amat	- (approximate) Jacobian matrix
 -- Pmat	- matrix from which preconditioner is to be constructed (usually the same as Amat)
 -- ctx	- [optional] user-defined context for matrix evaluation routine
+
+tsSetRHSJacobian0' ts amat pmat f =
+  [C.exp|int{TSSetRHSJacobian($(TS ts),$(Mat amat),$(Mat pmat),$fun:(int(*f)(TS, PetscReal, Vec, Mat, Mat, void*)),NULL)}|]
+
 tsSetRHSJacobian' ts amat pmat f ctx =
   [C.exp|int{TSSetRHSJacobian($(TS ts),$(Mat amat),$(Mat pmat),$fun:(int(*f)(TS, PetscReal, Vec, Mat, Mat, void*)),$(void* ctx))}|]
 
@@ -2546,7 +2551,7 @@ petscViewerSetType' v t = withCString ts $ \tsp ->
 petscViewerHDF5Open' comm name ty =
   withPtr $ \f ->
    withCString name $ \np -> 
-  [C.exp|int{PetscViewerHDF5Open($(int c),$(char* np),$(int t),$(PetscViewer* f))}|]
+  [C.exp|int{PetscViewerHDF5Open($(int c),$(const char* np),$(int t),$(PetscViewer* f))}|]
    where
      c = unComm comm
      t = toCInt $ viewerTypeToInt ty

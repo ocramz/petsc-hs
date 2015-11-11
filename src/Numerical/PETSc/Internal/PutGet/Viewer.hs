@@ -63,3 +63,6 @@ withPetscViewerHDF5Group viewer name f = do
   chk0 $ petscViewerHDF5PushGroup1 viewer name
   f viewer
   chk0 $ petscViewerHDF5PopGroup1 viewer
+
+petscViewerHDF5Open :: Comm -> String -> PetscViewerType_ -> IO PetscViewer
+petscViewerHDF5Open comm name ty = chk1 (petscViewerHDF5Open' comm name ty)

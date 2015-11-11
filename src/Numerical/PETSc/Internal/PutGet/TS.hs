@@ -85,8 +85,44 @@ tsSetDm :: TS -> DM -> IO ()
 tsSetDm ts dm = chk0 (tsSetDm' ts dm)
 
 
+-- | 
 
-tsSetRHSJacobian ts amat pmat f ctx = chk0 (tsSetRHSJacobian' ts amat pmat f ctx)
+-- | F(t, u, du/dt)
+tsSetIFunction_ ts res f = chk0 (tsSetIFunction0' ts res f)
+
+tsSetIFunction ::
+  TS ->
+  Vec ->
+  (TS -> PetscReal_ -> Vec -> Vec -> Vec -> IO CInt) ->
+  IO ()
+tsSetIFunction ts res f = tsSetIFunction_ ts res g where
+  g t r a b c _ = f t r a b c
+
+
+-- | G(t, u)
+
+tsSetRHSFunction_ ts r f = chk0 (tsSetRHSFunction0' ts r f)
+
+tsSetRHSFunction ::
+  TS ->
+  Vec ->
+  (TS -> PetscReal_ -> Vec -> Vec -> IO CInt) ->
+  IO ()
+tsSetRHSFunction ts r f = tsSetRHSFunction_ ts r g where
+  g t a b c _ = f t a b c
+  
+tsSetRHSJacobian_ ts amat pmat f = chk0 (tsSetRHSJacobian0' ts amat pmat f)
+
+-- | gG/du
+
+tsSetRHSJacobian ::
+  TS ->
+  Mat ->
+  Mat ->
+  (TS -> PetscReal_ -> Vec -> Mat -> Mat -> IO CInt) ->
+  IO ()
+tsSetRHSJacobian ts amat pmat f = tsSetRHSJacobian_ ts amat pmat g where
+  g t a b c d _ = f t a b c d
 
 
 
