@@ -137,8 +137,21 @@ tsTrajectoryCreate comm = chk1 (tsTrajectoryCreate' comm)
 tsTrajectoryDestroy :: TSTrajectory -> IO ()
 tsTrajectoryDestroy ts = chk0 (tsTrajectoryDestroy' ts)
 
-tsAdjointSetRHSJacobian ts amat f ctx =
-  chk0 $ tsAdjointSetRHSJacobian' ts amat f ctx
+tsSetCostGradients :: TS -> Int -> [Vec] -> [Vec] -> IO ()
+tsSetCostGradients ts numcost lambda_ mu_ =
+  withArray lambda_ $ \lp ->
+  withArray mu_ $ \mp ->
+   chk0 $ tsSetCostGradients' ts n lp mp where
+     n = toCInt numcost
+
+tsAdjointSetRHSJacobian ::
+  TS ->
+  Mat ->
+  (TS -> PetscReal_ -> Vec -> Mat -> IO CInt) ->
+  IO ()
+tsAdjointSetRHSJacobian ts amat f  =
+  chk0 $ tsAdjointSetRHSJacobian0' ts amat g where
+    g a b c d _ = f a b c d
 
 tsAdjointSolve :: TS -> IO ()
 tsAdjointSolve ts = chk0 (tsAdjointSolve' ts)

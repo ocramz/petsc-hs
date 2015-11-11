@@ -2229,8 +2229,18 @@ tsSetCostGradients' ts numcost lambda mu =
 -- A	- output matrix
 -- ctx	- [optional] user-defined function context
 -- Notes: Amat has the same number of rows and the same row parallel layout as u, Amat has the same number of columns and parallel layout as p
+
+tsAdjointSetRHSJacobian0' ts amat f =
+  [C.exp|int{TSAdjointSetRHSJacobian($(TS ts),
+                                     $(Mat amat),
+                                     $fun:(int (*f)(TS, PetscReal,Vec, Mat, void*)),
+                                     NULL)}|]
+
 tsAdjointSetRHSJacobian' ts amat f ctx =
-  [C.exp|int{TSAdjointSetRHSJacobian($(TS ts),$(Mat amat),$fun:(int (*f)(TS, PetscReal,Vec, Mat, void*)), $(void* ctx))}|]
+  [C.exp|int{TSAdjointSetRHSJacobian($(TS ts),
+                                     $(Mat amat),
+                                     $fun:(int (*f)(TS, PetscReal,Vec, Mat, void*)),
+                                     $(void* ctx))}|]
   
 
 -- PetscErrorCode TSAdjointSolve(TS ts)
