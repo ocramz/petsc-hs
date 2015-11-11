@@ -3,7 +3,7 @@
 -- Module      :  Numerical.PETSc.Raw.Storable.Common
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
--- Maintainer  :  Marco Zocca
+-- Maintainer  :  zocca . marco . gmail . com
 -- Stability   :  experimental
 --
 -- | common adapters for Storable
