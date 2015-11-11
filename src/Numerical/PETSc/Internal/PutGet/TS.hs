@@ -190,7 +190,14 @@ tsTrajectoryCreate comm = chk1 (tsTrajectoryCreate' comm)
 tsTrajectoryDestroy :: TSTrajectory -> IO ()
 tsTrajectoryDestroy ts = chk0 (tsTrajectoryDestroy' ts)
 
-tsSetCostGradients :: TS -> Int -> [Vec] -> [Vec] -> IO ()
+
+-- | gradients of Bolza cost functional Psi at _final_ time tF wrt state `y` and parameter `p`
+tsSetCostGradients ::
+  TS ->
+  Int ->          -- # of cost functionals
+  [Vec] ->        -- dPsi/dy(tF)       
+  [Vec] ->        -- dPsi/dp(tF)
+  IO ()
 tsSetCostGradients ts numcost lambda_ mu_ =
   withArray lambda_ $ \lp ->
   withArray mu_ $ \mp ->
@@ -205,6 +212,35 @@ tsAdjointSetRHSJacobian ::
 tsAdjointSetRHSJacobian ts amat f  =
   chk0 $ tsAdjointSetRHSJacobian0' ts amat g where
     g a b c d _ = f a b c d
+
+
+
+
+-- | if nonzero integrand in Bolza cost functional `r(t, y, p)`:
+
+tsSetCostIntegrand_ ts ncostf rf drdyf drdpf =
+  chk0 (tsSetCostIntegrand0' ts ncostf rf drdyf drdpf)
+  
+tsSetCostIntegrand ::
+  TS ->
+  PetscInt_ ->
+  (TS -> PetscReal_ -> Vec -> Vec -> IO CInt) ->      -- value of integrand `r`
+  (TS -> PetscReal_ -> Vec -> Ptr Vec -> IO CInt) ->  -- dr/dy
+  (TS -> PetscReal_ -> Vec -> Ptr Vec -> IO CInt) ->  -- dr/dp
+  IO ()
+tsSetCostIntegrand ts n rf drdyf drdpf = tsSetCostIntegrand_ ts n fa fb fc where
+  fa a b c d _ = rf a b c d
+  fb a b c d _ = drdyf a b c d
+  fc a b c d _ = drdpf a b c d
+
+
+-- | output integral cost at each time step
+
+tsGetCostIntegral :: TS -> IO Vec
+tsGetCostIntegral ts = chk1 (tsGetCostIntegral' ts)
+
+
+-- | solve
 
 tsAdjointSolve :: TS -> IO ()
 tsAdjointSolve ts = chk0 (tsAdjointSolve' ts)

@@ -2252,6 +2252,50 @@ tsSetCostGradients' ts numcost lambda mu =
 
 
 
+-- PetscErrorCode  TSSetCostIntegrand(TS ts,PetscInt numcost, PetscErrorCode (*rf)(TS,PetscReal,Vec,Vec,void*),
+-- PetscErrorCode (*drdyf)(TS,PetscReal,Vec,Vec*,void*),
+-- PetscErrorCode (*drdpf)(TS,PetscReal,Vec,Vec*,void*),void *ctx)
+tsSetCostIntegrand0' ts n rf drdyf drdpf =
+  [C.exp|
+   int{TSSetCostIntegrand($(TS ts),
+                          $(PetscInt n),
+                          $fun:(int (*rf)(TS,PetscReal,Vec,Vec,void*)),
+                          $fun:(int (*drdyf)(TS,PetscReal,Vec,Vec*,void*)),
+                          $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),NULL)}|]
+
+tsSetCostIntegrand' ts n rf drdyf drdpf ctx =
+  [C.exp|
+   int{TSSetCostIntegrand($(TS ts),
+                          $(PetscInt n),
+                          $fun:(int (*rf)(TS,PetscReal,Vec,Vec,void*)),
+                          $fun:(int (*drdyf)(TS,PetscReal,Vec,Vec*,void*)),
+                          $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),$(void* ctx))}|]  
+
+
+tsGetCostIntegral' ts = withPtr $ \p -> [C.exp|int{TSGetCostIntegral($(TS ts),$(Vec* p))}|]
+
+-- Logically Collective on TS
+-- Input Parameters :
+-- ts	- the TS context obtained from TSCreate()
+-- numcost	- number of gradients to be computed, this is the number of cost functions
+-- rf	- routine for evaluating the integrand function
+-- drdyf	- function that computes the gradients of the r's with respect to y,NULL if not a function y
+-- drdpf	- function that computes the gradients of the r's with respect to p, NULL if not a function of p
+-- ctx	- [optional] user-defined context for private data for the function evaluation routine (may be NULL)
+-- Calling sequence of rf :
+--     rf(TS ts,PetscReal t,Vec y,Vec f[],void *ctx);
+-- t	- current timestep
+-- y	- input vector
+-- f	- function result; one vector entry for each cost function
+-- ctx	- [optional] user-defined function context
+-- Calling sequence of drdyf :
+--    PetscErroCode drdyf(TS ts,PetscReal t,Vec y,Vec *drdy,void *ctx);
+-- Calling sequence of drdpf :
+--    PetscErroCode drdpf(TS ts,PetscReal t,Vec y,Vec *drdp,void *ctx);
+-- Notes: For optimization there is generally a single cost function, numcost = 1. For sensitivities there may be multiple cost functions
+
+
+
 
 -- PetscErrorCode  TSAdjointSetRHSJacobian(TS ts,Mat Amat,PetscErrorCode (*func)(TS,PetscReal,Vec,Mat,void*),void *ctx)   -- Logically Collective on TS
 -- Sets the function that computes the Jacobian of G w.r.t. the parameters p where y_t = G(y,p,t), as well as the location to store the matrix.
