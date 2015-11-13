@@ -28,23 +28,20 @@ import qualified Data.Vector.Storable as VS
 
 -- import System.IO.Unsafe (unsafePerformIO)
 
+data DMVec = DMVec Vec DM
+
+
+-- | compact getter and setter 
+
 dmdaVecGetVector1 :: DM -> Vec -> Int -> IO (VS.Vector PetscScalar_)
 dmdaVecGetVector1 dm v =
   vectorFreezeFromStorablePtr (dmdaVecGetArrayPtr dm v) (dmdaVecRestoreArrayPtr dm v)
-
--- dmdaVecGetVector :: DM -> Vec -> Int -> IO (V.Vector PetscScalar_)
--- dmdaVecGetVector dm v len = do
---   p <- dmdaVecGetArrayPtr dm v
---   pf <- newForeignPtr_ p
---   V.freeze (VM.unsafeFromForeignPtr0 pf len)
 
 dmdaVecRestoreVector1 :: DM -> Vec -> Int -> VS.Vector PetscScalar_ -> IO ()
 dmdaVecRestoreVector1 dm v =
   vectorCopyToForeignPtr (dmdaVecGetArrayPtr dm v) (dmdaVecRestoreArrayPtr dm v)
 
--- dmdaVecRestoreVector :: DM -> Vec -> Int -> V.Vector PetscScalar_ -> IO ()
--- dmdaVecRestoreVector dm v len w = do
---   p <- dmdaVecGetArrayPtr dm v
---   pf <- newForeignPtr_ p
---   V.copy (VM.unsafeFromForeignPtr0 pf len) w
---   dmdaVecRestoreArrayPtr dm v p
+-- withDmdaVector dm v n =
+--   bracket (dmdaVecGetVector1 dm v n) (dmdaVecRestoreVector1 dm v n)
+
+

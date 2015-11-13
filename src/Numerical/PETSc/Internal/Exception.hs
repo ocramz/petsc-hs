@@ -11,7 +11,10 @@
 -- | Exception handling for calls wrapped by PutGet interfaces
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Internal.Exception where
+module Numerical.PETSc.Internal.Exception
+       (chk0, chk1,
+        bracket, bracketChk)
+       where
 
 import Foreign.C.Types
 import Foreign.Ptr
