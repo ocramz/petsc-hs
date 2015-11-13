@@ -285,10 +285,14 @@ t9' = do
     formFunction snes x f = do
         xv <- vecGetVector x
         fv <- vecGetVector f
-        vecRestoreVector f (constS n $ xv <.> xv)
-        vecRestoreVector x xv
+        vecRestoreVector f (constS n $ xv <.> xv) -- state transform `f`
+        vecRestoreVector x xv 
         return (0 :: CInt)
-    formJacobian snes x amat = undefined
+    formJacobian snes x amat = -- Vec -> IO Mat : state transform `amat`
+      withMatSetValueVectorSafe amat n n idxv InsertValues $ \amatp -> undefined
+       where
+         idxv = undefined
+         
     n = 1
   withDmda1d0 cw DmBNone n 1 1 $ \da ->   -- distributed array
     withMatCreateSetup cw n n $ \jac -> do
