@@ -74,8 +74,25 @@ qsort (x:xs) = qsort l ++ [x] ++ qsort r where
 
 
 
-(~!~) :: Monad m => Bool -> String -> m ()
+(~!~), (~?~) :: Monad m => Bool -> String -> m ()
 c ~!~ es = when c (error es)
+
+c ~?~ es = unless c (error es)
+
+assertWithStringM :: Monad m => Bool -> String -> m b -> m b
+assertWithStringM c es f = do
+  c ~?~ es
+  f
+
+
+-- checkNonNegM :: (Show a, Num a, Ord a, Monad m) => a -> m b -> m b
+-- checkNonNegM n f = do
+--   (n > 0) ~?~ (shn ++ " must be nonnegative")
+--   f
+--    where
+--     shn = show n
+
+
 
 ifThenElse :: Bool -> a -> a -> a
 ifThenElse q i e

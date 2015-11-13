@@ -13,18 +13,24 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Storable.Vector where
 
+import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Utils
 import Numerical.PETSc.Internal.Storable.Store
 
 import Control.Exception 
 import Control.Monad
 import Foreign.Marshal.Array (peekArray)
-import qualified GHC.ForeignPtr as FPR
+-- import qualified GHC.ForeignPtr as FPR
+import qualified Foreign.ForeignPtr.Safe as FPR
+
 import Foreign.Ptr
 import Foreign.Storable
+import Foreign.Storable.Complex
 import Foreign.C.Types
+import Foreign.Marshal.Array
+-- import qualified Foreign.Marshal.Alloc as FMA (malloc, finalizerFree)
+
 -- import Data.Int(Int64)
--- import Data.Complex
 import System.IO.Unsafe (unsafePerformIO)
 -- import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 
@@ -55,45 +61,65 @@ vdim = VS.length
 
 -- | creation
 
-createVector :: Storable a => Int -> IO (VS.Vector a)
-createVector n = do
-  fp <- malloc n undefined
-  return $ VS.unsafeFromForeignPtr fp 0 n
+-- createVector :: Storable a => Int -> IO (VS.Vector a)
+-- createVector n = do
+--   fp <- malloc n undefined
+--   return $ VS.unsafeFromForeignPtr fp 0 n
 
-createVectorSized :: Storable a => Int -> a -> IO (VS.Vector a)
-createVectorSized n x  = do
-  fp <- malloc n x
-  return $ VS.unsafeFromForeignPtr fp 0 n
+
+
+-- mallocCDouble n = malloc n (undefined :: CDouble)
+
+-- -- instance for Storable (Complex CDouble) from `storable-complex`
+-- mallocCComplexD n = malloc n (undefined :: Complex CDouble) 
+
 
 malloc :: Storable a => Int -> a -> IO (FPR.ForeignPtr a)
-malloc n d = do
-  when (n < 0) $ error ("createVector : cannot allocate negative dim : "++show n)
-  FPR.mallocPlainForeignPtrBytes (n * sizeOf d)
+malloc n d = assert (n>0) $ FPR.mallocForeignPtrBytes n' where
+  n' = n * sizeOf d
 
 
+-- -- NB : according to Foreign.ForeignPtr, it is advisable to use `mallocForeignPtr` ranther than `newForeignPtr` with a finalizer:
 
--- vectorFreezeFromPtr ::
---   Storable a =>
---   (t -> IO (Ptr a)) ->
---   (t -> Ptr a -> IO b) ->
---   t ->
---   Int ->
---   IO (V.Vector a)
-vectorFreezeFromPtr get restore p len = bracket (get p) (restore p) $ \xp -> do
-  -- pf <- newForeignPtr_ xp
-  VS.freeze (VM.unsafeFromForeignPtr0 xp len) 
+createVector :: Storable a => Int -> IO (VS.Vector a)
+createVector n = do
+    -- fp <- FPR.mallocForeignPtr
+    fp <- malloc n undefined
+    return $ VS.unsafeFromForeignPtr0 fp n
 
--- vectorCopyToForeignPtr ::
---   Storable a =>
---   (t -> IO (Ptr a)) ->
---   (t -> Ptr a -> IO b) ->
---   t ->
---   Int ->
---   V.Vector a ->
---   IO ()
-vectorCopyToForeignPtr get restore p len w = bracket (get p) (restore p) $ \xp -> do
-  -- pf <- newForeignPtr_ xp
-  VS.copy (VM.unsafeFromForeignPtr0 xp len) w
+ -- copyArray : Copy the given number of elements from the second array (source) into the first array (destination); the copied areas may not overlap
+
+cloneVector :: Storable a => VS.Vector a -> IO (VS.Vector a)
+cloneVector v = do
+  let n = vdim v
+  r <- createVector n  
+  VS.unsafeWith v $ \vp ->
+    VS.unsafeWith r $ \rp -> 
+     copyArray rp vp n 
+  return r
+
+
+vectorFreezeFromStorablePtr ::
+  Storable a =>
+  IO (Ptr a) ->
+  (Ptr a -> IO b) ->
+  Int ->
+  IO (VS.Vector a)
+vectorFreezeFromStorablePtr get restore len =
+  bracket get restore $ \xp -> do
+    fp <- FPR.newForeignPtr_  xp
+    VS.freeze (VM.unsafeFromForeignPtr0 fp len) 
+
+vectorCopyToForeignPtr ::
+  Storable a =>
+  IO (Ptr a) ->
+  (Ptr a -> IO b) ->
+  Int ->
+  VS.Vector a ->
+  IO ()
+vectorCopyToForeignPtr get restore len w = bracket get restore $ \xp -> do
+  pf <- FPR.newForeignPtr_ xp
+  VS.copy (VM.unsafeFromForeignPtr0 pf len) w
 
 
 
