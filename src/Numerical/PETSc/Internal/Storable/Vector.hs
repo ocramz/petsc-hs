@@ -16,6 +16,7 @@ module Numerical.PETSc.Internal.Storable.Vector where
 import Numerical.PETSc.Internal.Utils
 import Numerical.PETSc.Internal.Storable.Store
 
+import Control.Exception 
 import Control.Monad
 import Foreign.Marshal.Array (peekArray)
 import qualified GHC.ForeignPtr as FPR
@@ -31,6 +32,7 @@ import Data.Complex
 
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Storable.Mutable as VM
 
 
 -- | instances
@@ -67,6 +69,33 @@ malloc :: Storable a => Int -> a -> IO (FPR.ForeignPtr a)
 malloc n d = do
   when (n < 0) $ error ("createVector : cannot allocate negative dim : "++show n)
   FPR.mallocPlainForeignPtrBytes (n * sizeOf d)
+
+
+
+-- vectorFreezeFromPtr ::
+--   Storable a =>
+--   (t -> IO (Ptr a)) ->
+--   (t -> Ptr a -> IO b) ->
+--   t ->
+--   Int ->
+--   IO (V.Vector a)
+vectorFreezeFromPtr get restore p len = bracket (get p) (restore p) $ \xp -> do
+  -- pf <- newForeignPtr_ xp
+  VS.freeze (VM.unsafeFromForeignPtr0 xp len) 
+
+-- vectorCopyToForeignPtr ::
+--   Storable a =>
+--   (t -> IO (Ptr a)) ->
+--   (t -> Ptr a -> IO b) ->
+--   t ->
+--   Int ->
+--   V.Vector a ->
+--   IO ()
+vectorCopyToForeignPtr get restore p len w = bracket (get p) (restore p) $ \xp -> do
+  -- pf <- newForeignPtr_ xp
+  VS.copy (VM.unsafeFromForeignPtr0 xp len) w
+
+
 
 
 buildVectorFromIdxs ::

@@ -12,13 +12,9 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Class.Additive where
 
-
 import Data.Functor
-
 -- import GHC.Generics
-
 import Data.Foldable as Foldable (Foldable,forM_, foldl')
-
 
 import qualified Data.Vector as V
 
