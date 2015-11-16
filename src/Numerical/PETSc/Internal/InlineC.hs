@@ -1544,8 +1544,7 @@ kspGetConvergedReason' ksp =
              [C.exp| int{ KSPGetConvergedReason( $(KSP ksp),
                                               $(int* r) ) } |]
           ) 
--- kspGetConvergedReason ksp = 
---   kspGetConvergedReason' ksp >>= \r -> return $ kspConvergedIntToReason (fromIntegral r)
+
 
 
 kspCreate0' comm p = [C.exp| int{KSPCreate($(int c), $(KSP *p))}|] where
@@ -1904,6 +1903,9 @@ snesSolve0' s x = [C.exp|int{SNESSolve($(SNES s), NULL, $(Vec x))}|]
 -- PETSC_EXTERN PetscErrorCode SNESGetSolution(SNES,Vec*);
 snesGetSolution' s = withPtr ( \v ->
   [C.exp|int{SNESGetSolution($(SNES s), $(Vec *v))}|] ) 
+
+snesGetConvergedReason' s =  withPtr ( \v ->
+  [C.exp|int{SNESGetConvergedReason($(SNES s), $(int* v))}|] ) 
 
 
 
@@ -2277,6 +2279,9 @@ tsSolve_' ts = [C.exp|int{TSSolve($(TS ts), NULL)}|]
 
 tsStep' ts = [C.exp|int{TSStep($(TS ts))}|]
 
+
+-- PetscErrorCode  TSGetConvergedReason(TS ts,TSConvergedReason *reason)
+tsGetConvergedReason' ts = withPtr (\p -> [C.exp|int{TSGetConvergedReason($(TS ts),$(int* p))}|])
 
 --    TSGetTimeStepNumber(ts,&steps);
 

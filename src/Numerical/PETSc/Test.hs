@@ -33,6 +33,8 @@ import qualified Data.Vector.Generic as VG
 import Control.Arrow ((***),(&&&))
 import Control.Monad
 
+import Control.Monad.Managed
+
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Resource
 import Control.Monad.IO.Class
@@ -79,8 +81,8 @@ csrAllNxN_ n = V.zip3 x y a where
 
 
 -- | using Managed
-vecm :: IO Vec -> Managed Vec
-vecm vc = managed (withVec vc)
+-- vecm :: IO Vec -> Managed Vec
+-- vecm vc = managed (withVec vc)
 
 -- matm :: IO Mat -> Managed Mat
 -- matm mc = managed (withMat mc)
@@ -89,15 +91,15 @@ vecm vc = managed (withVec vc)
 -- kspm kc = managed (withKsp_ kc)
 
 
-t2' v = runManaged $ do
-  v1 <- vecm $ do
-    x <- vecCreateMPIFromVectorDecideLocalSize comm v
-    vecViewStdout x
-    return x
-  vecm $ vecCopyDuplicate v1
-    where comm = commWorld
+-- t2' v = runManaged $ do
+--   v1 <- vecm $ do
+--     x <- vecCreateMPIFromVectorDecideLocalSize comm v
+--     vecViewStdout x
+--     return x
+--   vecm $ vecCopyDuplicate v1
+--     where comm = commWorld
 
-t2 = withPetsc0 $ t2' v0
+-- t2 = withPetsc0 $ t2' v0
 
 
 -- kspManage :: Comm -> KspType_ -> Mat -> Mat -> Bool -> Vec -> Vec -> Managed KSP

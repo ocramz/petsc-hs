@@ -16,6 +16,7 @@ import Foreign
 import Foreign.Ptr
 import Foreign.C.Types
 
+import Numerical.PETSc.Internal.Utils 
 
 
 
@@ -288,7 +289,7 @@ data SnesConvergedReason = SnesConvergedFnormAbs
                            | SnesDivergedInnerSolve  
                            | SnesDivergedLocalMin  
                            | SnesConvergedIterating
-                           | SnesDivergedOtherReason Int
+                           | SnesOtherReason Int
                               deriving (Eq, Show)  
 
 snesConvergedIntToReason x =
@@ -322,12 +323,43 @@ snesConvergedIntToReason x =
     (-8) -> SnesDivergedLocalMin
 --               SNES_CONVERGED_ITERATING          =  0} SNESConvergedReason;
     0 -> SnesConvergedIterating
-    n -> SnesDivergedOtherReason n
+    n -> SnesOtherReason n
 
 -- * TS
 
 data TsProblemType = TsLinear | TsNonlinear deriving (Eq, Show, Enum)
 tsProblemTypeToInt x = fromEnum (x :: TsProblemType)
+
+
+data TsType_ = TsEuler | TsBEuler | TsPseudo | TsCn | TsSundials | TsRK | TsPython | TsTheta | TsAlpha | TsGl | TsSsp | TsArkimex | TsRosw | TsEimex | TsMimex deriving (Eq, Show) 
+
+tsTypeToString t = case t of TsEuler -> "euler"
+                             TsBEuler -> "beuler"
+                             TsPseudo -> "pseudo"
+                             TsCn -> "cn"
+                             TsSundials -> "sundials"
+                             TsRK -> "rk"
+                             TsPython -> "python"
+                             TsTheta -> "theta"
+                             TsAlpha -> "alpha"
+                             TsGl -> "gl"
+                             TsArkimex -> "arkimex"
+                             TsRosw -> "rosw"
+                             TsEimex -> "eimex"
+                             TsMimex -> "mimex"
+
+data TsConvergedReason_ = TsConvergedIterating | TsConvergedTime | TsConvergedIts | TsConvergedUser | TsConvergedEvent | TsDivergedNonlinSolve | TsDivergedStepRejected | TsUndefinedConvergenceCase deriving (Eq, Enum, Show)
+
+tsConvergedIntToReason :: CInt -> TsConvergedReason_
+tsConvergedIntToReason c = case fi c of
+  0 -> TsConvergedIterating
+  1 -> TsConvergedTime
+  2 -> TsConvergedIts
+  3 -> TsConvergedUser
+  4 -> TsConvergedEvent
+  (-1) -> TsDivergedNonlinSolve
+  (-2) -> TsDivergedStepRejected
+  _ -> TsUndefinedConvergenceCase
 
 
 

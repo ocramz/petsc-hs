@@ -1,7 +1,7 @@
 # PETSC_DIR = ${HOME}/petsc-3.6.2/     
 
-# PETSC_DIR_ARCH = ${PETSC_DIR}/arch-darwin-c-debug
-PETSC_DIR_ARCH = ${PETSC_DIR}/arch-darwin-c-debug-complex
+PETSC_DIR_ARCH = ${PETSC_DIR}/arch-darwin-c-debug
+# PETSC_DIR_ARCH = ${PETSC_DIR}/arch-darwin-c-debug-complex
 
 PETSC_DIR_ARCH_INCLUDE = ${PETSC_DIR_ARCH}/include
 SRCDIR = ${CURDIR}/src/Numerical/PETSc
@@ -20,7 +20,7 @@ step1:
 	ghc ${SRCDIR}/Internal/InlineC.hs -isrc/
 
 step2:
-	cc -c ${SRCDIR}/Internal/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include
+	cc -w -c ${SRCDIR}/Internal/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include
 
 # step3:
 # 	ghci ${EXAMPLEDIR}/TestMain2.hs ${SRCDIR}/Internal/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal.o -isrc/ -L${PETSC_DIR_ARCH}/lib -lpetsc -lmpich

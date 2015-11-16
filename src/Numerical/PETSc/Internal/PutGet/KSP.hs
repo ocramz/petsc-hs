@@ -134,6 +134,11 @@ kspGetRhs ksp = chk1 (kspGetRhs' ksp)
 kspGetSolution :: KSP -> IO Vec
 kspGetSolution ksp = chk1 (kspGetSolution' ksp)
 
+kspGetConvergedReason :: KSP -> IO KspConvergedReason
+kspGetConvergedReason ksp = do
+  r <- chk1 (kspGetConvergedReason' ksp)
+  return $ kspConvergedIntToReason (fi r)
+
 kspGetResidualNorm :: KSP -> IO PetscReal_
 kspGetResidualNorm ksp = chk1 (kspGetResidualNorm' ksp)
 

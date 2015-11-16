@@ -247,3 +247,11 @@ tsGetCostIntegral ts = chk1 (tsGetCostIntegral' ts)
 
 tsAdjointSolve :: TS -> IO ()
 tsAdjointSolve ts = chk0 (tsAdjointSolve' ts)
+
+
+
+
+tsGetConvergedReason :: TS -> IO TsConvergedReason_
+tsGetConvergedReason ksp = do
+  r <- chk1 (tsGetConvergedReason' ksp)
+  return $ tsConvergedIntToReason r
