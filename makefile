@@ -1,4 +1,8 @@
-PETSC_DIR_ARCH = ${PETSC_DIR}/arch-darwin-c-debug
+# PETSC_DIR = ${HOME}/petsc-3.6.2/     
+
+# PETSC_DIR_ARCH = ${PETSC_DIR}/arch-darwin-c-debug
+PETSC_DIR_ARCH = ${PETSC_DIR}/arch-darwin-c-debug-complex
+
 PETSC_DIR_ARCH_INCLUDE = ${PETSC_DIR_ARCH}/include
 SRCDIR = ${CURDIR}/src/Numerical/PETSc
 SRCPARDIR = ${CURDIR}/src/Numerical

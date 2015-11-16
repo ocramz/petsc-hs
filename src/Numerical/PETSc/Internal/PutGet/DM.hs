@@ -40,10 +40,13 @@ import qualified Data.Vector.Storable as V --  (unsafeWith, unsafeFromForeignPtr
 import qualified Data.Vector.Storable.Mutable as VM
 
 
+-- data DmdaInfo = DmdaI1d Dmda1dInfo
+--               | DmdaI2d Dmda2dInfo deriving (Eq, Show)
+
 
 -- | Dmda 1D + info
 
-data PetscDmda1d = PetscDmda1d !Dmda2dInfo DM
+data PetscDmda1d = PetscDmda1d !Dmda1dInfo DM
 
 data Dmda1dInfo =
   Dmda1dInfo {
@@ -66,7 +69,7 @@ data Dmda2dInfo =
     dmdaBdryType :: !(DMBoundaryType_, DMBoundaryType_),
     dmdaStenType :: !DMDAStencilType,
     dmdaSizes :: !(Int, Int),
-    dmdaNdofPN :: !Int,
+    dmda2dNdofPN :: !Int,
     dmdaStenWidth :: !Int,
     dmdaBoundsX :: !(PetscReal_, PetscReal_),
     dmdaBoundsY :: !(PetscReal_, PetscReal_)
@@ -420,12 +423,12 @@ withDmda2d0 ::
 withDmda2d0 comm (bx, by) sten (m, n) dof s =
   withDm (dmdaCreate2d comm (bx, by) sten (m, n) dof s) 
 
-withDmda2d1 ::
-  Dmda2dInfo ->
-  (DM ->  IO a) ->
-  IO a
-withDmda2d1 (Dmda2dInfo comm bdry sten szs dof sw _ _) =
-  withDm (dmdaCreate2d comm bdry sten szs dof sw) 
+-- withDmda2d1 ::
+--   Dmda2dInfo ->
+--   (DM ->  IO a) ->
+--   IO a
+-- withDmda2d1 (Dmda2dInfo comm bdry sten szs dof sw _ _) =
+--   withDm (dmdaCreate2d comm bdry sten szs dof sw) 
 
 
 
@@ -454,12 +457,12 @@ withDmdaUniform1d comm b m dof sw lx (x1,x2) f=
 
 
 
-withDmdaUniform2d ::
-  Dmda2dInfo -> (DM -> IO a) -> IO a
-withDmdaUniform2d (Dmda2dInfo comm bdryt sten szs dof sw bx by) f =
-  withDmda2d0 comm bdryt sten szs dof sw $ \dm -> do
-    dmdaSetUniformCoordinates2d dm bx by
-    f dm
+-- withDmdaUniform2d ::
+--   Dmda2dInfo -> (DM -> IO a) -> IO a
+-- withDmdaUniform2d (Dmda2dInfo comm bdryt sten szs dof sw bx by) f =
+--   withDmda2d0 comm bdryt sten szs dof sw $ \dm -> do
+--     dmdaSetUniformCoordinates2d dm bx by
+--     f dm
 
 withDmdaUniform2d0 ::
   Comm ->

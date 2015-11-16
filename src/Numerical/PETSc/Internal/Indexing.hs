@@ -15,7 +15,51 @@ import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
-import Numerical.PETSc.Internal.PutGet
+-- import Numerical.PETSc.Internal.PutGet
+
+import Data.Array
+
+
+{-| Specs :
+
+inputs:
+
+* Nd : # of spatial dimenstions 
+* [(xmin, xmax)] : bounds / dimension
+* [BdryType] : bound. type / dimension
+* Sw : stencil width (i)
+
+
+queries :
+
+* indices <-> coordinates (topology <-> metric)
+* point within boundaries
+
+-}
+
+
+
+{-|
+
+* staggered grids, e.g. dual node/element meshes
+
+-}
+
+
+
+-- | Data.Array tests
+
+n = 5
+
+a0 = array (0, n-1) [(i, i^2) | i <- [0 .. n-1]]  
+
+
+
+
+
+
+
+-- | notes
 
 -- mpiComm = mkMPIComm commWorld
 
