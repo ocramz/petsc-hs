@@ -307,13 +307,14 @@ t9' = do
 
 t10' = withDmda1d0 cw DmBNone n 1 1 $ \da ->
   withPetscViewer cw $ \vi -> do
+   petscViewerSetType vi ViewerAscii 
    petscViewerSetFormat vi ViewFmtAsciiInfoDetail
    dmView da vi
   where
     cw = commWorld
     n = 5
         
-
+t10 = withPetsc0 t10'
 
 
 
