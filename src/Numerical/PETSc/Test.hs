@@ -303,6 +303,14 @@ t9' = do
       cw = commWorld
 
 
+-- --
+
+-- t10' = withDmda1d0 cw DmBNone n 1 1 $ \da ->
+--   withPetscViewer cw $ \vi ->
+--    dmView da vi
+--   where
+--     cw = commWorld
+--     n = 5
         
 
 

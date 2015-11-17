@@ -19,7 +19,6 @@ import Numerical.PETSc.Internal.Storable.Store
 
 import Control.Exception 
 import Control.Monad
-import Foreign.Marshal.Array (peekArray)
 -- import qualified GHC.ForeignPtr as FPR
 import qualified Foreign.ForeignPtr.Safe as FPR
 
@@ -129,7 +128,7 @@ buildVectorFromIdxs ::
 buildVectorFromIdxs len f =
     VS.fromList $ map f [0 .. (len - 1)]
 
-iota :: (Num a, Storable a, Enum a) => a -> VS.Vector a
+iota :: (Num a, Storable a, Enum a) => Int -> VS.Vector a
 iota n = buildVectorFromIdxs n id
 
 

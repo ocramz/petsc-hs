@@ -1512,8 +1512,10 @@ dmCompositeCreate comm =
   where c = unComm comm
 
 
+-- | viewing DM
 
-
+-- PetscErrorCode  DMView(DM dm,PetscViewer v)
+dmView dm vi = [C.exp|int{DMView($(DM dm),$(PetscViewer vi))}|]
 
 
 
@@ -2702,6 +2704,14 @@ petscViewerSetType' v t = withCString ts $ \tsp ->
     -- tc = toCInt $ viewerTypeToInt t
     ts = viewerTypeToStr t
 
+
+
+-- PetscErrorCode  PetscViewerSetFormat(PetscViewer viewer,PetscViewerFormat format)
+-- petscViewerSetFormat' v fmt = [C.exp|int{PetscViewerSetFormat($(PetscViewer v), )}|]
+
+
+
+
 -- PetscErrorCode  PetscViewerHDF5Open(MPI_Comm comm, const char name[], PetscFileMode type, PetscViewer *hdf5v)
 petscViewerHDF5Open' comm name ty =
   withPtr $ \f ->
@@ -2739,6 +2749,14 @@ petscViewerHDF5PushGroup1 v name = withCString name $ \n ->
 -- PetscErrorCode  PetscViewerHDF5PopGroup(PetscViewer viewer)
 petscViewerHDF5PopGroup1 v =
   [C.exp|int{PetscViewerHDF5PopGroup($(PetscViewer v))}|]
+
+
+
+
+
+
+
+
 
 
 

@@ -321,22 +321,22 @@ liftF1' f get set b = get b >>= \x -> set b (f x)
 -- | C-style ("return 0") function adapters
 
 cInt2Adapt :: Monad m =>  (a -> b -> c -> m d) -> a -> b -> c -> m CInt
-cInt2Adapt f s v1 v2 = do
-  f s v1 v2
-  return (0 :: CInt)
+cInt2Adapt f s v1 v2 = return0 $ f s v1 v2
 
 cInt3Adapt :: Monad m => (a -> b -> c -> d -> m e) -> a -> b -> c -> d -> m CInt
-cInt3Adapt k s v m1 m2 = do
-  k s v m1 m2
+cInt3Adapt k s v m1 m2 = return0 $ k s v m1 m2
+
+return0 m = do
+  m
   return (0 :: CInt)
 
 
 -- nested `with`
-cInt7Adapt f s v1 v2 v3 pb1 pb2 pv =
+cInt7Adapt f s v1 v2 v3 pb1 pb2 pv = return0 $
   with pb1 $ \b1 ->
-  with pb2 $ \b2 -> do 
+  with pb2 $ \b2 -> 
   f s v1 v2 v3 b1 b2 pv
-  return (0 :: CInt)
+
 
 
 

@@ -18,6 +18,9 @@ import Numerical.PETSc.Internal.Utils
 -- import Numerical.PETSc.Internal.PutGet
 
 import Data.Array
+import qualified Data.Vector as V
+
+
 
 
 {-| Specs :
@@ -49,11 +52,35 @@ queries :
 
 -- | Data.Array tests
 
-n = 5
+-- n = 5
 
-a0 = array (0, n-1) [(i, i^2) | i <- [0 .. n-1]]  
+-- a0 = array (0, n-1) [(i, i^2) | i <- [0 .. n-1]]  
+
+array1d :: Ix i => i -> i -> [(i, e)] -> Array i e
+array1d xmin xmax = array (xmin, xmax)
+
+array2d :: (Ix t, Ix t1) =>
+           (t, t1) -> (t, t1) -> [((t, t1), e)] -> Array (t, t1) e
+array2d (x1,y1) (x2, y2) = array ((x1,y1),(x2, y2))
+
+-- array3d :: (Ix t, Ix t1, Ix t2) =>
+--      (t, t1) -> (t, t1) -> (t2, t2) -> [((t, t1, t2), e)] -> Array (t, t1, t2) e
+array3d :: Ix t  =>
+     (t, t) -> (t, t) -> (t, t) -> [((t, t, t), e)] -> Array (t, t, t) e
+array3d (x1,y1) (x2, y2) (z1, z2) = array ((x1,y1,z1),(x2, y2, z2))
+
+-- iota a b
+--   | b >= a = [a .. b-1]
+--   | otherwise = error $ "incompatible indices : " ++ show (a, b)
+
+iota a b = [a .. b-1]
+
+iota0 :: Int -> [Int]
+iota0 = iota 0
 
 
+
+-- |
 
 
 

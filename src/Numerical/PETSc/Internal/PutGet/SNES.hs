@@ -69,6 +69,15 @@ snesCreateSetup comm v amat pmat f fj = do
 
 
 
+
+
+
+-- | SNES function adapters:
+-- | a callback that dereferences, mutates and copies back data into one of its arguments  
+
+
+-- a SNES function (either f or grad f) modifies one of its arguments (same for KSP, TS, Tao, .. functions)
+
 snesFunctionAdapter vIn vOut ix fv = do    --- | what type for this contraption?
   x <- vecGetVector vIn
   let y = fv x
@@ -120,6 +129,8 @@ snesSetFunction ::
 snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g where
   g s a b _ = f' s a b
   f' = cInt2Adapt f
+
+-- callback really means : SNES -> Vec -> IO Vec
 
 snesSetJacobian ::
   SNES ->

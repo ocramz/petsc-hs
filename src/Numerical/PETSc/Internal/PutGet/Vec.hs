@@ -72,8 +72,24 @@ For a given Vec; what stays constant is:
 
 
 
+-- class Num a => Vector0 a where
+--   createV :: IO Vec
+--   getV :: Vec -> VS.Vector a
+--   putV :: Vec -> VS.Vector a -> IO ()
+--   withV :: Vec -> (Vec -> IO a) -> IO a 
+
+class Monad m => Mng a b m where   -- what is this?
+  createA :: m a
+  getA :: a -> m b
+  putA :: a -> b -> m ()
+  withA :: a -> (a -> m b) -> m b
+  deleteA :: a -> m ()
 
 
+
+
+
+-- -- --- 
 
 data PetscVector = PetscVector { vec     :: !Vec,
                                  vecInfo :: !VecInfo }

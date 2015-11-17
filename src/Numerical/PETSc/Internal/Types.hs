@@ -417,6 +417,28 @@ viewerTypeToStr ViewerAscii = "ascii"
 viewerTypeToStr ViewerHdf5 = "hdf5"
 viewerTypeToStr ViewerNetcdf = "netcdf"
 
+
+
+
+
+
+
+data PetscViewerFormat_ =
+    ViewFmtDefault | ViewFmtAsciiMatlab | ViewFmtAsciiMathematica
+    | ViewFmtAsciiImpl | ViewFmtAsciiInfo | ViewFmtAsciiInfoDetail
+    | ViewFmtAsciiCommon | ViewFmtAsciiSymmodu | ViewFmtAsciiIndex
+    | ViewFmtAsciiDense | ViewFmtAsciiMatrixMarket | ViewFmtAsciiVtk
+    | ViewFmtAsciiVtkCell | ViewFmtAsciiVtkCoords | ViewFmtAsciiPcice
+    | ViewFmtAsciiPython | ViewFmtAsciiFactorInfo | ViewFmtAsciiLatex
+    | ViewFmtDrawBasci | ViewFmtDrawLg | ViewFmtDrawContour | ViewFmtDrawPorts
+    | ViewFmtVtkVts | ViewFmtVtkVtr | ViewFmtVtkVtu | ViewFmtBinaryMatlab
+    | ViewFmtViewerNative | ViewFmtHdf5Viz | ViewFmtNoFormat
+    deriving (Eq, Show, Enum)
+
+
+
+
+
 -- * FileMode
 data PetscFileMode_ = FileModeRead | FileModeWrite | FileModeAppend | FileModeUpdate | FileModeAppendUpdate deriving (Eq, Enum, Show)
 fileModeToInt x = fromEnum (x :: PetscFileMode_)
