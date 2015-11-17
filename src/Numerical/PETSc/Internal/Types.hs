@@ -435,6 +435,7 @@ data PetscViewerFormat_ =
     | ViewFmtViewerNative | ViewFmtHdf5Viz | ViewFmtNoFormat
     deriving (Eq, Show, Enum)
 
+petscViewerFormatToCInt x = toCInt $ fromEnum (x :: PetscViewerFormat_)
 
 
 

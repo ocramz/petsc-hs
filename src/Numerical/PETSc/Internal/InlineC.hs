@@ -1515,7 +1515,7 @@ dmCompositeCreate comm =
 -- | viewing DM
 
 -- PetscErrorCode  DMView(DM dm,PetscViewer v)
-dmView dm vi = [C.exp|int{DMView($(DM dm),$(PetscViewer vi))}|]
+dmView' dm vi = [C.exp|int{DMView($(DM dm),$(PetscViewer vi))}|]
 
 
 
@@ -2707,7 +2707,10 @@ petscViewerSetType' v t = withCString ts $ \tsp ->
 
 
 -- PetscErrorCode  PetscViewerSetFormat(PetscViewer viewer,PetscViewerFormat format)
--- petscViewerSetFormat' v fmt = [C.exp|int{PetscViewerSetFormat($(PetscViewer v), )}|]
+petscViewerSetFormat' v fmt =
+  [C.exp|int{PetscViewerSetFormat($(PetscViewer v), $(int e))}|]
+    where
+      e = petscViewerFormatToCInt fmt
 
 
 

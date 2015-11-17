@@ -70,3 +70,6 @@ petscViewerHDF5Open comm name ty = chk1 (petscViewerHDF5Open' comm name ty)
 
 petscViewerSetType :: PetscViewer -> PetscViewerType_ -> IO ()
 petscViewerSetType v t = chk0 (petscViewerSetType' v t)
+
+petscViewerSetFormat :: PetscViewer -> PetscViewerFormat_ -> IO ()
+petscViewerSetFormat v fmt = chk0 (petscViewerSetFormat' v fmt)

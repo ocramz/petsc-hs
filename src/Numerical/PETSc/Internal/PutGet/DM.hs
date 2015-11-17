@@ -556,3 +556,12 @@ dmdaGetCorners3d dm = do
   x <- chk1 $ dmdaGetCorners3d' dm >>= \x -> return $ f3d x
   return $ fromIntegralTup3 x
 
+
+
+
+
+
+-- | viewing
+
+dmView :: DM -> PetscViewer -> IO ()
+dmView dm vi = chk0 (dmView' dm vi)
