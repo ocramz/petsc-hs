@@ -316,10 +316,15 @@ t10' = withDmda1d0 cw DmBNone n 1 1 $ \da ->
         
 t10 = withPetsc0 t10'
 
---
 
-t11' = runManaged $ do
-  dm <- managed $ withDmda1d0 cw DmBNone n 1 1
+
+-- -- -- 
+
+-- | managed resources, obj stdout
+
+t11'  = runManaged $ do
+  -- dm <- managed $ withDmda1d0 cw DmBNone n 1 1
+  dm <- managed $ withDmda2d0 cw (DmBNone, DmBNone) DmSStar (n,n) 1 1
   vi <- managed $ withPetscViewerAscii cw 
   liftIO $ dmView dm vi
     where
@@ -327,11 +332,14 @@ t11' = runManaged $ do
       cw = commWorld
 
 
-withPetscViewerAscii c f = withPetscViewer c $ \v -> do
+withPetscViewerAscii c  f = withPetscViewer c $ \v -> do
   petscViewerSetType v ViewerAscii
+  petscViewerSetFormat v  ViewFmtAsciiInfoDetail
   f v
 
-t11 = withPetsc0 t11'
+-- fmts = [ViewFmtDefault, ViewFmtAsciiIndex ]--, ViewFmtAsciiInfo, ViewFmtAsciiInfoDetail]
+
+t11 = withPetsc0  t11'
 
 
 
