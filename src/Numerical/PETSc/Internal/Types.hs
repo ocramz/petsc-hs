@@ -408,14 +408,25 @@ taoConvergedIntToReason x =
 
 -- * Viewer
 
-data PetscViewerType_ = ViewerSock | ViewerAscii | ViewerBinary | ViewerString | ViewerDraw | ViewerVu | ViewerMathematica | ViewerNetcdf | ViewerHdf5 | ViewerVtk | ViewerMatlab | ViewerSaws deriving (Eq, Enum, Show)
+data PetscViewerType_ = ViewerSock | ViewerAscii | ViewerBinary | ViewerString | ViewerDraw | ViewerVu | ViewerMathematica | ViewerNetCDF | ViewerHDF5 | ViewerVtk | ViewerMatlab | ViewerSaws deriving (Eq, Enum, Show)
 
 viewerTypeToInt x = fromEnum (x :: PetscViewerType_)
 
-viewerTypeToStr ViewerSock = "socket"
-viewerTypeToStr ViewerAscii = "ascii"
-viewerTypeToStr ViewerHdf5 = "hdf5"
-viewerTypeToStr ViewerNetcdf = "netcdf"
+viewerTypeToStr :: PetscViewerType_ -> String
+viewerTypeToStr v = case v of
+  ViewerSock -> "socket"
+  ViewerAscii -> "ascii"
+  ViewerBinary -> "binary"
+  ViewerString -> "string"
+  ViewerDraw -> "draw"
+  ViewerVu -> "vu"
+  ViewerMathematica -> "mathematica"
+  ViewerNetCDF -> "netcdf"
+  ViewerHDF5 -> "hdf5"
+  ViewerVtk -> "vtk"
+  ViewerMatlab -> "matlab"
+  ViewerSaws -> "saws"
+
 
 
 

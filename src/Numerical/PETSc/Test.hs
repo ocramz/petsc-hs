@@ -307,17 +307,29 @@ t9' = do
 
 t10' = withDmda1d0 cw DmBNone n 1 1 $ \da ->
   withPetscViewer cw $ \vi -> do
-   petscViewerSetType vi ViewerAscii 
-   petscViewerSetFormat vi ViewFmtAsciiInfoDetail
+   petscViewerSetType vi ViewerAscii
+   -- petscViewerSetFormat vi ViewFmtAsciiInfoDetail
    dmView da vi
   where
     cw = commWorld
-    n = 5
+    n = 10
         
 t10 = withPetsc0 t10'
 
+--
+
+t11' = runManaged $ do
+  dm <- managed $ withDmda1d0 cw DmBNone n 1 1
+  vi <- managed $ withPetscViewerAscii cw 
+  liftIO $ dmView dm vi
+    where
+      n = 10
+      cw = commWorld
 
 
+withPetscViewerAscii c f = withPetscViewer c $ \v -> do
+  petscViewerSetType v ViewerAscii
+  f v
 
 
 
