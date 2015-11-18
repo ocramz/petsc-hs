@@ -331,6 +331,7 @@ withPetscViewerAscii c f = withPetscViewer c $ \v -> do
   petscViewerSetType v ViewerAscii
   f v
 
+t11 = withPetsc0 t11'
 
 
 

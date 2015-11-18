@@ -66,7 +66,8 @@ newtype DMDALocalInfo = DMDALocalInfo (Ptr DMDALocalInfo) deriving Storable
 
 newtype KSP = KSP (Ptr KSP) deriving Storable
 
-newtype KSPConvergedReason = KSPConvergedReason (Ptr KSPConvergedReason) deriving (Eq, Storable)
+newtype KSPConvergedReason = KSPConvergedReason (Ptr KSPConvergedReason)
+                           deriving (Eq, Storable)
 
 newtype SNES = SNES (Ptr SNES) deriving Storable
 newtype SNESLineSearch = SNESLineSearch (Ptr SNESLineSearch) deriving Storable
@@ -109,7 +110,9 @@ newtype MatFactorInfo = MatFactorInfo (Ptr MatFactorInfo) deriving Storable
 
 
 
-data InsertMode_ = NotSetValues | InsertValues | AddValues | MaxValues | InsertAllValues | AddAllValues | InsertBCValues | AddBCValues deriving (Eq, Enum, Show)
+data InsertMode_ = NotSetValues | InsertValues | AddValues | MaxValues
+                 | InsertAllValues | AddAllValues | InsertBCValues | AddBCValues
+                 deriving (Eq, Enum, Show)
 
 insertModeToInt x = fromEnum (x :: InsertMode_) 
 
@@ -141,7 +144,10 @@ isColoringTypeToInt x = fromEnum (x :: ISColoringType_)
 
 -- * Vec
 
-data VecNorm_ = VecNorm1 | VecNorm2 | VecNormFrobenius | VecNormInfty | VecNorm1and2 deriving (Eq, Enum, Show)
+data VecNorm_ = VecNorm1 | VecNorm2 | VecNormFrobenius | VecNormInfty
+              | VecNorm1and2
+              deriving (Eq, Enum, Show)
+                       
 vecNormToInt x = fromEnum (x :: VecNorm_ )
 
 
@@ -159,20 +165,28 @@ matTypeToStr _ = "mpiaij" -- default
 
 
 -- typedef enum {DIFFERENT_NONZERO_PATTERN,SUBSET_NONZERO_PATTERN,SAME_NONZERO_PATTERN} MatStructure;
-data MatStructure_ = MatDifferentNZPattern | MatSubsetNZPattern | MatSameNZPattern deriving (Eq, Show, Enum)
+data MatStructure_ = MatDifferentNZPattern | MatSubsetNZPattern | MatSameNZPattern
+                   deriving (Eq, Show, Enum)
+                            
 matStructureToInt x = fromEnum (x :: MatStructure_ )
 
 
-data MatCompositeType_ = MatCompositeAdditive | MatCompositeMultiplicative deriving (Eq, Show, Enum)
+data MatCompositeType_ = MatCompositeAdditive | MatCompositeMultiplicative
+                       deriving (Eq, Show, Enum)
+                                
 matCompositeTypeToInt x = fromEnum (x :: MatCompositeType_ )
 
 
 
 -- * DM
 
-data DMBoundaryType_ = DmBNone | DmBGhosted | DmBMirror | DmBPeriodic | DmBTwist deriving (Eq, Show, Enum)
+data DMBoundaryType_ = DmBNone | DmBGhosted | DmBMirror | DmBPeriodic | DmBTwist
+                     deriving (Eq, Show, Enum)
+
+dmBoundaryTypeToInt :: DMBoundaryType_ -> Int
 dmBoundaryTypeToInt x = fromEnum (x :: DMBoundaryType_)
 
+cIntToDmBoundaryType :: CInt -> DMBoundaryType_
 cIntToDmBoundaryType c =
   case g of 0 -> DmBNone
             1 -> DmBGhosted
@@ -188,6 +202,7 @@ cIntToDmBoundaryType c =
 data DMDAStencilType = DmSStar | DmSBox deriving (Eq, Show, Enum)
 dmdaStencilTypeToInt x = fromEnum (x :: DMDAStencilType)
 
+cIntToDmdaStencilType :: CInt -> DMDAStencilType
 cIntToDmdaStencilType c =
   case g of 0 -> DmSStar
             1 -> DmSBox
@@ -207,13 +222,41 @@ data KspType_ = KspRichardson | KspChebyshev | KspCg | KspGroppCg | KspPipeCg
               deriving (Eq, Show)
 
 kspTypeToStr :: KspType_ -> String
-kspTypeToStr KspRichardson = "richardson"
-kspTypeToStr KspChebyshev = "chebyshev"
-kspTypeToStr KspCg = "cg"
-kspTypeToStr KspGmres = "gmres"
-kspTypeToStr KspBicg = "bicg"
-kspTypeToStr KspMinres = "minres"
-kspTypeToStr _ = "cg" -- default, for no particular reason
+kspTypeToStr x = case x of
+  KspRichardson -> "richardson"
+  KspChebyshev -> "chebyshev"
+  KspCg -> "cg"
+  KspGroppCg -> "groppcg"
+  KspPipeCg -> "pipecg"
+  KspCgne -> "cgne"
+  KspNash -> "nash"
+  KspStcg -> "stcg"
+  KspGltr -> "gltr"
+  KspGmres -> "gmres"
+  KspFgmres -> "fgmres"
+  KspLgmres -> "lgmres"
+  KspDgmres -> "dgmres"
+  KspPgmres -> "pgmres"
+  KspTcqmr -> "tcqmr"
+  KspBcgs -> "bcgs"
+  KspIbcgs -> "ibcgs"
+  KspFbcgs -> "fbcgs"
+  KspFbcgsr -> "fbcgsr"
+  KspBcgsl -> "bcgsl"
+  KspCgs -> "cgs"
+  KspTfqmr -> "tfqmr"
+  KspCr -> "cr"
+  KspPipecr -> "pipecr"
+  KspLsqr -> "lsqr"
+  KspPreonly -> "preonly"
+  KspQcg -> "qcg"
+  KspBicg -> "bicg"
+  KspMinres -> "minres"
+  KspSymmlq -> "symmlq"
+  KspLcd -> "lcd"
+  KspPython -> "python"
+  KspCgr -> "cgr"
+  KspSpecest -> "specest"
 
 data KspConvergedReason = KspConvergedRtolNormal | KspConvergedAtolNormal
                         | KspConvergedRtol | KspConvergedAtol
@@ -269,10 +312,27 @@ data SnesType_ = SnesNewtonLs | SnesNewtonTr | SnesPython | SnesTest
                | SnesComposite deriving (Eq, Show)
 
 snesTypeToStr :: SnesType_ -> String
-snesTypeToStr SnesNewtonLs = "newtonls"
-snesTypeToStr SnesNewtonTr = "newtontr"
-snesTypeToStr SnesNgmres = "ngmres"
-snesTypeToStr _ = "newtonls" -- default
+snesTypeToStr t = case t of
+  SnesNewtonLs -> "newtonls"
+  SnesNewtonTr -> "newtontr"
+  SnesPython -> "python"
+  SnesTest -> "test"
+  SnesNRichardson -> "nrichardson"
+  SnesKspOnly -> "ksponly"
+  SnesViNewtonRsLs -> "vinewtonrsls"
+  SnesViNewtonSsLs -> "vinewtonssls"
+  SnesNgmres -> "ngmres"
+  SnesQn -> "qn"
+  SnesShell -> "shell"
+  SnesNgs -> "ngs"
+  SnesNcg -> "ncg"
+  SnesFas -> "fas"
+  SnesMs -> "ms"
+  SnesNasm -> "nasm"
+  SnesAnderson -> "anderson"
+  SnesAspin -> "aspin"
+  SnesComposite -> "composite"
+
 
 
 data SnesConvergedReason = SnesConvergedFnormAbs
@@ -328,11 +388,16 @@ snesConvergedIntToReason x =
 -- * TS
 
 data TsProblemType = TsLinear | TsNonlinear deriving (Eq, Show, Enum)
+
+tsProblemTypeToInt :: TsProblemType -> Int
 tsProblemTypeToInt x = fromEnum (x :: TsProblemType)
 
 
-data TsType_ = TsEuler | TsBEuler | TsPseudo | TsCn | TsSundials | TsRK | TsPython | TsTheta | TsAlpha | TsGl | TsSsp | TsArkimex | TsRosw | TsEimex | TsMimex deriving (Eq, Show) 
+data TsType_ = TsEuler | TsBEuler | TsPseudo | TsCn | TsSundials | TsRK | TsPython
+             | TsTheta | TsAlpha | TsGl | TsSsp | TsArkimex | TsRosw | TsEimex
+             | TsMimex deriving (Eq, Show) 
 
+tsTypeToString :: TsType_ -> String
 tsTypeToString t = case t of TsEuler -> "euler"
                              TsBEuler -> "beuler"
                              TsPseudo -> "pseudo"
@@ -348,7 +413,10 @@ tsTypeToString t = case t of TsEuler -> "euler"
                              TsEimex -> "eimex"
                              TsMimex -> "mimex"
 
-data TsConvergedReason_ = TsConvergedIterating | TsConvergedTime | TsConvergedIts | TsConvergedUser | TsConvergedEvent | TsDivergedNonlinSolve | TsDivergedStepRejected | TsUndefinedConvergenceCase deriving (Eq, Enum, Show)
+data TsConvergedReason_ = TsConvergedIterating | TsConvergedTime | TsConvergedIts
+                        | TsConvergedUser | TsConvergedEvent | TsDivergedNonlinSolve
+                        | TsDivergedStepRejected | TsUndefinedConvergenceCase
+                        deriving (Eq, Enum, Show)
 
 tsConvergedIntToReason :: CInt -> TsConvergedReason_
 tsConvergedIntToReason c = case fi c of
@@ -408,7 +476,10 @@ taoConvergedIntToReason x =
 
 -- * Viewer
 
-data PetscViewerType_ = ViewerSock | ViewerAscii | ViewerBinary | ViewerString | ViewerDraw | ViewerVu | ViewerMathematica | ViewerNetCDF | ViewerHDF5 | ViewerVtk | ViewerMatlab | ViewerSaws deriving (Eq, Enum, Show)
+data PetscViewerType_ = ViewerSock | ViewerAscii | ViewerBinary | ViewerString
+                      | ViewerDraw | ViewerVu | ViewerMathematica | ViewerNetCDF
+                      | ViewerHDF5 | ViewerVtk | ViewerMatlab | ViewerSaws
+                      deriving (Eq, Enum, Show)
 
 viewerTypeToInt x = fromEnum (x :: PetscViewerType_)
 
@@ -452,7 +523,10 @@ petscViewerFormatToCInt x = toCInt $ fromEnum (x :: PetscViewerFormat_)
 
 
 -- * FileMode
-data PetscFileMode_ = FileModeRead | FileModeWrite | FileModeAppend | FileModeUpdate | FileModeAppendUpdate deriving (Eq, Enum, Show)
+data PetscFileMode_ = FileModeRead | FileModeWrite | FileModeAppend
+                    | FileModeUpdate | FileModeAppendUpdate
+                    deriving (Eq, Enum, Show)
+                             
 fileModeToInt x = fromEnum (x :: PetscFileMode_)
 
 -- FILE_MODE_READ - open a file at its beginning for reading
