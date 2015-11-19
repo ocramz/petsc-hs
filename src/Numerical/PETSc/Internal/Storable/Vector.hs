@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Storable.Vector
@@ -35,10 +36,12 @@ import System.IO.Unsafe (unsafePerformIO)
 
 import Data.Complex
 
+import qualified Control.Monad.Primitive as Prim
+
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Storable.Mutable as VM
-
+import qualified Data.Vector.Generic as VG
 
 -- | instances
 
@@ -128,8 +131,8 @@ buildVectorFromIdxs ::
 buildVectorFromIdxs len f =
     VS.fromList $ map f [0 .. (len - 1)]
 
-iota :: (Num a, Storable a, Enum a) => Int -> VS.Vector a
-iota n = buildVectorFromIdxs n id
+-- iota :: (Num a, Storable a, Enum a) => Int -> VS.Vector a
+-- iota n = buildVectorFromIdxs n id
 
 
 mapVectorFromList :: Storable b => [a] -> (a -> b) -> VS.Vector b
@@ -313,6 +316,32 @@ asComplex :: (RealFloat a, Storable a, Storable (Complex a)) =>
 asComplex v = VS.unsafeFromForeignPtr (FPR.castForeignPtr fp) (i `div` 2) (n `div` 2)
     where (fp,i,n) = VS.unsafeToForeignPtr v
 
+
+
+
+
+-- | mutable <-> generic
+
+type VMS a = VM.IOVector a 
+
+-- fromMutableV :: (VG.Vector v a, Storable a) => VM.IOVector a -> IO (v a)
+fromMutableV :: (Storable a, VG.Vector v a) => VMS a -> IO (v a)
+fromMutableV mv = do
+  v <- VS.freeze mv
+  return (VG.convert v)
+
+toMutableV :: (VG.Vector v a, Storable a) => v a -> IO (VM.IOVector a)
+toMutableV = VS.thaw . VG.convert
+
+withVG :: (VG.Vector v a, Storable a) =>
+              v a ->
+              (VM.IOVector a -> VM.IOVector a) ->
+              IO (v a)
+withVG v f = do
+  x <- toMutableV v
+  fromMutableV (f x)
+
+-- asdf v f = VM.unsafeWith v (f . castPtr)
 
 
 
