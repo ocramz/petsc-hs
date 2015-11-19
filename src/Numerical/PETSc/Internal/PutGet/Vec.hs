@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
+{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.PutGet.Vec
@@ -46,7 +46,7 @@ import           Control.Monad.ST.Unsafe            (unsafeIOToST)    -- for HMa
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable               as VS 
 import qualified Data.Vector.Storable.Mutable       as VM
-
+import qualified Data.Vector.Generic       as VG
 
 
 -- | instances
@@ -542,10 +542,11 @@ vecCreateMPIFromVectorDecideLocalSize comm w = do
 
 
 
--- modifyVecVector ::
---   Vec ->
---   (VS.Vector PetscScalar_ -> VS.Vector PetscScalar_) ->
---   IO (VS.Vector PetscScalar_)
+modifyVecVector :: 
+  (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) => 
+  Vec ->
+  (v PetscScalar_ -> w PetscScalar_) ->
+  IO (w PetscScalar_)
 modifyVecVector v f = do
   u <- vecGetVector v
   let y = f (V.convert u)
@@ -652,6 +653,32 @@ vecRestoreVector v w = do
   vecRestoreArrayPtr v p
     where
      len = vecSize v
+
+-- | IOVector <-> Vector.Generic
+
+fromMutableV :: (VG.Vector v a, Storable a) => VM.IOVector a -> IO (v a)
+fromMutableV mv = do
+  v <- VS.freeze mv
+  return (VG.convert v)
+
+toMutableV :: (VG.Vector v a, Storable a) => v a -> IO (VM.IOVector a)
+toMutableV = VS.thaw . VG.convert
+
+
+-- | PETSc Vec <-> IOVector
+
+vecGetIOVector :: Vec -> IO ( VM.IOVector PetscScalar_ )
+vecGetIOVector v = do
+  x <- vecGetVector v
+  toMutableV x
+
+vecRestoreIOVector :: Vec -> VM.IOVector PetscScalar_  -> IO ()
+vecRestoreIOVector v iov = do
+  x <- fromMutableV iov
+  vecRestoreVector v x
+
+
+
 
 -- get the first n entries
 
