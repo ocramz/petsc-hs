@@ -92,7 +92,7 @@ newtype ISColoring = ISColoring (Ptr ISColoring) deriving Storable
 
 newtype MatFactorInfo = MatFactorInfo (Ptr MatFactorInfo) deriving Storable
 
-
+newtype PetscSection = PetscSection (Ptr PetscSection) deriving Storable
 -- end newtypes
 
 

@@ -71,6 +71,7 @@ petscTypesTable = Map.fromList
                   , (typeNameId "ISColoring", [t| ISColoring |])
 
                   , (typeNameId "MatFactorInfo", [t| MatFactorInfo |])
+                  , (typeNameId "PetscSection", [t| PetscSection |])
                   ]
 
 typeNameId :: CT.CIdentifier -> CT.TypeSpecifier
