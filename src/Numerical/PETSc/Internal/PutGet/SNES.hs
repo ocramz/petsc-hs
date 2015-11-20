@@ -34,7 +34,7 @@ import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS 
-
+import qualified Data.Vector.Storable.Mutable as VM
 
 
 
@@ -77,13 +77,20 @@ snesCreateSetup comm v amat pmat f fj = do
 
 -- a SNES function (either f or grad f) modifies one of its arguments (same for KSP, TS, Tao, .. functions)
 
-snesFunctionAdapter vIn vOut fv = do --- | what type for this contraption?
-  let ix = V.fromList [0 .. n-1]
-      n = vecSize vIn
-  x <- vecGetVector vIn
-  let y = fv x
-      ixy = V.zip ix y
-  vecSetValuesUnsafeVector1A vOut ixy InsertValues
+-- snesFunctionAdapter vIn vOut fv = do --- | what type for this contraption?
+--   let ix = V.fromList [0 .. n-1]
+--       n = vecSize vIn
+--   x <- vecGetVector vIn
+--   let y = fv x
+--       ixy = V.zip ix y
+--   vecSetValuesUnsafeVector1A vOut ixy InsertValues
+
+snesFunctionAdapt ::
+  Vec ->
+  Vec ->                 -- SECOND Vec WILL BE MODIFIED
+  (VM.IOVector PetscScalar_ -> VM.IOVector PetscScalar_) ->
+  IO CInt
+snesFunctionAdapt = petscVecVecFunctionAdapt
 
 
 

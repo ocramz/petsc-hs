@@ -322,24 +322,24 @@ asComplex v = VS.unsafeFromForeignPtr (FPR.castForeignPtr fp) (i `div` 2) (n `di
 
 -- | mutable <-> generic
 
-type VMS a = VM.IOVector a 
+-- type VMS a = VM.IOVector a 
 
--- fromMutableV :: (VG.Vector v a, Storable a) => VM.IOVector a -> IO (v a)
-fromMutableV :: (Storable a, VG.Vector v a) => VMS a -> IO (v a)
-fromMutableV mv = do
-  v <- VS.freeze mv
-  return (VG.convert v)
+-- -- fromMutableV :: (VG.Vector v a, Storable a) => VM.IOVector a -> IO (v a)
+-- fromMutableV :: (Storable a, VG.Vector v a) => VMS a -> IO (v a)
+-- fromMutableV mv = do
+--   v <- VS.freeze mv
+--   return (VG.convert v)
 
-toMutableV :: (VG.Vector v a, Storable a) => v a -> IO (VM.IOVector a)
-toMutableV = VS.thaw . VG.convert
+-- toMutableV :: (VG.Vector v a, Storable a) => v a -> IO (VM.IOVector a)
+-- toMutableV = VS.thaw . VG.convert
 
-withVG :: (VG.Vector v a, Storable a) =>
-              v a ->
-              (VM.IOVector a -> VM.IOVector a) ->
-              IO (v a)
-withVG v f = do
-  x <- toMutableV v
-  fromMutableV (f x)
+-- withVG :: (VG.Vector v a, Storable a) =>
+--               v a ->
+--               (VM.IOVector a -> VM.IOVector a) ->
+--               IO (v a)
+-- withVG v f = do
+--   x <- toMutableV v
+--   fromMutableV (f x)
 
 -- asdf v f = VM.unsafeWith v (f . castPtr)
 

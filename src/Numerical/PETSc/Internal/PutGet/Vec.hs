@@ -595,6 +595,9 @@ vecSize :: Vec -> Int
 vecSize = vecGetSizeUnsafe
 
 
+withVecSize :: Vec -> (Vec -> Int -> t) -> t
+withVecSize v f = f v (vecSize v)
+
 
 
 
@@ -665,6 +668,33 @@ toMutableV :: (VG.Vector v a, Storable a) => v a -> IO (VM.IOVector a)
 toMutableV = VS.thaw . VG.convert
 
 
+withVG :: (VG.Vector v a, Storable a) =>
+              v a ->
+              (VM.IOVector a -> VM.IOVector a) ->
+              IO (v a)
+withVG v f = do
+  x <- toMutableV v
+  fromMutableV (f x)
+
+
+modifyVec ::
+  (VG.Vector v PetscScalar_) =>
+  Vec ->
+  (VM.IOVector PetscScalar_ -> VM.IOVector PetscScalar_) ->
+  IO (v PetscScalar_)
+modifyVec v f = do
+  x <- vecGetIOVector v
+  let ym = f x
+  vecRestoreIOVector v ym
+  fromMutableV ym
+  -- x <- vecGetVector v
+  -- -- y <- withVG x f
+  -- xm <- toMutableV x
+  -- let ym = f xm
+  -- y <- fromMutableV ym
+  -- vecRestoreVector v y
+
+
 -- | PETSc Vec <-> IOVector
 
 vecGetIOVector :: Vec -> IO ( VM.IOVector PetscScalar_ )
@@ -727,7 +757,36 @@ modifyVS u g = runST $ do
 
 
 
+
+
+
+
 -- -- | mutating operators, use at own risk
+
+
+vecVecFunctionAdapt ::
+  Vec ->
+  Vec ->                 -- SECOND Vec WILL BE MODIFIED
+  (VM.IOVector PetscScalar_ -> VM.IOVector PetscScalar_) ->
+  IO Vec
+vecVecFunctionAdapt vIn vOut fv = 
+  withVecSize vIn $ \v vsz -> do
+    let ix = V.fromList [0 .. vsz-1] -- hmm
+    y <- modifyVec v fv
+    let ixy = V.zip ix y
+    vecSetValuesUnsafeVector1A vOut ixy InsertValues
+
+petscVecVecFunctionAdapt ::
+  Vec ->
+  Vec ->                 -- SECOND Vec WILL BE MODIFIED
+  (VM.IOVector PetscScalar_ -> VM.IOVector PetscScalar_) ->
+  IO CInt
+petscVecVecFunctionAdapt v1 v2 fv =
+  return0 $ vecVecFunctionAdapt v1 v2 fv
+
+
+
+
 
 -- withVecGetVectorOverwrite ::
 --   Vec ->
