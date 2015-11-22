@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 module Numerical.PETSc.Internal.Class where
 -----------------------------------------------------------------------------
 -- |
@@ -19,5 +20,22 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 
-asdf = do
-  
+import Control.Lens
+
+
+
+
+
+
+
+
+
+-- -- 
+-- data PetscObj a = PetscObj { _comm :: Comm,
+--                              _obj :: a }
+
+-- makeLenses ''PetscObj
+
+-- createPetscObj f = do
+--   c <- asks _comm
+--   lift $ f c 

@@ -23,10 +23,8 @@ import Numerical.PETSc.Internal.Storable.Vector
 
 import qualified Data.Vector.Storable as VS
 
--- import Foreign
--- import Foreign.C.Types
 
--- import System.IO.Unsafe (unsafePerformIO)
+-- | DMVec 
 
 data DMVec = DMVec Vec DM
 
