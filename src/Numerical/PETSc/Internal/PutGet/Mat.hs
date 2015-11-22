@@ -248,6 +248,9 @@ matSetValueVectorSafe m (mx, my) v_ mode =
 
 
 
+
+
+
 {-| the matSetValues Vector interface is broken (see t5) -}
 
 {-| -- --     DO NOT USE      -- --  -}
