@@ -147,7 +147,7 @@ isColoringTypeToInt x = fromEnum (x :: ISColoringType_)
 data VecNorm_ = VecNorm1 | VecNorm2 | VecNormFrobenius | VecNormInfty
               | VecNorm1and2
               deriving (Eq, Enum, Show)
-                       
+
 vecNormToInt x = fromEnum (x :: VecNorm_ )
 
 
@@ -157,6 +157,8 @@ vecNormToInt x = fromEnum (x :: VecNorm_ )
 data MatType_ = MatSame | MatMaij | MatSeqMaij | MatMPIMaij | MatIs | MatAij
               | MatSeqAij | MatSeqAijPThread | MatAijPthread | MatMPIAij | MatMPIBaij -- etc.
                                                                deriving (Eq, Show)
+
+matTypeToStr :: MatType_ -> String
 matTypeToStr MatSame = "same"
 matTypeToStr MatIs = "is"
 matTypeToStr MatAij = "aij"

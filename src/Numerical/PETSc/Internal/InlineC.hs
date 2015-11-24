@@ -600,6 +600,12 @@ matDestroy0' m = [C.exp|int{MatDestroy($(Mat *m))}|]
 matDestroy' m = with m matDestroy0' 
 
 
+matSetSizes0' :: Mat -> Int -> Int -> Int -> Int -> IO CInt
+matSetSizes0' mat mlo nlo m n = [C.exp|int{MatSetSizes($(Mat mat), $(int mloc), $(int nloc),
+                                             $(int mc), $(int nc))}|]
+  where (mc, nc) = both (m , n) toCInt
+        (mloc, nloc) = both (mlo , nlo) toCInt
+
 matSetSizes' :: Mat -> Int -> Int -> IO CInt
 matSetSizes' mat m n = [C.exp|int{MatSetSizes($(Mat mat), PETSC_DECIDE, PETSC_DECIDE,
                                              $(int mc), $(int nc))}|]

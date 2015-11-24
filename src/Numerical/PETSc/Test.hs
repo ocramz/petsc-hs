@@ -346,18 +346,31 @@ t11 = withPetsc0  t11'
 
 -- -- | block matrix assembly
 
-t12' = withMatCreateSetup  cw n n $ \mat -> do
-  matSetBlockSize mat 2
-  matSetType mat MatMPIBaij
-  matMPIAIJSetPreallocationConstNZPR mat 3 0
-  matSetValuesBlocked0 mat idxs idxs vs InsertValues
-  matAssembly mat
-  matViewStdout mat
+asdf = idxV ne i where
+  i = 1
+  ne = 4
+
+
+  
+t12' =
+  withMatCreateSetup1 cw mm mm MatAij -- MatMPIBaij
+  (`matSetBlockSize` 2)
+  (\mat -> do
+      -- matSeqAIJSetPreallocation mat nzpr (replicate ne ne)
+      matMPIAIJSetPreallocationConstNZPR mat nzpr nzpr
+      matSetup mat
+  )
+  (\mat -> do
+      matSetValuesBlocked0 mat idxs idxs vs InsertValues
+      matAssembly mat
+      matViewStdout mat)
   where
     cw = commWorld
-    n = 5 
-    idxs = idxV 2 1
-    vs = V.fromList [0..15]
+    ne = 4 -- :: CInt
+    nzpr = 10
+    mm = fromIntegral ne^2
+    idxs = idxV ne 1
+    vs = V.fromList $ replicate mm pi -- [0..mm-1 :: CDouble]
 
 -- idx[4] = {Ii, Ii+1, Ii + (ne+1) + 1, Ii + (ne+1)}
 idxV ne i = V.fromList [i, i+1, i+ne+2, i+ne+1] 

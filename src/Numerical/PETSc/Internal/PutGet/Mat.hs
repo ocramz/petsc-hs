@@ -173,6 +173,25 @@ withMatCreateSetup comm m n after = withMat (matCreate comm) $ \mat -> do
   matSetup mat
   after mat         -- set values, assemble can be done here
 
+withMatCreateSetup1 ::
+  Comm ->
+  Int ->
+  Int ->
+  MatType_ -> 
+  (Mat -> IO a) ->
+  (Mat -> IO b) ->
+  (Mat -> IO c) ->
+  IO c
+withMatCreateSetup1 comm m n ty before setup  after =
+  withMat (matCreate comm) $ \mat -> do
+    matSetSizes mat m n
+    matSetType mat ty
+    before mat    -- e.g. set block size for MPIBAIJ
+    setup mat     -- matMPISetPreallocation or matSetup
+    after mat
+
+
+
   
 -- -- create, setup AND fill
 
@@ -346,6 +365,17 @@ matSetValuesVectorSafe m ix iy v
 matSetType :: Mat -> MatType_ -> IO ()
 matSetType mat ty = chk0 (matSetType' mat ty)
 
+matSetSizes0 ::
+  Mat ->
+  Int ->            -- # local rows
+  Int ->            -- # local columns
+  Int ->            -- # global rows
+  Int ->            -- # global columns
+  IO ()
+matSetSizes0 mat mloc nloc mm nn =
+  chk0 (matSetSizes0' mat mloc nloc mm nn)
+
+
 matSetSizes ::
   Mat ->
   Int ->            -- # global rows
@@ -356,8 +386,10 @@ matSetSizes mat m n
   | otherwise = error $ "matSetSizes : invalid size " ++ show (m,n)
 
 
-matSeqAIJSetPreallocation :: Mat -> CInt -> [CInt] -> IO ()
-matSeqAIJSetPreallocation mat nz nnz = chk0 (matSeqAIJSetPreallocation' mat nz nnz)
+matSeqAIJSetPreallocation :: Mat -> Int -> [Int] -> IO ()
+matSeqAIJSetPreallocation mat nz nnz = chk0 (matSeqAIJSetPreallocation' mat nz' nnz') where
+  nz' = toCInt nz 
+  nnz' = map toCInt nnz 
 
 
 -- | nonzero preallocation of AIJ parallel matrix format
@@ -375,11 +407,12 @@ matMPIAIJSetPreallocation0 mat dnz dnnz onz onnz =
 
 matMPIAIJSetPreallocationConstNZPR ::
   Mat ->
-  CInt ->    -- # nonzeros/row in diagonal block of process-local matrix block
-  CInt ->    -- # NZ/row in off-diagonal block of local mtx block
+  Int ->    -- # nonzeros/row in diagonal block of process-local matrix block
+  Int ->    -- # NZ/row in off-diagonal block of local mtx block
   IO ()
 matMPIAIJSetPreallocationConstNZPR mat dnz onz =
-  chk0 (matMPIAIJSetPreallocationConstNZPR' mat dnz onz)
+  chk0 (matMPIAIJSetPreallocationConstNZPR' mat dnz' onz') where
+    (dnz', onz') = both (dnz, onz) toCInt
 
 
 
@@ -398,8 +431,9 @@ matSetValuesBlocked0 ::  (VG.Vector v PetscScalar_) =>
 matSetValuesBlocked0 mat idxm idxn v imode =
   unsafeWithVS imc $ \idxmp ->
   unsafeWithVS inc $ \idxnp ->
-  unsafeWithVS v $ \vp ->
-  chk0 (matSetValuesBlocked0' mat m idxmp n idxnp vp imode)
+  unsafeWithVS v $ \vp -> do
+    -- print (m,n)   -- debug
+    chk0 (matSetValuesBlocked0' mat m idxmp n idxnp vp imode)
    where
      (m ,n) = both (V.length imc, V.length inc) toCInt
      imc = V.map toCInt idxm
