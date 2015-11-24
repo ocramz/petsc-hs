@@ -369,7 +369,7 @@ t12' =
     ne = 4 -- :: CInt
     nzpr = 10
     mm = fromIntegral ne^2
-    idxs = idxV ne 1
+    idxs = idxV ne 0
     vs = V.fromList $ replicate mm pi -- [0..mm-1 :: CDouble]
 
 -- idx[4] = {Ii, Ii+1, Ii + (ne+1) + 1, Ii + (ne+1)}
