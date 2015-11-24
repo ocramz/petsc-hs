@@ -155,12 +155,13 @@ vecNormToInt x = fromEnum (x :: VecNorm_ )
 -- * Mat
 
 data MatType_ = MatSame | MatMaij | MatSeqMaij | MatMPIMaij | MatIs | MatAij
-              | MatSeqAij | MatSeqAijPThread | MatAijPthread | MatMPIAij -- etc.
+              | MatSeqAij | MatSeqAijPThread | MatAijPthread | MatMPIAij | MatMPIBaij -- etc.
                                                                deriving (Eq, Show)
 matTypeToStr MatSame = "same"
 matTypeToStr MatIs = "is"
 matTypeToStr MatAij = "aij"
 matTypeToStr MatMPIAij = "mpiaij"
+matTypeToStr MatMPIBaij = "mpibaij"
 matTypeToStr _ = "mpiaij" -- default
 
 

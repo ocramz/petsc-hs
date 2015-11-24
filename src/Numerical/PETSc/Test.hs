@@ -297,7 +297,7 @@ t9' = do
          
     n = 1
   withDmda1d0 cw DmBNone n 1 1 $ \da ->   -- distributed array
-    withMatCreateSetup cw n n $ \jac -> do
+    withMatCreateSetup cw n n $ \jac -> 
       matMPIAIJSetPreallocationConstNZPR jac 1 0 
     where
       cw = commWorld
@@ -348,7 +348,7 @@ t11 = withPetsc0  t11'
 
 t12' = withMatCreateSetup  cw n n $ \mat -> do
   matSetBlockSize mat 2
-  matSetType mat MatAij
+  matSetType mat MatMPIBaij
   matMPIAIJSetPreallocationConstNZPR mat 3 0
   matSetValuesBlocked0 mat idxs idxs vs InsertValues
   matAssembly mat
