@@ -234,12 +234,16 @@ sndOf2 =  snd . snd
 
 both' f =  f *** f
 
+both :: (a, a) -> (a -> b) -> (b, b)
 both (a, b) f = (f a, f b)
 
+bothF :: (Functor f1, Functor f2) => (f1 a, f2 a) -> (a -> b) -> (f1 b, f2 b)
 bothF (a, b) f = (fmap f a, fmap f b)
 
+all3 :: (a, a, a) -> (a -> b) -> (b, b, b)
 all3 (a,b,c) f = (f a, f b, f c)
 
+bothM :: Monad m => (a, a) -> (a -> b) -> m (b, b)
 bothM t f = return (both t f)
 
 

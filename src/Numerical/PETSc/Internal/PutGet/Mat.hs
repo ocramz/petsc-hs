@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
@@ -16,7 +17,10 @@ module Numerical.PETSc.Internal.PutGet.Mat where
 import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
-import Numerical.PETSc.Internal.Utils
+import Numerical.PETSc.Internal.Utils (both, fi, toCInt, in0m, allIn0mV)
+
+import Numerical.PETSc.Internal.Storable.Common (unsafeWithVS)
+
 import Numerical.PETSc.Internal.Managed
 
 import Foreign.C.Types
@@ -38,7 +42,7 @@ import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
 import qualified Data.Vector as V 
 import qualified Data.Vector.Storable as VS (unsafeWith, Vector)
-
+import qualified Data.Vector.Generic as VG
 
 
 -- | a datatype encapsulating matrix information and the typed pointer
@@ -157,6 +161,21 @@ matDestroy = chk0 . matDestroy'
 withMat :: IO Mat -> (Mat -> IO a) -> IO a
 withMat mc = bracket mc matDestroy 
 
+-- | withMatCreateSetup : (create, setSizes, setup, <body>, cleanup) bracket
+withMatCreateSetup ::
+  Comm ->
+  Int ->
+  Int ->
+  (Mat -> IO a) ->
+  IO a
+withMatCreateSetup comm m n after = withMat (matCreate comm) $ \mat -> do
+  matSetSizes mat m n
+  matSetup mat
+  after mat         -- set values, assemble can be done here
+
+  
+-- -- create, setup AND fill
+
 -- | withMatNew :  creation, setup, fill, use, cleanup ; batteries included
 withMatNew ::
   Comm ->                               -- MPI communicator
@@ -169,13 +188,6 @@ withMatNew ::
 withMatNew comm m n v_ imode after =
   withMatCreateSetup comm m n $ \mat -> 
     withMatSetValueVectorSafe mat m n v_ imode after
-
--- | withMatCreateSetup : (create, setSizes, setup, <body>, cleanup) bracket
-withMatCreateSetup :: Comm -> Int -> Int -> (Mat -> IO a) -> IO a
-withMatCreateSetup comm m n after = withMat (matCreate comm) $ \mat -> do
-  matSetSizes mat m n
-  matSetup mat
-  after mat         -- set values, assemble can be done here
 
 -- | withMatSetValueVectorSafe :  fill + setup Mat with index bound checks
 withMatSetValueVectorSafe ::
@@ -190,8 +202,7 @@ withMatSetValueVectorSafe mat m n v_ imode after = do
   matAssembly mat
   after mat 
 
--- data MatWithState = MatAssembled Mat | MatNotAssembled Mat -- not sure good idea
-   
+
 
 
 
@@ -245,6 +256,25 @@ matSetValueVectorSafe ::
   Mat -> (Int, Int) -> V.Vector (Int, Int, PetscScalar_) -> InsertMode_ -> IO ()
 matSetValueVectorSafe m (mx, my) v_ mode =
   V.mapM_ (\(ix,iy,val) -> matSetValueSafe m (mx, my) ix iy val mode) v_
+
+
+
+
+
+matSetValuesVector1 ::
+  Mat ->
+  V.Vector CInt ->
+  V.Vector CInt ->
+  V.Vector PetscScalar_ ->
+  InsertMode_ ->
+  IO ()
+matSetValuesVector1 ma ix iy iv im =
+  unsafeWithVS ix $ \ixp ->
+  unsafeWithVS iy $ \iyp ->
+  unsafeWithVS iv $ \ivp -> chk0 (matSetValues0' ma nx ixp ny iyp ivp im)
+   where
+     (nx, ny) = both (V.length ix, V.length iy) toCInt
+
 
 
 
@@ -313,13 +343,20 @@ matSetValuesVectorSafe m ix iy v
 
 -- | set Mat properties
 
-matSetSizes :: Mat -> Int -> Int -> IO ()
+matSetType :: Mat -> MatType_ -> IO ()
+matSetType mat ty = chk0 (matSetType' mat ty)
+
+matSetSizes ::
+  Mat ->
+  Int ->            -- # global rows
+  Int ->            -- # global columns
+  IO ()
 matSetSizes mat m n
   | m > 0 && n > 0 = chk0 (matSetSizes' mat m n)
   | otherwise = error $ "matSetSizes : invalid size " ++ show (m,n)
 
 
-
+matSeqAIJSetPreallocation :: Mat -> CInt -> [CInt] -> IO ()
 matSeqAIJSetPreallocation mat nz nnz = chk0 (matSeqAIJSetPreallocation' mat nz nnz)
 
 
@@ -343,6 +380,33 @@ matMPIAIJSetPreallocationConstNZPR ::
   IO ()
 matMPIAIJSetPreallocationConstNZPR mat dnz onz =
   chk0 (matMPIAIJSetPreallocationConstNZPR' mat dnz onz)
+
+
+
+-- -- block Mat assembly
+
+matSetBlockSize :: Mat -> Int -> IO ()
+matSetBlockSize mat bs = chk0 (matSetBlockSize' mat bs)
+
+matSetValuesBlocked0 ::  (VG.Vector v PetscScalar_) =>
+  Mat ->
+  V.Vector Int ->
+  V.Vector Int ->
+  v PetscScalar_ ->
+  InsertMode_ ->
+  IO ()
+matSetValuesBlocked0 mat idxm idxn v imode =
+  unsafeWithVS imc $ \idxmp ->
+  unsafeWithVS inc $ \idxnp ->
+  unsafeWithVS v $ \vp ->
+  chk0 (matSetValuesBlocked0' mat m idxmp n idxnp vp imode)
+   where
+     (m ,n) = both (V.length imc, V.length inc) toCInt
+     imc = V.map toCInt idxm
+     inc = V.map toCInt idxn
+     -- vc = V.map toCDouble v
+     
+
 
 
 

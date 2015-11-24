@@ -16,9 +16,18 @@ import Control.Applicative
 import Control.Monad
 
 import Foreign.C.Types
+import Foreign.Ptr
+import Foreign.Storable
+
+import qualified Data.Vector.Generic as VG
+import qualified Data.Vector.Storable as VS
 
 
-  
+unsafeWithVS :: (VG.Vector v a, Storable a) =>
+                v a ->
+                (Ptr a -> IO b) ->
+                IO b
+unsafeWithVS v = VS.unsafeWith (VG.convert v)
 
 
 liftF1_ ::

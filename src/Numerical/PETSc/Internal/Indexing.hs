@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Indexing
@@ -27,29 +27,110 @@ import Control.Applicative
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as VG
 
-import qualified Data.Map.Strict as Map
+-- import qualified Data.Map.Strict as Map
+-- -- import Math.Geometry.Grid.Square
+-- import Data.Ix
+
+import Data.List (nub, nubBy, (\\))
 
 
--- import Math.Geometry.Grid.Square
 
 
-{-| Specs :
+class Grid g where
+  type Index g
+  type Direction g
+  
+  indices :: g -> [Index g]
 
-inputs:
+  distance :: g -> Index g -> Index g -> Int
 
-* Nd : # of spatial dimenstions 
-* [(xmin, xmax)] : bounds / dimension
-* [BdryType] : bound. type / dimension
-* Sw : stencil width (i)
+  minDistance :: g -> [Index g] -> Index g -> Int
+  minDistance = defaultMinDistance
+
+  directionTo :: g -> Index g -> Index g -> [Direction g]
+
+  neighbours :: Eq (Index g) => g -> Index g -> [Index g]
+  neighbours = defaultNeighbours
+
+  neighboursOfSet :: Eq (Index g) => g -> [Index g] -> [Index g]
+  neighboursOfSet = defaultNeighboursOfSet
+
+  neighbour :: (Eq (Index g), Eq (Direction g)) =>
+    g -> Index g -> Direction g -> Maybe (Index g)
+  neighbour = defaultNeighbour
+
+  numNeighbours :: Eq (Index g) => g -> Index g -> Int
+  numNeighbours g = length . neighbours g
+
+  contains :: Eq (Index g) => g -> Index g -> Bool
+  contains g a = a `elem` indices g
+
+  tileCount :: g -> Int
+  tileCount = length . indices
+
+  nullG :: g -> Bool
+  nullG g = tileCount g == 0
+
+  notNullG :: g -> Bool
+  notNullG = not . nullG
+
+  edges :: Eq (Index g) => g -> [(Index g,Index g)]
+  edges = defaultEdges
+
+  -- These default implementations are broken out to make it easier to
+  -- compare the results with custom implementations (for testing).
+  
+  defaultMinDistance :: g -> [Index g] -> Index g -> Int
+  defaultMinDistance g xs a = minimum . map (distance g a) $ xs
+
+  -- WARNING: this implementation won't work for wrapped grids
+  defaultNeighbours :: g -> Index g -> [Index g]
+  defaultNeighbours g a = filter (\b -> distance g a b == 1 ) $ indices g
+
+  -- This should work for wrapped grids, though.
+  defaultNeighboursOfSet :: Eq (Index g) => g -> [Index g] -> [Index g]
+  defaultNeighboursOfSet g as = ns \\ as
+    where ns = nub . concatMap (neighbours g) $ as
+
+  -- WARNING: this implementation won't work for wrapped grids
+  defaultNeighbour :: (Eq (Index g), Eq (Direction g))
+    => g -> Index g -> Direction g -> Maybe (Index g)
+  defaultNeighbour g a d =
+    maybeHead . filter (\b -> [d] == directionTo g a b) . neighbours g $ a
+    where maybeHead (x:_) = Just x
+          maybeHead _ = Nothing
+
+  defaultTileCount :: g -> Int
+
+    -- WARNING: this implementation won't work for wrapped grids
+  defaultEdges :: Eq (Index g) => g -> [(Index g,Index g)]
+  defaultEdges g = nubBy sameEdge $ concatMap (`adjacentEdges` g) $ indices g
 
 
-queries :
+-- Helper functions
+--
 
-* indices <-> coordinates (topology <-> metric)
-* point within boundaries
-* points on boundaries
+sameEdge :: Eq t => (t, t) -> (t, t) -> Bool
+sameEdge (a,b) (c,d) = (a,b) == (c,d) || (a,b) == (d,c)
 
--}
+adjacentEdges :: (Grid g, Eq (Index g)) => Index g -> g -> [(Index g, Index g)]
+adjacentEdges i g = map (\j -> (i,j)) $ neighbours g i
+
+cartesianIndices
+  :: (Enum r, Enum c, Num r, Num c, Ord r, Ord c) =>
+     (r, c) -> [(c, r)]
+cartesianIndices (r, c) = west ++ north ++ east ++ south
+  where west = [(0,k) | k <- [0,1..r-1], c>0]
+        north = [(k,r-1) | k <- [1,2..c-1], r>0]
+        east = [(c-1,k) | k <- [r-2,r-3..0], c>1]
+        south = [(k,0) | k <- [c-2,c-3..1], r>1]
+
+cartesianCentre :: (Int, Int) -> [(Int, Int)]
+cartesianCentre (r,c) = [(i,j) | i <- cartesianMidpoints c, j <- cartesianMidpoints r]
+
+cartesianMidpoints :: Int -> [Int]
+cartesianMidpoints k = if even k then [m-1,m] else [m]
+  where m = k `div` 2
 
 {-
 node -> [edge] , edge -> [node]
@@ -57,14 +138,36 @@ edge -> [face] , face -> [edge]
 face -> [node] , node -> [face]
 -}
   
-type Node = Int
-type Edge = Int
-type Face = Int
+-- type Node = Int
+-- type Edge = Int
+-- type Face = Int
 
-class Mesh n e where
-  cone :: Map.Map n (V.Vector e)
-  cap :: Map.Map e (V.Vector n)
-  
+-- class (Ix n, Ix e) => Mesh n e where
+--   cone :: Map.Map n (V.Vector e)
+--   cap :: Map.Map e (V.Vector n)
+
+
+
+
+
+
+{- e.g. numbering ccw
+
+     4
+   1---4
+ 1 |   | 3 
+   2---3
+     2
+
+   1---4
+   | 1 |
+   2---5  
+   | 2 |
+   3---6
+
+
+
+-}
 
 
 -- class Grid g where
@@ -95,6 +198,8 @@ class Mesh n e where
 -- idxRegularMesh2d n m = map (zip iotn . replicate n) iotm where
 --   (Iota iotn, Iota iotm) = (iota n, iota m)
 
+
+
 {-|
 
 * staggered grids, e.g. dual node/element meshes
@@ -122,14 +227,7 @@ class Mesh n e where
 --      (t, t) -> (t, t) -> (t, t) -> [((t, t, t), e)] -> Array (t, t, t) e
 -- array3d (x1,y1) (x2, y2) (z1, z2) = array ((x1,y1,z1),(x2, y2, z2))
 
--- -- iota a b
--- --   | b >= a = [a .. b-1]
--- --   | otherwise = error $ "incompatible indices : " ++ show (a, b)
 
--- iota a b = [a .. b-1]
-
--- iota0 :: Int -> [Int]
--- iota0 = iota 0
 
 
 

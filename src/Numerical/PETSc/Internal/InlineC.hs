@@ -585,7 +585,7 @@ vecWaxpy' w a x y =
 
 
 -- PETSC_EXTERN PetscErrorCode MatSetType(Mat,MatType);
-matSetType1 m mt = withCString cs $ \c -> [C.exp|int{MatSetType($(Mat m), $(char *c))}|] 
+matSetType' m mt = withCString cs $ \c -> [C.exp|int{MatSetType($(Mat m), $(char *c))}|] 
   where cs = matTypeToStr mt
 
 
@@ -852,6 +852,53 @@ matSetValues' mat idxx idxy b im
 
 matSetValuesAdd' m x y b = matSetValues' m x y b AddValues
 matSetValuesInsert' m x y b = matSetValues' m x y b InsertValues
+
+
+
+
+
+-- PetscErrorCode  MatSetBlockSize(Mat mat,PetscInt bs)
+matSetBlockSize' mat bs = [C.exp|int{MatSetBlockSize($(Mat mat),$(int bsc))}|] where
+  bsc = toCInt bs
+-- Logically Collective on Mat
+-- Input Parameters :
+-- mat	- the matrix
+-- bs	- block size
+-- Notes :
+-- Block row formats are MATSEQBAIJ, MATMPIBAIJ, MATSEQSBAIJ, MATMPISBAIJ. These formats ALWAYS have square block storage in the matrix.
+-- This must be called before MatSetUp() or MatXXXSetPreallocation() (or will default to 1) and the block size cannot be changed later
+
+-- PetscErrorCode  MatSetValuesBlocked(Mat mat,PetscInt m,const PetscInt idxm[],PetscInt n,const PetscInt idxn[],const PetscScalar v[],InsertMode addv)
+matSetValuesBlocked0' mat m idxm n idxn v imode =
+  [C.exp|int{MatSetValuesBlocked($(Mat mat),
+                                 $(int m),
+                                 $(int* idxm),
+                                 $(int n),
+                                 $(int* idxn),
+                                 $(PetscScalar* v),
+                                 $(int imm))}|]
+  where imm = fromIntegral $ insertModeToInt imode
+        
+-- Not Collective
+-- Input Parameters :
+-- mat	- the matrix
+-- v	- a logically two-dimensional array of values
+-- m, idxm	- the number of block rows and their global block indices
+-- n, idxn	- the number of block columns and their global block indices
+-- addv	- either ADD_VALUES or INSERT_VALUES, where ADD_VALUES adds values to any existing entries, and INSERT_VALUES replaces existing entries with new values
+-- Notes :
+-- If you create the matrix yourself (that is not with a call to DMCreateMatrix()) then you MUST call MatXXXXSetPreallocation() or MatSetUp() before using this routine.
+-- The m and n count the NUMBER of blocks in the row direction and column direction, NOT the total number of rows/columns; for example, if the block size is 2 and you are passing in values for rows 2,3,4,5 then m would be 2 (not 4). The values in idxm would be 1 2; that is the first index for each block divided by the block size.
+-- Note that you must call MatSetBlockSize() when constructing this matrix (before preallocating it).
+-- By default the values, v, are row-oriented, so the layout of v is the same as for MatSetValues(). See MatSetOption() for other options.
+-- Calls to MatSetValuesBlocked() with the INSERT_VALUES and ADD_VALUES options cannot be mixed without intervening calls to the assembly routines.
+-- MatSetValuesBlocked() uses 0-based row and column numbers in Fortran as well as in C.
+-- Negative indices may be passed in idxm and idxn, these rows and columns are simply ignored. This allows easily inserting element stiffness matrices with homogeneous Dirchlet boundary conditions that you don't want represented in the matrix.
+-- Each time an entry is set within a sparse matrix via MatSetValues(), internal searching must be done to determine where to place the the data in the matrix storage space. By instead inserting blocks of entries via MatSetValuesBlocked(), the overhead of matrix assembly is reduced.
+
+
+
+
 
 
 

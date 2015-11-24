@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, TypeFamilies, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Test
@@ -340,6 +340,50 @@ withPetscViewerAscii c  f = withPetscViewer c $ \v -> do
 -- fmts = [ViewFmtDefault, ViewFmtAsciiIndex ]--, ViewFmtAsciiInfo, ViewFmtAsciiInfoDetail]
 
 t11 = withPetsc0  t11'
+
+-- --
+
+
+-- -- | block matrix assembly
+
+t12' = withMatCreateSetup  cw n n $ \mat -> do
+  matSetBlockSize mat 2
+  matSetType mat MatAij
+  matMPIAIJSetPreallocationConstNZPR mat 3 0
+  matSetValuesBlocked0 mat idxs idxs vs InsertValues
+  matAssembly mat
+  matViewStdout mat
+  where
+    cw = commWorld
+    n = 5 
+    idxs = idxV 2 1
+    vs = V.fromList [0..15]
+
+-- idx[4] = {Ii, Ii+1, Ii + (ne+1) + 1, Ii + (ne+1)}
+idxV ne i = V.fromList [i, i+1, i+ne+2, i+ne+1] 
+
+t12 = withPetsc0 t12'
+
+
+
+
+-- --
+
+-- class (Storable p, Monad m) => PObj p m where
+--   type PObjInfo p
+--   type PObjLocal p
+--   initO :: PObjInfo p -> m p
+--   updateH :: p -> m ( PObjLocal p )
+--   updateP :: p -> PObjLocal p -> m ()
+--   destroyO :: p -> m ()
+
+-- instance PObj Vec IO  where
+--   type PObjInfo Vec = VecInfo
+--   type PObjLocal Vec = V.Vector PetscScalar_
+--   initO = vecCreateMPIInfo
+--   -- updateH = vecGetVector
+
+
 
 
 

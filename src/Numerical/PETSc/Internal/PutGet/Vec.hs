@@ -91,8 +91,10 @@ class Monad m => Mng a b m where   -- what is this?
 
 -- -- --- 
 
-data PetscVector = PetscVector { vec     :: !Vec,
-                                 vecInfo :: !VecInfo }
+-- data PetscVector = PetscVector { vec     :: !Vec,
+--                                  vecInfo :: !VecInfo }
+
+data PetscVector = PetscVector !VecInfo Vec
 
 data VecInfo = VecInfo 
  {vecInfoMpiComm :: Comm ,
@@ -187,18 +189,7 @@ vcmpi comm vdata = do
 
 
 
--- | a standardized interface:
--- -- * IO resource management (see e.g. ResourceT or `managed`) with auto-cleanup
--- -- * withNew-, modify- : 
--- -- -- * act on references
--- -- -- * @when@ to copy data (through MVectors) to Hs side?
 
-{- we want to manage a resource of type `a` :
-new : x -> IO a
-with : IO a -> (a -> IO b) -> IO b
-modify : IO a -> (a -> IO b) -> IO ()
-cleanup : a -> IO () 
--}
 
 
 
@@ -923,18 +914,18 @@ vecAxpy a y x = do
 vecWaxpy_ w a x y = chk0 $ vecWaxpy' w a x y
 vecWaxpy w a x y = do {vecWaxpy_ w a x y; return w}
 
-vecWaxpySafe a vx vy = withVecCreate vi $ \w ->
-  vecWaxpy w a x y  -- NB: w is created on same Comm as x
-   where
-    vi = vecInfo vx
-    x = vec vx
-    y = vec vy
+-- vecWaxpySafe a vx vy = withVecCreate vi $ \w ->
+--   vecWaxpy w a x y  -- NB: w is created on same Comm as x
+--    where
+--     vi = vecInfo vx
+--     x = vec vx
+--     y = vec vy
 
 vecVecSum , (.+) :: Vec -> Vec -> IO Vec
 vecVecSum = vecAxpy 1
 (.+) = vecVecSum
 
-vecVecSumSafe = vecWaxpySafe 1
+-- vecVecSumSafe = vecWaxpySafe 1
 
 
 
