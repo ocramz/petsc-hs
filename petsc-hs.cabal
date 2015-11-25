@@ -20,10 +20,10 @@ library
   exposed-modules:     Numerical.PETSc
   -- other-modules:       
   -- other-extensions:    ConstraintKinds, ForeignFunctionInterface, QuasiQuotes, TemplateHaskell, GeneralizedNewtypeDeriving, StandaloneDeriving, DeriveDataTypeable, DataKinds, MultiParamTypeClasses, BangPatterns, FunctionalDependencies, FlexibleInstances, TypeFamilies, FlexibleContexts, RankNTypes, CPP
-  build-depends:       base >=4.7 && <4.8, 
-                       template-haskell >=2.9 && <2.10, 
+  build-depends:       base >=4.7,
+                       template-haskell,
                        containers >=0.5 && <0.6, 
-                       QuickCheck >=2.7 && <2.8, 
+                       QuickCheck >=2.7,
                        bytestring >=0.10 && <0.11, 
                        transformers,
                        transformers-base,
@@ -33,7 +33,7 @@ library
                        semigroupoids,
                        profunctors,
                        free,
-                       inline-c > 0.5.3.4,
+                       inline-c > 0.5.0.0,
                        vector,
                        mtl,
                        async,
