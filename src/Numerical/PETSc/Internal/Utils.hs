@@ -146,7 +146,11 @@ inBounds !n !(a,b) = n >= a && n <= b
 
 in0m :: Int -> Int -> Bool
 in0m m i = i >= 0 && i < m
+
+allIn0m :: Int -> [Int] -> Bool
 allIn0m = all . in0m
+
+allIn0mV :: Int -> V.Vector Int -> Bool
 allIn0mV = V.all . in0m
 
 inBoundsOrError :: Ord a => a -> (a, a) -> t -> String -> t
