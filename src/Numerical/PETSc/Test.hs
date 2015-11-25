@@ -140,22 +140,22 @@ t3 = withPetsc0 t3'
 --   x <- withScalarVector f c
 --   lift $ print x
 
--- withPVectorConfig ::
---   (MonadBaseControl IO m, MonadThrow m, MonadIO m) =>
---   (Comm, V.Vector PetscScalar_) -> (PVector PetscScalar_ -> m a) -> m a
-withPVectorConfig config f =
-  runResourceT $ withScalarVector f config
+-- -- withPVectorConfig ::
+-- --   (MonadBaseControl IO m, MonadThrow m, MonadIO m) =>
+-- --   (Comm, V.Vector PetscScalar_) -> (PVector PetscScalar_ -> m a) -> m a
+-- withPVectorConfig config f =
+--   runResourceT $ withScalarVector f config
 
-t4' :: IO ()
-t4' = withPVectorConfig (commWorld, v0) $ \(PVector v vecdata) -> do
-  x <- vecGetVector v
-  print x
-  print vecdata
-  vecRestoreVector v (VS.map (/2) x)
-  vecViewStdout v
+-- t4' :: IO ()
+-- t4' = withPVectorConfig (commWorld, v0) $ \(PVector v vecdata) -> do
+--   x <- vecGetVector v
+--   print x
+--   print vecdata
+--   vecRestoreVector v (VS.map (/2) x)
+--   vecViewStdout v
 
 
-t4 = withPetsc0 t4'
+-- t4 = withPetsc0 t4'
 
 
 
@@ -354,7 +354,7 @@ asdf = idxV ne i where
   
 t12' =
   withMatCreateSetup1 cw mm mm MatAij -- MatMPIBaij
-  (`matSetBlockSize` 2)
+  (`matSetBlockSize` ne)
   (\mat -> do
       -- matSeqAIJSetPreallocation mat nzpr (replicate ne ne)
       matMPIAIJSetPreallocationConstNZPR mat nzpr nzpr

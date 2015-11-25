@@ -24,7 +24,7 @@ import           Foreign.Marshal.Array
 import           Foreign.Marshal.Alloc             (alloca)
 import           Foreign.Ptr                       (Ptr)
 import           Control.Monad
-import           Control.Monad.Primitive
+-- import           Control.Monad.Primitive
 -- import Control.Arrow ((***), (&&&))
 import           Control.Applicative               ( (<$>), (<*>) )
 import           Foreign.C.Types

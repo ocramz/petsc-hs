@@ -2,7 +2,7 @@
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.PETSc.Raw.PutGet.PetscMisc
+-- Module      :  Numerical.PETSc.Internal.PutGet.PetscMisc
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  zocca . marco . gmail . com

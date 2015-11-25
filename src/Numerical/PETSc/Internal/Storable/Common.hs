@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.PETSc.Raw.Storable.Common
+-- Module      :  Numerical.PETSc.Internal.Storable.Common
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  zocca . marco . gmail . com

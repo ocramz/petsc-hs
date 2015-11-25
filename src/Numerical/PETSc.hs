@@ -1,5 +1,5 @@
 module Numerical.PETSc where
 
-import Numerical.PETSc.Raw 
+import Numerical.PETSc.Internal.PutGet
 
 

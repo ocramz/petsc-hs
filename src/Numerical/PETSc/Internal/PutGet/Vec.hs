@@ -32,7 +32,7 @@ import           Control.Exception
 
 import           Control.Monad.Trans.Reader
 -- import           Control.Monad.Trans.State
-import           Control.Monad.Trans.Resource
+-- import           Control.Monad.Trans.Resource
 import           Control.Monad.Trans.Class
 
 import Control.Monad.IO.Class
@@ -155,17 +155,17 @@ instance (Storable a, Show a) => Show (PVector a) where
 
 
 
-withScalarVector ::
-  (Monad m, MonadTrans t, MonadResource (t m)) =>
-  (PVector PetscScalar_ -> m a) ->
-  (Comm, V.Vector PetscScalar_) ->
-  t m a 
-withScalarVector f = runReaderT $ do
-  (comm, v0) <- ask
-  (_k, res) <- lift (allocate (vcmpi comm v0) vdestroy)
-  x <- lift $ lift $ f res
-  lift $ release _k
-  return x
+-- withScalarVector ::
+--   (Monad m, MonadTrans t, MonadResource (t m)) =>
+--   (PVector PetscScalar_ -> m a) ->
+--   (Comm, V.Vector PetscScalar_) ->
+--   t m a 
+-- withScalarVector f = runReaderT $ do
+--   (comm, v0) <- ask
+--   (_k, res) <- lift (allocate (vcmpi comm v0) vdestroy)
+--   x <- lift $ lift $ f res
+--   lift $ release _k
+--   return x
 
 vdestroy :: PVector PetscScalar_ -> IO ()
 vdestroy (PVector v _) = 
