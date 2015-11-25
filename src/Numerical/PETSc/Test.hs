@@ -20,7 +20,7 @@ import Numerical.PETSc.Internal.PutGet
 import Numerical.PETSc.Internal.Class
 import Numerical.PETSc.Internal.Utils
 
-import Numerical.PETSc.Internal.Managed
+-- import Numerical.PETSc.Internal.Managed
 
 import Foreign
 import Foreign.C.Types

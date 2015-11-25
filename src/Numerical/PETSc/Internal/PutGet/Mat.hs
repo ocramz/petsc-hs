@@ -21,7 +21,7 @@ import Numerical.PETSc.Internal.Utils (both, fi, toCInt, in0m, allIn0mV)
 
 import Numerical.PETSc.Internal.Storable.Common (unsafeWithVS)
 
-import Numerical.PETSc.Internal.Managed
+-- import Numerical.PETSc.Internal.Managed
 
 import Foreign.C.Types
 
