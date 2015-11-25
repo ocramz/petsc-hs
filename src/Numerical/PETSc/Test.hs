@@ -17,6 +17,7 @@ import Control.Applicative
 
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.PutGet
+import Numerical.PETSc.Internal.Class
 import Numerical.PETSc.Internal.Utils
 
 import Numerical.PETSc.Internal.Managed
@@ -36,9 +37,9 @@ import Control.Monad
 import Control.Monad.Managed
 
 import Control.Monad.Trans.Class
-import Control.Monad.Trans.Resource
+-- import Control.Monad.Trans.Resource
 import Control.Monad.IO.Class
-import System.IO.Unsafe
+-- import System.IO.Unsafe
 
 
 -- --

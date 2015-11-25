@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies, MultiParamTypeClasses, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.PETSc.Internal.Indexing
+-- Module      :  Numerical.PETSc.Internal.Hybrid.Indexing
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  zocca . marco . gmail . com
@@ -10,7 +10,7 @@
 -- | Mesh indexing primitives
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Internal.Indexing where
+module Numerical.PETSc.Internal.Hybrid.Indexing where
 
 import Data.Functor
 import Control.Applicative 

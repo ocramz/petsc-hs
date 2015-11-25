@@ -15,8 +15,7 @@ module Numerical.PETSc.Internal.PutGet.PetscMisc
        (
          commWorld, commSelf, mkMPIComm, getMPICommData,
          petscInit0, petscInit, petscFin,
-         withPetsc0, withPetsc,
-         petscGetVersion
+         withPetsc0, withPetsc
        )
        where
 
@@ -47,8 +46,12 @@ commWorld, commSelf :: Comm
 commWorld = commWorld1
 commSelf = commSelf1
 
+commWorld' = mkMPIComm commWorld
+commSelf' = mkMPIComm commSelf
+
 -- -- interface : mkMPIComm , getMPICommData
 
+mpiCommSize, mpiCommRank :: Comm -> Int
 mpiCommSize comm = unsafePerformIO $ liftM fi $ chk1 (mpiCommSize' comm)
 mpiCommRank comm = unsafePerformIO $ liftM fi $ chk1 (mpiCommRank' comm)
 
@@ -57,7 +60,10 @@ mpiCommRank comm = unsafePerformIO $ liftM fi $ chk1 (mpiCommRank' comm)
 mkMpiCommSize comm = MpiCommSz (mpiCommSize comm)
 mkMpiCommRank comm = MpiCommRk (mpiCommRank comm)
 
+mkMPIComm :: Comm -> MPIComm
 mkMPIComm c = MPIComm c (mkMpiCommSize c) (mkMpiCommRank c)
+
+getMPICommData :: MPIComm -> (Comm, Int, Int)
 getMPICommData (MPIComm c sz rk) = (c, getMpiCommSize sz, getMpiCommRank rk)
 
 getMpiCommSize (MpiCommSz s) = s
@@ -105,7 +111,9 @@ header =
 
 {-# NOINLINE vs #-}
 vs :: String
-vs = drop 6 $ unsafePerformIO $ petscGetVersion 50 
+vs = drop 6 $ unsafePerformIO $ pv
+
+pv = petscGetVersion 50 
 
 petscGetVersion :: Int -> IO String
 petscGetVersion l = do
