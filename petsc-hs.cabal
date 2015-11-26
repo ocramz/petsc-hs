@@ -52,15 +52,15 @@ library
   hs-source-dirs:      src/
   -- c-source-dirs:       src/Numerical/PETSc/Raw
   -- c-sources:           src/Numerical/PETSc/Internal.c, src/Numerical/PETSc/InlineC.c
-  pkgconfig-depends:   PETSc >3.6.0
-  pkgconfig-depends:   mpich
+  -- pkgconfig-depends:   PETSc >3.6.0
+  -- pkgconfig-depends:   mpich
   -- -- lib-dirs:      lib/
   -- -- hs-source-dirs:      src
   -- -- build-tools:         chs
   default-language:    Haskell2010
   
   include-dirs:  /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darmin-c-debug
-  extra-lib-dirs:      /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig/
+  extra-lib-dirs:      /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/ /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig/
 
   -- -- ghc-options:         -O2 -Wall -lpetsc -lmpich
   -- extra-libraries:     petsc mpich
