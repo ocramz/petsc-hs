@@ -48,7 +48,7 @@ library
                        void,
                        MonadRandom,
                        managed > 1.0
-  -- main-is:             Internal.hs, InlineC.hs
+  main-is:             Numerical/PETSc/Test.hs
   hs-source-dirs:      src/
   -- c-source-dirs:       src/Numerical/PETSc/Raw
   -- c-sources:           src/Numerical/PETSc/Internal.c, src/Numerical/PETSc/InlineC.c
@@ -65,36 +65,36 @@ library
   -- -- ghc-options:         -O2 -Wall -lpetsc -lmpich
   -- extra-libraries:     petsc mpich
 
-executable example
-  build-depends:       base >=4.7 && <=4.8.1.0,
-                       template-haskell,
-                       containers >=0.5 && <0.6, 
-                       QuickCheck >=2.7,
-                       bytestring >=0.10 && <0.11, 
-                       transformers,
-                       transformers-base,
-                       contravariant,
-                       monad-control,
-                       comonad,
-                       semigroupoids,
-                       profunctors,
-                       free,
-                       inline-c > 0.5.0.0,
-                       vector,
-                       mtl,
-                       async,
-                       either,
-                       StateVar,
-                       mmorph,
-                       prelude-extras,
-                       void,
-                       MonadRandom,
-                       managed > 1.0
-  default-language:    Haskell2010
-  main-is:             Numerical/PETSc/Test.hs
-  hs-source-dirs:      src/
-  extra-lib-dirs:      lib/ /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/ /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig/
-  -- extra-libraries:     petsc mpich
+-- executable example
+--   build-depends:       base >=4.7 && <=4.8.1.0,
+--                        template-haskell,
+--                        containers >=0.5 && <0.6, 
+--                        QuickCheck >=2.7,
+--                        bytestring >=0.10 && <0.11, 
+--                        transformers,
+--                        transformers-base,
+--                        contravariant,
+--                        monad-control,
+--                        comonad,
+--                        semigroupoids,
+--                        profunctors,
+--                        free,
+--                        inline-c > 0.5.0.0,
+--                        vector,
+--                        mtl,
+--                        async,
+--                        either,
+--                        StateVar,
+--                        mmorph,
+--                        prelude-extras,
+--                        void,
+--                        MonadRandom,
+--                        managed > 1.0
+--   default-language:    Haskell2010
+--   main-is:             Numerical/PETSc/Test.hs
+--   hs-source-dirs:      src/
+--   extra-lib-dirs:      lib/ /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/ /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig/
+--   -- extra-libraries:     petsc mpich
 
 
 
