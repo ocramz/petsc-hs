@@ -71,9 +71,11 @@ library
   default-language:    Haskell2010
   
   include-dirs:  /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darmin-c-debug
-  extra-lib-dirs:      /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/ /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig/
+  extra-lib-dirs:      /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig/
   -- -- ghc-options:         -O2 -Wall -lpetsc -lmpich
   extra-libraries:     petsc mpich
+
+
 
 executable petsc-example
   build-depends:       base >=4.7 && <=4.8.1.0,
@@ -104,8 +106,8 @@ executable petsc-example
   default-language:    Haskell2010
   main-is:             Main.hs
   hs-source-dirs:      test
-  include-dirs:  /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darmin-c-debug
-  extra-lib-dirs:      lib/ /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/ /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig/
+  include-dirs:        /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darmin-c-debug
+  extra-lib-dirs:      lib/, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig/
   extra-libraries:     petsc mpich
 
 
