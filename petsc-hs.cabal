@@ -67,9 +67,9 @@ library
 
 executable example
   default-language:    Haskell2010
-  main-is:             TestMain2.hs
-  hs-source-dirs:      examples
-  extra-lib-dirs:      lib/
+  main-is:             Numerical/PETSc/Test.hs
+  hs-source-dirs:      src/
+  extra-lib-dirs:      lib/ /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/ /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig/
   -- extra-libraries:     petsc mpich
 
 
