@@ -58,9 +58,10 @@ library
   -- -- hs-source-dirs:      src
   -- -- build-tools:         chs
   default-language:    Haskell2010
-  -- extra-include-dirs:  ~/petsc-3.6.0/include, ~/petsc-3.6.0/arch-darmin-c-debug
-  -- extra-lib-dirs:      lib/ ~/petsc-3.6.0/lib
-  extra-lib-dirs:      lib/ 
+  
+  extra-include-dirs:  /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darmin-c-debug
+  extra-lib-dirs:      lib/ /Users/ocramz/petsc-3.6.2/lib
+
   -- -- ghc-options:         -O2 -Wall -lpetsc -lmpich
   -- extra-libraries:     petsc mpich
 
