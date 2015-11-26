@@ -18,7 +18,7 @@ source-repository head
   location: https://github.com/ocramz/petsc-hs.git 
 
 library
-  exposed-modules:     Numerical.PETSc
+  exposed-modules:     Numerical.PETSc, Numerical.PETSc.Test
   other-modules:       Numerical.PETSc.Internal.Exception
                        Numerical.PETSc.Internal.InlineC                         
                        Numerical.PETSc.Internal.Internal
