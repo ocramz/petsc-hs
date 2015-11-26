@@ -33,7 +33,14 @@ import qualified Data.Vector.Generic as VG
 
 import Data.List (nub, nubBy, (\\))
 
+{-
+see `grid` :
 
+https://hackage.haskell.org/package/grid-7.8.4/src/src/Math/Geometry/GridInternal.hs
+
+https://hackage.haskell.org/package/grid-7.8.4/src/src/Math/Geometry/Grid/SquareInternal.hs
+
+-}
 
 
 class Grid g where

@@ -4,7 +4,7 @@
 name:                petsc-hs
 version:             0.1.0.0
 synopsis:            Haskell bindings for the scientific computation library PETSc
--- description:         
+description:         Lambdas and large linear systems, oh my         
 homepage:            https://github.com/ocramz/petsc-hs
 license:             LGPL-3
 license-file:        LICENSE
@@ -16,11 +16,15 @@ build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
+source-repository head
+  type:     git
+  location: https://github.com/ocramz/petsc-hs.git 
+
 library
   exposed-modules:     Numerical.PETSc
   -- other-modules:       
   -- other-extensions:    ConstraintKinds, ForeignFunctionInterface, QuasiQuotes, TemplateHaskell, GeneralizedNewtypeDeriving, StandaloneDeriving, DeriveDataTypeable, DataKinds, MultiParamTypeClasses, BangPatterns, FunctionalDependencies, FlexibleInstances, TypeFamilies, FlexibleContexts, RankNTypes, CPP
-  build-depends:       base >=4.7,
+  build-depends:       base >=4.7 && <=4.8,
                        template-haskell,
                        containers >=0.5 && <0.6, 
                        QuickCheck >=2.7,
@@ -47,9 +51,9 @@ library
   -- main-is:             Internal.hs, InlineC.hs
   hs-source-dirs:      src/
   -- c-source-dirs:       src/Numerical/PETSc/Raw
-  c-sources:           src/Numerical/PETSc/Internal.c, src/Numerical/PETSc/InlineC.c
-  -- pkgconfig-depends:   PETSc
-  -- pkgconfig-depends:   mpich
+  -- c-sources:           src/Numerical/PETSc/Internal.c, src/Numerical/PETSc/InlineC.c
+  pkgconfig-depends:   PETSc
+  pkgconfig-depends:   mpich
   -- -- lib-dirs:      lib/
   -- -- hs-source-dirs:      src
   -- -- build-tools:         chs
