@@ -555,19 +555,19 @@ data MPIComm = MPIComm Comm MpiCommSize MpiCommRank deriving (Eq, Show)
 
 
 -- -- Rank
-newtype Rank = MkRank { rankId :: CInt -- ^ Extract numeric value of the 'Rank'
-                      }
-   deriving (Eq, Ord, Enum, Integral, Real, Show)
+-- newtype Rank = MkRank { rankId :: CInt -- ^ Extract numeric value of the 'Rank'
+--                       }
+--    deriving (Eq, Ord, Enum, Integral, Real, Show)
 
-instance Num Rank where
-  (MkRank x) + (MkRank y) = MkRank (x+y)
-  (MkRank x) * (MkRank y) = MkRank (x*y)
-  abs (MkRank x) = MkRank (abs x)
-  signum (MkRank x) = MkRank (signum x)
-  fromInteger x
-    | x >  fromIntegral (maxBound :: CInt) = error "Rank value does not fit into 32 bits"
-    | x < 0             = error "Negative Rank value"
-    | otherwise         = MkRank (fromIntegral x)
+-- instance Num Rank where
+--   (MkRank x) + (MkRank y) = MkRank (x+y)
+--   (MkRank x) * (MkRank y) = MkRank (x*y)
+--   abs (MkRank x) = MkRank (abs x)
+--   signum (MkRank x) = MkRank (signum x)
+--   fromInteger x
+--     | x >  fromIntegral (maxBound :: CInt) = error "Rank value does not fit into 32 bits"
+--     | x < 0             = error "Negative Rank value"
+--     | otherwise         = MkRank (fromIntegral x)
 
 
 
