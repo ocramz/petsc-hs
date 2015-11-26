@@ -48,7 +48,7 @@ library
                        void,
                        MonadRandom,
                        managed > 1.0
-  main-is:             Numerical/PETSc/Test.hs
+  main-is:             Numerical/PETSc/Main.hs
   hs-source-dirs:      src/
   -- c-source-dirs:       src/Numerical/PETSc/Raw
   -- c-sources:           src/Numerical/PETSc/Internal.c, src/Numerical/PETSc/InlineC.c
