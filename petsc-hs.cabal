@@ -52,7 +52,7 @@ library
   hs-source-dirs:      src/
   -- c-source-dirs:       src/Numerical/PETSc/Raw
   -- c-sources:           src/Numerical/PETSc/Internal.c, src/Numerical/PETSc/InlineC.c
-  pkgconfig-depends:   PETSc
+  pkgconfig-depends:   PETSc >3.6.0
   pkgconfig-depends:   mpich
   -- -- lib-dirs:      lib/
   -- -- hs-source-dirs:      src
