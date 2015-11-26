@@ -4,7 +4,8 @@ import Numerical.PETSc.Test
 
 main :: IO ()
 main = 
-  putStrLn "it works !"
+  -- putStrLn "it works !"
+  t6
 
 
 
