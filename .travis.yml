@@ -17,8 +17,6 @@ language:
 # change flags or use --stack-yaml to point to a different file.
 
 env:
-  - PETSC_DIR=/home/travis/build/ocramz/petsc-hs/petsc/petsc-3.6.2
-  - PETSC_ARCH=arch-linux2-c-debug
   # - GHCVER=7.10.1 CABALVER=1.22 COVOPT=--enable-coverage
   - GHCVER=7.8.3  CABALVER=1.18 COVOPT=--enable-library-coverage
   # - GHCVER=7.6.3  CABALVER=1.18 COVOPT=--enable-library-coverage
@@ -42,17 +40,17 @@ before_install:
   # Download and unpack the stack executable
   - mkdir -p ~/.local/bin
   - export PATH=$HOME/.local/bin:$PATH
-  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
 
 # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
 # - ./download-petsc.sh
 # - ./install-petsc.sh
 
-  - mkdir -p petsc     
-  - cd petsc
-  - wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz
-  - tar xvf petsc-lite-3.6.2.tar.gz
-  - cd petsc-3.6.2
+  - export PETSC_DIR=$HOME/petsc-3.6.2
+  - export PETSC_ARCH=arch-linux2-c-debug 
+  - mkdir -p $HOME     
+  - travis_retry wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz | tar xvf -C $PETSC_DIR
+  - cd $PETSC_DIR
   - ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
   - make PETSC_DIR=$PETSC_DIR PETSC_ARCH=$PETSC_ARCH all
   - cd ../..
