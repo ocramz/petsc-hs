@@ -2,7 +2,7 @@ Information for petsc-hs Developers
 
 ## Project structure
 
-The low-level bindings use `inline-c` (https://github.com/fpco/inline-c) to wrap the individual PETSc C functions into Template Haskell statements (see ../Internal/InlineC.hs) and to map the C types onto Haskell types (see ../Raw/Internal.hs). 
+The low-level bindings use `inline-c` (https://github.com/fpco/inline-c) to wrap the individual PETSc C functions into Template Haskell statements (see ../Internal/InlineC.hs) and to map the C types onto Haskell types (see ../Internal/Internal.hs). 
  
 Exception control can be found in ..Internal/Exception.hs ; the integer error codes returned by the "raw" calls (those in ../Internal/InlineC.hs) are checked and an appropriate exception is thrown.
 
@@ -10,6 +10,8 @@ The mid-level bindings (../Internal/PutGet.hs and related) wrap the low-level ca
 
 
 ## Build Sequence
+
+UPDATE : stack-based installation works, use that rather than the makefile
 
 (1) ghc compiles the inline-c parts into C sources
 
