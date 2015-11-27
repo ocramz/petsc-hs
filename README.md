@@ -34,18 +34,35 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 * The Haskell side is based on `inline-c`, which can be obtained from Hackage via `cabal install inline-c`.
 
-* Once the dependencies are setup, run `make` from within the petsc-hs root directory, and at the end of the process you should find yourself within a GHCi interactive session.
+* Once the dependencies are setup, run `stack build` (assuming you have setup the Haskell stack as documented [here](https://github.com/commercialhaskell/stack/blob/master/doc/GUIDE.md) ). There is also currently a makefile option (`make`) which however we plan to phase out in the future. 
+
+* After `stack build` you can try out an example by running `stack exec petsc-example`.
+
+
+
+## Dependencies 
+
+The library is being developed with/on :
+
+* PETSc 3.6.0 and 3.6.2 (October 2015)
+
+* OS : OSX 10.9.5 (but most other Unices should work, mutatis mutandis)
+
+* Haskell compiler : GHC 7.8.3 and 7.10.2
+
+* `inline-c` > 0.5.5
 
 
 
 
 ## Notes
 
-* The library is being developed on a Unix, with the Haskell compiler GHC 7.8.3, using PETSc 3.6.0 and MPICH (installed via the PETSc installation process).
+* The library is being developed on a Unix, with the Haskell compiler GHC 7.8.4, using PETSc 3.6.0 and MPICH (installed via the PETSc installation process).
 
-* There have been some breaking API changes in `inline-c`, which is why only the latest versions (> 0.5.3.4) are supported by `petsc-hs`. 
 
-* The PETSc architecture directory within the makefile is hardcoded ("arch-darwin-c-debug"), but it depends on the actual configuration parameters you supplied when installing the library ; modify it to suit your case.
+## IMPORTANT :
+
+* The PETSc architecture and import directories are hardcoded within the makefile and the .cabal file ("arch-darwin-c-debug"), but they depend on the actual configuration parameters you supplied when installing the library ; modify them to suit your case.
 
 
 
