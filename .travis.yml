@@ -1,8 +1,10 @@
 # Use new container infrastructure to enable caching
-sudo: false
+sudo: 
+  false
 
 # Choose a lightweight base image (C); we provide our own build tools.
-language: c
+language: 
+  c
 # language: haskell
 
 matrix:
@@ -75,7 +77,7 @@ cache:
   - petsc
   - $HOME/.stack
 
-install:
+# install:
   # - travis_retry cabal-$CABALVER install --only-dependencies --force-reinstalls --enable-tests
   # #- travis_retry cabal-$CABALVER install --only-dependencies --force-reinstalls --enable-tests ${COVOPT}
 
