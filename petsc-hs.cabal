@@ -73,7 +73,7 @@ library
   include-dirs:  /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/include
   extra-lib-dirs:      /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig
   -- ghc-options:         -O2 -Wall -lpetsc -lmpich
-  extra-libraries:     petsc mpich
+  extra-libraries:     petsc, mpich
 
 
 
@@ -108,7 +108,7 @@ executable petsc-example
   hs-source-dirs:      test
   include-dirs:        /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/include
   extra-lib-dirs:      lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig
-  extra-libraries:     petsc mpich
+  extra-libraries:     petsc, mpich
 
 
 
