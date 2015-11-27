@@ -1,4 +1,9 @@
-language: haskell
+# Use new container infrastructure to enable caching
+sudo: false
+
+# Choose a lightweight base image (C); we provide our own build tools.
+language: c
+# language: haskell
 
 matrix:
   allow_failures:
@@ -6,22 +11,37 @@ matrix:
     # - env: GHCVER=7.6.3  CABALVER=1.18 COVOPT=--enable-library-coverage
     #- env: GHCVER=head   CABALVER=head COVOPT=--enable-coverage
 
+# The different configurations we want to test. You could also do things like
+# change flags or use --stack-yaml to point to a different file.
+
 env:
- - PETSC_DIR=/home/travis/build/ocramz/petsc-hs/petsc/petsc-3.6.2
- - PETSC_ARCH=arch-linux2-c-debug
- # - GHCVER=7.10.1 CABALVER=1.22 COVOPT=--enable-coverage
- - GHCVER=7.8.3  CABALVER=1.18 COVOPT=--enable-library-coverage
- # - GHCVER=7.6.3  CABALVER=1.18 COVOPT=--enable-library-coverage
- #- GHCVER=head   CABALVER=head COVOPT=--enable-coverage
+- PETSC_DIR=/home/travis/build/ocramz/petsc-hs/petsc/petsc-3.6.2
+- PETSC_ARCH=arch-linux2-c-debug
+# - GHCVER=7.10.1 CABALVER=1.22 COVOPT=--enable-coverage
+- GHCVER=7.8.3  CABALVER=1.18 COVOPT=--enable-library-coverage
+# - GHCVER=7.6.3  CABALVER=1.18 COVOPT=--enable-library-coverage
+#- GHCVER=head   CABALVER=head COVOPT=--enable-coverage
+- ARGS=""
+- ARGS="--resolver lts-2"
+- ARGS="--resolver lts-3"
+- ARGS="--resolver lts"
+- ARGS="--resolver nightly"
+
 
 # Install GFortran via apt-get.
 # See http://docs.travis-ci.com/user/apt/ for more information
 addons:
   apt:
     packages:
-    - gfortran
+    - gfortran            # needed to build PETSc
+    - libgmp-dev          # needed by GMP
 
 before_install:
+# Download and unpack the stack executable
+- mkdir -p ~/.local/bin
+- export PATH=$HOME/.local/bin:$PATH
+- travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+
  # - ./download-petsc.sh
  # - ./install-petsc.sh
 
@@ -42,9 +62,16 @@ before_install:
  # - ghc   --version
  # - cabal --version
 
+
+# This line does all of the work: installs GHC if necessary, build the library,
+# executables, and test suites, and runs the test suites. --no-terminal works
+# around some quirks in Travis's terminal implementation.
+script: stack $ARGS --no-terminal --install-ghc test --haddock
+
 cache:
   directories:
   - petsc
+  - $HOME/.stack
 
 install:
   # - travis_retry cabal-$CABALVER install --only-dependencies --force-reinstalls --enable-tests
