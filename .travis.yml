@@ -82,7 +82,7 @@ install:
 # - echo "All done."
 
 script:
-  - make
+  # - make
   # # -v2 provides useful information for debugging
   # #- cabal-$CABALVER configure --enable-tests ${COVOPT} --enable-benchmarks -v2
   # - cabal-$CABALVER configure --enable-tests --enable-benchmarks -v2
