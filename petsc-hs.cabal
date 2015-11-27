@@ -108,6 +108,7 @@ executable petsc-example
   hs-source-dirs:      test
   include-dirs:        /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/include
   extra-lib-dirs:      lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig
+  c-sources:           src/Numerical/PETSc/Internal/InlineC.c
   extra-libraries:     petsc, mpich
 
 
