@@ -81,7 +81,7 @@ install:
 # - bash testit.sh
 # - echo "All done."
 
-script:
+# script:
   # - make
   # # -v2 provides useful information for debugging
   # #- cabal-$CABALVER configure --enable-tests ${COVOPT} --enable-benchmarks -v2
