@@ -345,12 +345,13 @@ dmdaVecRestoreVector dm v len w = do
 
 -- | set DMDA properties 
 
-dmdaSetDim :: DM -> Int -> IO ()
-dmdaSetDim dm d = chk0 (dmdaSetDim' dm d') where
-  d' = toCInt d
+-- dmdaSetDim :: DM -> Int -> IO ()
+-- dmdaSetDim dm d = chk0 (dmdaSetDim' dm d') where
+--   d' = toCInt d
 
--- dmdaSetSizes dm x y z = chk0 (dmdaSetSizes' dm x' y' z') where
---   (x',y',z') = (toCInt x, toCInt y, toCInt z)
+dmdaSetSizes :: DM -> Int -> Int -> Int -> IO ()
+dmdaSetSizes dm x y z = chk0 (dmdaSetSizes' dm x' y' z') where
+  (x',y',z') = all3 (x, y, z) toCInt
 
 dmdaSetUniformCoordinates ::
   DM ->

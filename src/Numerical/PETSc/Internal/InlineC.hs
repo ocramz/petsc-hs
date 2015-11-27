@@ -48,6 +48,7 @@ C.include "<petscdmcomposite.h>"
 C.include "<petscts.h>"
 C.include "<petscviewer.h>"
 C.include "<petscviewerhdf5.h>"
+C.include "<petscsys.h>"
 
 
 petscDecide = -1
@@ -1159,8 +1160,14 @@ dmdaCreate' comm = withPtr ( \p -> [C.exp|int{DMDACreate($(int c), $(DM* p))}|] 
 
 
 
--- PETSC_EXTERN PetscErrorCode DMDASetDim(DM,PetscInt);
-dmdaSetDim' dm d = [C.exp|int{DMDASetDim($(DM dm), $(PetscInt d))}|] 
+-- | DMDASetDim removed from 3.6.2
+
+-- -- PETSC_EXTERN PetscErrorCode DMDASetDim(DM,PetscInt);
+-- dmdaSetDim' dm d = [C.exp|int{DMDASetDim($(DM dm), $(PetscInt d))}|] 
+
+
+
+
 -- PETSC_EXTERN PetscErrorCode DMDASetSizes(DM,PetscInt,PetscInt,PetscInt);
 dmdaSetSizes' dm x y z = [C.exp|int{DMDASetSizes($(DM dm), $(PetscInt x), $(PetscInt y), $(PetscInt z))}|] 
 
