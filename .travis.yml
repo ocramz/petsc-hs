@@ -48,7 +48,7 @@ before_install:
 
   - export PETSC_DIR=$HOME/petsc-3.6.2
   - export PETSC_ARCH=arch-linux2-c-debug 
-  - mkdir -p $HOME     
+  - mkdir -p $PETSC_DIR
   - travis_retry wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz | tar xvf -C $PETSC_DIR
   - cd $PETSC_DIR
   - ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
