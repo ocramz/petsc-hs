@@ -51,25 +51,33 @@ withPetscViewerSetup comm ty mode name f = withPetscViewer comm $ \v -> do
   f v
 
 
-{- -- -- usage of HDF5 groups: 
- 50:   VecView(x1, viewer);
- 51:   PetscViewerHDF5PushGroup(viewer, "/testBlockSize");
- 52:   VecView(x2, viewer);
- 53:   PetscViewerHDF5PushGroup(viewer, "/testTimestep");
--}
-
-withPetscViewerHDF5Group :: PetscViewer -> String -> (PetscViewer -> IO a) -> IO ()
-withPetscViewerHDF5Group viewer name f = do
-  chk0 $ petscViewerHDF5PushGroup1 viewer name
-  f viewer
-  chk0 $ petscViewerHDF5PopGroup1 viewer
-
-petscViewerHDF5Open :: Comm -> String -> PetscViewerType_ -> IO PetscViewer
-petscViewerHDF5Open comm name ty = chk1 (petscViewerHDF5Open' comm name ty)
-
 
 petscViewerSetType :: PetscViewer -> PetscViewerType_ -> IO ()
 petscViewerSetType v t = chk0 (petscViewerSetType' v t)
 
 petscViewerSetFormat :: PetscViewer -> PetscViewerFormat_ -> IO ()
 petscViewerSetFormat v fmt = chk0 (petscViewerSetFormat' v fmt)
+
+
+
+
+-- -- | HDF5-specific stuff (can we do the same with a generic PetscViewer and setting its type to HDF5 ?)
+
+
+-- {- -- -- usage of HDF5 groups: 
+--  50:   VecView(x1, viewer);
+--  51:   PetscViewerHDF5PushGroup(viewer, "/testBlockSize");
+--  52:   VecView(x2, viewer);
+--  53:   PetscViewerHDF5PushGroup(viewer, "/testTimestep");
+-- -}
+
+-- withPetscViewerHDF5Group :: PetscViewer -> String -> (PetscViewer -> IO a) -> IO ()
+-- withPetscViewerHDF5Group viewer name f = do
+--   chk0 $ petscViewerHDF5PushGroup' viewer name
+--   f viewer
+--   chk0 $ petscViewerHDF5PopGroup' viewer
+
+-- petscViewerHDF5Open :: Comm -> String -> PetscViewerType_ -> IO PetscViewer
+-- petscViewerHDF5Open comm name ty = chk1 (petscViewerHDF5Open' comm name ty)
+
+

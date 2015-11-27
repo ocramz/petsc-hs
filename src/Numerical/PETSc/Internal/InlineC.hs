@@ -2775,20 +2775,7 @@ petscViewerSetFormat' v fmt =
 
 
 
--- PetscErrorCode  PetscViewerHDF5Open(MPI_Comm comm, const char name[], PetscFileMode type, PetscViewer *hdf5v)
-petscViewerHDF5Open' comm name ty =
-  withPtr $ \f ->
-   withCString name $ \np -> 
-  [C.exp|int{PetscViewerHDF5Open($(int c),$(const char* np),$(int t),$(PetscViewer* f))}|]
-   where
-     c = unComm comm
-     t = toCInt $ viewerTypeToInt ty
-    
--- -- usage
--- 339:   PetscViewerCreate(comm, hdf5v);
--- 340:   PetscViewerSetType(*hdf5v, PETSCVIEWERHDF5);
--- 341:   PetscViewerFileSetMode(*hdf5v, type);
--- 342:   PetscViewerFileSetName(*hdf5v, name);
+
 
 -- PetscErrorCode PetscViewerFileSetMode(PetscViewer viewer,PetscFileMode type)
 petscViewerFileSetMode' v m =
@@ -2805,13 +2792,33 @@ petscViewerDestroy' v =
   with v $ \vp -> [C.exp|int{PetscViewerDestroy($(PetscViewer* vp))}|]
 
 
--- PetscErrorCode  PetscViewerHDF5PushGroup(PetscViewer viewer, const char *name)
-petscViewerHDF5PushGroup1 v name = withCString name $ \n -> 
-  [C.exp|int{PetscViewerHDF5PushGroup($(PetscViewer v),$(char* n))}|]
 
--- PetscErrorCode  PetscViewerHDF5PopGroup(PetscViewer viewer)
-petscViewerHDF5PopGroup1 v =
-  [C.exp|int{PetscViewerHDF5PopGroup($(PetscViewer v))}|]
+
+-- -- | HDF5 stuff
+
+-- -- PetscErrorCode  PetscViewerHDF5Open(MPI_Comm comm, const char name[], PetscFileMode type, PetscViewer *hdf5v)
+-- petscViewerHDF5Open' comm name ty =
+--   withPtr $ \f ->
+--    withCString name $ \np -> 
+--   [C.exp|int{PetscViewerHDF5Open($(int c),$(const char* np),$(int t),$(PetscViewer* f))}|]
+--    where
+--      c = unComm comm
+--      t = toCInt $ viewerTypeToInt ty
+    
+-- -- -- usage
+-- -- 339:   PetscViewerCreate(comm, hdf5v);
+-- -- 340:   PetscViewerSetType(*hdf5v, PETSCVIEWERHDF5);
+-- -- 341:   PetscViewerFileSetMode(*hdf5v, type);
+-- -- 342:   PetscViewerFileSetName(*hdf5v, name);
+
+
+-- -- PetscErrorCode  PetscViewerHDF5PushGroup(PetscViewer viewer, const char *name)
+-- petscViewerHDF5PushGroup' v name = withCString name $ \n -> 
+--   [C.exp|int{PetscViewerHDF5PushGroup($(PetscViewer v),$(char* n))}|]
+
+-- -- PetscErrorCode  PetscViewerHDF5PopGroup(PetscViewer viewer)
+-- petscViewerHDF5PopGroup' v =
+--   [C.exp|int{PetscViewerHDF5PopGroup($(PetscViewer v))}|]
 
 
 
