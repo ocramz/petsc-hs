@@ -50,10 +50,13 @@ The library is being developed with/on :
 
 * OS : OSX 10.9.5 (but most other Unices should work, mutatis mutandis)
 
-* Haskell compiler : GHC 7.8.3 and 7.10.2
+* Haskell compiler : GHC 7.8.3 and 7.10.2 
+
+* Cabal 1.22
 
 * `inline-c` > 0.5.5
 
+* `stack` 0.1.4.0
 
 
 
