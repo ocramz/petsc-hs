@@ -39,16 +39,16 @@ addons:
     - libgmp-dev          # needed by GMP
 
 before_install:
-  # Download and unpack the stack executable
+# Download and unpack the stack executable
   - mkdir -p ~/.local/bin
   - export PATH=$HOME/.local/bin:$PATH
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
-  # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
-  # - ./download-petsc.sh
-  # - ./install-petsc.sh
+# Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
+# - ./download-petsc.sh
+# - ./install-petsc.sh
 
-  - mkdir -p petsc     ### 
+  - mkdir -p petsc     
   - cd petsc
   - wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz
   - tar xvf petsc-lite-3.6.2.tar.gz
@@ -57,18 +57,18 @@ before_install:
   - make PETSC_DIR=$PETSC_DIR PETSC_ARCH=$PETSC_ARCH all
   - cd ../..
 
-  # - sudo add-apt-repository -y ppa:hvr/ghc
-  # - travis_retry sudo apt-get update
-  # - travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER
-  # - export PATH=/opt/ghc/$GHCVER/bin:$PATH
-  # - echo "Check version again"
-  # - ghc   --version
-  # - cabal --version
+# - sudo add-apt-repository -y ppa:hvr/ghc
+# - travis_retry sudo apt-get update
+# - travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER
+# - export PATH=/opt/ghc/$GHCVER/bin:$PATH
+# - echo "Check version again"
+# - ghc   --version
+# - cabal --version
 
 
-  # This line does all of the work: installs GHC if necessary, build the library,
-  # executables, and test suites, and runs the test suites. --no-terminal works
-  # around some quirks in Travis's terminal implementation.
+# This line does all of the work: installs GHC if necessary, build the library,
+# executables, and test suites, and runs the test suites. --no-terminal works
+# around some quirks in Travis's terminal implementation.
   script: 
     stack $ARGS --no-terminal --install-ghc test --haddock
 
