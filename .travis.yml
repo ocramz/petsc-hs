@@ -55,7 +55,7 @@ before_install:
 # - ./download-petsc.sh   # NB: separate bash scripts hide the build log
 # - ./install-petsc.sh
 
-  - travis_retry curl -L http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz  | tar xz --strip-components=1 -C $PETSC_DIR/ '*/petsc'
+  - travis_retry curl -L http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz  | tar xz --strip-components=1 -C $PETSC_DIR/ 
   - cd $PETSC_DIR/
   - ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
   - make PETSC_DIR=$PETSC_DIR PETSC_ARCH=$PETSC_ARCH all
