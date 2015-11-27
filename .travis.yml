@@ -37,20 +37,25 @@ addons:
     - libgmp-dev          # needed by GMP
 
 before_install:
-  # Download and unpack the stack executable
+  # environment variables : 
+  - export PETSC_DIR=$HOME/petsc
+  - export PETSC_ARCH=arch-linux2-c-debug 
+
+  # directories
   - mkdir -p ~/.local/bin
+  - mkdir -p $PETSC_DIR
+
+  # PATH
   - export PATH=$HOME/.local/bin:$PATH
+
+  # Download and unpack the stack executable
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
 
 # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
 # - ./download-petsc.sh   # NB: separate bash scripts hide the build log
 # - ./install-petsc.sh
 
-  - export PETSC_DIR=$HOME/petsc
-  - export PETSC_ARCH=arch-linux2-c-debug 
-  - mkdir -p $PETSC_DIR
-  # 
-  - travis_retry curl -L http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz  | tar zxv --strip-components=1 -C $PETSC_DIR/
+  - travis_retry curl -L http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz  | tar xz --strip-components=1 -C $PETSC_DIR/ '*/petsc'
   - cd $PETSC_DIR/
   - ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
   - make PETSC_DIR=$PETSC_DIR PETSC_ARCH=$PETSC_ARCH all
