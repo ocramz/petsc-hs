@@ -30,7 +30,7 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 ## Installation
 
-* First of all, a working installations of PETSc and MPICH (both configured as dynamic libraries) is required. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions.
+* First of all, a working installations of PETSc and MPICH (both configured as dynamic libraries) is required. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions. The default `configure` command suggested on the PETSc Installation page Just Works (TM), and if it doesn't, there will be plenty of well-formatted output to understand what went wrong.
 
 * The Haskell side of the bindings is based on `inline-c`, which can be obtained from Hackage via `cabal install inline-c`.
 
@@ -46,7 +46,7 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 The library is being developed with/on :
 
-* PETSc 3.6.0 and 3.6.2 (October 2015)
+* PETSc 3.6.0 and 3.6.2 (October 2015) (and MPICH 3.1.1)
 
 * OS : OSX 10.9.5 (but most other Unices should work, mutatis mutandis)
 
