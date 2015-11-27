@@ -43,17 +43,17 @@ before_install:
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
 
 # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
-# - ./download-petsc.sh
+# - ./download-petsc.sh   # NB: separate bash scripts hide the build log
 # - ./install-petsc.sh
 
   - export PETSC_DIR=$HOME/petsc-3.6.2
   - export PETSC_ARCH=arch-linux2-c-debug 
   - mkdir -p $PETSC_DIR
-  - travis_retry wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz | tar xvf -C $PETSC_DIR
-  - cd $PETSC_DIR
+  - cd $PETSC_DIR/
+  - travis_retry wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz | tar xvf 
   - ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
   - make PETSC_DIR=$PETSC_DIR PETSC_ARCH=$PETSC_ARCH all
-  - cd ../..
+  - cd ..
 
 # - sudo add-apt-repository -y ppa:hvr/ghc
 # - travis_retry sudo apt-get update
