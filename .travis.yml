@@ -43,7 +43,7 @@ before_install:
 
   - export PETSC_VERSION=3.6.2
   - export PETSC_FTP=http://ftp.mcs.anl.gov/pub/petsc/release-snapshots
-  - export PETSC_TAR=$(PETSC_FTP)/petsc-lite-$(PETSC_VERSION).tar.gz
+  - export PETSC_TAR=$PETSC_FTP/petsc-lite-$PETSC_VERSION.tar.gz
 
   # directories
   - mkdir -p ~/.local/bin
