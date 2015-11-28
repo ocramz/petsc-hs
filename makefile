@@ -38,7 +38,7 @@ ARGS="--resolver nightly"
 
 stack_build:
 	chmod +x stack-build.sh
-	./stack-build.sh ${ARGS{ ${PETSC_DIR} ${PETSC_ARCH}
+	./stack-build.sh ${ARGS} ${PETSC_DIR} ${PETSC_ARCH}
 
 
 

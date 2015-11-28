@@ -86,6 +86,7 @@ script:
   # stack $ARGS --no-terminal --install-ghc 
   # stack $ARGS --no-terminal --install-ghc test --haddock
   # stack build $ARGS --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
+  - chmod +x stack-build.sh
   - travis_retry ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
 
 cache:
