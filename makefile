@@ -34,11 +34,10 @@ reload:
 	make step3
 
 
-# reload_fem:
-# 	ghci ${SRCDIR}/TestFEM.hs ${SRCDIR}/Test2.hs  ${LIBDIR}/Test2_c.o  ${LIBDIR}/Internal2_c.o -isrc/ -L${PETSC_DIR_ARCH}/lib -lpetsc -lmpich
+ARGS="--resolver nightly"
 
-# reload_bs:
-# 	ghci ${SRCDIR}/TaoBlackScholes.hs ${SRCDIR}/Test2.hs  ${LIBDIR}/Test2_c.o  ${LIBDIR}/Internal2_c.o -isrc/ -L${PETSC_DIR_ARCH}/lib -lpetsc -lmpich
+stack_build:
+	./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
 
 
 
