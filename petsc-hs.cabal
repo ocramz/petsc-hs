@@ -70,8 +70,8 @@ library
   -- -- build-tools:         chs
   default-language:    Haskell2010
   
-  include-dirs:  /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/include
-  extra-lib-dirs:      /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig
+  -- include-dirs:  /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/include
+  -- extra-lib-dirs:      /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig
   ghc-options:         -O2 -Wall
   extra-libraries:     petsc, mpich
 
@@ -107,8 +107,8 @@ executable petsc-example
   main-is:             Main.hs
   hs-source-dirs:      test
   ghc-options:         -O2 -Wall
-  include-dirs:        /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/include
-  extra-lib-dirs:      lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig
+  -- include-dirs:        /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/include
+  -- extra-lib-dirs:      lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig
   c-sources:           src/Numerical/PETSc/Internal/InlineC.c
   extra-libraries:     petsc, mpich
 
