@@ -4,3 +4,12 @@ packages:
 extra-deps: 
 - inline-c-0.5.5.1
 resolver: lts-3.15
+
+
+# extra-include-dirs:
+# - /usr/local/opt/icu4c/include
+# extra-lib-dirs:
+# - /usr/local/opt/icu4c/lib
+
+  # include-dirs:        /Users/ocramz/petsc-3.6.2/include, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/include
+  # extra-lib-dirs:      lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib, /Users/ocramz/petsc-3.6.2/arch-darwin-c-debug/lib/pkgconfig

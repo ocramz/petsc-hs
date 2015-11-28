@@ -41,6 +41,10 @@ before_install:
   - export PETSC_DIR=$HOME/petsc
   - export PETSC_ARCH=arch-linux2-c-debug 
 
+  - export PETSC_INCLUDE1=$PETSC_DIR/include/
+  - export PETSC_INCLUDE2=$PETSC_DIR/$PETSC_ARCH/include/
+  - export PETSC_LIB=$PETSC_DIR/$PETSC_ARCH/lib/
+
   - export PETSC_VERSION=3.6.2
   - export PETSC_FTP=http://ftp.mcs.anl.gov/pub/petsc/release-snapshots
   - export PETSC_TAR=$PETSC_FTP/petsc-lite-$PETSC_VERSION.tar.gz
@@ -52,18 +56,16 @@ before_install:
   # PATH
   - export PATH=$HOME/.local/bin:$PATH
 
-  # Download and unpack the stack executable
-  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
+
 
 # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
-# - ./download-petsc.sh   # NB: separate bash scripts hide the build log
-# - ./install-petsc.sh
+- travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
 
-  - travis_retry curl -L $PETSC_TAR  | tar xz --strip-components=1 -C $PETSC_DIR/ 
-  - cd $PETSC_DIR/
-  - ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
-  - make PETSC_DIR=$PETSC_DIR PETSC_ARCH=$PETSC_ARCH all
-  - cd ..
+# - travis_retry curl -L $PETSC_TAR  | tar xz --strip-components=1 -C $PETSC_DIR/ 
+# - cd $PETSC_DIR/
+# - ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
+# - make PETSC_DIR=$PETSC_DIR PETSC_ARCH=$PETSC_ARCH all
+# - cd ..
 
 # - sudo add-apt-repository -y ppa:hvr/ghc
 # - travis_retry sudo apt-get update
@@ -74,12 +76,16 @@ before_install:
 # - cabal --version
 
 
+# Download and unpack the stack executable
+  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
+
 # This line does all of the work: installs GHC if necessary, build the library,
 # executables, and test suites, and runs the test suites. --no-terminal works
 # around some quirks in Travis's terminal implementation.
 script: 
-    stack $ARGS --no-terminal --install-ghc 
+    # stack $ARGS --no-terminal --install-ghc 
     # stack $ARGS --no-terminal --install-ghc test --haddock
+    stack build $ARGS --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
 
 cache:
   directories:
