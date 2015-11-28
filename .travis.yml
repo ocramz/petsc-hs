@@ -59,7 +59,7 @@ before_install:
 
 
 # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
-- travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
+  - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
 
 # - travis_retry curl -L $PETSC_TAR  | tar xz --strip-components=1 -C $PETSC_DIR/ 
 # - cd $PETSC_DIR/
@@ -83,9 +83,9 @@ before_install:
 # executables, and test suites, and runs the test suites. --no-terminal works
 # around some quirks in Travis's terminal implementation.
 script: 
-    # stack $ARGS --no-terminal --install-ghc 
-    # stack $ARGS --no-terminal --install-ghc test --haddock
-    stack build $ARGS --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
+  # stack $ARGS --no-terminal --install-ghc 
+  # stack $ARGS --no-terminal --install-ghc test --haddock
+  stack build $ARGS --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
 
 cache:
   directories:
