@@ -41,6 +41,10 @@ before_install:
   - export PETSC_DIR=$HOME/petsc
   - export PETSC_ARCH=arch-linux2-c-debug 
 
+  - export PETSC_VERSION=3.6.2
+  - export PETSC_FTP=http://ftp.mcs.anl.gov/pub/petsc/release-snapshots
+  - export PETSC_TAR=$(PETSC_FTP)/petsc-lite-$(PETSC_VERSION).tar.gz
+
   # directories
   - mkdir -p ~/.local/bin
   - mkdir -p $PETSC_DIR
@@ -55,7 +59,7 @@ before_install:
 # - ./download-petsc.sh   # NB: separate bash scripts hide the build log
 # - ./install-petsc.sh
 
-  - travis_retry curl -L http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.6.2.tar.gz  | tar xz --strip-components=1 -C $PETSC_DIR/ 
+  - travis_retry curl -L $PETSC_TAR  | tar xz --strip-components=1 -C $PETSC_DIR/ 
   - cd $PETSC_DIR/
   - ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
   - make PETSC_DIR=$PETSC_DIR PETSC_ARCH=$PETSC_ARCH all
