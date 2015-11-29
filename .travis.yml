@@ -52,7 +52,7 @@ before_install:
   # directories
   - mkdir -p ~/.local/bin
   - mkdir -p $PETSC_DIR
-  - ls .local/
+  - pwd
 
   # PATH
   - export PATH=$HOME/.local/bin:$PATH
