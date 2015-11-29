@@ -37,8 +37,8 @@ import Control.Arrow
 import Control.Concurrent
 import Control.Exception
 
-import Control.Monad.ST (ST, runST)
-import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
+-- import Control.Monad.ST (ST, runST)
+-- import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
 import qualified Data.Vector as V 
 import qualified Data.Vector.Storable as VS (unsafeWith, Vector)

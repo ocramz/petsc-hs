@@ -34,6 +34,7 @@ library
                        Numerical.PETSc.Internal.PutGet.Vec
                        Numerical.PETSc.Internal.PutGet.Viewer
                        Numerical.PETSc.Internal.Storable.Common
+                       Numerical.PETSc.Internal.Storable.Vector
                        Numerical.PETSc.Internal.Types
                        Numerical.PETSc.Internal.Utils
   build-depends:       base >=4.7 && <=4.8.1.0,
@@ -103,7 +104,8 @@ executable petsc-example
                        prelude-extras,
                        void,
                        MonadRandom,
-                       managed > 1.0
+                       managed > 1.0,
+                       storable-complex
   default-language:    Haskell2010
   main-is:             Main.hs
   hs-source-dirs:      test
