@@ -52,95 +52,37 @@ before_install:
   # directories
   - mkdir -p ~/.local/bin
   - mkdir -p $PETSC_DIR
+  - ls .local/
 
   # PATH
   - export PATH=$HOME/.local/bin:$PATH
 
 
 
-# Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
-  - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
+# # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
+#   - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
 
-# - travis_retry curl -L $PETSC_TAR  | tar xz --strip-components=1 -C $PETSC_DIR/ 
-# - cd $PETSC_DIR/
-# - ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
-# - make PETSC_DIR=$PETSC_DIR PETSC_ARCH=$PETSC_ARCH all
-# - cd ..
-
-# - sudo add-apt-repository -y ppa:hvr/ghc
-# - travis_retry sudo apt-get update
-# - travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER
-# - export PATH=/opt/ghc/$GHCVER/bin:$PATH
-# - echo "Check version again"
-# - ghc   --version
-# - cabal --version
+# # - sudo add-apt-repository -y ppa:hvr/ghc
+# # - travis_retry sudo apt-get update
+# # - travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER
 
 
-# Download and unpack the stack executable
-  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
+# # Download and unpack the stack executable
+#   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
 
-# This line does all of the work: installs GHC if necessary, build the library,
-# executables, and test suites, and runs the test suites. --no-terminal works
-# around some quirks in Travis's terminal implementation.
-script: 
-  # stack $ARGS --no-terminal --install-ghc 
-  # stack $ARGS --no-terminal --install-ghc test --haddock
-  # stack build $ARGS --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
-  - chmod +x stack-build.sh
-  - travis_retry ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
+# # This line does all of the work: installs GHC if necessary, build the library,
+# # executables, and test suites, and runs the test suites. --no-terminal works
+# # around some quirks in Travis's terminal implementation.
+# script: 
+#   # stack $ARGS --no-terminal --install-ghc 
+#   # stack $ARGS --no-terminal --install-ghc test --haddock
+#   # stack build $ARGS --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
+#   - chmod +x stack-build.sh
+#   - travis_retry ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
 
-cache:
-  directories:
-  - $HOME/.petsc
-  - $HOME/.stack
+# cache:
+#   directories:
+#   - $HOME/.petsc
+#   - $HOME/.stack
 
-# install:
-  # - travis_retry cabal-$CABALVER install --only-dependencies --force-reinstalls --enable-tests
-  # #- travis_retry cabal-$CABALVER install --only-dependencies --force-reinstalls --enable-tests ${COVOPT}
 
-#script:
-# - bash testit.sh
-# - echo "All done."
-
-# script:
-  # - make
-  # # -v2 provides useful information for debugging
-  # #- cabal-$CABALVER configure --enable-tests ${COVOPT} --enable-benchmarks -v2
-  # - cabal-$CABALVER configure --enable-tests --enable-benchmarks -v2
-
-  # # this builds all libraries and executables
-  # # (including tests/benchmarks)
-  # - cabal-$CABALVER build
-  # - find . -iname '*.tix'
-  # - find . -iname '*.mix'
-
-  # #- cabal-$CABALVER test --keep-tix-files
-  # - cabal-$CABALVER test
-  # - find . -iname '*.tix'
-
-  # - bash testit.sh
-  # - echo "Unit tests successful!"
-
-  # - cabal-$CABALVER check
-
-  # # tests that a source-distribution can be generated
-  # - cabal-$CABALVER sdist
-
-  # # check that the generated source-distribution can be built & installed
-  # - export SRC_TGZ=$(cabal info . | awk '{print $2 ".tar.gz";exit}') ;
-  #   cd dist/;
-  #   if [ -f "$SRC_TGZ" ]; then
-  #      cabal install "$SRC_TGZ";
-  #   else
-  #      echo "expected '$SRC_TGZ' not found";
-  #      exit 1;
-  #   fi
-  # - echo ${PWD}
-
-#after_script:
-#  - echo ${PWD}
-#  - find dist -iname '*.tix'
-#  - travis_retry cabal install codecov-haskell hpc-coveralls
-#  - codecov-haskell                               json-autotype-random-test json-autotype-qc-test 
-#  - hpc-coveralls   --repo-token ${COVERALLS_KEY} json-autotype-random-test json-autotype-qc-test
-#
