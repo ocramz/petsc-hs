@@ -77,8 +77,11 @@ before_install:
 script: 
   - stack build $STACK_ARGS --no-terminal --install-ghc --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
 
+# where is the petsc-example binary?
+  - export BIN_DIR="$(stack path --dist-dir)/build/"
+
 # run an example program
-  - stack exec petsc-example
+  - stack exec "$BIN_DIR"/petsc-example
 
   # - chmod +x stack-build.sh
   # - ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
