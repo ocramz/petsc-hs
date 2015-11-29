@@ -41,7 +41,7 @@ addons:
 
 before_install:
   # environment variables : 
-  - export PETSC_DIR=$PWD/.local/petsc
+  - export PETSC_DIR=$PWD/petsc
   - export PETSC_ARCH=arch-linux2-c-debug 
 
   - export PETSC_INCLUDE1=$PETSC_DIR/include/
@@ -55,6 +55,7 @@ before_install:
   # directories
   - mkdir -p ~/.local/bin
   - mkdir -p $PETSC_DIR
+  - mkdir -p $PETSC_DIR/local
 
 
   # PATH
