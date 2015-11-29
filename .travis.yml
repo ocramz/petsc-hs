@@ -55,7 +55,7 @@ before_install:
   # directories
   - mkdir -p ~/.local/bin
   - mkdir -p $PETSC_DIR
-  - mkdir -p $PETSC_DIR/local
+  - mkdir -p $PETSC_DIR/.local
 
 
   # PATH
