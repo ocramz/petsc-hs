@@ -16,7 +16,8 @@ import           Numerical.PETSc.Internal.InlineC
 import           Numerical.PETSc.Internal.Types
 import           Numerical.PETSc.Internal.Exception
 import           Numerical.PETSc.Internal.Utils
--- import           Numerical.PETSc.Internal.Managed
+
+import           Numerical.PETSc.Internal.Storable.Vector
 
 import           Foreign
 -- import           Foreign.ForeignPtr.Unsafe
@@ -599,18 +600,6 @@ withVecSize v f = f v (vecSize v)
 
 -- | getting/restoring a contiguous array from/to a Vec 
 
--- vecGetArray :: Vec -> Int -> IO [PetscScalar_]
--- vecGetArray v sz = chk1 $ vecGetArray' v sz
-
--- vecGetArraySafe :: Vec -> IO [PetscScalar_]
--- vecGetArraySafe v = do
---   sz <- vecGetSize v
---   vecGetArray v sz
-
--- -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
--- vecRestoreArray v c = chk0 $ vecRestoreArray' v c
-
-
 
 vecGetArrayPtr :: Vec -> IO (Ptr PetscScalar_)
 vecGetArrayPtr v = chk1 (vecGetArray1' v)
@@ -640,6 +629,8 @@ vecGetVector v = do
    where
      len = vecSize v
 
+-- vecGetVector' v = vectorFreezeFromStorablePtr
+
 vecRestoreVector :: Vec -> VS.Vector PetscScalar_ -> IO ()
 vecRestoreVector v w = do
   p <- vecGetArrayPtr v
@@ -648,6 +639,10 @@ vecRestoreVector v w = do
   vecRestoreArrayPtr v p
     where
      len = vecSize v
+
+
+
+     
 
 -- | IOVector <-> Vector.Generic
 
@@ -724,17 +719,17 @@ vecGetVectorN v n
 
 -- modifyV, modifyV2 :: Vec -> (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> IO ()
 
-modifyVS ::
-  Vec ->
-  (VS.Vector PetscScalar_ -> VS.Vector PetscScalar_) ->
-  VS.Vector PetscScalar_
-modifyVS u g = runST $ do
-            x <- unsafeIOToST $ vecGetVector u
-            s <- newSTRef x
-            let y = g x
-            writeSTRef s y
-            unsafeIOToST $ vecRestoreVector u y
-            readSTRef s
+-- modifyVS ::
+--   Vec ->
+--   (VS.Vector PetscScalar_ -> VS.Vector PetscScalar_) ->
+--   VS.Vector PetscScalar_
+-- modifyVS u g = runST $ do
+--             x <- unsafeIOToST $ vecGetVector u
+--             s <- newSTRef x
+--             let y = g x
+--             writeSTRef s y
+--             unsafeIOToST $ vecRestoreVector u y
+--             readSTRef s
 
 -- withSTRef v f = runST $ do
 --   s <- newSTRef v

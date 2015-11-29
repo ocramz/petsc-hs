@@ -136,7 +136,7 @@ vectorFreezeFromStorablePtr ::
 vectorFreezeFromStorablePtr get restore len =
   bracket get restore $ \xp -> do
     fp <- FPR.newForeignPtr_  xp
-    VS.freeze (VM.unsafeFromForeignPtr0 fp len) 
+    VS.freeze (VM.unsafeFromForeignPtr0 fp len)
 
 vectorCopyToForeignPtr ::
   Storable a =>
@@ -147,6 +147,10 @@ vectorCopyToForeignPtr get restore len w = bracket get restore $ \xp -> do
 
 
 
+-- ptrToGenericVector p len = do
+--   fp <- FPR.newForeignPtr_ p
+--   x <- VS.freeze (VM.unsafeFromForeignPtr0 fp len)
+--   VG.convert x
 
 
 

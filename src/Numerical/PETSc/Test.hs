@@ -117,16 +117,16 @@ csrAllNxN_ n = V.zip3 x y a where
 
 -- | modify Vec via Vector via vecGetVector/vecRestoreVector
 
-t3' = do
-  v <- vecCreateMPIFromVectorDecideLocalSize cs v0
-  vecViewStdout v
-  let x = modifyVS v (VS.map (+1))
-  print x       -- NB : `print x` cannot occur after `vecDestroy`
-  vecViewStdout v
-  vecDestroy v
-    where cs = commSelf
+-- t3' = do
+--   v <- vecCreateMPIFromVectorDecideLocalSize cs v0
+--   vecViewStdout v
+--   let x = modifyVS v (VS.map (+1))
+--   print x       -- NB : `print x` cannot occur after `vecDestroy`
+--   vecViewStdout v
+--   vecDestroy v
+--     where cs = commSelf
           
-t3 = withPetsc0 t3'
+-- t3 = withPetsc0 t3'
 
 -- --
 
