@@ -19,23 +19,23 @@ source-repository head
 
 library
   exposed-modules:     Numerical.PETSc, Numerical.PETSc.Test
-  -- other-modules:       Numerical.PETSc.Internal.Exception
-  --                      Numerical.PETSc.Internal.InlineC                         
-  --                      Numerical.PETSc.Internal.Internal
-  --                      Numerical.PETSc.Internal.PutGet
-  --                      Numerical.PETSc.Internal.PutGet.DM
-  --                      Numerical.PETSc.Internal.PutGet.IS
-  --                      Numerical.PETSc.Internal.PutGet.KSP
-  --                      Numerical.PETSc.Internal.PutGet.Mat
-  --                      Numerical.PETSc.Internal.PutGet.PetscMisc
-  --                      Numerical.PETSc.Internal.PutGet.SNES
-  --                      Numerical.PETSc.Internal.PutGet.TAO
-  --                      Numerical.PETSc.Internal.PutGet.TS
-  --                      Numerical.PETSc.Internal.PutGet.Vec
-  --                      Numerical.PETSc.Internal.PutGet.Viewer
-  --                      Numerical.PETSc.Internal.Storable.Common
-  --                      Numerical.PETSc.Internal.Types
-  --                      Numerical.PETSc.Internal.Utils
+  other-modules:       Numerical.PETSc.Internal.Exception
+                       Numerical.PETSc.Internal.InlineC                         
+                       Numerical.PETSc.Internal.Internal
+                       Numerical.PETSc.Internal.PutGet
+                       Numerical.PETSc.Internal.PutGet.DM
+                       Numerical.PETSc.Internal.PutGet.IS
+                       Numerical.PETSc.Internal.PutGet.KSP
+                       Numerical.PETSc.Internal.PutGet.Mat
+                       Numerical.PETSc.Internal.PutGet.PetscMisc
+                       Numerical.PETSc.Internal.PutGet.SNES
+                       Numerical.PETSc.Internal.PutGet.TAO
+                       Numerical.PETSc.Internal.PutGet.TS
+                       Numerical.PETSc.Internal.PutGet.Vec
+                       Numerical.PETSc.Internal.PutGet.Viewer
+                       Numerical.PETSc.Internal.Storable.Common
+                       Numerical.PETSc.Internal.Types
+                       Numerical.PETSc.Internal.Utils
   build-depends:       base >=4.7 && <=4.8.1.0,
                        template-haskell,
                        containers >=0.5 && <0.6, 
