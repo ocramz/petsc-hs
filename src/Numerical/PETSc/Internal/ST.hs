@@ -12,6 +12,8 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.ST where
 
+import Numerical.PETSc.Internal.Storable.Vector
+
 -- import Linear
 -- import Data.Foldable (for_, Foldable)
 import Data.Functor
@@ -184,16 +186,7 @@ liftSTVector :: (Storable t) => (V.Vector t -> a) -> STVector s t -> ST s a
 liftSTVector f (STVector x) = (unsafeIOToST . fmap f . cloneVector) x
 
 
-cloneVector :: Storable t => V.Vector t -> IO (V.Vector t)
-cloneVector v = do
-        let n = V.length v
-        r <- VM.new n
-        V.copy r v
-        -- r <- createVector n
-        -- let f _ s _ d =  copyArray d s n >> return 0
-        -- f $ v $ r 
-        -- return r
-        V.freeze r
+
 
 -- freezeVector :: (Storable t) => STVector s t -> ST s (Vector t)
 -- freezeVector v = liftSTVector id v
@@ -206,12 +199,10 @@ safeIndexV ::
    Storable c => 
      (STVector s c -> Int -> a) -> STVector a c -> Int -> a
 safeIndexV f (STVector v) k
-    | k < 0 || k>= dim v = error $ "out of range error in vector (dim="
-                                   ++show (dim v)++", pos="++show k++")"
+    | k < 0 || k>= vdim v = error $ "out of range error in vector (dim="
+                                   ++show (vdim v)++", pos="++show k++")"
     | otherwise = f (STVector v) k
 
-dim :: Storable a => V.Vector a -> Int
-dim = V.length
 
 
 -- {-# INLINE readVector #-}
@@ -235,17 +226,6 @@ newVector x n = do
 newUndefinedVector :: Storable t => Int -> ST s (STVector s t)
 newUndefinedVector = unsafeIOToST . fmap STVector . createVector
 
-createVector :: Storable a => Int -> IO (V.Vector a)
-createVector n = do
-    when (n < 0) $ error ("trying to createVector of negative dim: "++show n)
-    fp <- doMalloc undefined
-    return $ V.unsafeFromForeignPtr fp 0 n
-  where
-    -- Use the much cheaper Haskell heap allocated storage
-    -- for foreign pointer space we control
-    doMalloc :: Storable b => b -> IO (ForeignPtr b)
-    doMalloc dummy = 
-        mallocPlainForeignPtrBytes (n * sizeOf dummy)
 
 
 
@@ -256,20 +236,8 @@ createVector n = do
 
 
 
-vjoin :: Storable t => [V.Vector t] -> IO (V.Vector t)
-vjoin [] = return $ V.fromList []
-vjoin [v] = return v
-vjoin as = do
-    let tot = sum (map dim as)
-    r <- createVector tot
-    unsafeWith r $ \ptr ->
-        joiner as tot ptr
-    return r
-  where joiner [] _ _ = return ()
-        joiner (v:cs) _ p = do
-            let n = dim v
-            unsafeWith v $ \pb -> copyArray p pb n
-            joiner cs 0 (advancePtr p n)
+
+
 
 
 

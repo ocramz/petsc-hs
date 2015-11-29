@@ -101,6 +101,33 @@ cloneVector v = do
   return r
 
 
+
+
+joinVector :: Storable t => [VS.Vector t] -> IO (VS.Vector t)
+joinVector [] = return $ VS.fromList []
+joinVector [v] = return v
+joinVector as = do
+    let tot = sum (map vdim as)
+    r <- createVector tot
+    VS.unsafeWith r $ \ptr ->
+        joiner as tot ptr
+    return r
+  where joiner [] _ _ = return ()
+        joiner (v:cs) _ p = do
+            let n = vdim v
+            VS.unsafeWith v $ \pb -> copyArray p pb n
+            joiner cs 0 (advancePtr p n)
+
+
+
+
+
+
+
+-- | to-from pointers to Storable data
+
+
+
 vectorFreezeFromStorablePtr ::
   Storable a =>
   IO (Ptr a) ->
@@ -126,6 +153,12 @@ vectorCopyToForeignPtr get restore len w = bracket get restore $ \xp -> do
 
 
 
+
+
+
+-- | building VS.Vector from indices
+  
+
 buildVectorFromIdxs ::
   (Storable b, Num a, Enum a) => a -> (a -> b) -> VS.Vector b
 buildVectorFromIdxs len f =
@@ -138,12 +171,15 @@ buildVectorFromIdxs len f =
 mapVectorFromList :: Storable b => [a] -> (a -> b) -> VS.Vector b
 mapVectorFromList l f = VS.fromList (map f l)
 
-
+fromList :: Storable a => [a] -> VS.Vector a 
+fromList = VS.fromList
 
 toList :: Storable a => VS.Vector a -> [a]
 toList = VS.toList
 
 
+
+-- | Storable Vector slice (sub-vector)
 
 subVector :: Storable t => Int       -- ^ index of the starting element
                         -> Int       -- ^ number of elements to extract

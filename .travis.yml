@@ -53,10 +53,10 @@ before_install:
   - export PATH=$HOME/.local/bin:$PATH
 
 
-  # view PWD
-  - ls -lsA
-  - printenv
-  - ls -lsA $PETSC_DIR
+  # # view PWD
+  # - ls -lsA
+  # - printenv
+  # - ls -lsA $PETSC_DIR
 
 
 
