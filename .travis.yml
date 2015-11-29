@@ -75,7 +75,7 @@ before_install:
 # # around some quirks in Travis's terminal implementation.
 
 script: 
-  - stack build $STACK_ARGS --install-ghc --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
+  - stack build $STACK_ARGS --no-terminal --install-ghc --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
 
 # run an example program
   - stack exec petsc-example
