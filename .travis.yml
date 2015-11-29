@@ -60,13 +60,13 @@ before_install:
 
 
 
-# # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
-#   - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
+# Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
+  - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
 
 
 
-# # Download and unpack the stack executable
-#   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
+# Download and unpack the stack executable
+  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
 
 
 
