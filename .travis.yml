@@ -32,12 +32,12 @@ env:
 
 before_install:
   # environment variables : 
-  - export PETSC_DIR=$PWD/petsc
+  - export PETSC_DIR="$PWD"/petsc
   - export PETSC_ARCH=arch-linux2-c-debug 
 
-  - export PETSC_INCLUDE1=$PETSC_DIR/include/
-  - export PETSC_INCLUDE2=$PETSC_DIR/$PETSC_ARCH/include/
-  - export PETSC_LIB=$PETSC_DIR/$PETSC_ARCH/lib/
+  - export PETSC_INCLUDE1="$PETSC_DIR"/include/
+  - export PETSC_INCLUDE2="$PETSC_DIR"/"$PETSC_ARCH"/include/
+  - export PETSC_LIB="$PETSC_DIR"/"$PETSC_ARCH"/lib/
 
   - export PETSC_VERSION=3.6.2
   - export PETSC_FTP=http://ftp.mcs.anl.gov/pub/petsc/release-snapshots
@@ -45,8 +45,8 @@ before_install:
 
   # directories
   - mkdir -p ~/.local/bin
-  - mkdir -p $PETSC_DIR
-  - mkdir -p $PETSC_DIR/.local
+  - mkdir -p "$PETSC_DIR"
+  - mkdir -p "$PETSC_DIR"/.local
 
 
   # PATH
