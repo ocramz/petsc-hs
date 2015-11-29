@@ -137,10 +137,10 @@ vectorFreezeFromStorablePtr get restore len =
     fp <- FPR.newForeignPtr_  xp
     VS.freeze (VM.unsafeFromForeignPtr0 fp len)
 
-vectorOverwriteForeignPtr ::
+vectorCopyToForeignPtr ::
   Storable a =>
   IO (Ptr a) -> (Ptr a -> IO b) -> Int -> VS.Vector a -> IO ()
-vectorOverwriteForeignPtr get restore len w = bracket get restore $ \xp -> do
+vectorCopyToForeignPtr get restore len w = bracket get restore $ \xp -> do
   pf <- FPR.newForeignPtr_ xp
   VS.copy (VM.unsafeFromForeignPtr0 pf len) w
 

@@ -639,7 +639,7 @@ vecGetVector v =
 
 vecRestoreVectorN :: Vec -> Int -> VS.Vector PetscScalar_ -> IO ()
 vecRestoreVectorN v =
-  vectorOverwriteForeignPtr (vecGetArrayPtr v) (vecRestoreArrayPtr v)
+  vectorCopyToForeignPtr (vecGetArrayPtr v) (vecRestoreArrayPtr v)
   
 
 vecRestoreVector :: Vec -> VS.Vector PetscScalar_ -> IO ()
