@@ -36,6 +36,9 @@ addons:
     - gfortran            # needed to build PETSc
     - libgmp-dev          # needed by GMP
 
+
+
+
 before_install:
   # environment variables : 
   - export PETSC_DIR=$PWD/.local/petsc
@@ -59,26 +62,31 @@ before_install:
 
 
 
-# # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
-#   - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
-
-# # - sudo add-apt-repository -y ppa:hvr/ghc
-# # - travis_retry sudo apt-get update
-# # - travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER
 
 
-# # Download and unpack the stack executable
-#   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
+# Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
+  - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
 
-# # This line does all of the work: installs GHC if necessary, build the library,
-# # executables, and test suites, and runs the test suites. --no-terminal works
-# # around some quirks in Travis's terminal implementation.
-# script: 
-#   # stack $ARGS --no-terminal --install-ghc 
-#   # stack $ARGS --no-terminal --install-ghc test --haddock
-#   # stack build $ARGS --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
-#   - chmod +x stack-build.sh
-#   - travis_retry ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
+
+
+# Download and unpack the stack executable
+  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
+
+
+
+# This line does all of the work: installs GHC if necessary, build the library,
+# executables, and test suites, and runs the test suites. --no-terminal works
+# around some quirks in Travis's terminal implementation.
+
+script: 
+  - chmod +x stack-build.sh
+  - travis_retry ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
+  # stack $ARGS --no-terminal --install-ghc 
+  # stack $ARGS --no-terminal --install-ghc test --haddock
+  # stack build $ARGS --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
+
+
+
 
 # cache:
 #   directories:

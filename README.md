@@ -31,6 +31,7 @@ Functional composition of sub-programs and rich, static types are the missing li
 ## Installation
 
 * First of all, a working installations of PETSc and MPICH (both configured as dynamic libraries) is required. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions. The default `configure` command suggested on the PETSc Installation page Just Works (TM), and if it doesn't, there will be plenty of well-formatted output to understand what went wrong.
+
 _IMPORTANT_ : The string variables denoting the PETSc architecture and import directories must be in the scope of the shell performing the installation: if they have not already been loaded from the user's Bash .profile, `export PETSC_DIR=<PETSc root dir>` and `export PETSC_ARCH=<build target dir>`. Please refer to the PETSc installation documentation for details.
 
 * Obtain the `stack` tool as documented [here](https://github.com/commercialhaskell/stack/blob/master/doc/GUIDE.md)
