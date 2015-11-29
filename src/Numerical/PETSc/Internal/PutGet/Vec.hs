@@ -621,24 +621,23 @@ vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
 -- | Vec get/set interface with Data.Vector
 -- -- using ".Storable and ".Storable.Mutable
 
-vecGetVector :: Vec -> IO (VS.Vector PetscScalar_)
-vecGetVector v = do
-  p <- vecGetArrayPtr v
-  pf <- newForeignPtr_ p
-  VS.freeze (VM.unsafeFromForeignPtr0 pf len)
-   where
-     len = vecSize v
+-- vecGetVector :: Vec -> IO (VS.Vector PetscScalar_)
+-- vecGetVector v = do
+--   p <- vecGetArrayPtr v
+--   pf <- newForeignPtr_ p
+--   VS.freeze (VM.unsafeFromForeignPtr0 pf len)
+--    where
+--      len = vecSize v
 
--- vecGetVector' v = vectorFreezeFromStorablePtr
+vecGetVector :: Vec -> IO (VS.Vector PetscScalar_)
+vecGetVector v =
+  vectorFreezeFromStorablePtr (vecGetArrayPtr v) (vecRestoreArrayPtr v) (vecSize v)
 
 vecRestoreVector :: Vec -> VS.Vector PetscScalar_ -> IO ()
-vecRestoreVector v w = do
-  p <- vecGetArrayPtr v
-  pf <- newForeignPtr_ p
-  VS.copy (VM.unsafeFromForeignPtr0 pf len) (V.convert w)
-  vecRestoreArrayPtr v p
-    where
-     len = vecSize v
+vecRestoreVector v =
+  vectorOverwriteForeignPtr (vecGetArrayPtr v) (vecRestoreArrayPtr v) (vecSize v)
+
+
 
 
 

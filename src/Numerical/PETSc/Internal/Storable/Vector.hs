@@ -36,7 +36,6 @@ import System.IO.Unsafe (unsafePerformIO)
 
 import Data.Complex
 
-import qualified Control.Monad.Primitive as Prim
 
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS
@@ -138,10 +137,10 @@ vectorFreezeFromStorablePtr get restore len =
     fp <- FPR.newForeignPtr_  xp
     VS.freeze (VM.unsafeFromForeignPtr0 fp len)
 
-vectorCopyToForeignPtr ::
+vectorOverwriteForeignPtr ::
   Storable a =>
   IO (Ptr a) -> (Ptr a -> IO b) -> Int -> VS.Vector a -> IO ()
-vectorCopyToForeignPtr get restore len w = bracket get restore $ \xp -> do
+vectorOverwriteForeignPtr get restore len w = bracket get restore $ \xp -> do
   pf <- FPR.newForeignPtr_ xp
   VS.copy (VM.unsafeFromForeignPtr0 pf len) w
 

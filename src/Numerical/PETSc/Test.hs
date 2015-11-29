@@ -64,15 +64,18 @@ csrAllNxN_ n = V.zip3 x y a where
 
 -- --
 
--- t1' = do
---   -- v <- vecCreateMPIFromVector comm lv v0
---   v <- vecCreateMPIFromVectorDecideLocalSize comm v0s
---   vecViewStdout v
---   vecDestroy v
---    where
---      comm = commWorld
+t1' = do
+  -- v <- vecCreateMPIFromVector comm lv v0
+  v <- vecCreateMPIFromVectorDecideLocalSize comm v0
+  vecViewStdout v
+  vx <- vecGetVector v
+  print vx
+  vecRestoreVector v vx
+  vecDestroy v
+   where
+     comm = commWorld
 
--- t1 = withPetsc0 t1'
+t1 = withPetsc0 t1'
 
 --
 
