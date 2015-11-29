@@ -629,13 +629,22 @@ vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
 --    where
 --      len = vecSize v
 
+vecGetVectorN :: Vec -> Int -> IO (VS.Vector PetscScalar_)
+vecGetVectorN v =
+  vectorFreezeFromStorablePtr (vecGetArrayPtr v) (vecRestoreArrayPtr v)
+
 vecGetVector :: Vec -> IO (VS.Vector PetscScalar_)
 vecGetVector v =
-  vectorFreezeFromStorablePtr (vecGetArrayPtr v) (vecRestoreArrayPtr v) (vecSize v)
+   vecGetVectorN v (vecSize v)
+
+vecRestoreVectorN :: Vec -> Int -> VS.Vector PetscScalar_ -> IO ()
+vecRestoreVectorN v =
+  vectorOverwriteForeignPtr (vecGetArrayPtr v) (vecRestoreArrayPtr v)
+  
 
 vecRestoreVector :: Vec -> VS.Vector PetscScalar_ -> IO ()
 vecRestoreVector v =
-  vectorOverwriteForeignPtr (vecGetArrayPtr v) (vecRestoreArrayPtr v) (vecSize v)
+   vecRestoreVectorN v (vecSize v)
 
 
 
@@ -698,12 +707,9 @@ vecRestoreIOVector v iov = do
 
 -- get the first n entries
 
-vecGetVectorN :: Vec -> Int -> IO (VS.Vector PetscScalar_)
-vecGetVectorN v n
-  | n > 0 && n <= len = do
-     p <- vecGetArrayPtr v
-     pf <- newForeignPtr_ p
-     VS.freeze (VM.unsafeFromForeignPtr0 pf n)
+-- vecGetVectorN :: Vec -> Int -> IO (VS.Vector PetscScalar_)
+vecGetVectorNSafe v n
+  | n > 0 && n <= len = vecGetVectorN v n
   | otherwise = error "vecGetVectorN :" where
      len = vecSize v
 
