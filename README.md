@@ -30,6 +30,14 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 ## Installation
 
+If you already have a working PETSc installation, the PETSC_DIR and PETSC_ARCH environment variables are set and `stack` is installed and in PATH:
+
+* `git clone https://github.com/ocramz/petsc-hs.git`
+* `cd petsc-hs` 
+* `make stack_build && stack exec petsc-example`
+
+otherwise
+
 * Obtain the `stack` build tool as documented [here](http://docs.haskellstack.org/en/stable/README.html).
 
 * A working installations of PETSc and MPICH (both configured as dynamic libraries) is required. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions. The default `configure` command suggested on the PETSc Installation page Just Works (TM), and if it doesn't, there will be plenty of well-formatted output to understand what went wrong.
