@@ -62,11 +62,13 @@ before_install:
   - export PATH=$HOME/.local/bin:$PATH
 
 
+  # 
+  - printenv
 
 
 
-# Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
-  - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
+# # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
+#   - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
 
 
 
@@ -81,7 +83,7 @@ before_install:
 
 script: 
   - chmod +x stack-build.sh
-  - travis_retry ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
+  - ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
   # stack $ARGS --no-terminal --install-ghc 
   # stack $ARGS --no-terminal --install-ghc test --haddock
   # stack build $ARGS --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
