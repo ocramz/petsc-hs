@@ -572,6 +572,12 @@ vecViewStdout v = chk0 $ vecViewStdout1 v
 
 
 
+
+
+
+
+
+
 -- | get Vec properties 
 
 vecGetOwnershipRange :: Vec -> IO (Int, Int)

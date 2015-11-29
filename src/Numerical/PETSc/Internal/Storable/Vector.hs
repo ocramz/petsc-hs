@@ -155,6 +155,12 @@ vectorCopyToForeignPtr get restore len w = bracket get restore $ \xp -> do
 
 
 
+
+
+
+
+
+
 -- | building VS.Vector from indices
   
 
