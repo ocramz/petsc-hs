@@ -19,13 +19,13 @@ env:
   - ARGS="--resolver nightly"
 
 
-# # Install GFortran via apt-get.
-# # See http://docs.travis-ci.com/user/apt/ for more information
-# addons:
-#   apt:
-#     packages:
-#     - gfortran            # needed to build PETSc
-#     - libgmp-dev          # needed by GMP
+# Install GFortran via apt-get.
+# See http://docs.travis-ci.com/user/apt/ for more information
+addons:
+  apt:
+    packages:
+    - gfortran            # needed to build PETSc
+    - libgmp-dev          # needed by GMP
 
 
 
