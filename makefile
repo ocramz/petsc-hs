@@ -34,7 +34,8 @@ reload:
 	make step3
 
 
-ARGS="--resolver nightly"
+# ARGS="--resolver nightly"
+ARGS=""
 
 stack_build:
 	chmod +x stack-build.sh
