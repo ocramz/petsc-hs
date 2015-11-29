@@ -39,14 +39,15 @@ import Control.Monad.IO.Class
 -- import Control.Monad.State.Strict -- for execStateT
 
 import           Data.STRef
-import           Control.Monad.ST                   (ST, runST)
+
 import           Control.Monad.ST.Unsafe            (unsafeIOToST)    -- for HMatrix bits
 
--- import qualified Data.Vector.Generic as VG
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable               as VS 
 import qualified Data.Vector.Storable.Mutable       as VM
 import qualified Data.Vector.Generic       as VG
+
+
 
 
 -- | instances
@@ -779,25 +780,7 @@ petscVecVecFunctionAdapt v1 v2 fv =
 
 
 
--- withVecGetVectorOverwrite ::
---   Vec ->
---   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
---   IO ()
--- withVecGetVectorOverwrite v modify = do
---   x <- vecGetVector v
---   let y = modify x
---   vecRestoreVector v y
 
--- -- -- ", monadic version
-
--- withVecGetVectorOverwriteM ::
---   Vec ->
---   (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
---   IO ()
--- withVecGetVectorOverwriteM v modifyM = do
---   x <- vecGetVector v
---   y <- modifyM x
---   vecRestoreVector v y
 
 
 
@@ -811,11 +794,6 @@ petscVecVecFunctionAdapt v1 v2 fv =
 
 
 
-{-
-bracket1 allocate release io = mask $ \restore -> do
-  stuff <- allocate
-  restore (io stuff) `finally` release stuff
--}
 
 
 

@@ -43,6 +43,8 @@ import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Storable.Mutable as VM
 import qualified Data.Vector.Generic as VG
 
+import qualified Foreign.Marshal.Utils as FMU
+
 -- | instances
 
 -- instance PStore VS.Vector where
@@ -130,10 +132,7 @@ joinVector as = do
 
 vectorFreezeFromStorablePtr ::
   Storable a =>
-  IO (Ptr a) ->
-  (Ptr a -> IO b) ->
-  Int ->
-  IO (VS.Vector a)
+  IO (Ptr a) -> (Ptr a -> IO b) -> Int -> IO (VS.Vector a)
 vectorFreezeFromStorablePtr get restore len =
   bracket get restore $ \xp -> do
     fp <- FPR.newForeignPtr_  xp
@@ -141,14 +140,11 @@ vectorFreezeFromStorablePtr get restore len =
 
 vectorCopyToForeignPtr ::
   Storable a =>
-  IO (Ptr a) ->
-  (Ptr a -> IO b) ->
-  Int ->
-  VS.Vector a ->
-  IO ()
+  IO (Ptr a) -> (Ptr a -> IO b) -> Int -> VS.Vector a -> IO ()
 vectorCopyToForeignPtr get restore len w = bracket get restore $ \xp -> do
   pf <- FPR.newForeignPtr_ xp
   VS.copy (VM.unsafeFromForeignPtr0 pf len) w
+
 
 
 

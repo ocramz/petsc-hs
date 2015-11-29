@@ -43,12 +43,6 @@ import qualified Data.Vector.Storable.Mutable as VM
 
 
 
-{-
-
-(State (Managed a)
-
--}
-
 
 
 
@@ -195,9 +189,8 @@ unsafeFreezeVector :: (Storable t) => STVector s t -> ST s (V.Vector t)
 unsafeFreezeVector (STVector x) = unsafeIOToST . return $ x
 
 {-# INLINE safeIndexV #-}
-safeIndexV ::
-   Storable c => 
-     (STVector s c -> Int -> a) -> STVector a c -> Int -> a
+safeIndexV :: Storable c =>
+   (STVector s c -> Int -> a) -> STVector a c -> Int -> a
 safeIndexV f (STVector v) k
     | k < 0 || k>= vdim v = error $ "out of range error in vector (dim="
                                    ++show (vdim v)++", pos="++show k++")"
