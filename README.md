@@ -34,7 +34,8 @@ If you already have a working PETSc installation, the PETSC_DIR and PETSC_ARCH e
 
 * `git clone https://github.com/ocramz/petsc-hs.git`
 * `cd petsc-hs` 
-* `make stack_build && stack exec petsc-example`
+* `make stack_build`
+* `stack exec petsc-example`
 
 otherwise
 
@@ -44,7 +45,7 @@ otherwise
 
 _IMPORTANT_ : The string variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the installation of the Haskell bindings: the user's Bash .profile should contain the following two lines: `export PETSC_DIR=<PETSc root dir>` and `export PETSC_ARCH=<build target dir>`. 
 
-We also provide a default shell script to automate the PETSc installation, for convenience: `install-petsc.sh`.
+We also provide a default shell script to automate the PETSc download and installation, for convenience: `install-petsc.sh`.
 
 
 * Once the dependencies are setup, run `make stack_build`. This is just a synonym for `stack build` that uses the PETSc root directory and architecture variables, as specified above.

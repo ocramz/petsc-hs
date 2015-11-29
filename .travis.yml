@@ -53,7 +53,7 @@ before_install:
   - export PATH=$HOME/.local/bin:$PATH
 
 
-  # 
+  # view PWD
   - ls -lsA
   - printenv
   - ls -lsA $PETSC_DIR
@@ -75,11 +75,12 @@ before_install:
 # # around some quirks in Travis's terminal implementation.
 
 script: 
-  - chmod +x stack-build.sh
-  - ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
-  # stack $ARGS --no-terminal --install-ghc 
-  # stack $ARGS --no-terminal --install-ghc test --haddock
-  # stack build $ARGS --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
+  - stack build $STACK_ARGS --install-ghc --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
+  # - chmod +x stack-build.sh
+  # - ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
+  # # stack $ARGS --no-terminal --install-ghc 
+  # # stack $ARGS --no-terminal --install-ghc test --haddock
+  # # stack build $ARGS --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB
 
 
 
