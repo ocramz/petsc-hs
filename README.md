@@ -32,13 +32,13 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 * First of all, a working installations of PETSc and MPICH (both configured as dynamic libraries) is required. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions. The default `configure` command suggested on the PETSc Installation page Just Works (TM), and if it doesn't, there will be plenty of well-formatted output to understand what went wrong.
 
-* The Haskell side of the bindings is based on `inline-c`, which can be obtained from Hackage via `cabal install inline-c`.
+* Obtain the `stack` tool as documented [here](https://github.com/commercialhaskell/stack/blob/master/doc/GUIDE.md)
 
-* _IMPORTANT_ : The PETSc architecture and import directories are _hardcoded_ (for now) within the makefile and the .cabal file ("arch-darwin-c-debug"), but they depend on the actual configuration parameters you supplied when installing the library ; modify them to suit your case.
+* _IMPORTANT_ : The string variables denoting the PETSc architecture and import directories must be in the scope of the shell performing the installation: if they have not already been loaded from the user's Bash .profile, `export PETSC_DIR=<PETSc root dir>` and `export PETSC_ARCH=<build target dir>`.
 
-* Once the dependencies are setup, run `stack build` (assuming you have already setup the `stack` tool as documented [here](https://github.com/commercialhaskell/stack/blob/master/doc/GUIDE.md) ). There is also currently a makefile option (`make`) which however we plan to phase out in the future. 
+* Once the dependencies are setup, run `make stack_build`. 
 
-* After `stack build` you can try out an example by running `stack exec petsc-example`.
+* Now you can try out an example by running `stack exec petsc-example`.
 
 
 

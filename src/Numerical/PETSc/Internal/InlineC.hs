@@ -115,6 +115,12 @@ isDestroy' iis = with iis isDestroy_
 -- -- * IS coloring : see e.g. www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex5s.c.html
 
 -- PetscErrorCode  ISColoringCreate(MPI_Comm comm,PetscInt ncolors,PetscInt n,const ISColoringValue colors[],PetscCopyMode mode,ISColoring *iscoloring)
+isColoringCreate' :: Comm
+                           -> CInt
+                           -> CInt
+                           -> [CInt]
+                           -> PetscCopyMode_
+                           -> IO (ISColoring, CInt)
 isColoringCreate' comm ncolors n cols copymode =
    withPtr $ \iscoloring ->
     withArray cols $ \colv -> 
