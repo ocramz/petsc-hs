@@ -182,11 +182,24 @@ withGetVG :: (VG.Vector v a, Storable a) => Int -> Ptr a -> (v a -> IO b) -> IO 
 withGetVG n p = bracket (getVG n p) (\v -> putVG v n p)
 
 
-vectorModifyVG :: (Storable a, VG.Vector v a, VG.Vector w a) =>
-                  (v a -> w a) -> Int -> Ptr a -> IO ()
-vectorModifyVG fun n p = do
+
+-- | modify `n` entries of packed array via local VG.Vector of Storable
+
+_vectorModifyVG :: (Storable a, VG.Vector v a, VG.Vector w a) =>
+                   (v a -> w a) -> Int -> Ptr a -> IO ()
+_vectorModifyVG fun n p = do
   yim <- fun <$> getVG n p
   putVG yim n p
+
+
+vectorModifyVG :: (Storable a, VG.Vector v a, VG.Vector w a) =>
+                  (v a -> w a) -> Int -> VM.IOVector a -> IO ()
+vectorModifyVG fun n vin =
+  VM.unsafeWith vin $ \pin -> do
+   x <- getVG n pin
+   putVG (fun x) n pin
+        
+
 
 
 
