@@ -19,6 +19,8 @@ import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils (both, fi, toCInt, in0m, allIn0mV)
 
+import Numerical.PETSc.Internal.Storable.Vector
+import Numerical.PETSc.Internal.Storable.Matrix
 import Numerical.PETSc.Internal.Storable.Common (unsafeWithVS)
 
 import Foreign.C.Types

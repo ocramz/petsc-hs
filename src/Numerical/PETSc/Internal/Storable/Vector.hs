@@ -65,8 +65,8 @@ import qualified Foreign.Marshal.Utils as FMU
 
 -- | methods
 
-vdim :: Storable a => VS.Vector a -> Int
-vdim = VS.length
+vdim :: (VG.Vector v a, Storable a) => v a -> Int
+vdim = VG.length
 
 
 
@@ -113,10 +113,10 @@ cloneVector v = do
 
 
 
-joinVector :: Storable t => [VS.Vector t] -> IO (VS.Vector t)
-joinVector [] = return $ VS.fromList []
-joinVector [v] = return v
-joinVector as = do
+joinVectors :: Storable t => [VS.Vector t] -> IO (VS.Vector t)
+joinVectors [] = return $ VS.fromList []
+joinVectors [v] = return v
+joinVectors as = do
     let tot = sum (map vdim as)
     r <- createVector tot
     VS.unsafeWith r $ \ptr ->
@@ -137,7 +137,7 @@ joinVector as = do
 -- | to-from pointers to Storable data
 
 
--- Ptr a <-> VS.Vector (bracket'ed)
+-- | Ptr a <-> VS.Vector (bracket'ed)
 
 vectorFreezeFromStorablePtr ::
   Storable a =>
@@ -152,8 +152,20 @@ vectorCopyToForeignPtr get restore n w = bracket get restore (putVS w n)
 
 
 
+-- | Ptr a <-> VG.Vector v a  (bracket'ed)
 
--- Ptr <-> Vector.Storable
+vgFreeze :: (VG.Vector v a, Storable a) =>
+            IO (Ptr a) -> (Ptr a -> IO b) -> Int -> IO (v a)
+vgFreeze get restore n = bracket get restore (getVG n)
+
+vgCopy :: (VG.Vector v a, Storable a) =>
+          IO (Ptr a) -> (Ptr a -> IO b) -> Int -> v a -> IO ()
+vgCopy get restore n w = bracket get restore (putVG w n)
+
+
+
+
+-- | LOW LEVEL : Ptr a <-> VS.Vector a
 
 getVS :: Storable a => Int -> Ptr a -> IO (VS.Vector a)
 getVS n p = do
@@ -167,7 +179,7 @@ putVS v n p = do
 
 
 
--- Ptr <-> Vector.Generic
+-- | LOW LEVEL : Ptr <-> Vector.Generic
 
 getVG :: (VG.Vector v a, Storable a) => Int -> Ptr a -> IO (v a)
 getVG n p = do
@@ -178,10 +190,8 @@ putVG :: (VG.Vector v a, Storable a) => v a -> Int -> Ptr a -> IO ()
 putVG w = putVS (VG.convert w)
 
 
--- | take a local copy
 
-withGetVG :: (VG.Vector v a, Storable a) => Int -> Ptr a -> (v a -> IO b) -> IO b
-withGetVG n p = bracket (getVG n p) (\v -> putVG v n p)
+
 
 
 

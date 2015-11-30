@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Storable.Matrix
@@ -58,11 +58,12 @@ adapt2 f pfun ni nj iRow jCol = liftM2 f (pfun ni iRow) (pfun nj jCol)
 --   and apply binary function
 
 adapt2VS :: Storable a =>
-            (VS.Vector a -> VS.Vector a -> r) ->
+            (VS.Vector a -> VS.Vector a -> IO r) ->
             Int -> Int -> Ptr a -> Ptr a -> IO r
-adapt2VS f = adapt2 f getVS
+adapt2VS f ni nj irow icol = join (adapt2 f getVS ni nj irow icol)
 
 adapt2VG :: (VG.Vector w a, Storable a) =>
-            (w a -> w a -> r) ->
+            (w a -> w a -> IO r) ->
             Int -> Int -> Ptr a -> Ptr a -> IO r
-adapt2VG f = adapt2 f getVG
+adapt2VG f ni nj irow icol = join (adapt2 f getVG ni nj irow icol)
+
