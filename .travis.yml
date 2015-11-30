@@ -84,7 +84,7 @@ script:
 # # where is the petsc-example binary? 
   - stack path
 
-  - find -f "petsc-example" . | grep petsc-example
+  # - find -f "petsc-example" . | grep petsc-example
 
 # #   - export BIN_DIR="$(stack path --dist-dir)/build"
 
