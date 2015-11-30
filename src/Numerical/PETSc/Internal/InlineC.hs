@@ -1022,7 +1022,7 @@ matGetOwnershipRange' m = do
 
 
 -- PetscErrorCode  MatGetInfo(Mat mat,MatInfoType flag,MatInfo *info)
-matGetInfo' mat flag = withPtr $ \info -> [C.exp|int{MatGetInfo($(Mat mat),$(int flag),$(MatInfo* info))}|]
+matGetInfo' mat t = withPtr $ \info -> [C.exp|int{MatGetInfo($(Mat mat),$(int inft),$(MatInfo* info))}|]  where inft = toCInt $ matInfoTypeToInt t
 -- Collective on Mat if MAT_GLOBAL_MAX or MAT_GLOBAL_SUM is used as the flag
 -- Input Parameters :
 -- mat -the matrix 

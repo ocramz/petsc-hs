@@ -399,11 +399,17 @@ t11 = withPetsc0  t11'
 
 -- -- --
 
--- t13' = withMat (matCreateMPIAIJWithVectors comm m n mm nn ix iy v ) $ \mat ->
---   matGetInfo mat
---    where
---      comm = commWorld
---      m = 3
---      n = m
---      (mm, nn) = (m, n)
+t13' = withMat (matCreateMPIAIJWithVectors comm (m, n) (mm ,nn) ix iy v ) $ \mat -> do
+  matGetInfo mat MatInfoLocal
+  matViewStdout mat
+   where
+     comm = commWorld
+     m = 3
+     n = m
+     (mm, nn) = (m, n)
+     ix = VG.fromList [0,1,2]
+     iy = VG.fromList [0,1,2]
+     v = VG.fromList (replicate 3 pi)
+
+t13 = withPetsc0 t13'
   

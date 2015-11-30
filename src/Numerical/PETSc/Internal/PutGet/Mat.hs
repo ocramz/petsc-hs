@@ -541,10 +541,11 @@ matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 -- -- matrixTranspose (Matrix r c d o)  = Matrix r c d (transposeOrder o)
 
 
+matGetInfo :: Mat -> MatInfoType_ -> IO MatInfo
 matGetInfo mat infotype = chk1 (matGetInfo' mat infotype)
 
 
--- matIsStructurallySymmetric :: Mat -> IO PetscBool_
+matIsStructurallySymmetric :: Mat -> IO PetscBool
 matIsStructurallySymmetric mat = chk1 (matIsStructurallySymmetric' mat)
 
 
