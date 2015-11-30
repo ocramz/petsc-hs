@@ -15,6 +15,7 @@ module Numerical.PETSc.Internal.Types where
 import Foreign
 import Foreign.Ptr
 import Foreign.C.Types
+import Foreign.Storable
 
 import Numerical.PETSc.Internal.Utils 
 
@@ -44,6 +45,14 @@ type MatConst = CInt
 
 
 -- | newtypes
+
+newtype PetscBool = PetscBool (Ptr PetscBool) deriving Show
+instance Storable PetscBool where
+  sizeOf _ = sizeOf (undefined :: CChar)
+  alignment _ = alignment (undefined :: CChar)
+  peek = peek
+  poke = poke
+
 
 newtype PetscMPIInt_ = PetscMPIInt_ (Ptr PetscMPIInt_ ) deriving (Show, Storable)
 
@@ -177,6 +186,63 @@ matNormToInt x = fromEnum (x :: MatNorm_)
 data MatReuse_ = MatInitialMtx | MatReuseMtx | MatIgnoreMtx deriving (Eq, Show, Enum)
 
 matReuseToInt x = fromEnum (x :: MatReuse_ )
+
+
+-- typedef struct {
+--   PetscLogDouble block_size;                         /* block size */
+--   PetscLogDouble nz_allocated,nz_used,nz_unneeded;   /* number of nonzeros */
+--   PetscLogDouble memory;                             /* memory allocated */
+--   PetscLogDouble assemblies;                         /* number of matrix assemblies called */
+--   PetscLogDouble mallocs;                            /* number of mallocs during MatSetValues() */
+--   PetscLogDouble fill_ratio_given,fill_ratio_needed; /* fill ratio for LU/ILU */
+--   PetscLogDouble factor_mallocs;                     /* number of mallocs during factorization */
+-- } MatInfo;
+data MatInfo =
+  MatInfo {matInfoBlockSize :: CDouble,
+           matInfoNzAllocated, matInfoNzUsed, matInfoNzUnneeded :: CDouble,
+           matInfoMemory :: CDouble,
+           matInfoAssemblies :: CDouble,
+           matInfoMallocs :: CDouble,
+           matInfoFillRatioGiven, matInfoFillRatioNeeded :: CDouble,
+           matInfoFactorMallocs :: CDouble }
+
+instance Storable MatInfo where
+  sizeOf _ = 10 * sizeOf (undefined :: CDouble)
+  alignment _ = alignment (undefined :: CDouble)
+  peek ptr = do
+    bs <- peekElemOff q 0
+    nza <- peekElemOff q 1
+    nzu <- peekElemOff q 2
+    nzun <- peekElemOff q 3
+    mem <- peekElemOff q 4
+    asm <- peekElemOff q 5
+    mall <- peekElemOff q 6
+    frg <- peekElemOff q 7
+    fri <- peekElemOff q 8
+    factmall <- peekElemOff q 9
+    return (MatInfo bs nza nzu nzun mem asm mall frg fri factmall)
+      where q = castPtr ptr
+  poke ptr (MatInfo bs nza nzu nzun mem asm mall frg fri factmall) = do
+    pokeElemOff q 0 bs
+    pokeElemOff q 1 nza
+    pokeElemOff q 2 nzu
+    pokeElemOff q 3 nzun
+    pokeElemOff q 4 mem
+    pokeElemOff q 5 asm
+    pokeElemOff q 6 mall
+    pokeElemOff q 7 frg
+    pokeElemOff q 8 fri
+    pokeElemOff q 9 factmall
+     where q = castPtr ptr
+
+-- typedef enum {MAT_LOCAL=1,MAT_GLOBAL_MAX=2,MAT_GLOBAL_SUM=3} MatInfoType;
+data MatInfoType_ = MatInfoLocal | MatInfoGlobalMax | MatInfoGlobalSum deriving (Eq, Show, Enum)
+
+matInfoTypeToInt :: MatInfoType_ -> Int
+matInfoTypeToInt t = case t of
+  MatInfoLocal -> 1
+  MatInfoGlobalMax -> 2
+  MatInfoGlobalSum -> 3
 
 -- typedef enum {DIFFERENT_NONZERO_PATTERN,SUBSET_NONZERO_PATTERN,SAME_NONZERO_PATTERN} MatStructure;
 data MatStructure_ = MatDifferentNZPattern | MatSubsetNZPattern | MatSameNZPattern

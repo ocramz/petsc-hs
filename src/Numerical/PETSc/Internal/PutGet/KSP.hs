@@ -113,7 +113,7 @@ kspSetType ksp kt = chk0 (kspSetType' ksp kt)
 kspSetOperators :: KSP -> Mat -> Mat -> IO ()
 kspSetOperators ksp amat pmat = chk0 (kspSetOperators' ksp amat pmat)
 
-kspSetInitialGuessNonzero :: KSP -> Bool -> IO ()
+-- kspSetInitialGuessNonzero :: KSP -> PetscBool -> IO ()
 kspSetInitialGuessNonzero ksp ig = chk0 (kspSetInitialGuessNonzero' ksp ig)
 
 kspSetUp :: KSP -> IO ()
@@ -124,8 +124,8 @@ kspSolve, kspSolveTranspose ::
 kspSolve ksp rhsv solnv =  chk0 (kspSolve' ksp rhsv solnv)
 kspSolveTranspose ksp rhsv solnv = chk0 (kspSolve' ksp rhsv solnv)
 
-kspSetReusePreconditioner ::
-  KSP -> Bool -> IO ()
+-- kspSetReusePreconditioner ::
+--   KSP -> PetscBool -> IO ()
 kspSetReusePreconditioner ksp b = chk0 (kspSetReusePreconditioner' ksp b)
 
 kspGetRhs :: KSP -> IO Vec

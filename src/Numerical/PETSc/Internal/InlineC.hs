@@ -998,6 +998,34 @@ matGetOwnershipRange' m = do
 
 
 
+-- PetscErrorCode  MatGetInfo(Mat mat,MatInfoType flag,MatInfo *info)
+matGetInfo' mat flag = withPtr $ \info -> [C.exp|int{MatGetInfo($(Mat mat),$(int flag),$(MatInfo* info))}|]
+-- Collective on Mat if MAT_GLOBAL_MAX or MAT_GLOBAL_SUM is used as the flag
+-- Input Parameters :
+-- mat -the matrix 
+-- Output Parameters :
+-- flag	- flag indicating the type of parameters to be returned (MAT_LOCAL - local matrix, MAT_GLOBAL_MAX - maximum over all processors, MAT_GLOBAL_SUM - sum over all processors)
+-- info	- matrix information context
+-- Notes :
+-- The MatInfo context contains a variety of matrix data, including number of nonzeros allocated and used, number of mallocs during matrix assembly, etc. Additional information for factored matrices is provided (such as the fill ratio, number of mallocs during factorization, etc.). Much of this info is printed to PETSC_STDOUT when using the runtime options
+--       -info -mat_view ::ascii_info
+
+
+
+
+
+-- PetscErrorCode  MatIsStructurallySymmetric(Mat A,PetscBool  *flg)
+-- Collective on Mat
+-- Input Parameter :
+-- A -the matrix to test 
+-- Output Parameters :
+-- flg -the result 
+matIsStructurallySymmetric' mat = withPtr $ \b ->
+  [C.exp|int{MatIsStructurallySymmetric($(Mat mat),$(PetscBool* b))}|]
+
+
+
+
 -- PetscErrorCode  MatNorm(Mat mat,NormType type,PetscReal *nrm)
 -- Collective on Mat
 -- Input Parameters :
@@ -3012,7 +3040,7 @@ petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|]
 -- ivalue	- the integer value to return
 -- set	- PETSC_TRUE if found, else PETSC_FALSE
 
-petscOptionsGetInt' :: Ptr CChar -> Ptr CChar -> Ptr CInt -> Ptr PetscBool_ -> IO CInt
+petscOptionsGetInt' :: Ptr CChar -> Ptr CChar -> Ptr CInt -> Ptr PetscBool -> IO CInt
 petscOptionsGetInt' pre name n s = [C.exp| int{PetscOptionsGetInt($(char *pre), $(char *name), $(int *n), $(PetscBool *s))} |]
 
 petscOptionsGetInt'' prefix name = 
