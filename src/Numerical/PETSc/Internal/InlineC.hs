@@ -671,6 +671,21 @@ matCreateSeqAIJconstNZperRow1 comm m' n' nz' =
 
 
 
+matTranspose' mat mr =
+  withPtr $ \mp -> [C.exp|int{MatTranspose($(Mat mat),$(int mr'),$(Mat* mp))}|]
+   where mr' = toCInt $ matReuseToInt mr
+
+
+-- PetscErrorCode  MatCreateTranspose(Mat A,Mat *N)
+-- Collective on Mat
+-- Input Parameter :
+-- A -the (possibly rectangular) matrix 
+-- Output Parameter :
+-- N -the matrix that represents A' 
+-- Notes: The transpose A' is NOT actually formed! Rather the new matrix object performs the matrix-vector product by using the MatMultTranspose() on the original matrix
+
+matCreateTranspose' mat = withPtr $ \mp -> [C.exp|int{MatCreateTranspose($(Mat mat),$(Mat* mp))}|]
+
 
 -- PETSC_EXTERN PetscErrorCode MatCreateAIJ(MPI_Comm,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,const PetscInt[],PetscInt,const PetscInt[],Mat*);
     
@@ -746,6 +761,11 @@ matViewStdout' v = [C.exp|int{MatView($(Mat v), PETSC_VIEWER_STDOUT_SELF)}|]
 
 
 
+
+
+
+
+
 -- PETSC_EXTERN PetscErrorCode MatGetSize(Mat,PetscInt*,PetscInt*);
 matGetSize0' v sx sy =  [C.exp|int{MatGetSize($(Mat v), $(int *sx), $(int *sy))}|]
 
@@ -814,12 +834,18 @@ matMPIAIJSetPreallocationConstNZPR' b dnz onz =
                                        NULL)}|]
 
 
+
+
 -- PetscErrorCode MatSetValue(Mat m,PetscInt row,PetscInt col,PetscScalar value,InsertMode mode)
 matSetValueUnsafe' m row col val im =
   [C.exp|int{MatSetValue($(Mat m),$(int rowc),$(int colc),$(PetscScalar val),$(int imm))}|] where
     imm = fromIntegral $ insertModeToInt im
     rowc = toCInt row
     colc = toCInt col
+
+-- PETSC_EXTERN PetscErrorCode MatZeroEntries(Mat);
+matZeroEntries' mat = [C.exp|int{MatZeroEntries($(Mat mat))}|]
+
 
 
 -- PetscErrorCode  MatSetValues(Mat mat,PetscInt m,const PetscInt idxm[],PetscInt n,const PetscInt idxn[],const PetscScalar v[],InsertMode addv) -- Not Collective
@@ -972,6 +998,35 @@ matGetOwnershipRange' m = do
 
 
 
+-- PetscErrorCode  MatNorm(Mat mat,NormType type,PetscReal *nrm)
+-- Collective on Mat
+-- Input Parameters :
+-- mat	- the matrix
+-- type	- the type of norm, NORM_1, NORM_FROBENIUS, NORM_INFINITY
+-- Output Parameters :
+-- nrm -the resulting norm 
+matNorm' mat ntype = withPtr $ \nrm ->
+  [C.exp|int{MatNorm($(Mat mat),$(int nt),$(PetscReal* nrm))}|] where
+    nt = toCInt $ matNormToInt ntype
+
+
+-- PetscErrorCode  MatGetTrace(Mat mat,PetscScalar *trace)
+matGetTrace' mat = withPtr $ \tr -> [C.exp|int{MatGetTrace($(Mat mat),$(PetscScalar* tr))}|]
+
+
+-- PetscErrorCode MatComputeBandwidth(Mat A, PetscReal fraction, PetscInt *bw)
+-- Calculate the full bandwidth of the matrix, meaning the width 2k+1 where k diagonals on either side are sufficient to contain all the matrix nonzeros.
+-- Collective on Mat
+-- Input Parameters :
+-- A	- The Mat
+-- fraction	- An optional percentage of the Frobenius norm of the matrix that the bandwidth should enclose
+-- Output Parameter :
+-- bw -The matrix bandwidth 
+matComputeBandwidth' mat f = withPtr $ \bw ->
+  [C.exp|int{MatComputeBandwidth($(Mat mat),$(PetscReal f),$(PetscInt* bw))}|]
+
+
+
 -- PetscErrorCode  MatLUFactor(Mat mat,IS row,IS col,const MatFactorInfo *info)
 matLUFactor' mat is col info =
   [C.exp|int{MatLUFactor($(Mat mat),$(IS is),$(IS col),$(MatFactorInfo* info))}|]
@@ -981,10 +1036,102 @@ matFactorInfoInitialize' = withPtr $ \i -> mfii i where
   mfii info = [C.exp|int{MatFactorInfoInitialize($(MatFactorInfo* info))}|]
 
 
+-- PetscErrorCode  MatMult(Mat mat,Vec x,Vec y)
+-- Neighbor-wise Collective on Mat and Vec
+-- Input Parameters :
+-- mat	- the matrix
+-- x	- the vector to be multiplied
+-- Output Parameters :
+-- y -the result 
+-- Notes :
+-- The vectors x and y cannot be the same. I.e., one cannot call MatMult(A,y,y).
+matMult' mat v vresult = [C.exp|int{MatMult($(Mat mat),$(Vec v),$(Vec vresult))}|]
 
 
 
-  
+-- PetscErrorCode  MatMultTranspose(Mat mat,Vec x,Vec y)
+-- Neighbor-wise Collective on Mat and Vec
+-- Input Parameters :
+-- mat	- the matrix
+-- x	- the vector to be multilplied
+-- Output Parameters :
+-- y -the result 
+-- Notes :
+-- The vectors x and y cannot be the same. I.e., one cannot call MatMultTranspose(A,y,y).
+-- For complex numbers this does NOT compute the Hermitian (complex conjugate) transpose multiple, use MatMultHermitianTranspose()
+matMultTranspose' mat v vresult = [C.exp|int{MatMultTranspose($(Mat mat),$(Vec v),$(Vec vresult))}|]
+
+
+-- PetscErrorCode  MatMultAdd(Mat mat,Vec v1,Vec v2,Vec v3)
+-- Neighbor-wise Collective on Mat and Vec
+-- Input Parameters :
+-- mat	- the matrix
+-- v1, v2	- the vectors
+-- Output Parameters :
+-- v3 -the result        v3 = v2 + A * v1
+-- Notes
+-- The vectors v1 and v3 cannot be the same. I.e., one cannot call MatMultAdd(A,v1,v2,v1).
+matMultAdd' mat v1 v2 v3 =
+  [C.exp|int{MatMultAdd($(Mat mat),$(Vec v1),$(Vec v2),$(Vec v3))}|]
+
+
+-- PetscErrorCode  MatMultTransposeAdd(Mat mat,Vec v1,Vec v2,Vec v3)
+-- Neighbor-wise Collective on Mat and Vec
+-- Input Parameters :
+-- mat	- the matrix
+-- v1, v2	- the vectors
+-- Output Parameters :
+-- v3 -the result           v3 = v2 + A' * v1
+-- Notes : 
+-- The vectors v1 and v3 cannot be the same. I.e., one cannot call MatMultTransposeAdd(A,v1,v2,v1).
+matMultTransposeAdd' mat v1 v2 v3 = [C.exp|int{MatMultTransposeAdd($(Mat mat),$(Vec v1),$(Vec v2),$(Vec v3))}|]
+
+
+
+
+-- PetscErrorCode  MatMultHermitianTranspose(Mat mat,Vec x,Vec y)
+-- Neighbor-wise Collective on Mat and Vec
+-- Input Parameters :
+-- mat	- the matrix
+-- x	- the vector to be multilplied
+-- Output Parameters :
+-- y -the result        y = A^H x 
+-- Notes :
+-- The vectors x and y cannot be the same. I.e., one cannot call MatMultHermitianTranspose(A,y,y).
+-- Also called the conjugate transpose, complex conjugate transpose, or adjoint.
+-- For real numbers MatMultTranspose() and MatMultHermitianTranspose() are identical.
+
+matMultHermitianTranspose' m x y = [C.exp|int{MatMultHermitianTranspose($(Mat m),$(Vec x),$(Vec y))}|]
+
+
+
+
+-- PetscErrorCode  MatMultHermitianTransposeAdd(Mat mat,Vec v1,Vec v2,Vec v3)
+-- Neighbor-wise Collective on Mat and Vec
+-- Input Parameters :
+-- mat	- the matrix
+-- v1, v2	- the vectors
+-- Output Parameters
+-- v3 -the result         v3 = v2 + A^H * v1.
+-- Notes :
+-- The vectors v1 and v3 cannot be the same. I.e., one cannot call MatMultHermitianTransposeAdd(A,v1,v2,v1).
+
+matMultHermitianTransposeAdd' m v1 v2 v3 = [C.exp|int{MatMultHermitianTransposeAdd($(Mat m),$(Vec v1),$(Vec v2),$(Vec v3))}|]
+
+
+
+-- PETSC_EXTERN PetscErrorCode MatScale(Mat,PetscScalar);
+matScale' mat s = [C.exp|int{MatScale($(Mat mat),$(PetscScalar s))}|]
+
+-- PETSC_EXTERN PetscErrorCode MatShift(Mat,PetscScalar);
+matShift' mat s = [C.exp|int{MatShift($(Mat mat),$(PetscScalar s))}|]
+
+
+
+
+
+
+
 
 -- -- -- Mat experiments
 

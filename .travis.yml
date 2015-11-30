@@ -83,6 +83,7 @@ script:
 
 # # run an example program
 #   - stack exec "$BIN_DIR"/petsc-example
+  - stack exec petsc-example
 
   # - chmod +x stack-build.sh
   # - ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH

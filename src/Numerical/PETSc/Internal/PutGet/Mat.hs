@@ -21,8 +21,6 @@ import Numerical.PETSc.Internal.Utils (both, fi, toCInt, in0m, allIn0mV)
 
 import Numerical.PETSc.Internal.Storable.Common (unsafeWithVS)
 
--- import Numerical.PETSc.Internal.Managed
-
 import Foreign.C.Types
 
 import System.IO.Unsafe (unsafePerformIO)
@@ -32,17 +30,16 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 
-
 import Control.Arrow
 import Control.Concurrent
 import Control.Exception
 
--- import Control.Monad.ST (ST, runST)
--- import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
-
 import qualified Data.Vector as V 
 import qualified Data.Vector.Storable as VS (unsafeWith, Vector)
 import qualified Data.Vector.Generic as VG
+
+
+
 
 
 -- | a datatype encapsulating matrix information and the typed pointer
@@ -134,8 +131,13 @@ matCreateMPIAIJWithVectors comm (m, n) (mm, nn) ix iy ia =
            (mm', nn') = (toCInt mm, toCInt nn)
 
 
+matTranspose :: Mat -> MatReuse_ -> IO Mat
+matTranspose mat reuse = chk1 (matTranspose' mat reuse)
 
+-- -- NB : the actual transpose is NOT created by using `matCreateTranspose`, but the definition of matvec will use MatMultTranspose()
 
+matCreateTranspose :: Mat -> IO Mat
+matCreateTranspose mat = chk1 (matCreateTranspose' mat)
 
 
   
@@ -259,6 +261,8 @@ withMatSetupSetValuesAssembly mc m n ix iy vals imode after =
 
 
 -- | set Mat values
+
+matZeroEntries mat = chk0 (matZeroEntries' mat)
 
 matSetValue ::
   Mat -> Int -> Int -> PetscScalar_ -> InsertMode_ -> IO ()
@@ -431,7 +435,7 @@ matSetValuesBlocked0 ::  (VG.Vector v PetscScalar_) =>
 matSetValuesBlocked0 mat idxm idxn v imode =
   unsafeWithVS imc $ \idxmp ->
   unsafeWithVS inc $ \idxnp ->
-  unsafeWithVS v $ \vp -> do
+  unsafeWithVS v $ \vp -> 
     -- print (m,n)   -- debug
     chk0 (matSetValuesBlocked0' mat m idxmp n idxnp vp imode)
    where
@@ -520,13 +524,26 @@ matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 
 
 
+-- | # of diagonals that carry at most f% of the Frobenius norm of mat
+matComputeBandwidth :: Mat -> PetscReal_ -> IO CInt
+matComputeBandwidth mat f = chk1 (matComputeBandwidth' mat f)
+
+-- | matrix norm
+matNorm :: Mat -> MatNorm_ -> IO PetscReal_
+matNorm mat nt = chk1 (matNorm' mat nt)
+
+-- | matrix trace
+matGetTrace :: Mat -> IO PetscScalar_
+matGetTrace mat = chk1 (matGetTrace' mat)
+
+
 
 
 
 
 -- | view Mat on stdout
 
-
+matViewStdout :: Mat -> IO ()
 matViewStdout m = chk0 (matViewStdout' m)
 
 
@@ -655,7 +672,38 @@ withMatFDColoring mat iscoloring =
 
 
 
+-- | some math operations that use Mat
+
+matScale :: Mat -> PetscScalar_ -> IO ()
+matScale m s = chk0 (matScale' m s)
+
+matShift :: Mat -> PetscScalar_ -> IO ()
+matShift m s = chk0 (matShift' m s)
 
 
+-- | vresult = m * v
+matMult :: Mat -> Vec -> Vec -> IO ()
+matMult m v vresult = chk0 (matMult' m v vresult)
+
+-- | vresult = m' * v
+matMultTranspose :: Mat -> Vec -> Vec -> IO ()
+matMultTranspose m v vresult = chk0 (matMultTranspose' m v vresult)
 
 
+-- | v3 = m * v1 + v2
+matMultAdd :: Mat -> Vec -> Vec -> Vec -> IO ()
+matMultAdd m v1 v2 v3 = chk0 (matMultAdd' m v1 v2 v3)
+
+-- | v3 = m' * v1 + v2
+matMultTransposeAdd :: Mat -> Vec -> Vec -> Vec -> IO ()
+matMultTransposeAdd m v1 v2 v3 = chk0 (matMultTransposeAdd' m v1 v2 v3)
+
+
+-- | vresult = m' * v
+matMultHermitianTranspose :: Mat -> Vec -> Vec -> IO ()
+matMultHermitianTranspose m v vresult = chk0 (matMultHermitianTranspose' m v vresult)
+
+
+-- | v3 = m' * v1 + v2
+matMultHermitianTransposeAdd :: Mat -> Vec -> Vec -> Vec -> IO ()
+matMultHermitianTransposeAdd m v1 v2 v3 = chk0 (matMultHermitianTransposeAdd' m v1 v2 v3)

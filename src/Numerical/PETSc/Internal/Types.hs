@@ -167,6 +167,17 @@ matTypeToStr MatMPIBaij = "mpibaij"
 matTypeToStr _ = "mpiaij" -- default
 
 
+
+-- typedef enum {NORM_1=0,NORM_2=1,NORM_FROBENIUS=2,NORM_INFINITY=3,NORM_1_AND_2=4} NormType;
+data MatNorm_ = MatNorm1 | MatNorm2 | MatNormF | MatNormInfty | MatNorm1and2 deriving (Eq, Show, Enum)
+matNormToInt x = fromEnum (x :: MatNorm_)
+
+
+-- typedef enum {MAT_INITIAL_MATRIX,MAT_REUSE_MATRIX,MAT_IGNORE_MATRIX} MatReuse;
+data MatReuse_ = MatInitialMtx | MatReuseMtx | MatIgnoreMtx deriving (Eq, Show, Enum)
+
+matReuseToInt x = fromEnum (x :: MatReuse_ )
+
 -- typedef enum {DIFFERENT_NONZERO_PATTERN,SUBSET_NONZERO_PATTERN,SAME_NONZERO_PATTERN} MatStructure;
 data MatStructure_ = MatDifferentNZPattern | MatSubsetNZPattern | MatSameNZPattern
                    deriving (Eq, Show, Enum)
