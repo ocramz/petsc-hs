@@ -688,8 +688,31 @@ matCreateTranspose' mat = withPtr $ \mp -> [C.exp|int{MatCreateTranspose($(Mat m
 
 
 -- PETSC_EXTERN PetscErrorCode MatCreateAIJ(MPI_Comm,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,const PetscInt[],PetscInt,const PetscInt[],Mat*);
-    
+-- Input Parameters :
+-- comm	- MPI communicator
+-- m	- number of local rows (or PETSC_DECIDE to have calculated if M is given) This value should be the same as the local size used in creating the y vector for the matrix-vector product y = Ax.
+-- n	- This value should be the same as the local size used in creating the x vector for the matrix-vector product y = Ax. (or PETSC_DECIDE to have calculated if N is given) For square matrices n is almost always m.
+-- M	- number of global rows (or PETSC_DETERMINE to have calculated if m is given)
+-- N	- number of global columns (or PETSC_DETERMINE to have calculated if n is given)
+-- d_nz	- number of nonzeros per row in DIAGONAL portion of local submatrix (same value is used for all local rows)
+-- d_nnz	- array containing the number of nonzeros in the various rows of the DIAGONAL portion of the local submatrix (possibly different for each row) or NULL, if d_nz is used to specify the nonzero structure. The size of this array is equal to the number of local rows, i.e 'm'.
+-- o_nz	- number of nonzeros per row in the OFF-DIAGONAL portion of local submatrix (same value is used for all local rows).
+-- o_nnz	- array containing the number of nonzeros in the various rows of the OFF-DIAGONAL portion of the local submatrix (possibly different for each row) or NULL, if o_nz is used to specify the nonzero structure. The size of this array is equal to the number of local rows, i.e 'm'.
+-- Output Parameter
 
+-- A -the matrix 
+-- It is recommended that one use the MatCreate(), MatSetType() and/or MatSetFromOptions(), MatXXXXSetPreallocation() paradgm instead of this routine directly
+matCreateAIJ0' comm m n mm nn dnz dnnz onz onnz = 
+  withPtr ( \mat ->
+    withArray dnnz ( \dnnzp ->
+    withArray onnz ( \onnzp -> [C.exp|int{MatCreateAIJ($(int c),
+                                    $(PetscInt m), $(PetscInt n),
+                                    $(PetscInt mm), $(PetscInt nn),
+                                    $(PetscInt dnz), $(PetscInt* dnnzp),
+                                    $(PetscInt onz), $(PetscInt* onnzp),
+                                    $(Mat* mat))}|] )))
+      where c = unComm comm
+            
 --     PetscErrorCode  MatCreateMPIAIJWithArrays(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt M,PetscInt N,const PetscInt i[],const PetscInt j[],const PetscScalar a[],Mat *mat)    -- Collective on MPI_Comm
 -- Input Parameters :
 -- comm	- MPI communicator

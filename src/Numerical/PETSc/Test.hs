@@ -192,7 +192,7 @@ v0_ :: V.Vector (Int, Int, PetscScalar_)
 v0_ = V.zip3 vix viy va
 
 t6' n =
-  withMatNew commWorld n n vi InsertValues $ \m ->
+  withMatNew commWorld n n MatAij vi InsertValues $ \m ->
    matViewStdout m where
      vi = csrAllNxN_ n    -- test mtx ( NB : dense )
  
@@ -230,42 +230,42 @@ t7 = withPetsc0 t7'
 
 
 
-iot :: (Storable a, Num a, Enum a) => a -> a -> Int -> VS.Vector a
-iot x0 h n = VS.fromList $ take n [x0, x0+h ..]
+-- iot :: (Storable a, Num a, Enum a) => a -> a -> Int -> VS.Vector a
+-- iot x0 h n = VS.fromList $ take n [x0, x0+h ..]
 
-t8snesEx3 = do           
-  let n = 10
-      h = 1 / fromIntegral (n-1) 
-  withDmda1d cw DmBNone n 1 1 [] $ \da ->             -- DA
-   withMatCreateSetup cw n n $ \jac -> do             -- Jacobian
-    matSeqAIJSetPreallocation jac 3 []               -- " preallocation
-    withDmCreateGlobalVector da $ \x ->              -- solution
-     withVecDuplicate x $ \r ->
-     withVecDuplicate x $ \f ->
-     withVecDuplicate x $ \u -> do
-       (xs, nloc) <- dmdaGetCorners1d da
-       let xp = h * (fromIntegral xs)
-           localIdx :: VS.Vector PetscScalar_          -- local index array
-           localIdx = iot xp h (fromIntegral nloc)
-           f1 x = 6*x + (x + 1e-12)^6                  
-           u1 x = x^3
-           (f_, u_) = (VS.map f1 localIdx, VS.map u1 localIdx)
-       dmdaVecReplaceWVectorF da f nloc (const $ return f_)
-       dmdaVecReplaceWVectorF da u nloc (const $ return u_)
-       vecSet x 0.5                                    -- set initial solution
-       let formFunc sns vx vf =
-             withDmGetLocalVector da $ \xlocal -> do
-              dmG2L da x InsertValues xlocal           -- fill local vector
-              let d = 1 /  (h**2) 
-              withDmdaVecGetVector da xlocal nloc $ \xx ->
-                return xx
-           formJacF = undefined
-       withSnesCreateSetup cw x jac jac formFunc formJacF $ \snes -> do
-        snesSolve0 snes x                              -- solve
-        xsoln <- snesGetSolution snes           
-        vecViewStdout xsoln                            -- view solution
-          where
-            cw = commWorld
+-- t8snesEx3 = do           
+--   let n = 10
+--       h = 1 / fromIntegral (n-1) 
+--   withDmda1d cw DmBNone n 1 1 [] $ \da ->             -- DA
+--    withMatCreateSetup cw n n $ \jac -> do             -- Jacobian
+--     matSeqAIJSetPreallocation jac 3 []               -- " preallocation
+--     withDmCreateGlobalVector da $ \x ->              -- solution
+--      withVecDuplicate x $ \r ->
+--      withVecDuplicate x $ \f ->
+--      withVecDuplicate x $ \u -> do
+--        (xs, nloc) <- dmdaGetCorners1d da
+--        let xp = h * fromIntegral xs
+--            localIdx :: VS.Vector PetscScalar_          -- local index array
+--            localIdx = iot xp h (fromIntegral nloc)
+--            f1 x = 6*x + (x + 1e-12)^6                  
+--            u1 x = x^3
+--            (f_, u_) = (VS.map f1 localIdx, VS.map u1 localIdx)
+--        dmdaVecReplaceWVectorF da f nloc (const $ return f_)
+--        dmdaVecReplaceWVectorF da u nloc (const $ return u_)
+--        vecSet x 0.5                                    -- set initial solution
+--        let formFunc sns vx vf =
+--              withDmGetLocalVector da $ \xlocal -> do
+--               dmG2L da x InsertValues xlocal           -- fill local vector
+--               let d = 1 /  (h**2) 
+--               withDmdaVecGetVector da xlocal nloc $ \xx ->
+--                 return xx
+--            formJacF = undefined
+--        withSnesCreateSetup cw x jac jac formFunc formJacF $ \snes -> do
+--         snesSolve0 snes x                              -- solve
+--         xsoln <- snesGetSolution snes           
+--         vecViewStdout xsoln                            -- view solution
+--           where
+--             cw = commWorld
 
 
 -- t8 = withPetsc0 t8snesEx3
@@ -283,25 +283,25 @@ constS = VS.replicate
 timesConstS :: (Storable a, Num a) => a -> VS.Vector a -> VS.Vector a
 timesConstS a = VS.map (* a) 
 
-t9' = do
-  let
-    formFunction snes x f = do
-        xv <- vecGetVector x
-        fv <- vecGetVector f
-        vecRestoreVector f (constS n $ xv <.> xv) -- state transform `f`
-        vecRestoreVector x xv 
-        return (0 :: CInt)
-    formJacobian snes x amat = -- Vec -> IO Mat : state transform `amat`
-      withMatSetValueVectorSafe amat n n idxv InsertValues $ \amatp -> undefined
-       where
-         idxv = undefined
+-- t9' = do
+--   let
+--     formFunction snes x f = do
+--         xv <- vecGetVector x
+--         fv <- vecGetVector f
+--         vecRestoreVector f (constS n $ xv <.> xv) -- state transform `f`
+--         vecRestoreVector x xv 
+--         return (0 :: CInt)
+--     formJacobian snes x amat = -- Vec -> IO Mat : state transform `amat`
+--       withMatSetValueVectorSafe amat n n idxv InsertValues $ \amatp -> undefined
+--        where
+--          idxv = undefined
          
-    n = 1
-  withDmda1d0 cw DmBNone n 1 1 $ \da ->   -- distributed array
-    withMatCreateSetup cw n n $ \jac -> 
-      matMPIAIJSetPreallocationConstNZPR jac 1 0 
-    where
-      cw = commWorld
+--     n = 1
+--   withDmda1d0 cw DmBNone n 1 1 $ \da ->   -- distributed array
+--     withMatCreateSetup cw n n $ \jac -> 
+--       matMPIAIJSetPreallocationConstNZPR jac 1 0 
+--     where
+--       cw = commWorld
 
 
 -- --
@@ -347,36 +347,36 @@ t11 = withPetsc0  t11'
 
 -- -- | block matrix assembly
 
-asdf = idxV ne i where
-  i = 1
-  ne = 4
+-- asdf = idxV ne i where
+--   i = 1
+--   ne = 4
 
 
   
-t12' =
-  withMatCreateSetup1 cw mm mm MatAij -- MatMPIBaij
-  (`matSetBlockSize` ne)
-  (\mat -> do
-      -- matSeqAIJSetPreallocation mat nzpr (replicate ne ne)
-      matMPIAIJSetPreallocationConstNZPR mat nzpr nzpr
-      matSetup mat
-  )
-  (\mat -> do
-      matSetValuesBlocked0 mat idxs idxs vs InsertValues
-      matAssembly mat
-      matViewStdout mat)
-  where
-    cw = commWorld
-    ne = 4 -- :: CInt
-    nzpr = 10
-    mm = fromIntegral ne^2
-    idxs = idxV ne 0
-    vs = V.fromList $ replicate mm pi -- [0..mm-1 :: CDouble]
+-- t12' =
+--   withMatCreateSetup1 cw mm mm MatAij -- MatMPIBaij
+--   (`matSetBlockSize` ne)
+--   (\mat -> do
+--       -- matSeqAIJSetPreallocation mat nzpr (replicate ne ne)
+--       matMPIAIJSetPreallocationConstNZPR mat nzpr nzpr
+--       matSetup mat
+--   )
+--   (\mat -> do
+--       matSetValuesBlocked0 mat idxs idxs vs InsertValues
+--       matAssembly mat
+--       matViewStdout mat)
+--   where
+--     cw = commWorld
+--     ne = 4 -- :: CInt
+--     nzpr = 10
+--     mm = fromIntegral ne^2
+--     idxs = idxV ne 0
+--     vs = V.fromList $ replicate mm pi -- [0..mm-1 :: CDouble]
 
--- idx[4] = {Ii, Ii+1, Ii + (ne+1) + 1, Ii + (ne+1)}
-idxV ne i = V.fromList [i, i+1, i+ne+2, i+ne+1] 
+-- -- idx[4] = {Ii, Ii+1, Ii + (ne+1) + 1, Ii + (ne+1)}
+-- idxV ne i = V.fromList [i, i+1, i+ne+2, i+ne+1] 
 
-t12 = withPetsc0 t12'
+-- t12 = withPetsc0 t12'
 
 
 
@@ -397,21 +397,13 @@ t12 = withPetsc0 t12'
 --   initO = vecCreateMPIInfo
 --   -- updateH = vecGetVector
 
-
-
-
-
 -- -- --
 
--- vinfo n = VecInfo commWorld n n
-
--- vecTemplate n f = withVecMPIPipeline vi (`vecSet` pi) $ \v -> do
---   -- withVecGetVectorOverwrite v (V.map exp)    -- contents of Vec are changed 
---   -- print $ exp pi
---   -- f v
---   f
---   vecViewStdout v
---     where
---       vi = vinfo n
-
--- -- petsc0VecTemplate n f = withPetsc0 $ vecTemplate n f
+-- t13' = withMat (matCreateMPIAIJWithVectors comm m n mm nn ix iy v ) $ \mat ->
+--   matGetInfo mat
+--    where
+--      comm = commWorld
+--      m = 3
+--      n = m
+--      (mm, nn) = (m, n)
+  

@@ -23,6 +23,8 @@ import Numerical.PETSc.Internal.Storable.Vector
 import Numerical.PETSc.Internal.Storable.Matrix
 import Numerical.PETSc.Internal.Storable.Common (unsafeWithVS)
 
+import Foreign.Ptr
+import Foreign.Storable
 import Foreign.C.Types
 
 import System.IO.Unsafe (unsafePerformIO)
@@ -108,6 +110,13 @@ matCreateSeqAIJConstNZPR ::
 matCreateSeqAIJConstNZPR comm m n nz =
   chk1 (matCreateSeqAIJconstNZperRow1 comm m n nz)
 
+matCreateAIJ0 :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> PetscInt_ ->
+      PetscInt_ -> [PetscInt_] ->
+      PetscInt_ -> [PetscInt_] ->
+      IO Mat
+matCreateAIJ0 comm m n mm nn dnz dnnz onz onnz =
+  chk1 ( matCreateAIJ0' comm m n mm nn dnz dnnz onz onnz)
+
 matCreateMPIAIJWithArrays ::
   Comm -> [PetscInt_] -> [PetscInt_] -> [PetscScalar_] -> IO Mat
 matCreateMPIAIJWithArrays comm idxx idxy vals =
@@ -142,6 +151,9 @@ matCreateTranspose :: Mat -> IO Mat
 matCreateTranspose mat = chk1 (matCreateTranspose' mat)
 
 
+
+
+
   
 
 -- | destroy Mat
@@ -165,34 +177,39 @@ matDestroy = chk0 . matDestroy'
 withMat :: IO Mat -> (Mat -> IO a) -> IO a
 withMat mc = bracket mc matDestroy 
 
+withMatCreate :: Comm -> (Mat -> IO a) -> IO a
+withMatCreate comm = withMat (matCreate comm)
+
 -- | withMatCreateSetup : (create, setSizes, setup, <body>, cleanup) bracket
 withMatCreateSetup ::
   Comm ->
   Int ->
   Int ->
+  MatType_ ->
   (Mat -> IO a) ->
   IO a
-withMatCreateSetup comm m n after = withMat (matCreate comm) $ \mat -> do
+withMatCreateSetup comm m n ty after = withMatCreate comm $ \mat -> do
   matSetSizes mat m n
+  matSetType mat ty
   matSetup mat
   after mat         -- set values, assemble can be done here
 
-withMatCreateSetup1 ::
-  Comm ->
-  Int ->
-  Int ->
-  MatType_ -> 
-  (Mat -> IO a) ->
-  (Mat -> IO b) ->
-  (Mat -> IO c) ->
-  IO c
-withMatCreateSetup1 comm m n ty before setup  after =
-  withMat (matCreate comm) $ \mat -> do
-    matSetSizes mat m n
-    matSetType mat ty
-    before mat    -- e.g. set block size for MPIBAIJ
-    setup mat     -- matMPISetPreallocation or matSetup
-    after mat
+-- withMatCreateSetup1 ::
+--   Comm ->
+--   Int ->
+--   Int ->
+--   MatType_ -> 
+--   (Mat -> IO a) ->
+--   (Mat -> IO b) ->
+--   (Mat -> IO c) ->
+--   IO c
+-- withMatCreateSetup1 comm m n ty before setup  after =
+--   withMatCreate comm $ \mat -> do
+--     matSetSizes mat m n
+--     matSetType mat ty
+--     before mat    -- e.g. set block size for MPIBAIJ
+--     setup mat     -- matMPISetPreallocation or matSetup
+--     after mat
 
 
 
@@ -204,12 +221,13 @@ withMatNew ::
   Comm ->                               -- MPI communicator
   Int ->                                -- # rows
   Int ->                                -- # cols
+  MatType_ ->
   V.Vector (Int, Int, PetscScalar_) ->  -- (rowIdx, colIdx, value)
   InsertMode_ ->                        -- `InsertValues` or `AddValues`
   (Mat -> IO a) ->                      -- bracket body
   IO a 
-withMatNew comm m n v_ imode after =
-  withMatCreateSetup comm m n $ \mat -> 
+withMatNew comm m n ty v_ imode after =
+  withMatCreateSetup comm m n ty $ \mat -> 
     withMatSetValueVectorSafe mat m n v_ imode after
 
 -- | withMatSetValueVectorSafe :  fill + setup Mat with index bound checks
@@ -352,8 +370,6 @@ matSetValuesVectorSafe m ix iy v
 
 
 
-
--- convert :: (Vector v a, Vector w a) => v a -> w a
 
 
     

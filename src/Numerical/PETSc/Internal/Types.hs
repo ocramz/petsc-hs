@@ -214,7 +214,7 @@ data MatInfo =
            matInfoAssemblies :: CDouble,
            matInfoMallocs :: CDouble,
            matInfoFillRatioGiven, matInfoFillRatioNeeded :: CDouble,
-           matInfoFactorMallocs :: CDouble }
+           matInfoFactorMallocs :: CDouble } deriving (Eq, Show)
 
 instance Storable MatInfo where
   sizeOf _ = 10 * sizeOf (undefined :: CDouble)
