@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.PutGet.DM
@@ -20,13 +20,15 @@ import Numerical.PETSc.Internal.Utils
 
 import Numerical.PETSc.Internal.PutGet.Vec
 
-
+import Numerical.PETSc.Internal.Storable.Vector (vectorFreezeFromStorablePtr,
+                                                 vectorCopyToForeignPtr)
 
 import Foreign
 import Foreign.C.Types
 
 import System.IO.Unsafe (unsafePerformIO)
 
+import Control.Applicative
 import Control.Monad
 import Control.Arrow
 import Control.Concurrent
@@ -44,38 +46,49 @@ import qualified Data.Vector.Storable.Mutable as VM
 --               | DmdaI2d Dmda2dInfo deriving (Eq, Show)
 
 
--- | Dmda 1D + info
+-- -- | Dmda 1D + info
 
-data PetscDmda1d = PetscDmda1d !Dmda1dInfo DM
+-- data PetscDmda1d = PetscDmda1d !Dmda1dInfo DM
+               
+-- -- | Dmda 2D + info
 
-data Dmda1dInfo =
-  Dmda1dInfo {
-    dmda1dComm :: !Comm,
+-- data PetscDmda2d = PetscDmda2d !Dmda2dInfo DM
+
+type Bnds = (PetscReal_, PetscReal_)   -- DM bounds along one direction
+
+data DmdaInfo =
+  Dmda1dInfo
+  {
+    dm1dInfo :: DmInfo,
     dmda1dBdryType :: !DMBoundaryType_,
     dmda1dSizes :: !Int,
-    dmda1dNdofPN :: !Int,
     dmda1dStenWidth :: !Int,
-    dmda1dBoundsX :: !(PetscReal_, PetscReal_)
+    dmda1dBoundsX :: Bnds
+  }
+  | Dmda2dInfo
+    {
+      dm2dInfo :: DmInfo,
+      dmda2dBdryType :: !(DMBoundaryType_, DMBoundaryType_),
+      dmda2dStenType :: !DMDAStencilType,
+      dmda2dSizes :: !(Int, Int),
+      dmda2dBoundsX :: Bnds,
+      dmda2dBoundsY :: Bnds
+    }
+  | Dmda3dInfo
+    {
+      dm3dInfo :: DmInfo,
+      dmda3dBdryType :: !(DMBoundaryType_, DMBoundaryType_, DMBoundaryType_),
+      dmda3dStenType :: !DMDAStencilType,
+      dmda3dSizes :: !(Int, Int, Int),
+      dmda3dBoundsX :: Bnds,
+      dmda3dBoundsY :: Bnds,
+      dmda3dBoundsZ :: Bnds
     } deriving (Eq, Show)
 
-               
--- | Dmda 2D + info
 
-data PetscDmda2d = PetscDmda2d !Dmda2dInfo DM
-
-data Dmda2dInfo =
-  Dmda2dInfo {
-    dmdaComm :: !Comm,
-    dmdaBdryType :: !(DMBoundaryType_, DMBoundaryType_),
-    dmdaStenType :: !DMDAStencilType,
-    dmdaSizes :: !(Int, Int),
-    dmda2dNdofPN :: !Int,
-    dmdaStenWidth :: !Int,
-    dmdaBoundsX :: !(PetscReal_, PetscReal_),
-    dmdaBoundsY :: !(PetscReal_, PetscReal_)
-    } deriving (Eq, Show)
-
-
+data DmInfo = DmInfo { comm   :: Comm,
+                       ndofPN :: Int,
+                       stenW  :: Int  } deriving (Eq, Show)
 
 
 
@@ -322,18 +335,25 @@ dmdaVecRestoreArrayPtr dm v vvp = chk0 (dmdaVecRestoreArray' dm v vvp)
 
 
 dmdaVecGetVector :: DM -> Vec -> Int -> IO (V.Vector PetscScalar_)
-dmdaVecGetVector dm v len = do
-  p <- dmdaVecGetArrayPtr dm v
-  pf <- newForeignPtr_ p
-  V.freeze (VM.unsafeFromForeignPtr0 pf len)
+dmdaVecGetVector dm v =
+  vectorFreezeFromStorablePtr (dmdaVecGetArrayPtr dm v) (dmdaVecRestoreArrayPtr dm v)
 
+-- dmdaVecGetVector :: DM -> Vec -> Int -> IO (V.Vector PetscScalar_)
+-- dmdaVecGetVector dm v len = do
+--   p <- dmdaVecGetArrayPtr dm v
+--   pf <- newForeignPtr_ p
+--   V.freeze (VM.unsafeFromForeignPtr0 pf len)
 
 dmdaVecRestoreVector :: DM -> Vec -> Int -> V.Vector PetscScalar_ -> IO ()
-dmdaVecRestoreVector dm v len w = do
-  p <- dmdaVecGetArrayPtr dm v
-  pf <- newForeignPtr_ p
-  V.copy (VM.unsafeFromForeignPtr0 pf len) w
-  dmdaVecRestoreArrayPtr dm v p
+dmdaVecRestoreVector dm v =
+  vectorCopyToForeignPtr (dmdaVecGetArrayPtr dm v) (dmdaVecRestoreArrayPtr dm v)
+
+-- dmdaVecRestoreVector :: DM -> Vec -> Int -> V.Vector PetscScalar_ -> IO ()
+-- dmdaVecRestoreVector dm v len w = do
+--   p <- dmdaVecGetArrayPtr dm v
+--   pf <- newForeignPtr_ p
+--   V.copy (VM.unsafeFromForeignPtr0 pf len) w
+--   dmdaVecRestoreArrayPtr dm v p
 
 
 
@@ -500,9 +520,17 @@ withDmdaUniform2d0 comm (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
 
 dmdaGetInfoCInt da = chk1 (dmdaGetInfo__' da)
 
+dmdaGetInfo3d ::
+  DM ->
+  IO (Int,
+      (Int,Int, Int),
+      (Int,Int, Int),
+      Int,
+      Int,
+      (DMBoundaryType_, DMBoundaryType_, DMBoundaryType_ ),
+      DMDAStencilType)
 dmdaGetInfo3d da = do
   (d,(mm,nn,pp),(m,n,p),dof,s,(bx,by,bz),sten) <- dmdaGetInfoCInt da
-  
   let
     dim = fi d
     dims = (fi mm,fi nn, fi pp)

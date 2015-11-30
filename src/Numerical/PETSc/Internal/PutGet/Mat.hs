@@ -236,13 +236,13 @@ withMatSetupSetValuesAssembly ::
   InsertMode_ ->             
   (Mat -> IO a) ->
   IO a
-withMatSetupSetValuesAssembly mc m n ix iy vals imode f =
+withMatSetupSetValuesAssembly mc m n ix iy vals imode after =
   withMat mc $ \mat -> do
    -- matSetSizes mat m n
    matSetup mat
    matSetValuesVectorSafe mat ix iy vals imode      
    matAssembly mat
-   f mat
+   after mat
 {- -- -}
 
 
