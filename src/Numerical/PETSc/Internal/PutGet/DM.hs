@@ -56,41 +56,76 @@ import qualified Data.Vector.Storable.Mutable as VM
 
 type Bnds = (PetscReal_, PetscReal_)   -- DM bounds along one direction
 
-data DmdaInfo =
-  Dmda1dInfo
-  {
-    dm1dInfo :: DmInfo,
-    dmda1dBdryType :: !DMBoundaryType_,
-    dmda1dSizes :: !Int,
-    dmda1dStenWidth :: !Int,
-    dmda1dBoundsX :: Bnds
-  }
-  | Dmda2dInfo
-    {
-      dm2dInfo :: DmInfo,
-      dmda2dBdryType :: !(DMBoundaryType_, DMBoundaryType_),
-      dmda2dStenType :: !DMDAStencilType,
-      dmda2dSizes :: !(Int, Int),
-      dmda2dBoundsX :: Bnds,
-      dmda2dBoundsY :: Bnds
-    }
-  | Dmda3dInfo
-    {
-      dm3dInfo :: DmInfo,
-      dmda3dBdryType :: !(DMBoundaryType_, DMBoundaryType_, DMBoundaryType_),
-      dmda3dStenType :: !DMDAStencilType,
-      dmda3dSizes :: !(Int, Int, Int),
-      dmda3dBoundsX :: Bnds,
-      dmda3dBoundsY :: Bnds,
-      dmda3dBoundsZ :: Bnds
-    } deriving (Eq, Show)
-
-
 data DmInfo = DmInfo { comm   :: Comm,
                        ndofPN :: Int,
                        stenW  :: Int  } deriving (Eq, Show)
 
+-- data DmdaInfo =
+--   Dmda1dInfo {
+--     dm1dInfo :: DmInfo ,
+--     dmda1dBdryType :: !DMBoundaryType_ ,
+--     dmda1dSizes :: !Int ,
+--     dmda1dStenWidth :: !Int ,
+--     dmda1dBoundsX :: Bnds }
+--   | Dmda2dInfo {
+--       dm2dInfo :: DmInfo ,
+--       dmda2dBdryType :: !(DMBoundaryType_, DMBoundaryType_) ,
+--       dmda2dStenType :: !DMDAStencilType ,
+--       dmda2dSizes :: !(Int, Int) ,
+--       dmda2dBoundsX :: Bnds ,
+--       dmda2dBoundsY :: Bnds  }
+--   | Dmda3dInfo {
+--       dm3dInfo :: DmInfo ,
+--       dmda3dBdryType :: !(DMBoundaryType_, DMBoundaryType_, DMBoundaryType_) ,
+--       dmda3dStenType :: !DMDAStencilType ,
+--       dmda3dSizes :: !(Int, Int, Int) ,
+--       dmda3dBoundsX :: Bnds ,
+--       dmda3dBoundsY :: Bnds ,
+--       dmda3dBoundsZ :: Bnds  } deriving (Eq, Show)
 
+type Size = Int
+
+type StencilType = Maybe DMDAStencilType
+
+class DmdaInfoClass di where
+  type DmdaBCs di
+  type DmdaStencil di
+  type DmdaBounds di
+  dmdaBCs :: di -> DmdaBCs di
+  dmdaBounds :: di -> DmdaBounds di
+
+data Dmda1dI = Dmda1dI DmInfo DMBoundaryType_ StencilType Size Bnds
+             deriving (Eq, Show)
+
+
+data Dmda2dI =
+  Dmda2dI DmInfo (DMBoundaryType_, DMBoundaryType_) StencilType (Size, Size) (Bnds, Bnds) deriving (Eq, Show)
+
+data Dmda3dI =
+  Dmda3dI DmInfo (DMBoundaryType_, DMBoundaryType_, DMBoundaryType_) StencilType
+    (Size, Size, Size)
+    (Bnds, Bnds, Bnds) deriving (Eq, Show)
+
+instance DmdaInfoClass Dmda1dI where
+  type DmdaBCs Dmda1dI = DMBoundaryType_
+  type DmdaStencil Dmda1dI = StencilType
+  type DmdaBounds Dmda1dI = Bnds
+  dmdaBCs (Dmda1dI _ bc _ _ _) = bc
+  dmdaBounds (Dmda1dI _ _ _ _ bd) = bd
+
+instance DmdaInfoClass Dmda2dI where
+  type DmdaBCs Dmda2dI = (DMBoundaryType_, DMBoundaryType_)
+  type DmdaStencil Dmda2dI = StencilType
+  type DmdaBounds Dmda2dI = (Bnds, Bnds)
+  dmdaBCs (Dmda2dI _ bc _ _ _) = bc
+  dmdaBounds (Dmda2dI _ _ _ _ bd) = bd
+
+instance DmdaInfoClass Dmda3dI where
+  type DmdaBCs Dmda3dI = (DMBoundaryType_, DMBoundaryType_, DMBoundaryType_)
+  type DmdaStencil Dmda3dI = StencilType
+  type DmdaBounds Dmda3dI = (Bnds, Bnds, Bnds)
+  dmdaBCs (Dmda3dI _ bc _ _ _) = bc
+  dmdaBounds (Dmda3dI _ _ _ _ bd) = bd
 
 
 
