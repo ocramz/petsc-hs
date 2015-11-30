@@ -42,8 +42,6 @@ import qualified Data.Vector.Storable as V --  (unsafeWith, unsafeFromForeignPtr
 import qualified Data.Vector.Storable.Mutable as VM
 
 
--- data DmdaInfo = DmdaI1d Dmda1dInfo
---               | DmdaI2d Dmda2dInfo deriving (Eq, Show)
 
 
 -- -- | Dmda 1D + info
@@ -54,49 +52,22 @@ import qualified Data.Vector.Storable.Mutable as VM
 
 -- data PetscDmda2d = PetscDmda2d !Dmda2dInfo DM
 
+
+
+data DmInfo = DmInfo { dmComm   :: Comm,
+                       dmNdofPN :: Int,
+                       dmStenW  :: Int  } deriving (Eq, Show)
+
 type Bnds = (PetscReal_, PetscReal_)   -- DM bounds along one direction
-
-data DmInfo = DmInfo { comm   :: Comm,
-                       ndofPN :: Int,
-                       stenW  :: Int  } deriving (Eq, Show)
-
--- data DmdaInfo =
---   Dmda1dInfo {
---     dm1dInfo :: DmInfo ,
---     dmda1dBdryType :: !DMBoundaryType_ ,
---     dmda1dSizes :: !Int ,
---     dmda1dStenWidth :: !Int ,
---     dmda1dBoundsX :: Bnds }
---   | Dmda2dInfo {
---       dm2dInfo :: DmInfo ,
---       dmda2dBdryType :: !(DMBoundaryType_, DMBoundaryType_) ,
---       dmda2dStenType :: !DMDAStencilType ,
---       dmda2dSizes :: !(Int, Int) ,
---       dmda2dBoundsX :: Bnds ,
---       dmda2dBoundsY :: Bnds  }
---   | Dmda3dInfo {
---       dm3dInfo :: DmInfo ,
---       dmda3dBdryType :: !(DMBoundaryType_, DMBoundaryType_, DMBoundaryType_) ,
---       dmda3dStenType :: !DMDAStencilType ,
---       dmda3dSizes :: !(Int, Int, Int) ,
---       dmda3dBoundsX :: Bnds ,
---       dmda3dBoundsY :: Bnds ,
---       dmda3dBoundsZ :: Bnds  } deriving (Eq, Show)
-
+type Length = PetscReal_
 type Size = Int
-
 type StencilType = Maybe DMDAStencilType
 
-class DmdaInfoClass di where
-  type DmdaBCs di
-  type DmdaStencil di
-  type DmdaBounds di
-  dmdaBCs :: di -> DmdaBCs di
-  dmdaBounds :: di -> DmdaBounds di
+
+-- | DMDA 1, 2 and 3d data 
 
 data Dmda1dI = Dmda1dI DmInfo DMBoundaryType_ StencilType Size Bnds
              deriving (Eq, Show)
-
 
 data Dmda2dI =
   Dmda2dI DmInfo (DMBoundaryType_, DMBoundaryType_) StencilType (Size, Size) (Bnds, Bnds) deriving (Eq, Show)
@@ -106,27 +77,61 @@ data Dmda3dI =
     (Size, Size, Size)
     (Bnds, Bnds, Bnds) deriving (Eq, Show)
 
+
+
+-- | typeclass DmdaInfoClass
+
+class DmdaInfoClass di where
+  type DmdaBCs di
+  type DmdaStencil di
+  type DmdaMeshSize di 
+  type DmdaBounds di          -- size metric support of mesh / dimension
+  type DmdaSize di            -- # nodes / dimension
+  dmdaBCs :: di -> DmdaBCs di
+  dmdaSize :: di -> DmdaSize di
+  dmdaBounds :: di -> DmdaBounds di
+  dmdaMeshSize :: DmdaBounds di -> DmdaSize di -> DmdaMeshSize di
+
+-- | instances of DmdaInfoClass
+
+normalizeTup :: Fractional a => (a, a) -> Int -> a
+normalizeTup (a, b) n = (b - a) / fromIntegral n
+
 instance DmdaInfoClass Dmda1dI where
   type DmdaBCs Dmda1dI = DMBoundaryType_
   type DmdaStencil Dmda1dI = StencilType
+  type DmdaMeshSize Dmda1dI = Length
   type DmdaBounds Dmda1dI = Bnds
+  type DmdaSize Dmda1dI = Size
   dmdaBCs (Dmda1dI _ bc _ _ _) = bc
+  dmdaSize (Dmda1dI _ _ _ s _ ) = s
   dmdaBounds (Dmda1dI _ _ _ _ bd) = bd
+  dmdaMeshSize = normalizeTup
 
 instance DmdaInfoClass Dmda2dI where
   type DmdaBCs Dmda2dI = (DMBoundaryType_, DMBoundaryType_)
   type DmdaStencil Dmda2dI = StencilType
+  type DmdaMeshSize Dmda2dI = (Length, Length)
   type DmdaBounds Dmda2dI = (Bnds, Bnds)
+  type DmdaSize Dmda2dI = (Size, Size)
   dmdaBCs (Dmda2dI _ bc _ _ _) = bc
+  dmdaSize (Dmda2dI _ _ _ s _ ) = s
   dmdaBounds (Dmda2dI _ _ _ _ bd) = bd
+  dmdaMeshSize (tx, ty) (nx, ny) = (normalizeTup tx nx, normalizeTup ty ny)
 
 instance DmdaInfoClass Dmda3dI where
   type DmdaBCs Dmda3dI = (DMBoundaryType_, DMBoundaryType_, DMBoundaryType_)
   type DmdaStencil Dmda3dI = StencilType
+  type DmdaMeshSize Dmda3dI = (Length, Length, Length)
   type DmdaBounds Dmda3dI = (Bnds, Bnds, Bnds)
+  type DmdaSize Dmda3dI = (Size, Size, Size)
   dmdaBCs (Dmda3dI _ bc _ _ _) = bc
+  dmdaSize (Dmda3dI _ _ _ s _ ) = s
   dmdaBounds (Dmda3dI _ _ _ _ bd) = bd
-
+  dmdaMeshSize (tx, ty, tz) (nx, ny, nz) = (dx, dy, dz) where
+    dx = normalizeTup tx nx
+    dy = normalizeTup ty ny
+    dz = normalizeTup tz nz
 
 
                
