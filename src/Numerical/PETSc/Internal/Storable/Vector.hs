@@ -16,7 +16,7 @@ module Numerical.PETSc.Internal.Storable.Vector where
 
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Utils
-import Numerical.PETSc.Internal.Storable.Store
+-- import Numerical.PETSc.Internal.Storable.Store
 
 import Data.Functor
 import Control.Applicative
@@ -177,6 +177,8 @@ getVG n p = do
 putVG :: (VG.Vector v a, Storable a) => v a -> Int -> Ptr a -> IO ()
 putVG w = putVS (VG.convert w)
 
+
+-- | take a local copy
 
 withGetVG :: (VG.Vector v a, Storable a) => Int -> Ptr a -> (v a -> IO b) -> IO b
 withGetVG n p = bracket (getVG n p) (\v -> putVG v n p)

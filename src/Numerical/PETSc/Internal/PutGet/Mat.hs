@@ -262,6 +262,7 @@ withMatSetupSetValuesAssembly mc m n ix iy vals imode after =
 
 -- | set Mat values
 
+matZeroEntries :: Mat -> IO ()
 matZeroEntries mat = chk0 (matZeroEntries' mat)
 
 matSetValue ::
