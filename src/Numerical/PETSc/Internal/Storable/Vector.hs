@@ -18,6 +18,9 @@ import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Utils
 import Numerical.PETSc.Internal.Storable.Store
 
+import Data.Functor
+import Control.Applicative
+
 import Control.Exception 
 import Control.Monad
 -- import qualified GHC.ForeignPtr as FPR
@@ -43,6 +46,12 @@ import qualified Data.Vector.Storable.Mutable as VM
 import qualified Data.Vector.Generic as VG
 
 import qualified Foreign.Marshal.Utils as FMU
+
+
+
+
+
+
 
 -- | instances
 
@@ -128,33 +137,56 @@ joinVector as = do
 -- | to-from pointers to Storable data
 
 
+-- Ptr a <-> VS.Vector (bracket'ed)
 
 vectorFreezeFromStorablePtr ::
   Storable a =>
   IO (Ptr a) -> (Ptr a -> IO b) -> Int -> IO (VS.Vector a)
-vectorFreezeFromStorablePtr get restore len =
-  bracket get restore $ \xp -> do
-    fp <- FPR.newForeignPtr_  xp
-    VS.freeze (VM.unsafeFromForeignPtr0 fp len)
+vectorFreezeFromStorablePtr get restore n =
+  bracket get restore (getVS n)
 
 vectorCopyToForeignPtr ::
   Storable a =>
   IO (Ptr a) -> (Ptr a -> IO b) -> Int -> VS.Vector a -> IO ()
-vectorCopyToForeignPtr get restore len w = bracket get restore $ \xp -> do
-  pf <- FPR.newForeignPtr_ xp
-  VS.copy (VM.unsafeFromForeignPtr0 pf len) w
-
-
-
--- ptrToGenericVector p len = do
---   fp <- FPR.newForeignPtr_ p
---   x <- VS.freeze (VM.unsafeFromForeignPtr0 fp len)
---   VG.convert x
+vectorCopyToForeignPtr get restore n w = bracket get restore (putVS w n) 
 
 
 
 
+-- Ptr <-> Vector.Storable
 
+getVS :: Storable a => Int -> Ptr a -> IO (VS.Vector a)
+getVS n p = do
+  fp <- FPR.newForeignPtr_  p
+  VS.freeze (VM.unsafeFromForeignPtr0 fp n)
+
+putVS :: Storable a => VS.Vector a -> Int -> Ptr a -> IO ()
+putVS v n p = do 
+  pf <- FPR.newForeignPtr_ p
+  VS.copy (VM.unsafeFromForeignPtr0 pf n) v
+
+
+
+-- Ptr <-> Vector.Generic
+
+getVG :: (VG.Vector v a, Storable a) => Int -> Ptr a -> IO (v a)
+getVG n p = do
+  w <- getVS n p
+  return $ VG.convert w
+
+putVG :: (VG.Vector v a, Storable a) => v a -> Int -> Ptr a -> IO ()
+putVG w = putVS (VG.convert w)
+
+
+withGetVG :: (VG.Vector v a, Storable a) => Int -> Ptr a -> (v a -> IO b) -> IO b
+withGetVG n p = bracket (getVG n p) (\v -> putVG v n p)
+
+
+vectorModifyVG :: (Storable a, VG.Vector v a, VG.Vector w a) =>
+                  (v a -> w a) -> Int -> Ptr a -> IO ()
+vectorModifyVG fun n p = do
+  yim <- fun <$> getVG n p
+  putVG yim n p
 
 
 
