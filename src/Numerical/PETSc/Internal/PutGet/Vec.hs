@@ -324,7 +324,7 @@ withVecAssemblyChk v = bracket_ (vecAssemblyBegin v) (vecAssemblyEnd v)
 
 
 -- | vecEqual : compares two vectors. Returns true if the two vectors are either pointing to the same memory buffer, or if the two vectors have the same local and global layout as well as bitwise equality of all entries. Does NOT take round-off errors into account.
-vecEqual :: Vec -> Vec -> IO Bool
+vecEqual :: Vec -> Vec -> IO PetscBool
 vecEqual v1 v2 = chk1 $ vecEqual1 v1 v2
 
 

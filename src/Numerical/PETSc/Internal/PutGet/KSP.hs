@@ -59,7 +59,7 @@ withKspSetup ::
   KspType_ ->
   Mat ->            -- linear operator
   Mat ->            -- preconditioner
-  Bool ->           -- set initial solution guess to nonzero vector
+  PetscBool ->           -- set initial solution guess to nonzero vector
   (KSP -> IO a) ->  -- post-setup actions, i.e. solve with a r.h.s , etc.
   IO a
 withKspSetup comm kt amat pmat ignz f = withKsp comm $ \ksp -> do
@@ -74,7 +74,7 @@ withKspSetupSolve ::
   KspType_ ->
   Mat ->            -- linear operator
   Mat ->            -- preconditioner
-  Bool ->           -- set initial solution guess to nonzero vector
+  PetscBool ->           -- set initial solution guess to nonzero vector
   Vec ->            -- r.h.s
   Vec ->            -- solution (WILL BE OVERWRITTEN)
   (KSP -> IO a) ->  -- post-solve actions

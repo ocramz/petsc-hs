@@ -71,7 +71,7 @@ taoComputeObjective tao v = chk1 $ taoComputeObjective' tao v
 taoComputeGradient :: Tao -> Vec -> IO Vec
 taoComputeGradient tao v = chk1 $ taoComputeGradient' tao v
 
-taoIsObjectiveDefined, taoIsGradientDefined :: Tao -> IO PetscBool_
+taoIsObjectiveDefined, taoIsGradientDefined :: Tao -> IO PetscBool
 taoIsObjectiveDefined tao = chk1 $ taoIsObjectiveDefined' tao
 taoIsGradientDefined tao = chk1 $ taoIsGradientDefined' tao
 
