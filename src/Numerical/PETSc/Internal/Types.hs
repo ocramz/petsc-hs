@@ -53,6 +53,16 @@ instance Storable PetscBool where
   peek = peek
   poke = poke
 
+-- | NB : ^ already exists in Foreign.Storable :
+  
+-- instance Storable Bool where
+--    sizeOf _          = sizeOf (undefined::HTYPE_INT)
+--    alignment _       = alignment (undefined::HTYPE_INT)
+--    peekElemOff p i   = liftM (/= (0::HTYPE_INT)) $ peekElemOff (castPtr p) i
+--    pokeElemOff p i x = pokeElemOff (castPtr p) i (if x then 1 else 0::HTYPE_INT)
+
+
+
 
 newtype PetscMPIInt_ = PetscMPIInt_ (Ptr PetscMPIInt_ ) deriving (Show, Storable)
 
