@@ -255,6 +255,13 @@ snesSetJacobianComputeDefaultColor snes amat pmat fdcol =
 
 
 
+-- | variational inequalities
+
+snesVISetVariableBounds :: SNES -> Vec -> Vec -> IO ()
+snesVISetVariableBounds snes xl xu = chk0 $ snesVISetVariableBounds' snes xl xu
+
+
+
 
 
 -- -- -- junk

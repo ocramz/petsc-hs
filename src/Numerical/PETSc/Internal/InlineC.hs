@@ -2315,8 +2315,16 @@ snesLineSearchSetPostCheck0' snesls f =
 
 
 
+-- PetscErrorCode SNESVISetVariableBounds(SNES snes, Vec xl, Vec xu)
+-- Input Parameters :
+-- snes -the SNES context. 
+-- xl -lower bound. 
+-- xu -upper bound. 
+-- Notes :
+-- If this routine is not called then the lower and upper bounds are set to PETSC_NINFINITY and PETSC_INFINITY respectively during SNESSetUp().
 
-
+snesVISetVariableBounds' snes xl xu =
+  [C.exp|int{SNESVISetVariableBounds($(SNES snes),$(Vec xl),$(Vec xu))}|]
 
 
 
