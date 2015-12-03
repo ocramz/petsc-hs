@@ -208,12 +208,12 @@ snesLineSearchSetPostCheck sls f =
 
 
 
--- liftVectorF ::
---   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> s -> Vec -> IO CInt
-liftVectorF f s vec = do
-  v <- f <$> vecGetVector vec
-  vecRestoreVector vec v
-  -- return (0 :: CInt)
+-- -- liftVectorF ::
+-- --   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> s -> Vec -> IO CInt
+-- modifyVectorWithF f vec = do
+--   v <- f <$> vecGetVector vec
+--   vecRestoreVector vec v
+--   -- return (0 :: CInt)
 
   
 

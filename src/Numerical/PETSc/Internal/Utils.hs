@@ -322,6 +322,18 @@ liftF1' f get set b = get b >>= \x -> set b (f x)
 
 
 
+-- | callbacks : forget Ptr () that usually comes as last argument. Lexical context is better than implicit state.
+
+-- maybe a GADT would look better here? 
+
+forgetLastArg1 g x _ = g x
+forgetLastArg2 g x y _ = g x y
+forgetLastArg3 g x y z _ = g x y z
+forgetLastArg4 g x y z w _ = g x y z w
+
+wrapCallback1 f x p = return0 (forgetLastArg1 f x p)
+
+
 
 
 
@@ -333,6 +345,8 @@ cInt2Adapt f s v1 v2 = return0 $ f s v1 v2
 
 cInt3Adapt :: Monad m => (a -> b -> c -> d -> m e) -> a -> b -> c -> d -> m CInt
 cInt3Adapt k s v m1 m2 = return0 $ k s v m1 m2
+
+
 
 return0 m = do
   m
