@@ -9,7 +9,7 @@ SC_TAR="$2"   # URL of .tar.gz
 
 
 # download and untar
-curl -L $SC_TAR | tar xz --strip-components=1 -C $SC_DIR/ 
+wget $SC_TAR | tar xz --strip-components=1 -C $SC_DIR/ 
 
 # enter install dir
 cd $PETSC_DIR/
