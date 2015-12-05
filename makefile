@@ -1,12 +1,11 @@
-ARCH = arch-darwin-c-debug
+SLEPC_ARCH = arch-darwin-c-debug
 ARCH_COMPLEX = arch-darwin-c-debug-complex
 
-PETSC_DIR_ARCH = ${PETSC_DIR}/${ARCH}
+PETSC_DIR_ARCH = ${PETSC_DIR}/${PETSC_ARCH}
 # PETSC_DIR_ARCH = ${PETSC_DIR}/${ARCH_COMPLEX}
-
 PETSC_DIR_ARCH_INCLUDE = ${PETSC_DIR_ARCH}/include
 
-SLEPC_DIR_ARCH = ${SLEPC_DIR}/${ARCH}
+SLEPC_DIR_ARCH = ${SLEPC_DIR}/${SLEPC_ARCH}
 SLEPC_DIR_ARCH_INCLUDE = ${SLEPC_DIR_ARCH}/include
 
 SRCDIR = ${CURDIR}/src/Numerical/PETSc
