@@ -108,9 +108,6 @@ script:
 # # # run an example program
 #   - stack exec petsc-example
 
-  # - chmod +x stack-build.sh
-  # - ./stack-build.sh $ARGS $PETSC_DIR $PETSC_ARCH
-  # # stack $ARGS --no-terminal --install-ghc 
   # # stack $ARGS --no-terminal --install-ghc test --haddock
 
 
