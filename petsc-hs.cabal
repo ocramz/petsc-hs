@@ -37,6 +37,9 @@ library
                        Numerical.PETSc.Internal.Storable.Vector
                        Numerical.PETSc.Internal.Types
                        Numerical.PETSc.Internal.Utils
+                       Numerical.PETSc.Internal.PutGet.EPS
+                       Numerical.PETSc.Internal.PutGet.SVD
+                       Numerical.PETSc.Internal.PutGet.SlepcMisc
   build-depends:       base >=4.7 && <=4.8.1.0,
                        template-haskell,
                        containers >=0.5 && <0.6, 
@@ -65,7 +68,7 @@ library
   hs-source-dirs:      src/
   default-language:    Haskell2010
   ghc-options:         -O2 -Wall
-  extra-libraries:     petsc, mpich
+  extra-libraries:     petsc, mpich, slepc
 
 
 
@@ -101,7 +104,7 @@ executable petsc-example
   hs-source-dirs:      test
   ghc-options:         -O2 -Wall
   c-sources:           src/Numerical/PETSc/Internal/InlineC.c
-  extra-libraries:     petsc, mpich
+  extra-libraries:     petsc, mpich, slepc
 
 
 
