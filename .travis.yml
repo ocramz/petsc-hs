@@ -92,7 +92,12 @@ before_install:
 # # around some quirks in Travis's terminal implementation.
 
 script: 
-  - stack build $STACK_ARGS --no-terminal --install-ghc --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2:$SLEPC_INCLUDE1:$SLEPC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB:$SLEPC_LIB 
+
+# bash script-based:
+  - ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
+
+# # stack direct call :
+#   - stack build $STACK_ARGS --no-terminal --install-ghc --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2:$SLEPC_INCLUDE1:$SLEPC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB:$SLEPC_LIB 
 
 # let's see if stack tells the truth, after which `stack path` 
 # and `stack exec petsc-example` shd work
