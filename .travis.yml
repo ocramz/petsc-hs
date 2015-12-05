@@ -69,7 +69,8 @@ before_install:
   # # view PWD
   # - ls -lsA
   # - printenv
-  # - ls -lsA $PETSC_DIR
+  - ls -lsA $PETSC_DIR
+  - ls -lsA $SLEPC_DIR
 
 # set execution permissions
   - chmod +x install-petsc.sh
