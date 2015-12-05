@@ -3437,7 +3437,9 @@ slepcFin1 = [C.block| int{ SlepcFinalize(); }|]
 
 
 
-
+-- -- PetscErrorCode PetscGetVersion(char version[], size_t len)
+slepcGetVersion0' version szt =
+  [C.exp|int{SlepcGetVersion($(char* version), $(int szt))}|]
 
 
 

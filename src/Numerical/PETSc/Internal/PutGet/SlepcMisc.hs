@@ -72,4 +72,4 @@ slepcGetVersion l = do
     pgv p (toCInt l)
     peekCString p
     where
-     pgv v sz = chk0 (petscGetVersion0' v sz)
+     pgv v sz = chk0 (slepcGetVersion0' v sz)

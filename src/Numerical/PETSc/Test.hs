@@ -412,4 +412,12 @@ t13' = withMat (matCreateMPIAIJWithVectors comm (m, n) (mm ,nn) ix iy v ) $ \mat
      v = VG.fromList (replicate 3 pi)
 
 t13 = withPetsc0 t13'
-  
+
+
+-- | 
+
+t14 = withSlepc0 $ t6' 5
+
+
+
+t141 = withPetsc0 $ withSlepc0 $ t6' 5
