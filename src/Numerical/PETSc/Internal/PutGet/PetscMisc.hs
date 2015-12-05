@@ -24,6 +24,8 @@ import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
+import Numerical.PETSc.Internal.PutGet.SlepcMisc
+
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 
 import Foreign
@@ -76,7 +78,7 @@ getMpiCommRank (MpiCommRk r) = r
 petscInit0 :: IO ()
 petscInit0 = do
   chk0 petscInit01
-  putStrLn (header ++ " with default options\n")
+  putStrLn (petscHeader ++ " with default options\n")
 
 petscFin :: IO ()
 petscFin = chk0 petscFin1 >> putStrLn ("\nPETSc : finalized\n" ++ sep)
@@ -91,27 +93,25 @@ petscInit ::
   IO ()
 petscInit args opts help = do
   chk0 (petscInitialize1 args opts help)
-  putStrLn header
+  putStrLn petscHeader
 
 withPetsc ::
   [String] -> String -> String -> IO a -> IO a
 withPetsc a o h = bracket_ (petscInit a o h) petscFin
 
-sep, header :: String 
+sep, petscHeader :: String 
 sep = "======"
 
-header =
+petscHeader =
   sep ++ "\npetsc-hs : Haskell bindings for PETSc\n" ++
-  "\nPETSc " ++ vs ++ ": initialized"
+  "\nPETSc " ++ petscVersionString ++ ": initialized"
 
 
 -- | Version string
 
-{-# NOINLINE vs #-}
-vs :: String
-vs = drop 6 $ unsafePerformIO $ pv
-
-pv = petscGetVersion 50 
+{-# NOINLINE petscVersionString #-}
+petscVersionString :: String
+petscVersionString = drop 6 $ unsafePerformIO $ petscGetVersion 50 
 
 petscGetVersion :: Int -> IO String
 petscGetVersion l = do

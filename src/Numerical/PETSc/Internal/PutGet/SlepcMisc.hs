@@ -10,7 +10,10 @@
 -- | SLEPc Mid-level interface miscellaneous functions
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Internal.PutGet.SlepcMisc where
+module Numerical.PETSc.Internal.PutGet.SlepcMisc
+       (slepcInit0, slepcInit, slepcFin, withSlepc, withSlepc0,
+        slepcVersionString)
+       where
 
 import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
@@ -34,8 +37,10 @@ slepcInit :: Argv -> OptsStr -> HelpStr -> IO ()
 slepcInit a o h = chk0 $ slepcInitialize' a o h
 
 slepcInit0, slepcFin :: IO ()
-slepcInit0 = chk0 slepcInit01
-slepcFin = chk0 slepcFin1
+slepcInit0 = do 
+  chk0 slepcInit01
+  putStrLn (slepcHeader ++ " with default options\n")
+slepcFin = chk0 slepcFin1 >> putStrLn ("\nSLEPc : finalized\n" ++ sep)
 
 
 -- | FIXME: move into specialized monad
@@ -47,11 +52,18 @@ withSlepc a o h = bracket_ (slepcInit a o h) slepcFin
 
 
 
-{-# NOINLINE vs #-}
-vs :: String
-vs = drop 6 $ unsafePerformIO slepcVersion
+sep, slepcHeader :: String 
+sep = "======"
 
-slepcVersion = slepcGetVersion 50 
+slepcHeader =
+  sep ++ "\npetsc-hs : Haskell bindings for PETSc\n" ++
+  "\nSLEPc " ++ slepcVersionString ++ ": initialized"
+
+-- | SLEPc version string
+
+{-# NOINLINE slepcVersionString #-}
+slepcVersionString :: String
+slepcVersionString = drop 6 $ unsafePerformIO $ slepcGetVersion 50
 
 slepcGetVersion :: Int -> IO String
 slepcGetVersion l = do
