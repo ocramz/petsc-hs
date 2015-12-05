@@ -70,7 +70,9 @@ before_install:
   # - printenv
   # - ls -lsA $PETSC_DIR
 
-
+# set execution permissions
+  - chmod +x install-petsc.sh
+  - chmod +x install-slepc.sh
 
 # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
   - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
