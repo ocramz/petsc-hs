@@ -74,10 +74,11 @@ before_install:
   - chmod +x install-petsc.sh
   - chmod +x install-slepc.sh
 
-# Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
-  - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
 # Download and install SLEPc
   - travis_retry ./install-slepc.sh $SLEPC_DIR $SLEPC_TAR
+# Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
+  - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
+
 
 
 
