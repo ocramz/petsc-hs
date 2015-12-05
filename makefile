@@ -1,9 +1,14 @@
-# PETSC_DIR = ${HOME}/petsc-3.6.2/     
+ARCH = arch-darwin-c-debug
+ARCH_COMPLEX = arch-darwin-c-debug-complex
 
-PETSC_DIR_ARCH = ${PETSC_DIR}/arch-darwin-c-debug
-# PETSC_DIR_ARCH = ${PETSC_DIR}/arch-darwin-c-debug-complex
+PETSC_DIR_ARCH = ${PETSC_DIR}/${ARCH}
+# PETSC_DIR_ARCH = ${PETSC_DIR}/${ARCH_COMPLEX}
 
 PETSC_DIR_ARCH_INCLUDE = ${PETSC_DIR_ARCH}/include
+
+SLEPC_DIR_ARCH = ${SLEPC_DIR}/${ARCH}
+SLEPC_DIR_ARCH_INCLUDE = ${SLEPC_DIR_ARCH}/include
+
 SRCDIR = ${CURDIR}/src/Numerical/PETSc
 SRCPARDIR = ${CURDIR}/src/Numerical
 CBITS = ${CURDIR}/src/cbits
@@ -20,10 +25,10 @@ step1:
 	ghc ${SRCDIR}/Internal/InlineC.hs -isrc/
 
 step2:
-	cc -w -c ${SRCDIR}/Internal/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include
+	cc -w -c ${SRCDIR}/Internal/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include -I${SLEPC_DIR_ARCH}/include -I${SLEPC_DIR}/include
 
 step3:
-	ghci ${SRCDIR}/Test.hs ${SRCDIR}/Internal/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal.o -isrc/ -L${PETSC_DIR_ARCH}/lib -lpetsc -lmpich
+	ghci ${SRCDIR}/Test.hs ${SRCDIR}/Internal/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal.o -isrc/ -L${PETSC_DIR_ARCH}/lib -L${SLEPC_DIR_ARCH}/lib -lpetsc -lmpich -lslepc
 
 
 

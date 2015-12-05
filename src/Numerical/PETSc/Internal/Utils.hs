@@ -326,12 +326,24 @@ liftF1' f get set b = get b >>= \x -> set b (f x)
 
 -- maybe a GADT would look better here? 
 
-forgetLastArg1 g x _ = g x
-forgetLastArg2 g x y _ = g x y
-forgetLastArg3 g x y z _ = g x y z
-forgetLastArg4 g x y z w _ = g x y z w
+lanp1 f x = f x nullPtr
+lanp2 f x y = f x y nullPtr
+lanp3 f x y z = f x y z nullPtr
+lanp4 f a b c d = f a b c d nullPtr
+lanp5 f a b c d e = f a b c d e nullPtr
+lanp6 f a b c d e x = f a b c d e x nullPtr
 
-wrapCallback1 f x p = return0 (forgetLastArg1 f x p)
+-- | forget last arg of function and return (0 :: CInt) . Really
+
+wrapCb1 f x = return0 (lanp1 f x)
+wrapCb2 f x y = return0 (lanp2 f x y)
+wrapCb3 f x y z = return0 (lanp3 f x y z)
+wrapCb4 f x y z w = return0 (lanp4 f x y z w)
+wrapCb5 f x y z w a = return0 (lanp5 f x y z w a)
+wrapCb6 f x y z w a b = return0 (lanp6 f x y z w a b)
+
+
+
 
 
 
@@ -340,24 +352,21 @@ wrapCallback1 f x p = return0 (forgetLastArg1 f x p)
 
 -- | C-style ("return 0") function adapters
 
-cInt2Adapt :: Monad m =>  (a -> b -> c -> m d) -> a -> b -> c -> m CInt
-cInt2Adapt f s v1 v2 = return0 $ f s v1 v2
-
-cInt3Adapt :: Monad m => (a -> b -> c -> d -> m e) -> a -> b -> c -> d -> m CInt
-cInt3Adapt k s v m1 m2 = return0 $ k s v m1 m2
 
 
 
+
+return0 :: Monad m => m a -> m CInt
 return0 m = do
   m
   return (0 :: CInt)
 
 
 -- nested `with`
-cInt7Adapt f s v1 v2 v3 pb1 pb2 pv = return0 $
-  with pb1 $ \b1 ->
-  with pb2 $ \b2 -> 
-  f s v1 v2 v3 b1 b2 pv
+-- cInt7Adapt f s v1 v2 v3 pb1 pb2 pv = return0 $
+--   with pb1 $ \b1 ->
+--   with pb2 $ \b2 -> 
+--   f s v1 v2 v3 b1 b2 pv
 
 
 

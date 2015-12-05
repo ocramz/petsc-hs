@@ -112,6 +112,39 @@ newtype ISColoring = ISColoring (Ptr ISColoring) deriving Storable
 newtype MatFactorInfo = MatFactorInfo (Ptr MatFactorInfo) deriving Storable
 
 newtype PetscSection = PetscSection (Ptr PetscSection) deriving Storable
+
+
+-- | SLEPc newtypes
+
+newtype EPS = EPS (Ptr EPS) deriving Storable
+
+newtype SVD = SVD (Ptr SVD) deriving Storable
+
+newtype PEP = PEP (Ptr PEP) deriving Storable
+
+newtype NEP = NEP (Ptr NEP) deriving Storable
+
+newtype MFN = MFN (Ptr MFN) deriving Storable
+
+
+-- Spectral Transformation (ST) 
+newtype ST = ST (Ptr ST) deriving Storable
+-- Direct Solver (DS)
+newtype DS = DS (Ptr DS) deriving Storable
+-- Basis Vectors (BV)
+newtype BV = BV (Ptr BV) deriving Storable
+-- Mathematical Function (FN)
+newtype FN = FN (Ptr FN) deriving Storable
+-- spectral Region (RG)
+newtype RG = RG (Ptr RG) deriving Storable
+
+
+
+
+
+
+
+
 -- end newtypes
 
 
@@ -659,3 +692,93 @@ data MPIComm = MPIComm Comm MpiCommSize MpiCommRank deriving (Eq, Show)
 
 
 
+
+
+-- | SLEPc datatypes and enum conversion hacks
+
+
+
+
+-- * EPS
+
+data EpsType_ =
+  EpsPower | EpsSubspace | EpsArnoldi | EpsLanczos | EpsKrylovSchur | EpsGd | EpsJd
+  | EpsRqcg | EpsLobpcg | EpsCiss | EpsLapack | EpsArpack | EpsBlzpack | EpsTrlan
+  | EpsBlopex | EpsPrimme | EpsFeast deriving (Eq, Show, Enum)
+
+epsTypeToString t =
+  case t of EpsPower -> "power"
+            EpsSubspace -> "subspace"
+            EpsArnoldi -> "arnoldi"
+            EpsLanczos -> "lanczos"
+            EpsKrylovSchur -> "krylovschur"
+            EpsGd -> "gd"
+            _ -> epsTypeToString EpsKrylovSchur -- default
+
+-- typedef const char* EPSType;
+-- #define EPSPOWER       "power"
+-- #define EPSSUBSPACE    "subspace"
+-- #define EPSARNOLDI     "arnoldi"
+-- #define EPSLANCZOS     "lanczos"
+-- #define EPSKRYLOVSCHUR "krylovschur"
+-- #define EPSGD          "gd"
+-- #define EPSJD          "jd"
+-- #define EPSRQCG        "rqcg"
+-- #define EPSLOBPCG      "lobpcg"
+-- #define EPSCISS        "ciss"
+-- #define EPSLAPACK      "lapack"
+-- #define EPSARPACK      "arpack"
+-- #define EPSBLZPACK     "blzpack"
+-- #define EPSTRLAN       "trlan"
+-- #define EPSBLOPEX      "blopex"
+-- #define EPSPRIMME      "primme"
+-- #define EPSFEAST       "feast"
+
+
+
+-- typedef enum { EPS_HEP=1, EPS_GHEP, EPS_NHEP, EPS_GNHEP, EPS_PGNHEP, EPS_GHIEP } EPSProblemType;
+
+data EpsProblemType_ = EpsHep | EpsGHep | EpsNHep | EpsGNHep | EpsPGNHep | EpsGHIep
+                     deriving (Eq, Show, Enum)
+
+epsProblemTypeToInt EpsHep = 1
+epsProblemTypeToInt x = fromEnum (x :: EpsProblemType_ )
+
+
+-- typedef enum { EPS_LARGEST_MAGNITUDE=1, EPS_SMALLEST_MAGNITUDE, EPS_LARGEST_REAL, EPS_SMALLEST_REAL, EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY, EPS_TARGET_MAGNITUDE, EPS_TARGET_REAL, EPS_TARGET_IMAGINARY, EPS_ALL, EPS_WHICH_USER } EPSWhich;
+
+data EpsWhich_ =
+  LargestMag | SmallestMag | LargestReal | SmallestReal | LargestImag | SmallestImag
+  | TargetMag | TargetReal | TargetImag | EpsWhichAll | EpsWhichUser deriving (Eq, Show, Enum)
+
+epsWhichToInt LargestMag = 1
+epsWhichToInt x = fromEnum (x :: EpsWhich_)
+
+
+
+
+
+
+-- * SVD
+
+data SvdType_ =
+  SvdCross | SvdCyclic | SvdLanczos | SvdTRLanczos | SvdLapack
+   deriving (Eq, Show, Ord)
+
+
+
+
+
+
+
+-- * ST -- spectral transformations
+data StType_ =
+  StShell | StShift | StSInvert | StCayley | StPrecond deriving (Eq, Ord, Show)
+
+stTypeToString t =
+  case t of StShell -> "shell"
+            StShift -> "shift"
+            StSInvert -> "sinvert"
+            StCayley -> "cayley"
+            StPrecond -> "precond"
+                                             

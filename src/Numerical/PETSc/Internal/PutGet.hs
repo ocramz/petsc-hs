@@ -23,6 +23,9 @@ import Numerical.PETSc.Internal.PutGet.TAO as X
 import Numerical.PETSc.Internal.PutGet.Viewer as X
 import Numerical.PETSc.Internal.PutGet.PetscMisc as X
 
+import Numerical.PETSc.Internal.PutGet.EPS as X
+import Numerical.PETSc.Internal.PutGet.SVD as X
+import Numerical.PETSc.Internal.PutGet.SlepcMisc as X
 
 
 

@@ -50,6 +50,12 @@ C.include "<petscviewer.h>"
 C.include "<petscviewerhdf5.h>"
 C.include "<petscsys.h>"
 
+-- | SLEPc imports
+C.include "<slepceps.h>"
+C.include "<slepcsvd.h>"
+
+
+
 
 petscDecide = -1
 
@@ -3261,6 +3267,173 @@ petscSynchronizedFlushStdout comm =
 
 -- * misc parallelism stuff
 
+
+
+
+
+
+
+
+
+
+
+
+
+-- | SLEPc signatures
+
+          
+-- * EPS
+
+
+-- EPSCreate(MPI_Comm comm,EPS *eps);
+epsCreate' comm = withPtr $ \e -> [C.exp|int{EPSCreate($(int c), $(EPS* e))}|] where
+  c = unComm comm
+
+-- EPSSetOperators(EPS eps,Mat A,Mat B);
+epsSetOperators' e matA matB = [C.exp|int{EPSSetOperators($(EPS e),$(Mat matA),$(Mat matB))}|]
+  
+-- EPSSetProblemType(EPS eps,EPSProblemType type);
+epsSetProblemType' e ty = [C.exp|int{EPSSetProblemType($(EPS e),$(int tyi))}|] where
+  tyi = toCInt $ epsProblemTypeToInt ty
+
+-- EPSSetUp(EPS eps)
+epsSetup' e = [C.exp|int{EPSSetUp($(EPS e))}|]
+
+-- EPSSetFromOptions(EPS eps);
+  
+-- EPSSolve(EPS eps);
+epsSolve' e = [C.exp|int{EPSSolve($(EPS e))}|]
+
+-- EPSGetConverged(EPS eps, int *nconv);
+epsGetConverged' e = withPtr $ \nconv -> [C.exp|int{EPSGetConverged($(EPS e),$(int* nconv))}|]
+
+-- EPSGetEigenpair(EPS eps,int i,PetscScalar *kr,PetscScalar *ki,Vec xr,Vec xi);
+epsGetEigenpair' e i kr ki xr xi =
+  [C.exp|int{EPSGetEigenpair($(EPS e),$(int i),$(PetscScalar* kr),$(PetscScalar* ki),$(Vec xr),$(Vec xi))}|]
+
+-- | is the operator Hermitian?
+epsIsHermitian' e = withPtr $ \ish -> [C.exp|int{EPSIsHermitian($(EPS e),$(PetscBool* ish))}|]
+
+-- | is the operator positive definite?
+epsIsPositive' e = withPtr $ \isp -> [C.exp|int{EPSIsPositive($(EPS e),$(PetscBool* isp))}|]
+
+
+-- | set number of eigenvals to compute and subspace dimension:
+-- nev : # eigenvalues
+-- ncv : subspace dim
+-- mpd : max. projected dimension
+epsSetDimensions' e nev ncv mpd = [C.exp|int{EPSSetDimensions($(EPS e),$(int nevc),$(int ncvc),$(int mpdc))}|] where
+  (nevc, ncvc, mpdc) = (toCInt nev, toCInt ncv, toCInt mpd)
+
+epsSetInterval' e smin smax = [C.exp|int{EPSSetInterval($(EPS e),$(PetscReal smin),$(PetscReal smax))}|]
+
+-- | sets subspace (array of Vec's) from which EPSSolve starts to iterate
+-- PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
+epsSetInitialSpace' e subspace = withArray subspace $ \isp -> 
+  [C.exp|int{EPSSetInitialSpace($(EPS e),$(int nc),$(Vec* isp))}|]
+    where nc = toCInt n
+          n = length subspace
+
+-- EPSDestroy(EPS eps);
+epsDestroy' e = with e $ \ep -> [C.exp|int{EPSDestroy($(EPS* ep))}|]
+
+-- PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
+epsView' eps v = [C.exp|int{EPSView($(EPS eps),$(PetscViewer v))}|]
+
+
+
+
+
+
+
+
+
+
+-- * ST -- spectral transformations
+
+stCreate' comm = withPtr $ \s -> [C.exp|int{STCreate($(int c),$(ST* s))}|]
+  where c = unComm comm
+
+stSetType' st t =
+  withCString ts $ \tp -> [C.exp|int{STSetType($(ST st),$(char* tp))}|]
+    where ts = stTypeToString t
+
+stDestroy' st = with st $ \stp -> [C.exp|int{STDestroy($(ST* stp))}|]
+
+
+
+
+
+
+
+
+
+
+-- * SVD
+
+-- | in real symmetric (or complex Hermitian) matrices, singular values coincide with eigenvalues, but in general this is not the case. The SVD is defined for any matrix, even rectangular ones. Singular values are always non-negative real values. 
+
+
+-- SVDCreate(MPI_Comm comm,SVD *svd);
+svdCreate' comm = withPtr $ \s -> [C.exp|int{SVDCreate($(int c),$(SVD* s))}|] where
+  c = unComm comm
+  
+-- SVDSetOperator(SVD svd,Mat A);
+svdSetOperator' s matA = [C.exp|int{SVDSetOperator($(SVD s),$(Mat matA))}|]
+  
+-- SVDSetFromOptions(SVD svd);
+
+-- SVDSolve(SVD svd);
+svdSolve' s = [C.exp|int{SVDSolve($(SVD s))}|]
+
+-- SVDGetConverged(SVD svd, int *nconv);
+svdGetConverged' s = withPtr $ \n -> [C.exp|int{SVDGetConverged($(SVD s),$(int* n))}|]
+
+-- SVDGetSingularTriplet(SVD svd,int i,PetscReal *sigma,Vec u,Vec v);
+svdGetSingularTriplet' s i u v =
+  withPtr $ \sig ->
+  [C.exp|int{SVDGetSingularTriplet($(SVD s),$(int i),$(PetscReal* sig),$(Vec u),$(Vec v))}|]
+
+-- SVDDestroy(SVD svd);
+svdDestroy' s = with s $ \sp -> [C.exp|int{SVDDestroy($(SVD* sp))}|]
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- * SLEPc misc
+
+-- SlepcInitialize(int *argc,char ***argv,char *file,char *help);
+-- ierr = SlepcFinalize();
+
+slepcInitialized' = withPtr ( \b ->
+     [C.exp|int{ SlepcInitialized($(PetscBool * b)) } |] )   
+
+  
+
+
+
+slepcInit01 = [C.exp| int{ SlepcInitializeNoArguments()  }|]
+
+slepcInitialize' args opts help = 
+ let acc = fromIntegral $ length args in 
+  with acc $ \ac ->
+   withCStringArray args $ \aa ->
+   with aa $ \a ->
+    withCString opts $ \o ->
+    withCString help $ \h ->
+    [C.exp|int{SlepcInitialize($(int *ac), $(char*** a), $(char* o), $(char *h))}|] 
+
+
+slepcFin1 = [C.block| int{ SlepcFinalize(); }|] 
 
 
 

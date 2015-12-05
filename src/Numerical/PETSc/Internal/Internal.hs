@@ -29,8 +29,9 @@ import qualified Data.Map                  as Map
 
 -- * inline-c PETSc Context (type maps)
 petscCtx :: Context
-petscCtx = baseCtx <> funCtx <> vecCtx <> bsCtx <> ctx where
-  ctx = mempty {ctxTypesTable = petscTypesTable}
+petscCtx = baseCtx <> funCtx <> vecCtx <> bsCtx <> pctx <> sctx where
+  pctx = mempty {ctxTypesTable = petscTypesTable}
+  sctx = mempty {ctxTypesTable = slepcTypesTable}
 
 petscTypesTable :: Map.Map CT.TypeSpecifier TH.TypeQ  
 petscTypesTable = Map.fromList
@@ -75,6 +76,26 @@ petscTypesTable = Map.fromList
                   , (typeNameId "MatFactorInfo", [t| MatFactorInfo |])
                   , (typeNameId "PetscSection", [t| PetscSection |])
                   ]
+                  
+
+slepcTypesTable :: Map.Map CT.TypeSpecifier TH.TypeQ
+slepcTypesTable = Map.fromList
+                  [(typeNameId "IS", [t| IS |] )
+                  , (typeNameId "Vec", [t| Vec |] )
+                  , (typeNameId "Mat", [t| Mat |] )
+                    
+                  , (typeNameId "EPS", [t| EPS |])
+                  , (typeNameId "SVD", [t| SVD |])
+                  , (typeNameId "PEP", [t| PEP |])
+                  , (typeNameId "NEP", [t| NEP |])
+                  , (typeNameId "MFN", [t| MFN |])                    
+
+                  , (typeNameId "ST", [t| ST |])
+                  , (typeNameId "DS", [t| DS |])
+                  , (typeNameId "BV", [t| BV |])
+                  , (typeNameId "FN", [t| FN |])
+                  , (typeNameId "RG", [t| RG |])  ]
+
 
 typeNameId :: CT.CIdentifier -> CT.TypeSpecifier
 typeNameId = CT.TypeName 
