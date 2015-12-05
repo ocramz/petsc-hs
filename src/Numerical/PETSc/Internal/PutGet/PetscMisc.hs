@@ -31,8 +31,6 @@ import Foreign.ForeignPtr
 import Foreign.C.Types
 import Foreign.C.String
 
-import Language.C.Inline
-
 import System.IO.Unsafe (unsafePerformIO)
 
 import Control.Monad
