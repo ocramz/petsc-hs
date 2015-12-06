@@ -3307,6 +3307,20 @@ epsSolve' e = [C.exp|int{EPSSolve($(EPS e))}|]
 -- EPSGetConverged(EPS eps, int *nconv);
 epsGetConverged' e = withPtr $ \nconv -> [C.exp|int{EPSGetConverged($(EPS e),$(int* nconv))}|]
 
+-- Computes the error (based on the residual norm) associated with the i-th computed eigenpair.
+-- PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *error)  -- Collective on EPS
+epsComputeError' eps i ty = withPtr $ \err -> [C.exp|int{EPSComputeError($(EPS eps),$(int ii),$(int et),$(PetscReal* err))}|] where
+  ii = toCInt i
+  et = toCInt $ epsErrorTypeToInt ty
+-- Input Parameter :
+-- eps	- the eigensolver context
+-- i	- the solution index
+-- type	- the type of error to compute
+-- Output Parameter :
+-- error - the error 
+-- The error can be computed in various ways, all of them based on the residual norm ||Ax-kBx||_2 where k is the eigenvalue and x is the eigenvector.
+
+
 -- EPSGetEigenpair(EPS eps,int i,PetscScalar *kr,PetscScalar *ki,Vec xr,Vec xi);
 epsGetEigenpair' e i kr ki xr xi =
   [C.exp|int{EPSGetEigenpair($(EPS e),$(int i),$(PetscScalar* kr),$(PetscScalar* ki),$(Vec xr),$(Vec xi))}|]
@@ -3334,6 +3348,21 @@ epsSetInitialSpace' e subspace = withArray subspace $ \isp ->
     where nc = toCInt n
           n = length subspace
 
+
+-- PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
+-- Collective on EPS and Vec
+-- Input Parameter :
+-- eps	- the eigenproblem solver context
+-- n	- number of vectors
+-- v	- set of basis vectors of the deflation space
+-- When a deflation space is given, the eigensolver seeks the eigensolution in the restriction of the problem to the orthogonal complement of this space. This can be used for instance in the case that an invariant subspace is known beforehand (such as the nullspace of the matrix).
+-- These vectors do not persist from one EPSSolve() call to the other, so the deflation space should be set every time.
+-- The vectors do not need to be mutually orthonormal, since they are explicitly orthonormalized internally.
+epsSetDeflationSpace' e deflspace = withArray deflspace $ \dsp -> [C.exp|int{EPSSetDeflationSpace($(EPS e),$(int nd),$(Vec* dsp))}|]
+   where nd = toCInt n
+         n = length deflspace
+         
+
 -- EPSDestroy(EPS eps);
 epsDestroy' e = with e $ \ep -> [C.exp|int{EPSDestroy($(EPS* ep))}|]
 
@@ -3342,8 +3371,8 @@ epsView' eps v = [C.exp|int{EPSView($(EPS eps),$(PetscViewer v))}|]
 
 
 
-
-
+-- PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
+epsVectorsView' eps vi = [C.exp|int{EPSVectorsView($(EPS eps),$(PetscViewer vi))}|]
 
 
 

@@ -744,6 +744,24 @@ data EpsProblemType_ = EpsHep | EpsGHep | EpsNHep | EpsGNHep | EpsPGNHep | EpsGH
 epsProblemTypeToInt EpsHep = 1
 epsProblemTypeToInt x = fromEnum (x :: EpsProblemType_ )
 
+data EpsErrorType_ = EpsErrorAbsolute | EpsErrorRelative | EpsErrorBackward deriving (Eq, Show, Enum)
+
+epsErrorTypeToInt x = fromEnum (x :: EpsErrorType_)
+
+
+-- EpsConv_ : convergence test 
+
+data EpsConv_ = EpsConvAbs | EpsConvEig | EpsConvNorm | EpsConvUser deriving (Eq, Show, Enum)
+
+epsConvToInt x = fromEnum (x :: EpsConv_)
+
+
+
+-- EPS balancing for non-Hermitian problems
+data EpsBalance_ = EpsBalanceNone | EpsBalanceOneSide | EpsBalanceTwoSide | EpsBalanceUser deriving (Eq, Show, Enum)
+
+epsBalanceToInt x = fromEnum (x :: EpsBalance_)
+
 
 -- typedef enum { EPS_LARGEST_MAGNITUDE=1, EPS_SMALLEST_MAGNITUDE, EPS_LARGEST_REAL, EPS_SMALLEST_REAL, EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY, EPS_TARGET_MAGNITUDE, EPS_TARGET_REAL, EPS_TARGET_IMAGINARY, EPS_ALL, EPS_WHICH_USER } EPSWhich;
 
