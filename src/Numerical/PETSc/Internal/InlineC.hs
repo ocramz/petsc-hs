@@ -3305,7 +3305,7 @@ epsSetup' e = [C.exp|int{EPSSetUp($(EPS e))}|]
 -- Input Parameters :
 -- eps	- eigensolver context obtained from EPSCreate()
 -- which	- the portion of the spectrum to be sought
-epsSetWhichEigenPairs' e wh = [C.exp|int{EPSSetWhichEigenPairs($(EPS e),$(int ew))}|] where ew = toCInt $ epsWhichToInt wh
+epsSetWhichEigenpairs' e wh = [C.exp|int{EPSSetWhichEigenpairs($(EPS e),$(int ew))}|] where ew = toCInt $ epsWhichToInt wh
 
 
 -- PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)

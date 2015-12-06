@@ -119,8 +119,8 @@ epsSetDeflationSpace e ds = chk0 $ epsSetDeflationSpace' e ds
 
 -- | target eigenvalue and eigenpair choice criterion
 
-epsSetWhichEigenPairs :: EPS -> EpsWhich_ -> IO ()
-epsSetWhichEigenPairs e w = chk0 $ epsSetWhichEigenPairs' e w
+epsSetWhichEigenpairs :: EPS -> EpsWhich_ -> IO ()
+epsSetWhichEigenpairs e w = chk0 $ epsSetWhichEigenpairs' e w
 
 epsSetTarget :: EPS -> PetscScalar_ -> IO ()
 epsSetTarget e t = chk0 $ epsSetTarget' e t
