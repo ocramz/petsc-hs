@@ -883,15 +883,11 @@ matZeroEntries' mat = [C.exp|int{MatZeroEntries($(Mat mat))}|]
 -- m, idxm	- the number of rows and their global indices
 -- n, idxn	- the number of columns and their global indices
 -- addv	- either ADD_VALUES or INSERT_VALUES, where ADD_VALUES adds values to any existing entries, and INSERT_VALUES replaces existing entries with new values
--- Notes
-
+-- Notes :
 -- If you create the matrix yourself (that is not with a call to DMCreateMatrix()) then you MUST call MatXXXXSetPreallocation() or MatSetUp() _before_ using this routine
 -- By default the values, v, are row-oriented. See MatSetOption() for other options.
-
 -- Calls to MatSetValues() with the INSERT_VALUES and ADD_VALUES options cannot be mixed without intervening calls to the assembly routines.
-
 -- MatSetValues() uses 0-based row and column numbers in Fortran as well as in C.
-
 -- Negative indices may be passed in idxm and idxn, these rows and columns are simply ignored. This allows easily inserting element stiffness matrices with homogeneous Dirchlet boundary conditions that you don't want represented in the matrix
 
 
