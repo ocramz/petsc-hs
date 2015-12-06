@@ -73,7 +73,7 @@ withEpsSetupSolve comm a b ty postsolve = withEpsSetup comm a b ty $ \e -> do
 
 
 
-
+-- | check properties of eigensolution
 
 epsComputeError :: EPS -> Int -> EpsErrorType_ -> IO PetscReal_
 epsComputeError eps i ty = chk1 $ epsComputeError' eps i ty
@@ -84,12 +84,25 @@ epsIsPositive = chk1 . epsIsPositive'
 
 
 
+-- | set # of eigenvalues to compute and subspace dimension
 
-epsSetDimensions :: EPS -> Int -> Int -> Int -> IO ()
+epsSetDimensions ::
+  EPS ->
+  Int ->  -- # eigenvalues
+  Int ->  -- subspace dimensionality
+  Int ->  -- maximum projected dimensionality
+  IO ()
 epsSetDimensions e nev ncv mpd  = chk0 $ epsSetDimensions' e nev ncv mpd
+
+
+
+
 
 epsSetInterval :: EPS -> PetscReal_ -> PetscReal_ -> IO ()
 epsSetInterval e smin smax = chk0 $ epsSetInterval' e smin smax
+
+
+
 
 
 
