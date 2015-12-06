@@ -71,6 +71,10 @@ withEpsSetupSolve comm a b ty postsolve = withEpsSetup comm a b ty $ \e -> do
   epsSolve e 
   postsolve e
 
+
+
+
+
 epsComputeError :: EPS -> Int -> EpsErrorType_ -> IO PetscReal_
 epsComputeError eps i ty = chk1 $ epsComputeError' eps i ty
 
@@ -89,6 +93,8 @@ epsSetInterval e smin smax = chk0 $ epsSetInterval' e smin smax
 
 
 
+-- | various tricks to improve convergence
+
 -- FIXME : use Vector instead of list
 epsSetInitialSpace :: EPS -> [Vec] -> IO ()
 epsSetInitialSpace e ss = chk0 $ epsSetInitialSpace' e ss
@@ -96,11 +102,18 @@ epsSetInitialSpace e ss = chk0 $ epsSetInitialSpace' e ss
 epsSetDeflationSpace :: EPS -> [Vec] -> IO ()
 epsSetDeflationSpace e ds = chk0 $ epsSetDeflationSpace' e ds
 
+
+
+-- | target eigenvalue and eigenpair choice criterion
+
 epsSetWhichEigenPairs :: EPS -> EpsWhich_ -> IO ()
 epsSetWhichEigenPairs e w = chk0 $ epsSetWhichEigenPairs' e w
 
 epsSetTarget :: EPS -> PetscScalar_ -> IO ()
 epsSetTarget e t = chk0 $ epsSetTarget' e t
+
+
+
 
 
 
