@@ -399,19 +399,22 @@ t11 = withPetsc0  t11'
 
 -- -- --
 
-t13' = withMat (matCreateMPIAIJWithVectors comm (m, n) (mm ,nn) ix iy v ) $ \mat -> do
-  matGetInfo mat MatInfoLocal
-  matViewStdout mat
-   where
-     comm = commWorld
-     m = 1
-     n = m
-     (mm, nn) = (m, n)
-     ix = VG.fromList [0]
-     iy = VG.fromList [0]
-     v = VG.fromList (replicate 1 pi)
 
-t13 = withPetsc0 t13'
+-- mca = matCreateMPIAIJWithArrays comm ix iy v
+
+
+t13a' = 
+  withMatNew comm m n MatAij vv InsertValues $ \mat -> 
+    matViewStdout mat
+    where
+      comm = commWorld
+      m = 2
+      n = m
+      vv = V.fromList [(0,1,pi), (1,0, exp 1), (1,1, sqrt 2)]
+
+t13 = withPetsc0 $ t13a' 
+
+
 
 
 -- |  SLEPc
