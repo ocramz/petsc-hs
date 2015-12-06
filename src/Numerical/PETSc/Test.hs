@@ -420,7 +420,7 @@ t13 = withPetsc0 $ t13a'
 -- |  SLEPc
 
 -- t14 = withSlepc0 $ t6' 5
-t141 = withPetsc0 $ withSlepc0 $ t6' 5
+t14 = withPetsc0 $ withSlepc0 t13a'
 
 --
 
