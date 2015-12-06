@@ -22,6 +22,9 @@ import Numerical.PETSc.Internal.Utils
 
 import Control.Exception
 
+import Data.List (intercalate)
+import Data.List.Split (splitOn, splitOneOf)
+
 import Foreign
 import Foreign.ForeignPtr
 import Foreign.C.Types
@@ -56,14 +59,23 @@ sep, slepcHeader :: String
 sep = "======"
 
 slepcHeader =
-  sep ++ "\npetsc-hs : Haskell bindings for PETSc\n" ++
+  sep ++ "\npetsc-hs : Haskell bindings for PETSc" ++
   "\nSLEPc " ++ slepcVersionString ++ ": initialized"
 
 -- | SLEPc version string
 
+
 {-# NOINLINE slepcVersionString #-}
 slepcVersionString :: String
-slepcVersionString = drop 6 $ unsafePerformIO $ slepcGetVersion 50
+slepcVersionString = ver ++ ", rel. " ++ date
+  where
+    ver = strs!!3
+    date = unwords [strs!!5, strs!!6, strs!!8]
+    strs = splitOneOf ", " vstrRaw
+    vstrRaw = unsafePerformIO (slepcGetVersion 50)
+
+
+
 
 slepcGetVersion :: Int -> IO String
 slepcGetVersion l = do

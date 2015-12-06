@@ -10,6 +10,12 @@ Copyright (c) 2015 - , Marco Zocca ( zocca at marco dot gmail at com )
 Travis CI : [![Build Status](https://travis-ci.org/ocramz/petsc-hs.svg?branch=master)](https://travis-ci.org/ocramz/petsc-hs)
 
 
+## News
+
+6/12/2015 : We're integrating the [SLEPc](slepc.upv.es/) eigensolver suite, which is based on PETSc, and provides many options for spectral decomposition.
+
+
+
 ## Introduction
 
 The [PETSc](http://www.mcs.anl.gov/petsc/) architecture provides numerical data-structures and algorithms such as linear and nonlinear system solvers, extensive preconditioning facilities, time steppers (integrators) for dynamic problems, advanced meshing primitives for the solution of discretized PDEs and an advanced optimization toolkit. It is based on MPI, to support distributed storage and computations.

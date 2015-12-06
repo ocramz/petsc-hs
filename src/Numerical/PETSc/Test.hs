@@ -412,12 +412,13 @@ t13a' =
       n = m
       vv = V.fromList [(0,1,pi), (1,0, exp 1), (1,1, sqrt 2)]
 
-t13 = withPetsc0 $ t13a' 
+t13a = withPetsc0 t13a' 
+
+t13b = withSlepc0 t13a' 
 
 
 
-
--- |  SLEPc
+-- |  nesting PETSc and SLEPc
 
 -- t14 = withSlepc0 $ t6' 5
 t14 = withPetsc0 $ withSlepc0 t13a'

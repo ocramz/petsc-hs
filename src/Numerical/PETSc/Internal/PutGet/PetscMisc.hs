@@ -24,7 +24,8 @@ import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
-import Numerical.PETSc.Internal.PutGet.SlepcMisc
+import Data.List (intercalate)
+import Data.List.Split (splitOn, splitOneOf)
 
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 
@@ -103,7 +104,7 @@ sep, petscHeader :: String
 sep = "======"
 
 petscHeader =
-  sep ++ "\npetsc-hs : Haskell bindings for PETSc\n" ++
+  sep ++ "\npetsc-hs : Haskell bindings for PETSc" ++
   "\nPETSc " ++ petscVersionString ++ ": initialized"
 
 
@@ -111,7 +112,12 @@ petscHeader =
 
 {-# NOINLINE petscVersionString #-}
 petscVersionString :: String
-petscVersionString = drop 6 $ unsafePerformIO $ petscGetVersion 50 
+petscVersionString = ver ++ ", rel. " ++ date
+  where
+    ver = strs!!3
+    date = unwords [strs!!5, strs!!7, strs!!9]
+    strs = splitOneOf ", " vstrRaw
+    vstrRaw = unsafePerformIO (petscGetVersion 50)
 
 petscGetVersion :: Int -> IO String
 petscGetVersion l = do
