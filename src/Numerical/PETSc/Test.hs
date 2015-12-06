@@ -414,10 +414,10 @@ t13' = withMat (matCreateMPIAIJWithVectors comm (m, n) (mm ,nn) ix iy v ) $ \mat
 t13 = withPetsc0 t13'
 
 
--- | 
+-- |  SLEPc
 
-t14 = withSlepc0 $ t6' 5
-
-
-
+-- t14 = withSlepc0 $ t6' 5
 t141 = withPetsc0 $ withSlepc0 $ t6' 5
+
+--
+

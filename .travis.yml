@@ -82,6 +82,7 @@ before_install:
 # Download and install SLEPc
   - travis_retry ./install-slepc.sh $SLEPC_DIR $SLEPC_TAR
 
+  - pwd
   - ls -lsA $PETSC_DIR
   - ls -lsA $SLEPC_DIR
 

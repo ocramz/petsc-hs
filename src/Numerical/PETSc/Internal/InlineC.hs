@@ -3300,7 +3300,23 @@ epsSetProblemType' e ty = [C.exp|int{EPSSetProblemType($(EPS e),$(int tyi))}|] w
 epsSetup' e = [C.exp|int{EPSSetUp($(EPS e))}|]
 
 -- EPSSetFromOptions(EPS eps);
-  
+
+-- PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
+-- Logically Collective on EPS
+-- Input Parameters :
+-- eps	- eigensolver context obtained from EPSCreate()
+-- which	- the portion of the spectrum to be sought
+epsSetWhichEigenPairs' e wh = [C.exp|int{EPSSetWhichEigenPairs($(EPS e),$(int ew))}|] where ew = toCInt $ epsWhichToInt wh
+
+
+-- PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
+-- Logically Collective on EPS
+-- Input Parameters :
+-- eps	- eigensolver context
+-- target	- the value of the target
+epsSetTarget' eps target = [C.exp|int{EPSSetTarget($(EPS eps),$(PetscScalar target))}|]
+
+              
 -- EPSSolve(EPS eps);
 epsSolve' e = [C.exp|int{EPSSolve($(EPS e))}|]
 
@@ -3373,6 +3389,9 @@ epsView' eps v = [C.exp|int{EPSView($(EPS eps),$(PetscViewer v))}|]
 
 -- PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
 epsVectorsView' eps vi = [C.exp|int{EPSVectorsView($(EPS eps),$(PetscViewer vi))}|]
+
+
+
 
 
 

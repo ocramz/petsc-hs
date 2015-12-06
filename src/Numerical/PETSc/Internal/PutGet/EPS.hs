@@ -96,6 +96,13 @@ epsSetInitialSpace e ss = chk0 $ epsSetInitialSpace' e ss
 epsSetDeflationSpace :: EPS -> [Vec] -> IO ()
 epsSetDeflationSpace e ds = chk0 $ epsSetDeflationSpace' e ds
 
+epsSetWhichEigenPairs :: EPS -> EpsWhich_ -> IO ()
+epsSetWhichEigenPairs e w = chk0 $ epsSetWhichEigenPairs' e w
+
+epsSetTarget :: EPS -> PetscScalar_ -> IO ()
+epsSetTarget e t = chk0 $ epsSetTarget' e t
+
+
 
 
 
