@@ -1,4 +1,6 @@
 # petsc-hs
+
+[![Join the chat at https://gitter.im/ocramz/petsc-hs](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ocramz/petsc-hs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 petsc-hs - Haskell bindings for the scientific computation library PETSc
 
 (Portable Extensible Toolkit for Scientific Computation)
