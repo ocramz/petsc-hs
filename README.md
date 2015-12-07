@@ -15,7 +15,7 @@ Discuss features, ideas, bugs : [![Gitter chat: petsc-hs](https://badges.gitter.
 
 ## News
 
-6/12/2015 : We're integrating the [SLEPc](https://slepc.upv.es/) eigensolver suite, which is based on PETSc, and provides many options for spectral decomposition of sparse operators, e.g. (non)linear and polynomial eigenproblem solvers, spectral transformation facilities for accelerated convergence, etc. 
+6/12/2015 : We're integrating the [SLEPc](http://slepc.upv.es/) eigensolver suite, which is based on PETSc, and provides many options for spectral decomposition of sparse operators, e.g. (non)linear and polynomial eigenproblem solvers, spectral transformation facilities for accelerated convergence, etc. 
 
 
 
