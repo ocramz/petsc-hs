@@ -231,6 +231,26 @@ data MatReuse_ = MatInitialMtx | MatReuseMtx | MatIgnoreMtx deriving (Eq, Show, 
 matReuseToInt x = fromEnum (x :: MatReuse_ )
 
 
+-- | MatStencil 
+data MatStencil = MatStencil CInt CInt CInt CInt deriving (Eq, Show)
+
+instance Storable MatStencil where
+  sizeOf _ = 4 * sizeOf (undefined :: CInt)
+  alignment _ = alignment (undefined :: CInt)
+  peek ptr = do
+    k <- peekElemOff q 0
+    j <- peekElemOff q 1
+    i <- peekElemOff q 2
+    c <- peekElemOff q 3
+    return (MatStencil k j i c)
+      where q = castPtr ptr
+  poke p (MatStencil k j i c) = do
+    pokeElemOff q 0 k
+    pokeElemOff q 1 j
+    pokeElemOff q 2 i
+    pokeElemOff q 3 c
+      where q = castPtr p
+
 -- typedef struct {
 --   PetscLogDouble block_size;                         /* block size */
 --   PetscLogDouble nz_allocated,nz_used,nz_unneeded;   /* number of nonzeros */
