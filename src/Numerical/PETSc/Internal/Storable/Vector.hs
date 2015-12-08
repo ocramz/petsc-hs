@@ -99,6 +99,9 @@ createVector n = do
     fp <- malloc n undefined
     return $ VS.unsafeFromForeignPtr0 fp n
 
+createGVector :: (VG.Vector v a, Storable a) => Int -> IO (v a)
+createGVector n = return . VG.convert =<< createVector n
+
  -- copyArray : Copy the given number of elements from the second array (source) into the first array (destination); the copied areas may not overlap
 
 cloneVector :: Storable a => VS.Vector a -> IO (VS.Vector a)
