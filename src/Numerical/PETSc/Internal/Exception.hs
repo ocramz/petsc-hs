@@ -12,8 +12,7 @@
 --
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Exception
-       (chk0, chk1,
-        bracket, bracketChk)
+       (chk0, chk1, bracketChk, (~!~))
        where
 
 import Foreign.C.Types
@@ -34,6 +33,9 @@ import Control.Monad
 
 -- import Control.Arrow hiding (left, right)
 
+infixl 0 ~!~
+(~!~) :: Monad m => Bool -> String -> m ()
+c ~!~ s = when c (error s)
 
 
 -- | Petsc error codes and strings (from $PETSC/src/sys/error/err.c )
@@ -54,7 +56,7 @@ data PetscErrCode_ =
 
 instance Exception PetscErrCode_
 
-
+petscErrCodeFromInt :: CInt -> PetscErrCode_
 petscErrCodeFromInt n =
   case n of 55 -> OutOfMemory
             56 -> UnsupportedOperOnThisType
@@ -93,12 +95,17 @@ petscErrCodeFromInt n =
             _  -> UndefinedException -- WATCH OUT HERE
 
 
-
+errCodeInRange :: CInt -> Bool
 errCodeInRange n = (n < maxErrCode && n >= minErrCode) || n == 0 || n==256 where
   maxErrCode = 90
   minErrCode = 55
 
+unforeseenErrCodeStr :: CInt -> String
+unforeseenErrCodeStr e = "unforeseen case : " ++
+                       show e ++
+                       "\nPlease file a bug report"
 
+throwPetscException :: CInt -> IO a
 throwPetscException n = throwIO (petscErrCodeFromInt n)
 
 {- bracket' before after action = 
@@ -108,29 +115,27 @@ throwPetscException n = throwIO (petscErrCodeFromInt n)
       _ <- after a
       return r        -}
 
+bracketChk :: IO (a, CInt) -> (a -> IO CInt) -> (a -> IO c) -> IO c
 bracketChk a o = bracket (chk1 a) (chk0 . o)  
 
 chk1 :: IO (a, CInt) -> IO a
 chk1 act = do
-  r <- act
-  let (v, e) = r
-  if errCodeInRange e
-    then
-     case e of 0 -> return v
-               256 -> return v
-               m -> throwPetscException m
-    else error ("unforeseen case : " ++ show e)
-
+  (v, e) <- act
+  not (errCodeInRange e) ~!~ unforeseenErrCodeStr e
+  if e `elem` [0, 256]  -- safe error codes
+    then return v
+    else throwPetscException e
 
 chk0 :: IO CInt -> IO ()
 chk0 act = do
   e <- act
-  if errCodeInRange e
-    then
-     case e of 0 -> return ()
-               256 -> return ()
-               m -> throwPetscException m
-    else  error ("unforeseen case : " ++ show e)             
+  not (errCodeInRange e) ~!~ unforeseenErrCodeStr e
+  unless (e `elem` [0, 256]) (throwPetscException e)
+
+
+
+
+
 
 
 

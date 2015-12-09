@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts, TypeFamilies, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.PETSc.Internal.Sparse
+-- Module      :  Numerical.PETSc.Internal.Storable.Repa
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  zocca . marco . gmail . com
