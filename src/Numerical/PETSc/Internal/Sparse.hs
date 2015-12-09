@@ -24,47 +24,54 @@ import Foreign.C.Types
 
 
 
--- type AssocMatrix = [((Int,Int),Double)]
-type AssocMatrix a = V.Vector ((Int, Int), a)
-type PetscAssocMatrix = AssocMatrix PetscScalar_
+
+
+-- | experiment
+
+
+class Z a where
+  type IdxZ a :: *
+  type ContnrZ a :: *
+  assembleZ :: V.Vector (IdxZ a, a) -> ContnrZ a
+
+instance Z (SV a) where
+  type IdxZ (SV a)  = Int
+  type ContnrZ (SV a) = (SV a)
+  -- assembleZ 
 
 
 
--- -- | more or less lifted from HMatrix 
--- data CSR = CSR
---         { csrVals  :: V.Vector Double
---         , csrCols  :: V.Vector CInt
---         , csrRows  :: V.Vector CInt
---         , csrNRows :: Int
---         , csrNCols :: Int
---         } deriving Show
+-- |
 
--- data CSC = CSC
---         { cscVals  :: V.Vector Double
---         , cscRows  :: V.Vector CInt
---         , cscCols  :: V.Vector CInt
---         , cscNRows :: Int
---         , cscNCols :: Int
---         } deriving Show
+class Num a => Sparse a where
+  type SparseIdx a :: *
+  type SparseDim a :: *
+  type SparseContainer a :: *
+  sparseIndex :: SparseIdx a -> SparseContainer a -> a
+  sparseAssemble :: V.Vector (SparseIdx a) -> SparseDim a -> SparseContainer a
 
--- data CSR a = CSR
---              { csrVals :: V.Vector a
---              , csrCols :: V.Vector CInt
---              , csrRows :: V.Vector CInt
---              , csrNRows :: Int
---              , csrNCols :: Int
---              }
 
-data CSR a = CSR { csr :: AssocMatrix a,
-                   csrNrows :: Int,
-                   csrNcols :: Int}
 
-class Sparse a where
-  type SparseIdx a
-  assemble :: a -> V.Vector (SparseIdx a) -> a
 
-instance Sparse (CSR a) where
-  type SparseIdx (CSR a) = (Int, Int)
+
+-- | Vector
+
+data SV a = SV { spVectorDim :: Int ,
+                 spVector :: V.Vector (Int, a) }
+
+
+
+
+
+-- | Matrix
+
+data CSR a = CSR { csrNrows :: Int,
+                   csrNcols :: Int,
+                   csr :: V.Vector ((Int, Int), a) }
+
+
+
+
 
 
 
