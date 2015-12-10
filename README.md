@@ -67,7 +67,7 @@ otherwise
     * For SLEPc too we provide a default download/install Bash script (single-node) that should be run as follows:
         - `./install-slepc.hs $SLEPC_VERSION $SLEPC_DIR`
 
-    _IMPORTANT_ Don't forget to export the SLEPc architecture (analogously to the SLEPc case) as `SLEPC_ARCH`.
+    _IMPORTANT_ Don't forget to export the SLEPc architecture (analogously to what we did before the PETSc installation) as `SLEPC_ARCH`.
 
 
 ### 2 
