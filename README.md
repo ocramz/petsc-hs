@@ -63,6 +63,10 @@ otherwise
 
     _IMPORTANT_ : The environment variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the next step. If they are not defined, the PETSc configuration step figures them out and  1. sets the PETSc root directory to where the PETSc archive has been decompressed, 2. compiles the dynamic libraries in a sub-directory whose name starts with `arch-`. In this case it's up to the user to export these as `PETSC_DIR` and `PETSC_ARCH`, respectively, before proceeding to Step 3.
 
+* Install SLEPc ; the complete instructions in this case are to be found in the [SLEPc manual](http://slepc.upv.es/documentation/slepc.pdf). 
+    * For SLEPc too we provide a default download/install Bash script (single-node) that should be run as follows:
+        - `./install-slepc.hs $SLEPC_VERSION $SLEPC_DIR`
+
 
 ### 2 
 
@@ -73,9 +77,9 @@ Clone the repository and enter its root directory:
 
 ### 3 
 
-    make stack_build
+    ./stack-build.sh ${ARGS} ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH}
 
-This compiles part of `petsc-hs` into object code. 
+This compiles the whole project, library and examples, part of which into object code. 
 It is just a synonym for `stack build` that uses the PETSc root directory and architecture variables, as specified above.
 
 
