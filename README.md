@@ -50,21 +50,19 @@ Functional composition of sub-programs and rich, static types are the missing li
 
     * `git clone https://github.com/ocramz/petsc-hs.git && cd petsc-hs` 
 
-2. If you already have a working PETSc installation, the PETSC_DIR and PETSC_ARCH environment variables are set and `stack` is installed and in PATH:
-
-    * `make stack_build`
+2. If you already have a working PETSc installation, the PETSC_DIR and PETSC_ARCH environment variables are set and `stack` is installed and in PATH, proceed to step 3,
 
 otherwise
 
 * Download and install the `stack` build tool following these [instructions](http://docs.haskellstack.org/en/stable/README.html).
 
-    _IMPORTANT_ : The environment variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the next step. If they are not defined, the PETSc configuration step figures them out and  1. sets the PETSc root directory to where the PETSc archive has been decompressed, 2. compiles the dynamic libraries in a sub-directory whose name starts with `arch-`.
+    _IMPORTANT_ : The environment variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the next step. If they are not defined, the PETSc configuration step figures them out and  1. sets the PETSc root directory to where the PETSc archive has been decompressed, 2. compiles the dynamic libraries in a sub-directory whose name starts with `arch-`. In this case it's up to the user to export these as `$PETSC_DIR` and `$PETSC_ARCH`, respectively, before proceeding to .
 
 * Install PETSc and MPICH. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions.
     * We provide a default shell script to automate the PETSc download and installation, for a common single-node configuration: 
         - `./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH` (`PETSC_VERSION=3.6.2`, for example ).
 
-* Run `make stack_build`. This is just a synonym for `stack build` that uses the PETSc root directory and architecture variables, as specified above.
+3. Run `make stack_build`. This is just a synonym for `stack build` that uses the PETSc root directory and architecture variables, as specified above.
 
 
 3. Now you can try out an example by running `stack exec petsc-example`.
