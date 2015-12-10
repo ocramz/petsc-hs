@@ -17,6 +17,8 @@ import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
+import Control.Exception (bracket)
+
 import Numerical.PETSc.Internal.PutGet.Vec
 import Numerical.PETSc.Internal.PutGet.Mat
 
