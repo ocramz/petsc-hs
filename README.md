@@ -55,16 +55,14 @@ If you already have a working PETSc installation, the PETSC_DIR and PETSC_ARCH e
 
 otherwise
 
-* Obtain the `stack` build tool as documented [here](http://docs.haskellstack.org/en/stable/README.html).
+* Download and install the `stack` build tool following these [instructions](http://docs.haskellstack.org/en/stable/README.html).
 
-* A working installations of PETSc and MPICH (both configured as dynamic libraries) is required. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions. The default `configure` command suggested on the PETSc Installation page Just Works (TM), and if it doesn't, there will be plenty of well-formatted output to understand what went wrong.
+* Install PETSc and MPICH. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions. The default `configure` command suggested on the PETSc Installation page Just Works (TM), and if it doesn't, there will be plenty of well-formatted output to understand what went wrong. 
+    * We provide a default shell script to automate the PETSc download and installation, for convenience: `install-petsc.sh`.
 
-_IMPORTANT_ : The string variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the installation of the Haskell bindings: the user's Bash .profile should contain the following two lines: `export PETSC_DIR=<PETSc root dir>` and `export PETSC_ARCH=<build target dir>`. 
+_IMPORTANT_ : The string variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the next step (building `petsc-hs`): the user's Bash .profile should contain the following two lines: `export PETSC_DIR=<PETSc root dir>` and `export PETSC_ARCH=<build target dir>`. 
 
-We also provide a default shell script to automate the PETSc download and installation, for convenience: `install-petsc.sh`.
-
-
-* Once the dependencies are setup, run `make stack_build`. This is just a synonym for `stack build` that uses the PETSc root directory and architecture variables, as specified above.
+* Run `make stack_build`. This is just a synonym for `stack build` that uses the PETSc root directory and architecture variables, as specified above.
 
 * Now you can try out an example by running `stack exec petsc-example`.
 
@@ -76,13 +74,13 @@ The library is being developed with/on :
 
 * PETSc 3.6.0, 3.6.2 (October 2015) (and MPICH 3.1.1)
 
+* C and Fortran compilers : `g++` , `gfortran`
+
 * OS : OSX 10.9.5, Ubuntu 12.04 LTS Server Edition 64 bit on Travis CI
 
 * Haskell compiler : GHC 7.8.3, 7.10.2 
 
 * Cabal 1.22
-
-* `inline-c` > 0.5.5
 
 * `stack` 0.1.4.0
 

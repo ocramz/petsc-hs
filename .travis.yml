@@ -47,12 +47,8 @@ before_install:
   - export SLEPC_LIB="$SLEPC_DIR"/"$SLEPC_ARCH"/lib/
 
   - export PETSC_VERSION=3.6.2
-  - export PETSC_FTP=http://ftp.mcs.anl.gov/pub/petsc/release-snapshots
-  - export PETSC_TAR=$PETSC_FTP/petsc-lite-$PETSC_VERSION.tar.gz
 
   - export SLEPC_VERSION=3.6.2
-  - export SLEPC_FTP=http://slepc.upv.es/download/download.php?
-  - export SLEPC_TAR="$SLEPC_FTP"filename=slepc-"$SLEPC_VERSION".tar.gz
 
   # directories
   - mkdir -p ~/.local/bin
@@ -65,10 +61,7 @@ before_install:
   # PATH
   - export PATH=$HOME/.local/bin:$PATH
 
-
-  # # view PWD
-  # - ls -lsA
-  # - printenv
+  # # view 
   - ls -lsA $PETSC_DIR
   - ls -lsA $SLEPC_DIR
 
@@ -80,7 +73,7 @@ before_install:
 # Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
   - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
 # Download and install SLEPc
-  - travis_retry ./install-slepc.sh $SLEPC_DIR $SLEPC_TAR
+  - travis_retry ./install-slepc.sh $SLEPC_VERSION $SLEPC_DIR 
 
   - pwd
   - ls -lsA $PETSC_DIR

@@ -38,22 +38,39 @@ instance Container [e] where
   cinsert e l = e : l
   ctoList l = l
 
-instance Container (V.Vector x) where
-  type CElem (V.Vector x) = x
-  cempty = V.empty
-  cinsert = V.cons
-  ctoList = V.toList
-
-sumContainer :: Container c => c -> c -> c
-sumContainer c1 c2 = foldr cinsert c2 (ctoList c1)
-
-c0 = cinsert 2 cempty :: [Int]
-c1 = sumContainer c0 c0
-
+-- sumContainer :: Container c => c -> c -> c
+-- sumContainer c1 c2 = foldr cinsert c2 (ctoList c1)
 
 -- |
 
+class SContainer c where
+  type SIdx c
+  type SCe c
+  type SCDim c
+  scIdxValid :: SCDim c -> SIdx c -> Bool
+  scBuild :: SCDim c ->
+             V.Vector (SIdx c) ->
+             V.Vector (SCe c) ->
+             V.Vector (SIdx c, SCe c)
 
+instance SContainer (SV x) where
+  type SIdx (SV x) = Int
+  type SCe (SV x) = x
+  type SCDim (SV x) = Int
+  scIdxValid d i = i >= 0 && i <= d
+  scBuild d vi ve | q i = V.cons (i, e) (scBuild d vis ves)
+                  | otherwise = scBuild d vis ves 
+     where i = V.head vi 
+           e = V.head ve 
+           vis = V.tail vi
+           ves = V.tail ve
+           q = scIdxValid d 
+
+
+
+fun1 (a:as) (b:bs) | q a = (a, b) : fun1 as bs
+                   | otherwise = fun1 as bs where
+                     q = even
 
 
 -- | Vector

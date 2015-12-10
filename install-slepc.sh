@@ -1,11 +1,15 @@
 #!/bin/bash
 
-# environment variables
-# SC_V="$1"    # version (e.g. "3.6.2")
-SC_DIR="$1"    # download,unpack and install directory (e.g. "$HOME/slepc")
-# SC_ARCH="$3"   # architecture id.string (e.g. "arch-linux2-c-debug")
 
-SC_URL="$2"   # URL of .tar.gz
+
+
+# environment variables  
+SC_VERSION="$1" # version (e.g. "3.6.2")
+SC_DIR="$2"    # download,unpack and install directory (e.g. "$HOME/slepc")
+
+
+SLEPC_PHP=http://slepc.upv.es/download/download.php?
+SC_URL="$SLEPC_PHP"filename=slepc-"$SC_VERSION".tar.gz # URL of .tar.gz
 
 SC_TAR=slepc.tar.gz   # name of local archive copy
 

@@ -6,7 +6,7 @@ PETSC_DIR="$2"    # download,unpack and install directory (e.g. "$HOME/petsc")
 PETSC_ARCH="$3"   # architecture id.string (e.g. "arch-linux2-c-debug")
 
 PETSC_FTP=http://ftp.mcs.anl.gov/pub/petsc/release-snapshots
-PETSC_TAR=$PETSC_FTP/petsc-lite-$PETSC_VERSION.tar.gz
+PETSC_TAR=$PETSC_FTP/petsc-lite-$PETSC_V.tar.gz
 
 # download and untar
 curl -L $PETSC_TAR | tar xz --strip-components=1 -C $PETSC_DIR/ 
