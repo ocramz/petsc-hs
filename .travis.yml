@@ -19,7 +19,7 @@ env:
   - STACK_ARGS="--resolver nightly"
 
 
-# Install GFortran via apt-get.
+# # # Install GFortran via apt-get.
 # See http://docs.travis-ci.com/user/apt/ for more information
 addons:
   apt:
@@ -31,7 +31,7 @@ addons:
 
 
 before_install:
-  # environment variables : 
+  # # # environment variables : 
   - export PETSC_DIR="$PWD"/petsc
   - export PETSC_ARCH=arch-linux2-c-debug 
 
@@ -47,10 +47,11 @@ before_install:
   - export SLEPC_LIB="$SLEPC_DIR"/"$SLEPC_ARCH"/lib/
 
   - export PETSC_VERSION=3.6.2
-
   - export SLEPC_VERSION=3.6.2
 
-  # directories
+
+  # # # make directories
+
   - mkdir -p ~/.local/bin
   - mkdir -p "$PETSC_DIR"
   - mkdir -p "$PETSC_DIR"/.local
@@ -58,22 +59,30 @@ before_install:
   - mkdir -p "$SLEPC_DIR"
   - mkdir -p "$SLEPC_DIR"/.local
 
-  # PATH
+  # # # PATH
+
   - export PATH=$HOME/.local/bin:$PATH
 
-  # # view 
-  - ls -lsA $PETSC_DIR
-  - ls -lsA $SLEPC_DIR
 
-# set execution permissions
+
+  # # # set execution permissions for dep install scripts
+
   - chmod +x install-petsc.sh
   - chmod +x install-slepc.sh
 
 
-# Download and install PETSc, MPICH, GFORTRAN, FBLASLAPACK
+  # # # INSTALL DEPENDENCIES
+
+  # Download and install PETSc, MPICH, FBLASLAPACK
   - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
-# Download and install SLEPc
+
+  # Download and install SLEPc
   - travis_retry ./install-slepc.sh $SLEPC_VERSION $SLEPC_DIR 
+
+
+
+
+  # # # ARE THE DEPS INSTALLED ?
 
   - pwd
 
@@ -85,10 +94,14 @@ before_install:
   - ls -lsA $SLEPC_DIR
 
 
-# Download and unpack the stack executable
+
+  # Download and unpack the `stack` executable :
+
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
 
-# augment bash path with stack path
+
+  # augment bash path with stack path :
+
   - export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
 
 
@@ -99,23 +112,21 @@ before_install:
 
 script: 
 
-# bash script-based:
-  # - ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
-
-# makefile-based:
-  - make stack_build
+  # bash script-based:
+  - ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
 
 
-# let's see if stack tells the truth, after which `stack path` 
-# and `stack exec petsc-example` shd work
+
+  # let's see if stack tells the truth, after which `stack path` 
+  # and `stack exec petsc-example` shd work :
   - stack setup
 
-# # where is the petsc-example binary? 
+  # # where is the petsc-example binary? 
   - stack path
 
-# #   - export BIN_DIR="$(stack path --dist-dir)/build"
+  # #   - export BIN_DIR="$(stack path --dist-dir)/build"
 
-# # # run an example program
+  # # # run an example program
   - stack exec petsc-example
 
   # # stack $ARGS --no-terminal --install-ghc test --haddock
