@@ -122,7 +122,8 @@ script:
 
 cache:
   directories:
-  - $HOME/.petsc
+  - $PETSC_DIR
+  - $SLEPC_DIR
 #   - $HOME/.stack
 
 

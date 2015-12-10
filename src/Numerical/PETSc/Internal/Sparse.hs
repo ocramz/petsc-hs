@@ -58,13 +58,14 @@ instance SContainer (SV x) where
   type SCe (SV x) = x
   type SCDim (SV x) = Int
   scIdxValid d i = i >= 0 && i <= d
-  scBuild d vi ve | q i = V.cons (i, e) (scBuild d vis ves)
-                  | otherwise = scBuild d vis ves 
-     where i = V.head vi 
-           e = V.head ve 
-           vis = V.tail vi
-           ves = V.tail ve
-           q = scIdxValid d 
+  
+-- cBuild d vi ve | q i = V.cons (i, e) (cBuild d vis ves)
+--                | otherwise = cBuild d vis ves 
+--      where i = V.head vi 
+--            e = V.head ve 
+--            vis = V.tail vi
+--            ves = V.tail ve
+--            q = scIdxValid d 
 
 
 

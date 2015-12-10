@@ -64,7 +64,8 @@ library
                        void,
                        MonadRandom,
                        managed > 1.0,
-                       storable-complex
+                       storable-complex,
+                       split
   hs-source-dirs:      src/
   default-language:    Haskell2010
   ghc-options:         -O2 -Wall
@@ -98,7 +99,8 @@ executable petsc-example
                        void,
                        MonadRandom,
                        managed > 1.0,
-                       storable-complex
+                       storable-complex,
+                       split
   default-language:    Haskell2010
   main-is:             Main.hs
   hs-source-dirs:      test
