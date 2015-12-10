@@ -46,11 +46,16 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 ## Installation
 
-1) Clone the repository and enter its root directory: 
+### 1 
+
+Clone the repository and enter its root directory: 
 
     * `git clone https://github.com/ocramz/petsc-hs.git && cd petsc-hs` 
 
-2) If you already have a working PETSc installation, the PETSC_DIR and PETSC_ARCH environment variables are set and `stack` is installed and in PATH, proceed to Step 3,
+
+### 2 
+
+If you already have a working PETSc installation, the PETSC_DIR and PETSC_ARCH environment variables are set and `stack` is installed and in PATH, proceed to Step 3,
 
 otherwise
 
@@ -62,11 +67,16 @@ otherwise
     * We provide a default shell script to automate the PETSc download and installation, for a common single-node configuration: 
         - `./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH` (`PETSC_VERSION=3.6.2`, for example ).
 
-3) Run `make stack_build`. This compiles `petsc-hs` and links the PETSc and MPICH dynamic libraries. 
+
+### 3 
+
+Run `make stack_build`. This compiles `petsc-hs` and links the PETSc and MPICH dynamic libraries. 
 It is just a synonym for `stack build` that uses the PETSc root directory and architecture variables, as specified above.
 
 
-4) Now you can try out an example by running `stack exec petsc-example`.
+### 4 
+
+Now you can try out an example by running `stack exec petsc-example`.
 
 
 
