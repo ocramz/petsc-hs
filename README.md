@@ -53,7 +53,7 @@ Download and install the `stack` build tool following these [instructions](http:
 
 ### 1
 
-If you already have a working installation of PETSc, MPICH and SLEPc and the `PETSC_DIR` and `PETSC_ARCH` environment variables are set, proceed to Step 2,
+If you already have a working installation of PETSc, MPICH and SLEPc and the `PETSC_DIR`, `PETSC_ARCH`, `SLEPC_DIR` and `SLEPC_ARCH` environment variables are set, proceed to Step 2,
 
 otherwise
 
