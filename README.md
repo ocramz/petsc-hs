@@ -59,8 +59,8 @@ otherwise
 
 _IMPORTANT_ : The environment variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the next step. If they are not defined, the PETSc configuration step figures them out and 
 
-    1. sets the PETSc root directory to where the PETSc archive has been decompressed,
-    2. compiles the dynamic libraries in a sub-directory whose name starts with `arch-`.
+1. sets the PETSc root directory to where the PETSc archive has been decompressed,
+2. compiles the dynamic libraries in a sub-directory whose name starts with `arch-`.
 
 * Install PETSc and MPICH. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions. The default `configure` command suggested on the PETSc Installation page Just Works (TM), and if it doesn't, there will be plenty of well-formatted output to understand what went wrong. 
     * We provide a default shell script to automate the PETSc download and installation, for convenience: `install-petsc.sh`.
