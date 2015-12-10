@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, RankNTypes, TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts, RankNTypes, TypeFamilies, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Sparse
@@ -25,33 +25,29 @@ import Foreign.C.Types
 
 
 
+class Container c where
+  type CElem c
+  cempty :: c
+  cinsert :: CElem c -> c -> c
+  ctoList :: c -> [CElem c]
 
--- | experiment
-
-
-class Z a where
-  type IdxZ a :: *
-  type ContnrZ a :: *
-  assembleZ :: V.Vector (IdxZ a, a) -> ContnrZ a
-
-instance Z (SV a) where
-  type IdxZ (SV a)  = Int
-  type ContnrZ (SV a) = (SV a)
-  -- assembleZ 
+instance Eq e => Container [e] where
+  type CElem [e] = e
+  cempty = []
+  cinsert e l = e : l
+  ctoList l = l
+  
 
 
 
 -- |
 
-class Num a => Sparse a where
-  type SparseIdx a :: *
-  type SparseDim a :: *
-  type SparseContainer a :: *
-  sparseIndex :: SparseIdx a -> SparseContainer a -> a
-  sparseAssemble :: V.Vector (SparseIdx a) -> SparseDim a -> SparseContainer a
-
-
-
+class Sparse e where
+  type SparseIdx e :: *
+  type SparseDim e :: *
+  type SparseContainer e :: *
+  sparseAssemble :: SparseDim e ->
+                    V.Vector (SparseIdx e, e) -> SparseContainer e
 
 
 -- | Vector
@@ -59,7 +55,10 @@ class Num a => Sparse a where
 data SV a = SV { spVectorDim :: Int ,
                  spVector :: V.Vector (Int, a) }
 
-
+-- instance Sparse (SV e) where
+--   type SparseIdx (SV e) = Int
+--   type SparseContainer (SV e) = SV e
+--   -- sparseAssemble = SV
 
 
 
