@@ -113,17 +113,17 @@ script:
 # #   - export BIN_DIR="$(stack path --dist-dir)/build"
 
 # # # run an example program
-#   - stack exec petsc-example
+  - stack exec petsc-example
 
   # # stack $ARGS --no-terminal --install-ghc test --haddock
 
 
 
 
-cache:
-  directories:
-  - $PETSC_DIR
-  - $SLEPC_DIR
-#   - $HOME/.stack
+# cache:
+#   directories:
+#   - $PETSC_DIR
+#   - $SLEPC_DIR
+# #   - $HOME/.stack
 
 
