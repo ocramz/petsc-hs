@@ -49,7 +49,7 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 
 
-### 2 
+### 1
 
 If you already have a working PETSc installation, the `PETSC_DIR` and `PETSC_ARCH` environment variables are set and `stack` is installed and in PATH, proceed to Step 2,
 
