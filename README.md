@@ -73,14 +73,17 @@ Clone the repository and enter its root directory:
 
 ### 3 
 
-Run `make stack_build`. This compiles part of `petsc-hs` into object code. 
+    make stack_build
 
+This compiles part of `petsc-hs` into object code. 
 It is just a synonym for `stack build` that uses the PETSc root directory and architecture variables, as specified above.
 
 
 ### 4 
 
-Now you can try out an example by running `stack exec petsc-example`. 
+Now you can try out an example by running 
+
+    stack exec petsc-example 
 
 The binaries using `petsc-hs` will be linked both with the PETSc dynamic libraries and with those produced by Step 3.
 
