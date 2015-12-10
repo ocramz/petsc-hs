@@ -46,16 +46,12 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 ## Installation
 
-### 1 
 
-Clone the repository and enter its root directory: 
-
-    git clone https://github.com/ocramz/petsc-hs.git && cd petsc-hs
 
 
 ### 2 
 
-If you already have a working PETSc installation, the `PETSC_DIR` and `PETSC_ARCH` environment variables are set and `stack` is installed and in PATH, proceed to Step 3,
+If you already have a working PETSc installation, the `PETSC_DIR` and `PETSC_ARCH` environment variables are set and `stack` is installed and in PATH, proceed to Step 2,
 
 otherwise
 
@@ -66,6 +62,13 @@ otherwise
 * Install PETSc and MPICH. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions.
     * We provide a default shell script to automate the PETSc download and installation, for a common single-node configuration: 
         - `./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH` (`PETSC_VERSION=3.6.2`, for example ).
+
+
+### 2 
+
+Clone the repository and enter its root directory: 
+
+    git clone https://github.com/ocramz/petsc-hs.git && cd petsc-hs
 
 
 ### 3 
