@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts, RankNTypes, TypeFamilies, MultiParamTypeClasses #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Sparse
@@ -31,23 +32,28 @@ class Container c where
   cinsert :: CElem c -> c -> c
   ctoList :: c -> [CElem c]
 
-instance Eq e => Container [e] where
+instance Container [e] where
   type CElem [e] = e
   cempty = []
   cinsert e l = e : l
   ctoList l = l
-  
 
+instance Container (V.Vector x) where
+  type CElem (V.Vector x) = x
+  cempty = V.empty
+  cinsert = V.cons
+  ctoList = V.toList
+
+sumContainer :: Container c => c -> c -> c
+sumContainer c1 c2 = foldr cinsert c2 (ctoList c1)
+
+c0 = cinsert 2 cempty :: [Int]
+c1 = sumContainer c0 c0
 
 
 -- |
 
-class Sparse e where
-  type SparseIdx e :: *
-  type SparseDim e :: *
-  type SparseContainer e :: *
-  sparseAssemble :: SparseDim e ->
-                    V.Vector (SparseIdx e, e) -> SparseContainer e
+
 
 
 -- | Vector
@@ -55,10 +61,7 @@ class Sparse e where
 data SV a = SV { spVectorDim :: Int ,
                  spVector :: V.Vector (Int, a) }
 
--- instance Sparse (SV e) where
---   type SparseIdx (SV e) = Int
---   type SparseContainer (SV e) = SV e
---   -- sparseAssemble = SV
+
 
 
 
