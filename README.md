@@ -58,6 +58,7 @@ otherwise
 * Download and install the `stack` build tool following these [instructions](http://docs.haskellstack.org/en/stable/README.html).
 
 _IMPORTANT_ : The environment variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the next step. If they are not defined, the PETSc configuration step figures them out and 
+
     1. sets the PETSc root directory to where the PETSc archive has been decompressed,
     2. compiles the dynamic libraries in a sub-directory whose name starts with `arch-`.
 
