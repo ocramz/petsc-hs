@@ -76,7 +76,9 @@ before_install:
   - travis_retry ./install-slepc.sh $SLEPC_VERSION $SLEPC_DIR 
 
   - pwd
-  - ls -lsA $PETSC_DIR
+  - cd $PETSC_DIR
+  - pwd
+  - ls -lsA 
   - ls -lsA $SLEPC_DIR
 
 
