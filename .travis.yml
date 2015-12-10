@@ -83,6 +83,9 @@ before_install:
 # Download and unpack the stack executable
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
 
+# augment bash path with stack path
+  - export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
+
 
 
 # # This line does all of the work: installs GHC if necessary, build the library,
@@ -94,8 +97,6 @@ script:
 # bash script-based:
   - ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
 
-# # stack direct call :
-#   - stack build $STACK_ARGS --no-terminal --install-ghc --extra-include-dirs=$PETSC_INCLUDE1:$PETSC_INCLUDE2:$SLEPC_INCLUDE1:$SLEPC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB:$SLEPC_LIB 
 
 # let's see if stack tells the truth, after which `stack path` 
 # and `stack exec petsc-example` shd work
@@ -103,8 +104,6 @@ script:
 
 # # where is the petsc-example binary? 
   - stack path
-
-  # - find -f "petsc-example" . | grep petsc-example
 
 # #   - export BIN_DIR="$(stack path --dist-dir)/build"
 
