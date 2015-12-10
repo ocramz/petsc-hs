@@ -100,7 +100,10 @@ before_install:
 script: 
 
 # bash script-based:
-  - ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
+  # - ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
+
+# makefile-based:
+  - make stack_build
 
 
 # let's see if stack tells the truth, after which `stack path` 
