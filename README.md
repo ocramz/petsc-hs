@@ -53,7 +53,7 @@ Download and install the `stack` build tool following these [instructions](http:
 
 ### 1
 
-If you already have a working PETSc installation and the `PETSC_DIR` and `PETSC_ARCH` environment variables are set, proceed to Step 2,
+If you already have a working installation of PETSc, MPICH and SLEPc and the `PETSC_DIR` and `PETSC_ARCH` environment variables are set, proceed to Step 2,
 
 otherwise
 
@@ -61,7 +61,7 @@ otherwise
     * We provide a default shell script to automate the PETSc download and installation, for a common single-node configuration: 
         - `./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH` (`PETSC_VERSION=3.6.2`, for example ).
 
-    _IMPORTANT_ : The environment variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the next step. If they are not defined, the PETSc configuration step figures them out and  1. sets the PETSc root directory to where the PETSc archive has been decompressed, 2. compiles the dynamic libraries in a sub-directory whose name starts with `arch-`. In this case it's up to the user to export these as `PETSC_DIR` and `PETSC_ARCH`, respectively, before proceeding to Step 3.
+    _IMPORTANT_ : The environment variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the next step. If they are not defined, the PETSc configuration step figures them out and  1. sets the PETSc root directory to where the PETSc archive has been decompressed, 2. compiles the dynamic libraries in a sub-directory whose name starts with `arch-`. In this case it's up to the user to export these as `PETSC_DIR` and `PETSC_ARCH`, respectively, before proceeding to installing SLEPc and subsequently to Step 2.
 
 * Install SLEPc ; the complete instructions in this case are to be found in the [SLEPc manual](http://slepc.upv.es/documentation/slepc.pdf). 
     * For SLEPc too we provide a default download/install Bash script (single-node) that should be run as follows:
