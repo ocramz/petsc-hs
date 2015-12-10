@@ -53,11 +53,10 @@ Functional composition of sub-programs and rich, static types are the missing li
 2. If you already have a working PETSc installation, the PETSC_DIR and PETSC_ARCH environment variables are set and `stack` is installed and in PATH:
 
     * `make stack_build`
-    * `stack exec petsc-example`
 
 otherwise
 
-    * Download and install the `stack` build tool following these [instructions](http://docs.haskellstack.org/en/stable/README.html).
+* Download and install the `stack` build tool following these [instructions](http://docs.haskellstack.org/en/stable/README.html).
 
     _IMPORTANT_ : The environment variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the next step. If they are not defined, the PETSc configuration step figures them out and  1. sets the PETSc root directory to where the PETSc archive has been decompressed, 2. compiles the dynamic libraries in a sub-directory whose name starts with `arch-`.
 
@@ -67,7 +66,8 @@ otherwise
 
 * Run `make stack_build`. This is just a synonym for `stack build` that uses the PETSc root directory and architecture variables, as specified above.
 
-* Now you can try out an example by running `stack exec petsc-example`.
+
+3. Now you can try out an example by running `stack exec petsc-example`.
 
 
 
