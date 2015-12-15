@@ -5,8 +5,8 @@ description:         Lambdas and large linear systems, oh my
 homepage:            https://github.com/ocramz/petsc-hs
 license:             LGPL-3
 license-file:        LICENSE
-author:              Marco Zocca
-maintainer:          zocca.marco@gmail.com
+author:              Marco Zocca <zocca.marco@gmail.com>
+maintainer:          Marco Zocca <zocca.marco@gmail.com>
 copyright:           (c) 2015 Marco Zocca
 category:            Numerical
 build-type:          Simple

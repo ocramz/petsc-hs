@@ -12,6 +12,9 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Types where
 
+import Data.Complex
+import Foreign.Storable.Complex
+
 import Foreign
 import Foreign.Ptr
 import Foreign.C.Types
@@ -29,7 +32,7 @@ type PetscError_ = CInt
 
 type PetscInt_ = CInt
 type PetscBool_ = Bool
-type PetscScalar_ = CDouble
+type PetscScalar_ = CDouble  -- | FIXME : what abt complex-scalar PETSc build?
 type PetscReal_ = CDouble
 
 type MatConst = CInt

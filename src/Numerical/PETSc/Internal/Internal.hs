@@ -28,6 +28,7 @@ import           Data.Monoid               ((<>), mempty)
 import qualified Data.Map                  as Map
 
 -- * inline-c PETSc Context (type maps)
+
 petscCtx :: Context
 petscCtx = baseCtx <> funCtx <> vecCtx <> bsCtx <> pctx <> sctx where
   pctx = mempty {ctxTypesTable = petscTypesTable}

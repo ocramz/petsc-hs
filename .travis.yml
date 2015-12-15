@@ -1,15 +1,15 @@
-# Use new container infrastructure to enable caching
+# # # Use new container infrastructure to enable caching
 sudo: 
   false
 
-# Choose a lightweight base image (C); we provide our own build tools.
+# # # Choose a lightweight base image (C); we provide our own build tools.
+
 language: 
   c
-# language: haskell
 
 
-# The different configurations we want to test. You could also do things like
-# change flags or use --stack-yaml to point to a different file.
+# # # The different configurations we want to test. You could also do things like
+# # # change flags or use --stack-yaml to point to a different file.
 
 env:
   - STACK_ARGS=""
@@ -20,18 +20,21 @@ env:
 
 
 # # # Install GFortran via apt-get.
-# See http://docs.travis-ci.com/user/apt/ for more information
+# # # See http://docs.travis-ci.com/user/apt/ for more information
+
 addons:
   apt:
     packages:
     - gfortran            # needed to build PETSc
-    - libgmp-dev          # needed by GMP
+    - libgmp-dev          # needed by GHC
 
 
 
 
 before_install:
+
   # # # environment variables : 
+
   - export PETSC_DIR="$PWD"/petsc
   - export PETSC_ARCH=arch-linux2-c-debug 
 
@@ -114,7 +117,6 @@ script:
 
   # bash script-based:
   - ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
-
 
 
   # let's see if stack tells the truth, after which `stack path` 

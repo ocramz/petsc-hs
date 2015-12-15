@@ -17,7 +17,7 @@ import           Numerical.PETSc.Internal.Types
 import           Numerical.PETSc.Internal.Utils
 
 import           Language.C.Inline                 as C
-import           Language.C.Inline.Context
+-- import           Language.C.Inline.Context
 import           Control.Exception
 import           Foreign
 import           Foreign.Marshal.Array
@@ -57,7 +57,7 @@ C.include "<slepcsvd.h>"
 
 
 
-petscDecide = -1
+-- petscDecide = -1
 
 -- * IS
 

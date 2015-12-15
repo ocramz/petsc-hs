@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveDataTypeable, TypeFamilies, FlexibleInstances #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Exception

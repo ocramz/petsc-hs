@@ -26,6 +26,8 @@ import Foreign.C.Types
 
 
 
+-- | example of TypeFamily usage
+
 class Container c where
   type CElem c
   cempty :: c
@@ -41,7 +43,14 @@ instance Container [e] where
 -- sumContainer :: Container c => c -> c -> c
 -- sumContainer c1 c2 = foldr cinsert c2 (ctoList c1)
 
--- |
+
+
+
+-- | a sparse container typeclass using TypeFamilies
+  
+-- -- type SIdx : indexing, 1D Int, 2D (Int, Int), ...
+-- -- type SCDim : container dimensions: 1D Int, 2D (Int, Int), ...
+
 
 class SContainer c where
   type SIdx c
@@ -52,26 +61,26 @@ class SContainer c where
              V.Vector (SIdx c) ->
              V.Vector (SCe c) ->
              V.Vector (SIdx c, SCe c)
+  -- scBuild d vi ve | q i = V.cons (i, e) (scBuild d vis ves) -- FIXME broken
+  --              | otherwise = scBuild d vis ves 
+  --    where i = V.head vi 
+  --          e = V.head ve 
+  --          vis = V.tail vi
+  --          ves = V.tail ve
+  --          q = scIdxValid d 
 
 instance SContainer (SV x) where
   type SIdx (SV x) = Int
   type SCe (SV x) = x
   type SCDim (SV x) = Int
   scIdxValid d i = i >= 0 && i <= d
-  
--- cBuild d vi ve | q i = V.cons (i, e) (cBuild d vis ves)
---                | otherwise = cBuild d vis ves 
---      where i = V.head vi 
---            e = V.head ve 
---            vis = V.tail vi
---            ves = V.tail ve
---            q = scIdxValid d 
 
 
 
-fun1 (a:as) (b:bs) | q a = (a, b) : fun1 as bs
-                   | otherwise = fun1 as bs where
-                     q = even
+
+
+
+
 
 
 -- | Vector

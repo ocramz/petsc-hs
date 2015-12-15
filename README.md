@@ -59,7 +59,7 @@ otherwise
 
 * Install PETSc and MPICH. Download the archive from [here](http://www.mcs.anl.gov/petsc/download/index.html) and please refer to [this page](http://www.mcs.anl.gov/petsc/documentation/installation.html) for detailed configuration and installation instructions.
 
-    _IMPORTANT_ : The environment variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the next step. If they are not defined, the PETSc configuration step figures them out and  1. sets the PETSc root directory to where the PETSc archive has been decompressed, 2. compiles the dynamic libraries in a sub-directory whose name starts with `arch-`. In this case it's up to the user to export these as `PETSC_DIR` and `PETSC_ARCH`, respectively, before proceeding to installing SLEPc and subsequently to Step 2.
+    _IMPORTANT_ : The environment variables denoting the PETSc architecture and root directories must be in the scope of the shell performing the next step. If they are not defined, the PETSc configuration step figures them out and  1. sets the PETSc root directory to where the PETSc archive has been decompressed, 2. compiles the dynamic libraries in a sub-directory whose name starts with `arch-`. In this case it's up to the user to export these as `PETSC_DIR` and `PETSC_ARCH`, respectively, before proceeding to installing PETSc and subsequently to Step 2.
 
     * We provide a default shell script to automate the PETSc download and installation, for a common single-node configuration: 
         - `./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH` (`PETSC_VERSION=3.6.2`, for example ).
