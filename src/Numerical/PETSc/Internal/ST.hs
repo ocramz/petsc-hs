@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes, TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.ST
@@ -21,15 +21,15 @@ import Control.Applicative
 import Control.Monad
 
 import Control.Monad.ST (ST, runST)
+import Control.Monad.ST.Unsafe (unsafeIOToST)
 import Data.STRef
 
 import Foreign
 -- import Foreign.ForeignPtr
 import GHC.ForeignPtr
 
--- import Foreign.Storable (Storable, peekElemOff, pokeElemOff)
+import Foreign.Storable (Storable, peekElemOff, pokeElemOff)
 
-import Control.Monad.ST.Unsafe (unsafeIOToST)
 
 import qualified Data.Vector.Storable as V
 import Data.Vector.Storable (unsafeWith)
@@ -40,7 +40,16 @@ import qualified Data.Vector.Storable.Mutable as VM
 -- import qualified Numerical.PETSc.Internal.PutGet.Vec as PV
 
 
+-- newtype STType s f a = STType (f a)
 
+class Storable a => STMutable a where
+  type MType m a
+  type MIdx a
+  ioRead :: Functor f => f a -> MIdx a -> IO a
+  ioWrite :: Functor f => f a -> MIdx a -> IO ()
+  thaw :: Functor f => f a -> ST s (MType s a)
+  freeze :: Functor f => ST s (MType s a) -> f a
+  -- copy :: 
 
 
 

@@ -872,6 +872,39 @@ vecSum v = chk1 $ vecSum1 v
 
 -- | Vec math (in-place, destructive) operations
 
+
+-- | Math. operations
+
+-- | -- elementwise
+
+-- unary :  Rn -> Rn
+
+-- exp
+-- log
+-- reciprocal
+-- scale
+
+
+
+-- binary :  (Rn * Rn) -> Rn
+
+-- sum
+-- product
+
+
+
+-- | -- norms
+
+
+
+
+-- --
+-- unaryOp :: OpType -> Vec -> IO ()
+
+-- binaryOp :: Op2Type -> Vec -> Vec -> IO ()
+
+
+
 vecLog_, vecExp_, vecAbs_ :: Vec -> IO ()
 vecLog, vecExp, vecAbs :: Vec -> IO Vec
 vecLog_ v = chk0 $ vecLog' v

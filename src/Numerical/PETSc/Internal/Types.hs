@@ -47,6 +47,19 @@ type MatConst = CInt
 
 
 
+
+
+
+-- | shortcut synonyms
+
+type Scalar = PetscScalar_
+
+
+
+
+
+
+
 -- | newtypes
 
 newtype PetscBool = PetscBool (Ptr PetscBool) deriving Show

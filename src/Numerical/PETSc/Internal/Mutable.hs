@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.Petsc.Internal.Mutable
@@ -14,9 +15,14 @@ module Numerical.PETSc.Internal.Mutable where
 import Control.Concurrent.MVar
 import Control.Concurrent.STM
 
+import Control.Monad
+import Control.Monad.ST (runST, ST)
+
+import Data.IORef
+import Foreign.Storable
 
 
-
+  
 
 
 
