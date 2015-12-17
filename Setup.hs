@@ -1,43 +1,50 @@
-module Main where
-
 import Data.Maybe (fromJust)
 
 import Distribution.Simple
+-- import Distribution.Simple.UserHooks (buildHook)
 import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.Setup
 import Distribution.Simple.Utils
 -- import Distribution.Simple.BuildPaths
+import Distribution.Verbosity (Verbosity, normal)
 import Distribution.PackageDescription (PackageDescription, BuildInfo, library, libBuildInfo, includeDirs, extraLibDirs, extraLibs)
 
 import Control.Monad
 
-import Data.String
-import qualified Data.ByteString.Lazy.Char8 as BS
+-- import Data.String
+import Data.Char (toLower)
 
 import System.Cmd
 import System.Directory
-import System.FilePath ((</>), splitPath)
+import System.FilePath -- ((</>), splitPath)
 import System.Exit ( ExitCode(..) )
 
 
 
 
+-- | dependencies model
+
+data VerN = VerN { verN :: [Int] } deriving Eq
+instance Show VerN where
+  show = showVerN 
+
+showVerN = intercalate "." . map show . verN
 
 
+data DepName = Petsc | Slepc deriving (Eq)
+instance Show DepName where
+  show Petsc = "petsc"
+  show Slepc = "slepc"
 
+data Dep = Dep DepName VerN deriving Eq
+instance Show Dep where
+  show = showDep
 
+showDep :: Dep -> String
+showDep (Dep s n) = show s ++ "-" ++ show n
 
+mkDep d nn = Dep d (VerN nn)
 
-
-
-
-
-addIncludes, addExtraLibs, addLibs :: 
-  PackageDescription -> [FilePath] -> PackageDescription
-addIncludes pd = addDirWrapper pd appendIncludeDirs
-addExtraLibs pd = addDirWrapper pd appendExtraLibs
-addLibs pd = addDirWrapper pd appendLibs
-  
 
 
 
@@ -62,6 +69,15 @@ myCleanHook pd _ uh cf = return ()
 
 -- | utils
 
+isDirectory :: FilePath -> Bool
+isDirectory = hasTrailingPathSeparator
+
+addIncludes, addExtraLibs, addLibs :: 
+  PackageDescription -> [FilePath] -> PackageDescription
+addIncludes pd = addDirWrapper pd appendIncludeDirs
+addExtraLibs pd = addDirWrapper pd appendExtraLibs
+addLibs pd = addDirWrapper pd appendLibs
+  
 
 
 
