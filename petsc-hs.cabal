@@ -17,6 +17,10 @@ source-repository head
   type:     git
   location: https://github.com/ocramz/petsc-hs.git 
 
+flag usePkgConfig
+  description:  Use pkg-config to check for lib. dependencies
+  default: True
+
 library
   exposed-modules:     Numerical.PETSc, Numerical.PETSc.Test
   other-modules:       Numerical.PETSc.Internal.Exception

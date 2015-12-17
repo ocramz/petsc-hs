@@ -21,29 +21,25 @@ import System.Exit ( ExitCode(..) )
 
 
 
+-- | BUILD SEQUENCE :
 
--- | dependencies model
+-- | 1) dependencies :
 
-data VerN = VerN { verN :: [Int] } deriving Eq
-instance Show VerN where
-  show = showVerN 
+-- | check if either already installed, if not see 1.1) and/or 1.2), otherwise skip to 2)
 
-showVerN = intercalate "." . map show . verN
+-- | 1.1) PETSc
+-- -- configure
+-- -- make
+
+-- | 1.2) SLEPc
+-- -- configure
+-- -- make
 
 
-data DepName = Petsc | Slepc deriving (Eq)
-instance Show DepName where
-  show Petsc = "petsc"
-  show Slepc = "slepc"
+-- | 2) inline-c pass
 
-data Dep = Dep DepName VerN deriving Eq
-instance Show Dep where
-  show = showDep
 
-showDep :: Dep -> String
-showDep (Dep s n) = show s ++ "-" ++ show n
 
-mkDep d nn = Dep d (VerN nn)
 
 
 
@@ -60,6 +56,47 @@ main = defaultMainWithHooks simpleUserHooks
 myBuildHook pkgDescr localBuildInfo userHooks buildFlags= return ()
 
 myCleanHook pd _ uh cf = return ()
+
+
+
+
+
+
+
+-- | dependencies model
+
+data VerN = VerN { verN :: [Int] } deriving Eq
+instance Show VerN where
+  show = showVerN 
+
+showVerN :: VerN -> String
+showVerN = intercalate "." . map show . verN
+
+
+data DepName = Petsc | Slepc deriving (Eq)
+instance Show DepName where
+  show Petsc = "petsc"
+  show Slepc = "slepc"
+
+data Dep = Dep DepName VerN deriving Eq
+mkDep d nn = Dep d (VerN nn)
+
+instance Show Dep where
+  show = showDep
+
+showDep :: Dep -> String
+showDep (Dep s n) = show s ++ "-" ++ show n
+
+
+
+
+-- | currently supported
+
+petsc, slepc :: Dep 
+petsc = mkDep Petsc [3,6,2]
+slepc = mkDep Slepc [3,6,1]
+
+
 
 
 
