@@ -32,7 +32,7 @@ type PetscError_ = CInt
 
 type PetscInt_ = CInt
 type PetscBool_ = Bool
-type PetscScalar_ = CDouble  -- | FIXME : what abt complex-scalar PETSc build?
+type PetscScalar_ = CDouble  -- | FIXME : what abt complex-scalar PETSc builds?
 type PetscReal_ = CDouble
 
 type MatConst = CInt
@@ -792,8 +792,9 @@ data EpsWhich_ =
   LargestMag | SmallestMag | LargestReal | SmallestReal | LargestImag | SmallestImag
   | TargetMag | TargetReal | TargetImag | EpsWhichAll | EpsWhichUser deriving (Eq, Show, Enum)
 
-epsWhichToInt LargestMag = 1
-epsWhichToInt x = fromEnum (x :: EpsWhich_)
+epsWhichToInt :: EpsWhich_ -> Int
+epsWhichToInt x = 1 + fromEnum (x :: EpsWhich_)
+
 
 
 

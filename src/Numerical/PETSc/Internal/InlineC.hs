@@ -38,8 +38,13 @@ import qualified Data.Vector.Storable.Mutable      as VM
 
 import           System.IO.Unsafe                  (unsafePerformIO)
 
+
+-- | Haskell-C type map
+
 context petscCtx
 
+
+-- | PETSc headers
 C.include "<petscsnes.h>"
 C.include "<petsctao.h>"
 C.include "<petscdm.h>"
@@ -50,7 +55,7 @@ C.include "<petscviewer.h>"
 C.include "<petscviewerhdf5.h>"
 C.include "<petscsys.h>"
 
--- | SLEPc imports
+-- | SLEPc headers
 C.include "<slepceps.h>"
 C.include "<slepcsvd.h>"
 
