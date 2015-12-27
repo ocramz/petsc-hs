@@ -31,8 +31,8 @@ import GHC.ForeignPtr
 import Foreign.Storable (Storable, peekElemOff, pokeElemOff)
 
 
-import qualified Data.Vector.Storable as V
-import Data.Vector.Storable (unsafeWith)
+import qualified Data.Vector.Storable as VS
+-- import Data.Vector.Storable (unsafeWith)
 import qualified Data.Vector.Storable.Mutable as VM
 
 -- import Control.Monad.Primitive -- for V.copy
@@ -94,10 +94,10 @@ thenST :: ST s a -> (a -> ST s b) -> ST s b
 
 --
 
-modifyV0 :: Storable a => V.Vector a -> (a -> a) -> V.Vector a
+modifyV0 :: Storable a => VS.Vector a -> (a -> a) -> VS.Vector a
 modifyV0 v f = runST $ do
   x <- newSTRef v
-  modifySTRef x (V.map f)
+  modifySTRef x (VS.map f)
   readSTRef x
 
 
@@ -150,25 +150,25 @@ instance Monad m => Monad (StateT s m) where
 
 
 {-# INLINE ioReadV #-}
-ioReadV :: Storable t => V.Vector t -> Int -> IO t
-ioReadV v k = unsafeWith v $ \s -> peekElemOff s k
+ioReadV :: Storable t => VS.Vector t -> Int -> IO t
+ioReadV v k = VS.unsafeWith v $ \s -> peekElemOff s k
 
 {-# INLINE ioWriteV #-}
-ioWriteV :: Storable t => V.Vector t -> Int -> t -> IO ()
-ioWriteV v k x = unsafeWith v $ \s -> pokeElemOff s k x
+ioWriteV :: Storable t => VS.Vector t -> Int -> t -> IO ()
+ioWriteV v k x = VS.unsafeWith v $ \s -> pokeElemOff s k x
 
-newtype STVector s t = STVector (V.Vector t)
+newtype STVector s t = STVector (VS.Vector t)
 
-runSTVector :: Storable t => (forall s . ST s (STVector s t)) -> V.Vector t
+runSTVector :: Storable t => (forall s . ST s (STVector s t)) -> VS.Vector t
 runSTVector st = runST (st >>= unsafeFreezeVector)
 
 
 
 
-thawVector :: Storable t => V.Vector t -> ST s (STVector s t)
+thawVector :: Storable t => VS.Vector t -> ST s (STVector s t)
 thawVector = unsafeIOToST . fmap STVector . cloneVector
 
-unsafeThawVector :: Storable t => V.Vector t -> ST s (STVector s t)
+unsafeThawVector :: Storable t => VS.Vector t -> ST s (STVector s t)
 unsafeThawVector = unsafeIOToST . return . STVector
 
 
@@ -185,7 +185,7 @@ unsafeWriteVector  (STVector x) k = unsafeIOToST . ioWriteV x k
 -- modifyVector :: (Storable t) => STVector s t -> Int -> (t -> t) -> ST s ()
 -- modifyVector x k f = readVector x k >>= return . f >>= unsafeWriteVector x k
 
-liftSTVector :: (Storable t) => (V.Vector t -> a) -> STVector s t -> ST s a
+liftSTVector :: (Storable t) => (VS.Vector t -> a) -> STVector s t -> ST s a
 liftSTVector f (STVector x) = (unsafeIOToST . fmap f . cloneVector) x
 
 
@@ -194,7 +194,7 @@ liftSTVector f (STVector x) = (unsafeIOToST . fmap f . cloneVector) x
 -- freezeVector :: (Storable t) => STVector s t -> ST s (Vector t)
 -- freezeVector v = liftSTVector id v
 
-unsafeFreezeVector :: (Storable t) => STVector s t -> ST s (V.Vector t)
+unsafeFreezeVector :: (Storable t) => STVector s t -> ST s (VS.Vector t)
 unsafeFreezeVector (STVector x) = unsafeIOToST . return $ x
 
 {-# INLINE safeIndexV #-}
@@ -221,9 +221,9 @@ safeIndexV f (STVector v) k
 newVector :: Storable t => t -> Int -> ST s (STVector s t)
 newVector x n = do
     v <- newUndefinedVector n
-    let go (-1) = return v
-        go !k = unsafeWriteVector v k x >> go (k-1 :: Int)
-    go (n-1)
+    let gox (-1) = return v
+        gox !k = unsafeWriteVector v k x >> gox (k-1 :: Int)
+    gox (n-1)
 
 newUndefinedVector :: Storable t => Int -> ST s (STVector s t)
 newUndefinedVector = unsafeIOToST . fmap STVector . createVector

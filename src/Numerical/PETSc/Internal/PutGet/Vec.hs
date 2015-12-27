@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes, FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes, FlexibleContexts, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.PutGet.Vec
@@ -18,6 +18,7 @@ import           Numerical.PETSc.Internal.Exception
 import           Numerical.PETSc.Internal.Utils
 
 import           Numerical.PETSc.Internal.Storable.Vector
+import           Numerical.PETSc.Internal.Storable.Class
 
 import           Foreign
 -- import           Foreign.ForeignPtr.Unsafe
@@ -74,24 +75,14 @@ For a given Vec; what stays constant is:
 
 
 
--- class Num a => Vector0 a where
---   createV :: IO Vec
---   getV :: Vec -> VS.Vector a
---   putV :: Vec -> VS.Vector a -> IO ()
---   withV :: Vec -> (Vec -> IO a) -> IO a 
-
-class Monad m => Mng a b m where   -- what is this?
-  createA :: m a
-  getA :: a -> m b
-  putA :: a -> b -> m ()
-  withA :: a -> (a -> m b) -> m b
-  deleteA :: a -> m ()
 
 
 
 
 
 -- -- --- 
+
+
 
 -- data PetscVector = PetscVector { vec     :: !Vec,
 --                                  vecInfo :: !VecInfo }
@@ -103,9 +94,10 @@ data VecInfo = VecInfo
   vecInfoSizeLocal :: !Int ,
   vecInfoSizeGlobal :: !Int } deriving (Eq, Show)
 
--- data VectorData a = VectorData
---                     {vecIdxs :: !(V.Vector Int),
---                      vecDataEntries :: !(V.Vector a)} deriving (Eq, Show)
+data PVector = PVector VecInfo Vec (V.Vector Scalar)
+
+instance StorableContainer Vec IO (V.Vector Scalar) where
+
 
 -- Q : how do we carry data-on-mesh ?
 -- 1 -- data VectorData a = VectorData !(V.Vector (Int, a))
@@ -114,33 +106,9 @@ data VecInfo = VecInfo
 
 
 
-data PVector a = PVector !Vec !(V.Vector a)
-
-instance (Storable a, Show a) => Show (PVector a) where
-  show (PVector v a) = show a
-
--- instance Num a => Num (V.Vector a) where
---   (+) = V.zipWith (+)
---   (-) = V.zipWith (-)
---   (*) = V.zipWith (*)
---   abs = V.map abs
---   signum = V.map signum
---   fromInteger = undefined
-
-
--- type ScalarVector = PVector PetscScalar_
 
 
 
-
--- | "fmap" for PVector
-
--- fVdata f (PVector vec vdata) = PVector vec (f vdata)
--- fVec f (PVector vec vdata) = PVector (f vec) vdata
-
--- | "bind" for PVector (?!)
-
--- bindPV :: Monad m => m (PVector a) -> (a -> m (PVector b)) -> m (PVector b)
 
 
 
@@ -169,18 +137,7 @@ instance (Storable a, Show a) => Show (PVector a) where
 --   lift $ release _k
 --   return x
 
-vdestroy :: PVector PetscScalar_ -> IO ()
-vdestroy (PVector v _) = 
-  vecDestroy v
 
-vcmpi ::
-  Comm -> V.Vector PetscScalar_ -> IO (PVector PetscScalar_) -- Vector -> create Vec
-vcmpi comm vdata = do
-     x <- vecCreateMPIFromVector comm n vdata
-     return $ PVector x vdata
-       where n = V.length vdata
-
--- vcmpo :: ScalarVector -> IO (V.Vector PetscScalar_)   -- inverse sync
 
 
 
@@ -696,6 +653,9 @@ modifyVec v f = do
   -- vecRestoreVector v y
 
 
+
+
+
 -- | PETSc Vec <-> IOVector
 
 vecGetIOVector :: Vec -> IO ( VM.IOVector PetscScalar_ )
@@ -707,6 +667,18 @@ vecRestoreIOVector :: Vec -> VM.IOVector PetscScalar_  -> IO ()
 vecRestoreIOVector v iov = do
   x <- fromMutableV iov
   vecRestoreVector v x
+
+
+
+
+
+data V = V Vec
+
+-- instance Num V where
+
+
+
+
 
 
 
