@@ -2154,6 +2154,14 @@ snesSetFunction_' snes r f =
 --     f' s a _ = f s a
 
 
+-- PetscErrorCode  SNESComputeFunction(SNES snes,Vec x,Vec y)
+-- Collective on SNES
+-- Input Parameters :
+-- snes	- the SNES context
+-- x	- input vector
+-- Output Parameter :
+-- y -function vector, as set by SNESSetFunction() 
+
 
     
 
@@ -2285,6 +2293,11 @@ snesGetLineSearch' snes =
 
 
 
+-- PetscErrorCode SNESSetLineSearch(SNES snes, SNESLineSearch linesearch)
+snesSetLineSearch' snes ls = [C.exp|int{SNESSetLineSearch($(SNES snes),$(SNESLineSearch ls))}|]
+
+
+
 -- PetscErrorCode  SNESLineSearchSetPostCheck(SNESLineSearch linesearch, PetscErrorCode (*func)(SNESLineSearch,Vec,Vec,Vec,PetscBool*,PetscBool*,void*),void *ctx)
 -- Sets a user function that is called after the line search has been applied to determine the step direction and length. Allows the user a chance to change or override the decision of the line search routine  -- Logically Collective on SNESLineSearch
 -- Input Parameters :
@@ -2318,6 +2331,42 @@ snesLineSearchSetPostCheck0' snesls f =
 
 
                    -- $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
+
+
+-- PetscErrorCode  SNESLineSearchSetTolerances(SNESLineSearch linesearch,PetscReal steptol,PetscReal maxstep, PetscReal rtol, PetscReal atol, PetscReal ltol, PetscInt max_its)
+snesLineSearchSetTolerances' ls steptol maxstep rtol atol ltol maxits = [C.exp|int{SNESLineSearchSetTolerances($(SNESLineSearch ls),$(PetscReal steptol),$(PetscReal maxstep),$(PetscReal rtol),$(PetscReal atol),$(PetscReal ltol),$(int mi))}|] where
+  mi = toCInt maxits
+-- Input Parameters :
+-- linesearch	- linesearch context
+-- steptol	- The minimum steplength
+-- maxstep	- The maximum steplength
+-- rtol	- The relative tolerance for iterative line searches
+-- atol	- The absolute tolerance for iterative line searches
+-- ltol	- The change in lambda tolerance for iterative line searches
+-- max_it	- The maximum number of iterations of the line search
+-- Notes :
+-- The user may choose to not set any of the tolerances using PETSC_DEFAULT in place of an argument.
+
+
+
+-- PetscErrorCode  SNESLineSearchGetLambda(SNESLineSearch linesearch,PetscReal *lambda)
+snesLineSearchGetLambda' ls = withPtr $ \lam -> [C.exp|int{SNESLineSearchGetLambda($(SNESLineSearch ls), $(PetscReal* lam))}|]
+-- Input Parameters :
+-- linesearch -linesearch context 
+-- Output Parameters :
+-- lambda -The last steplength computed during SNESLineSearchApply() 
+-- Notes :
+-- This is useful in methods where the solver is ill-scaled and requires some adaptive notion of the difference in scale between the solution and the function. For instance, SNESQN may be scaled by the line search lambda using the argument -snes_qn_scaling ls.
+
+-- PetscErrorCode  SNESLineSearchSetLambda(SNESLineSearch linesearch, PetscReal lambda)
+snesLineSearchSetLambda' ls lam = [C.exp|int{SNESLineSearchSetLambda($(SNESLineSearch ls), $(PetscReal lam))}|]
+-- Input Parameters :
+-- linesearch	- linesearch context
+-- lambda	- The last steplength.
+-- Notes :
+-- This routine is typically used within implementations of SNESLineSearchApply() to set the final steplength. This routine (and SNESLineSearchGetLambda()) were added in order to facilitate Quasi-Newton methods that use the previous steplength as an inner scaling parameter.
+
+
 
 
 

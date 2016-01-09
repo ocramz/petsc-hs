@@ -10,10 +10,6 @@
 -- | Storable classes
 --
 -----------------------------------------------------------------------------
-{-|
-
--}
-
 module Numerical.PETSc.Internal.Storable.Class where
 
 import Control.Monad
@@ -48,6 +44,18 @@ instance StorableContainer Vec IO a where
   type PObjInfo Vec = VecInfo
   type PObjLocal Vec a = V.Vector a
 -}
+
+-- class Storable p => StorableContainer p a where
+--   type SCInfo p 
+--   type SCLocal a
+--   type SCRemote p
+--   initP :: SCInfo p -> IO (SCRemote p)
+--   updateH :: SCRemote p -> IO (SCLocal a)
+--   updateP :: SCRemote p -> SCLocal a -> IO ()
+--   withP :: SCRemote p -> (SCLocal a -> IO b) -> IO b
+--   destroyP :: SCRemote p -> IO ()
+
+
 
 
 

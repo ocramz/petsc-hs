@@ -96,7 +96,20 @@ data VecInfo = VecInfo
 
 data PVector = PVector VecInfo Vec (V.Vector Scalar)
 
-instance StorableContainer Vec IO (V.Vector Scalar) where
+class (Storable p, Monad m) => StorableContainer p m a where
+  type SCInfo p 
+  type SCLocal a
+  initP :: SCInfo p -> m p
+  updateH :: p -> m (SCLocal a)
+  updateP :: p -> SCLocal a -> m ()
+  withP :: p -> (SCLocal a -> m b) -> m b
+  destroyP :: p -> m ()
+
+-- instance StorableContainer Vec IO (V.Vector Scalar) where
+--   type SCInfo Vec = VecInfo
+--   type SCLocal (V.Vector Scalar) = V.Vector Scalar
+--   initP = vecCreateMPIInfo
+--   -- updateH = vecGetVector
 
 
 -- Q : how do we carry data-on-mesh ?

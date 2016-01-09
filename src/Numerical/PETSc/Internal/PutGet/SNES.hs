@@ -175,6 +175,24 @@ snesComputeJacobianDefault0 snes x j b ctx =
 
 -- | tamper with SNES line search
 
+snesGetLineSearch :: SNES -> IO SNESLineSearch
+snesGetLineSearch snes = chk1 (snesGetLineSearch' snes)
+
+snesSetLineSearch :: SNES -> SNESLineSearch -> IO ()
+snesSetLineSearch snes ls = chk0 (snesSetLineSearch' snes ls)
+
+snesLineSearchSetTolerances ::
+  SNESLineSearch ->
+  PetscReal_ ->
+  PetscReal_ ->
+  PetscReal_ ->
+  PetscReal_ ->
+  PetscReal_ ->
+  Int ->
+  IO ()
+snesLineSearchSetTolerances ls steptol maxstep rtol atol ltol maxits = chk0 (snesLineSearchSetTolerances' ls steptol maxstep rtol atol ltol maxits)
+
+
 -- snesLineSearchSetPostCheck ::
 --   SNESLineSearch ->
 --     (SNESLineSearch ->
@@ -188,10 +206,17 @@ snesComputeJacobianDefault0 snes x j b ctx =
 --     IO ()
 snesLineSearchSetPostCheck sls f =
   chk0 (snesLineSearchSetPostCheck0' sls f) 
+
+
+
+
+-- | linesearch steplength parameter `lambda`
   
+snesLineSearchGetLambda :: SNESLineSearch -> IO PetscReal_
+snesLineSearchGetLambda ls = chk1 (snesLineSearchGetLambda' ls)
 
-
-      
+snesLineSearchSetLambda :: SNESLineSearch -> PetscReal_ -> IO ()
+snesLineSearchSetLambda ls lambda = chk0 (snesLineSearchSetLambda' ls lambda)
       
 
 
