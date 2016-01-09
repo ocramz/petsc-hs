@@ -141,6 +141,12 @@ snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r f
   --  g = wrapCb3 f
 
 
+-- NB : modifies second Vec argument
+snesComputeFunction :: SNES -> Vec -> Vec -> IO ()
+snesComputeFunction snes x y = chk0 $ snesComputeFunction' snes x y
+
+
+
 
 -- callback really means : SNES -> Vec -> IO Vec
 

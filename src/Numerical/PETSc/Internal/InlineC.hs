@@ -2161,7 +2161,7 @@ snesSetFunction_' snes r f =
 -- x	- input vector
 -- Output Parameter :
 -- y -function vector, as set by SNESSetFunction() 
-
+snesComputeFunction' snes x y = [C.exp|int{SNESComputeFunction($(SNES snes),$(Vec x),$(Vec y))}|]
 
     
 
