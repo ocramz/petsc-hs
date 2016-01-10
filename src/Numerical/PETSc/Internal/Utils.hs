@@ -24,6 +24,7 @@ import Control.Monad
 import Control.Arrow
 
 -- import GHC.Arr -- Ix
+import qualified Data.Ix as Ix
 import qualified Data.Vector as V
 
 
@@ -74,6 +75,8 @@ qsort (x:xs) = qsort l ++ [x] ++ qsort r where
 
 
 
+-- * error control
+
 (~!~), (~?~) :: Monad m => Bool -> String -> m ()
 c ~!~ es = when c (error es)
 
@@ -94,6 +97,8 @@ assertWithStringM c es f = do
 
 
 
+-- * conditionals
+
 ifThenElse :: Bool -> a -> a -> a
 ifThenElse q i e
   | q = i
@@ -107,8 +112,20 @@ ifThenElseE q a b
 
 
 
+-- * indexing and integer ranges, Data.Ix derived
 
--- indexing
+range0, range0Safe :: (Ix.Ix a, Num a) => a -> [a]
+range0 m = Ix.range (0, m)
+
+range0Safe m | m>=0 = range0 m
+             | otherwise = error "range0Safe : m must be >= 0"
+
+
+
+
+
+
+-- * indexing
 
 ifNegE :: (Ord a, Num a) => a -> b -> c -> Either b c 
 ifNegE n = ifThenElseE (n<0)
@@ -143,6 +160,8 @@ inBounds' = flip inBounds
 
 inBounds :: Ord a => a -> (a, a) -> Bool
 inBounds !n !(a,b) = n >= a && n <= b
+
+
 
 in0m :: Int -> Int -> Bool
 in0m m i = i >= 0 && i < m
@@ -186,6 +205,9 @@ inBoundsUnsortedList lx (x1, x2)
 
 extremaUnsortedList lx = (head lxs, last lxs) where
   lxs = qsort lx
+
+
+
 
 
 

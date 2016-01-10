@@ -20,6 +20,8 @@ import           Numerical.PETSc.Internal.Utils
 import           Numerical.PETSc.Internal.Storable.Vector
 import           Numerical.PETSc.Internal.Storable.Class
 
+import qualified Data.Ix as Ix (range)
+
 import           Foreign
 -- import           Foreign.ForeignPtr.Unsafe
 import           Foreign.C.Types
@@ -485,7 +487,7 @@ vecSetValuesUnsafeVector1A v ixy im = do
 vecCreateMPIFromVector :: Comm -> Int -> V.Vector PetscScalar_ -> IO Vec
 vecCreateMPIFromVector comm nloc w = do
   let dimv = V.length w
-      ix = V.fromList [0 .. dimv - 1]
+      ix = V.fromList $ range0 (dimv - 1)
   v <- vecCreateMPI comm nloc dimv
   vecSetValuesUnsafeVector v ix w InsertValues
   vecAssemblyChk v
@@ -494,13 +496,17 @@ vecCreateMPIFromVector comm nloc w = do
 vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
 vecCreateMPIFromVectorDecideLocalSize comm w = do
   let dimv = V.length w
-      ix = V.fromList [0 .. dimv - 1]
+      ix = V.fromList $ range0 (dimv - 1)
   v <- vecCreateMPIdecideLocalSize comm dimv
   vecSetValuesUnsafeVector v ix w InsertValues
   vecAssemblyChk v
   return v
+ 
 
-  
+
+
+
+
 
 
 

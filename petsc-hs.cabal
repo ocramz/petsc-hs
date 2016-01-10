@@ -17,13 +17,13 @@ source-repository head
   type:     git
   location: https://github.com/ocramz/petsc-hs.git 
 
-flag usePkgConfig
-  description:  Use pkg-config to check for lib. dependencies
-  default: True
+-- flag usePkgConfig
+--   description:  Use pkg-config to check for lib. dependencies
+--   default: True
 
-flag complexScalars
-  description: Default PetscScalar to (Complex CDouble)
-  default: False
+-- flag complexScalars
+--   description: Default PetscScalar to (Complex CDouble)
+--   default: False
 
 
 library
@@ -72,7 +72,7 @@ library
                        prelude-extras,
                        void,
                        MonadRandom,
-                       managed > 1.0,
+                       managed,
                        storable-complex,
                        split
   hs-source-dirs:      src/
@@ -107,7 +107,7 @@ executable petsc-example
                        prelude-extras,
                        void,
                        MonadRandom,
-                       managed > 1.0,
+                       managed,
                        storable-complex,
                        split
   default-language:    Haskell2010
