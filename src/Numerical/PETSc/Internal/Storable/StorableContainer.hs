@@ -1,16 +1,16 @@
 {-# LANGUAGE MultiParamTypeClasses, TypeFamilies, RankNTypes #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.PETSc.Internal.Storable.Class
+-- Module      :  Numerical.PETSc.Internal.Storable.StorableContainer
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  zocca . marco . gmail . com
 -- Stability   :  experimental
 --
--- | Storable classes
+-- | Storable container class
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Internal.Storable.Class where
+module Numerical.PETSc.Internal.Storable.StorableContainer where
 
 import Control.Monad
 
@@ -45,28 +45,28 @@ instance StorableContainer Vec IO a where
   type PObjLocal Vec a = V.Vector a
 -}
 
--- class Storable p => StorableContainer p a where
---   type SCInfo p 
---   type SCLocal a
---   type SCRemote p
---   initP :: SCInfo p -> IO (SCRemote p)
---   updateH :: SCRemote p -> IO (SCLocal a)
---   updateP :: SCRemote p -> SCLocal a -> IO ()
---   withP :: SCRemote p -> (SCLocal a -> IO b) -> IO b
---   destroyP :: SCRemote p -> IO ()
+class Storable p => StorableContainer p where
+  type SCInfo p 
+  type SCLocal p
+  type SCRemote p
+  initRemote :: SCInfo p -> IO (SCRemote p)
+  updateLocal :: SCRemote p -> IO (SCLocal p)
+  updateRemote :: SCRemote p -> SCLocal p -> IO ()
+  withRemote :: SCRemote p -> (SCLocal p -> IO b) -> IO b
+  destroyRemote :: SCRemote p -> IO ()
 
 
 
 
 
-class (Monad m, Storable r) => ManagedContainer m r where
-  type MCInfo r
-  type MCLocalType r
-  manageP :: MCInfo r -> (MCInfo r -> IO r) -> (r -> IO a) -> Managed r
-  manageP info get set = managed (bracket (get info) set)
+-- class (Monad m, Storable r) => ManagedContainer m r where
+--   type MCInfo r
+--   type MCLocalType r
+--   manageP :: MCInfo r -> (MCInfo r -> IO r) -> (r -> IO a) -> Managed r
+--   manageP info get set = managed (bracket (get info) set)
 
 
-asdf info get set = managed (bracket (get info) set)
+-- asdf info get set = managed (bracket (get info) set)
 
 
 -- withSizeArray :: (Storable a, Integral a) => [a] -> (Ptr CULong -> IO b) -> IO b

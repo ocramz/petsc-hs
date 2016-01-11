@@ -18,7 +18,7 @@ import           Numerical.PETSc.Internal.Exception
 import           Numerical.PETSc.Internal.Utils
 
 import           Numerical.PETSc.Internal.Storable.Vector
-import           Numerical.PETSc.Internal.Storable.Class
+import           Numerical.PETSc.Internal.Storable.StorableContainer
 
 import qualified Data.Ix as Ix (range)
 
@@ -98,14 +98,17 @@ data VecInfo = VecInfo
 
 data PVector = PVector VecInfo Vec (V.Vector Scalar)
 
-class (Storable p, Monad m) => StorableContainer p m a where
-  type SCInfo p 
-  type SCLocal a
-  initP :: SCInfo p -> m p
-  updateH :: p -> m (SCLocal a)
-  updateP :: p -> SCLocal a -> m ()
-  withP :: p -> (SCLocal a -> m b) -> m b
-  destroyP :: p -> m ()
+
+instance StorableContainer Vec where
+  type SCInfo Vec = VecInfo
+  type SCLocal Vec = VS.Vector PetscScalar_
+  type SCRemote Vec = Vec
+  initRemote = vecCreateMPIInfo
+  updateLocal = vecGetVector
+  updateRemote = vecRestoreVector
+  withRemote v = bracket (vecGetVector v) (vecRestoreVector v)
+  destroyRemote = vecDestroy
+
 
 -- instance StorableContainer Vec IO (V.Vector Scalar) where
 --   type SCInfo Vec = VecInfo
