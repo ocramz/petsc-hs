@@ -12,6 +12,9 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Types where
 
+import Numerical.PETSc.Internal.Utils
+import Numerical.PETSc.Internal.Storable.StorableContainer
+
 import Data.Complex
 import Foreign.Storable.Complex
 
@@ -20,7 +23,7 @@ import Foreign.Ptr
 import Foreign.C.Types
 import Foreign.Storable
 
-import Numerical.PETSc.Internal.Utils 
+
 
 
 
@@ -210,6 +213,10 @@ data ISColoringType_ = ISColoringGlobal | ISColoringGhosted deriving (Eq, Show, 
 isColoringTypeToInt x = fromEnum (x :: ISColoringType_)
 
 
+
+
+
+
 -- * Vec
 
 data VecNorm_ = VecNorm1 | VecNorm2 | VecNormFrobenius | VecNormInfty
@@ -217,6 +224,17 @@ data VecNorm_ = VecNorm1 | VecNorm2 | VecNormFrobenius | VecNormInfty
               deriving (Eq, Enum, Show)
 
 vecNormToInt x = fromEnum (x :: VecNorm_ )
+
+
+
+
+
+
+
+
+
+
+
 
 
 

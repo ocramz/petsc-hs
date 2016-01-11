@@ -91,13 +91,14 @@ For a given Vec; what stays constant is:
 
 data PetscVector = PetscVector !VecInfo Vec
 
+
+
+data PVector = PVector VecInfo Vec (V.Vector Scalar)
+
 data VecInfo = VecInfo 
  {vecInfoMpiComm :: Comm ,
   vecInfoSizeLocal :: !Int ,
   vecInfoSizeGlobal :: !Int } deriving (Eq, Show)
-
-data PVector = PVector VecInfo Vec (V.Vector Scalar)
-
 
 instance StorableContainer Vec where
   type SCInfo Vec = VecInfo
@@ -108,6 +109,8 @@ instance StorableContainer Vec where
   updateRemote = vecRestoreVector
   withRemote v = bracket (vecGetVector v) (vecRestoreVector v)
   destroyRemote = vecDestroy
+
+
 
 
 -- instance StorableContainer Vec IO (V.Vector Scalar) where
