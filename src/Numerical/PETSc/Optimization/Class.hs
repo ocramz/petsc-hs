@@ -13,8 +13,13 @@
 module Numerical.PETSc.Optimization.Class where
 
 
+-- | objective function, most general case
+-- NB : `x` should have additional structure
+
 class Optimize x where
   objective :: x -> Float
 
-class Optimize x => ObjGradient x where
-  objGrad :: (x -> Float) -> x -> Float
+
+-- class Optimize x => ObjGradient x where
+--   objGrad :: (x -> Float) -> x -> Float
+
