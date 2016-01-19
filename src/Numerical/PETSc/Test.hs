@@ -444,6 +444,6 @@ t15 = withSlepc0 t15'
 
 -- | StorableContainer
 
-t16' = do
-  let vinfo = VecInfo commWorld 5 5
-  v <- initRemote vinfo
+-- t16' = do
+--   let vinfo = VecInfo commWorld 5 5
+--   v <- initRemote vinfo

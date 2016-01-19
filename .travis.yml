@@ -5,7 +5,7 @@ sudo:
 # # # Choose a lightweight base image (C); we provide our own build tools.
 
 language: 
-  c
+  c 
 
 
 # # # The different configurations we want to test. You could also do things like
