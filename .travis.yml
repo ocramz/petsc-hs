@@ -52,6 +52,10 @@ before_install:
   - export PETSC_VERSION=3.6.2
   - export SLEPC_VERSION=3.6.1
 
+  # # # stack args e.g. Stackage LTS version
+  - export STACK_ARGS=""
+
+  # # # check env
   - echo $HOME
   - printenv | grep PETSC
   - printenv | grep SLEPC
@@ -86,19 +90,6 @@ before_install:
 
 
 
-  # # # ARE THE DEPS INSTALLED ?
-
-  - pwd
-
-  - cd $PETSC_DIR
-  - pwd
-  - ls -lsA 
-  - cd ..
-
-  - ls -lsA $SLEPC_DIR
-
-
-
   # Download and unpack the `stack` executable :
 
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
@@ -116,13 +107,16 @@ before_install:
 
 script: 
 
+  - stack build $STACK_ARGS --no-terminal --install-ghc --extra-include-dirs=$PETSC_INCLUDE1 --extra-include-dirs=$PETSC_INCLUDE2 --extra-include-dirs=$SLEPC_INCLUDE1 --extra-include-dirs=$SLEPC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB --extra-lib-dirs=$SLEPC_LIB
+
+
   # bash script-based:
-  - ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
+  #- ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
 
 
   # let's see if stack tells the truth, after which `stack path` 
   # and `stack exec petsc-example` shd work :
-  - stack setup
+  # - stack setup
 
   # # where is the petsc-example binary? 
   - stack path
