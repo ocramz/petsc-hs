@@ -2,11 +2,10 @@
 sudo: 
   false
 
-# # # Choose a lightweight base image (C); we provide our own build tools.
+# # # A lightweight base image (C); we provide our own build tools.
 
 language: 
   c 
-
 
 # # # The different configurations we want to test. You could also do things like
 # # # change flags or use --stack-yaml to point to a different file.
@@ -53,7 +52,7 @@ before_install:
   - export SLEPC_VERSION=3.6.1
 
   # # # stack args e.g. Stackage LTS version
-  - export STACK_ARGS=""
+  # - export STACK_ARGS=""
 
   # # # check env
   - echo $HOME
@@ -109,9 +108,6 @@ script:
 
   - stack build $STACK_ARGS --no-terminal --install-ghc --extra-include-dirs=$PETSC_INCLUDE1 --extra-include-dirs=$PETSC_INCLUDE2 --extra-include-dirs=$SLEPC_INCLUDE1 --extra-include-dirs=$SLEPC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB --extra-lib-dirs=$SLEPC_LIB
 
-
-  # bash script-based:
-  #- ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
 
 
   # let's see if stack tells the truth, after which `stack path` 
