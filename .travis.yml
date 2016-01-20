@@ -115,7 +115,7 @@ before_install:
 script: 
 
   # bash script-based:
-  - ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
+  - travis_retry ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
 
 
   # let's see if stack tells the truth, after which `stack path` 
