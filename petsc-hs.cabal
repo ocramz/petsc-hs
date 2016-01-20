@@ -49,7 +49,7 @@ library
                        Numerical.PETSc.Internal.PutGet.EPS
                        Numerical.PETSc.Internal.PutGet.SVD
                        Numerical.PETSc.Internal.PutGet.SlepcMisc
-  build-depends:       base >=4.7 && <=4.8.1.0,
+  build-depends:       base >=4.7,
                        template-haskell,
                        containers >=0.5 && <0.6, 
                        QuickCheck >=2.7,
@@ -83,7 +83,7 @@ library
 
 
 executable petsc-example
-  build-depends:       base >=4.7 && <=4.8.1.0,
+  build-depends:       base >=4.7,
                        petsc-hs,
                        template-haskell,
                        containers >=0.5 && <0.6, 
