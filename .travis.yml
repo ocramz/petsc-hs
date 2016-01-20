@@ -52,6 +52,8 @@ before_install:
   - export PETSC_VERSION=3.6.2
   - export SLEPC_VERSION=3.6.2
 
+  - printenv
+
 
   # # # make directories
 
