@@ -35,10 +35,10 @@ before_install:
 
   # # # environment variables : 
 
-  - export PETSC_DIR="$HOME"/petsc
+  - export PETSC_DIR="$PWD"/petsc
   - export PETSC_ARCH=arch-linux2-c-debug 
 
-  - export SLEPC_DIR="$HOME"/slepc
+  - export SLEPC_DIR="$PWD"/slepc
   - export SLEPC_ARCH=arch-linux2-c-debug 
 
   - export PETSC_INCLUDE1="$PETSC_DIR"/include/
@@ -52,7 +52,9 @@ before_install:
   - export PETSC_VERSION=3.6.2
   - export SLEPC_VERSION=3.6.1
 
-  - printenv
+  - echo $HOME
+  - printenv | grep PETSC
+  - printenv | grep SLEPC
 
 
   # # # make directories
@@ -115,7 +117,7 @@ before_install:
 script: 
 
   # bash script-based:
-  - travis_retry ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
+  - ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
 
 
   # let's see if stack tells the truth, after which `stack path` 
