@@ -110,17 +110,23 @@ script:
 
 
 
-  # let's see if stack tells the truth, after which `stack path` 
-  # and `stack exec petsc-example` shd work :
   - stack setup
+
 
   # # where is the petsc-example binary? 
   - stack path
 
+  - find . -name petsc-example
+
+
+
+  # # stack directories
   - export DIST_DIR="$(stack path --dist-dir)/build"
 
+  
+
   # # # run an example program
-  - stack exec $DIST_DIR/petsc-example
+  # - stack exec $DIST_DIR/petsc-example
 
   # # stack $ARGS --no-terminal --install-ghc test --haddock
 
