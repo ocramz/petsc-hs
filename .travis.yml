@@ -112,7 +112,7 @@ script:
 
   # let's see if stack tells the truth, after which `stack path` 
   # and `stack exec petsc-example` shd work :
-  # - stack setup
+  - stack setup
 
   # # where is the petsc-example binary? 
   - stack path
