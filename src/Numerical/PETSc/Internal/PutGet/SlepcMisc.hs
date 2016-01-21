@@ -72,16 +72,11 @@ slepcVersionString = ver ++ ", rel. " ++ date
     ver = strs!!3
     date = unwords [strs!!5, strs!!6, strs!!8]
     strs = splitOneOf ", " vstrRaw
-    vstrRaw = unsafePerformIO (slepcGetVersion 50)
-
-
-
-
-slepcGetVersion :: Int -> IO String
-slepcGetVersion l = do
-  fp <- mallocPlainForeignPtrBytes l  -- see Data.Bytestring.Internal.create
-  withForeignPtr fp $ \p -> do
-    pgv p (toCInt l)
-    peekCString p
-    where
-     pgv v sz = chk0 (slepcGetVersion0' v sz)
+    vstrRaw = unsafePerformIO $ do
+      fp <- mallocPlainForeignPtrBytes l  -- see Data.Bytestring.Internal.create
+      withForeignPtr fp $ \p -> do
+        pgv p (toCInt l)
+        peekCString p
+          where
+            pgv v sz = chk0 (slepcGetVersion0' v sz)
+            l = 50

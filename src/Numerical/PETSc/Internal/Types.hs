@@ -723,13 +723,13 @@ fileModeToInt x = fromEnum (x :: PetscFileMode_)
 data Comm = Comm {unComm :: CInt} deriving (Eq, Show)
 
 
+newtype MpiCommSize = MkMpiCommSz {unCommSize' :: Int} deriving (Eq, Show, Ord, Enum)
+newtype MpiCommRank = MkMpiCommRk {unCommRank' :: Int} deriving (Eq, Show, Ord, Enum)
+data MPIComm = MPIComm { comm :: Comm, commSize :: MpiCommSize, commRank :: MpiCommRank} deriving (Eq, Show)
 
-data MpiCommSize = MpiCommSz Int deriving (Eq, Show)
-data MpiCommRank = MpiCommRk Int deriving (Eq, Show)
-data MPIComm = MPIComm Comm MpiCommSize MpiCommRank deriving (Eq, Show)
 
 
--- -- Rank
+-- -- -- Rank
 -- newtype Rank = MkRank { rankId :: CInt -- ^ Extract numeric value of the 'Rank'
 --                       }
 --    deriving (Eq, Ord, Enum, Integral, Real, Show)

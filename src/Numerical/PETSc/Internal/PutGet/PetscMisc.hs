@@ -13,7 +13,10 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.PutGet.PetscMisc
        (
-         commWorld, commSelf, mkMPIComm, getMPICommData,
+         commWorld, commSelf,
+         commWorldC, commSelfC,
+         mkMPIComm, getMPICommSize, getMPICommRank,
+         withMPIEnv,
          petscInit0, petscInit, petscFin,
          withPetsc0, withPetsc
        )
@@ -41,16 +44,40 @@ import Control.Arrow
 import Control.Concurrent
 import Control.Exception
 
+-- import Control.Monad.Reader
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Reader
+
+import Control.Arrow ((***), (&&&))
+
+
+
+-- a monad transformer for accessing MPI environmemt information
+
+
+withMPIEnv f = runReaderT $ do
+  c <- ask
+  let
+    (cs, cr) = (getMPICommSize &&& getMPICommRank) c      
+  lift (f cs cr)
+
+
+
+
+
+
+
 -- * MPI
 
 commWorld, commSelf :: Comm
 commWorld = commWorld1
 commSelf = commSelf1
 
-commWorld' = mkMPIComm commWorld
-commSelf' = mkMPIComm commSelf
+commWorldC, commSelfC :: MPIComm
+commWorldC = mkMPIComm commWorld
+commSelfC = mkMPIComm commSelf
 
--- -- interface : mkMPIComm , getMPICommData
+-- -- interface : mkMPIComm , getMPICommRank, getMPICommSize
 
 mpiCommSize, mpiCommRank :: Comm -> Int
 mpiCommSize comm = unsafePerformIO $ liftM fi $ chk1 (mpiCommSize' comm)
@@ -58,17 +85,18 @@ mpiCommRank comm = unsafePerformIO $ liftM fi $ chk1 (mpiCommRank' comm)
 
 
 
-mkMpiCommSize comm = MpiCommSz (mpiCommSize comm)
-mkMpiCommRank comm = MpiCommRk (mpiCommRank comm)
+mkMpiCommSize comm = MkMpiCommSz (mpiCommSize comm)
+mkMpiCommRank comm = MkMpiCommRk (mpiCommRank comm)
 
 mkMPIComm :: Comm -> MPIComm
 mkMPIComm c = MPIComm c (mkMpiCommSize c) (mkMpiCommRank c)
 
-getMPICommData :: MPIComm -> (Comm, Int, Int)
-getMPICommData (MPIComm c sz rk) = (c, getMpiCommSize sz, getMpiCommRank rk)
+-- | MPICOmm accessors
+getMPICommSize, getMPICommRank :: MPIComm -> Int
+getMPICommSize = unCommSize' . commSize
+getMPICommRank = unCommRank' . commRank
 
-getMpiCommSize (MpiCommSz s) = s
-getMpiCommRank (MpiCommRk r) = r
+
 
 
 
