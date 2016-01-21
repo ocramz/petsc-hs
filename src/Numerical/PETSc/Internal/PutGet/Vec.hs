@@ -85,7 +85,6 @@ For a given Vec; what stays constant is:
 -- -- --- 
 
 
-
 -- data PetscVector = PetscVector { vec     :: !Vec,
 --                                  vecInfo :: !VecInfo }
 
@@ -100,15 +99,18 @@ data VecInfo = VecInfo
   vecInfoSizeLocal :: !Int ,
   vecInfoSizeGlobal :: !Int } deriving (Eq, Show)
 
--- instance StorableContainer Vec where
---   type SCInfo Vec = VecInfo
---   type SCLocal Vec = VS.Vector PetscScalar_
---   type SCRemote Vec = Vec
+
+
+-- instance StorableContainer Vec' where
+--   type SCInfo Vec' = VecInfo
+--   type SCLocal Vec' = VS.Vector PetscScalar_
+--   type SCRemote Vec' = Vec
 --   initRemote = vecCreateMPIInfo
 --   updateLocal = vecGetVector
 --   updateRemote = vecRestoreVector
 --   withRemote v = bracket (vecGetVector v) (vecRestoreVector v)
 --   destroyRemote = vecDestroy
+
 
 
 

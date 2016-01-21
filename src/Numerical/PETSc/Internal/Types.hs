@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeFamilies, GeneralizedNewtypeDeriving #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Types
@@ -23,8 +23,9 @@ import Foreign.Ptr
 import Foreign.C.Types
 import Foreign.Storable
 
-
-
+import qualified Data.Vector as V
+import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Generic as VG
 
 
 
@@ -224,6 +225,8 @@ data VecNorm_ = VecNorm1 | VecNorm2 | VecNormFrobenius | VecNormInfty
               deriving (Eq, Enum, Show)
 
 vecNormToInt x = fromEnum (x :: VecNorm_ )
+
+
 
 
 
