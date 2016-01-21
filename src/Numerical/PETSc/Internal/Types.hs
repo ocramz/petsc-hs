@@ -13,7 +13,7 @@
 module Numerical.PETSc.Internal.Types where
 
 import Numerical.PETSc.Internal.Utils
-import Numerical.PETSc.Internal.Storable.StorableContainer
+-- import Numerical.PETSc.Internal.Storable.StorableContainer
 
 import Data.Complex
 import Foreign.Storable.Complex
@@ -229,7 +229,10 @@ vecNormToInt x = fromEnum (x :: VecNorm_ )
 
 
 
-
+data VecInfo = VecInfo 
+ {vecInfoMpiComm :: Comm ,
+  vecInfoSizeLocal :: !Int ,
+  vecInfoSizeGlobal :: !Int } deriving (Eq, Show)
 
 
 

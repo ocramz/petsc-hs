@@ -10,7 +10,7 @@
 -- | Vec Mid-level interface
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Internal.PutGet.Vec where
+module Numerical.PETSc.Internal.PutGet.Vec  where
 
 import           Numerical.PETSc.Internal.InlineC
 import           Numerical.PETSc.Internal.Types
@@ -18,7 +18,7 @@ import           Numerical.PETSc.Internal.Exception
 import           Numerical.PETSc.Internal.Utils
 
 import           Numerical.PETSc.Internal.Storable.Vector
-import           Numerical.PETSc.Internal.Storable.StorableContainer
+
 
 import qualified Data.Ix as Ix (range)
 
@@ -94,22 +94,11 @@ data PetscVector = PetscVector !VecInfo Vec
 
 data PVector = PVector VecInfo Vec (V.Vector Scalar)
 
-data VecInfo = VecInfo 
- {vecInfoMpiComm :: Comm ,
-  vecInfoSizeLocal :: !Int ,
-  vecInfoSizeGlobal :: !Int } deriving (Eq, Show)
 
 
 
--- instance StorableContainer Vec' where
---   type SCInfo Vec' = VecInfo
---   type SCLocal Vec' = VS.Vector PetscScalar_
---   type SCRemote Vec' = Vec
---   initRemote = vecCreateMPIInfo
---   updateLocal = vecGetVector
---   updateRemote = vecRestoreVector
---   withRemote v = bracket (vecGetVector v) (vecRestoreVector v)
---   destroyRemote = vecDestroy
+
+
 
 
 
@@ -270,7 +259,7 @@ withVecCreateMPI vi = withVec (vecCreateMPIInfo vi)
 
 
 
-withVecMPIPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b
+withVecMPIPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b 
 withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
   pre v
   vecAssemblyChk v

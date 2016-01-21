@@ -12,7 +12,12 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Storable.StorableContainer where
 
+import Numerical.PETSc.Internal.Types
+-- import Numerical.PETSc.Internal.PutGet.Vec
+
 import Control.Monad
+
+import Data.Ix
 
 -- | mtl
 import Control.Monad.Managed
@@ -23,6 +28,12 @@ import Control.Monad.Trans.Class
 import Foreign.Storable
 
 import Control.Exception
+
+
+
+
+
+-- | StorableContainer
 
 -- | types that can be exchanged between PETSc and GHC RTS
 -- NB :
@@ -58,6 +69,34 @@ class Storable p => StorableContainer p where
 
 
 
+
+
+-- instance StorableContainer Vec where
+--   type SCInfo Vec = VecInfo
+--   type SCLocal Vec = VS.Vector PetscScalar_
+--   type SCRemote Vec = Vec
+--   initRemote = vecCreateMPIInfo
+--   updateLocal = vecGetVector
+--   updateRemote = vecRestoreVector
+--   withRemote v = bracket (vecGetVector v) (vecRestoreVector v)
+--   destroyRemote = vecDestroy
+
+
+
+-- | StorableIxContainer
+
+class (StorableContainer sc, Ix i) => StorableIxContainer i sc x where
+  sicGet :: sc -> i -> IO x
+  sicPut :: sc -> i -> x -> IO ()
+
+-- instance
+
+
+
+
+
+
+-- | ManagedContainer
 
 -- class (Monad m, Storable r) => ManagedContainer m r where
 --   type MCInfo r
