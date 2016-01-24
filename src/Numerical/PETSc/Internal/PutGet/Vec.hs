@@ -53,8 +53,12 @@ import qualified Data.Vector.Generic       as VG
 
 
 
+type Vec' = Vec
+
 
 -- | instances
+
+-- instance 
 
 -- -- instance Show Vec where ...
 
@@ -90,25 +94,12 @@ For a given Vec; what stays constant is:
 
 data PetscVector = PetscVector !VecInfo Vec
 
-
-
 data PVector = PVector VecInfo Vec (V.Vector Scalar)
 
 
 
 
 
-
-
-
-
-
-
--- instance StorableContainer Vec IO (V.Vector Scalar) where
---   type SCInfo Vec = VecInfo
---   type SCLocal (V.Vector Scalar) = V.Vector Scalar
---   initP = vecCreateMPIInfo
---   -- updateH = vecGetVector
 
 
 -- Q : how do we carry data-on-mesh ?
