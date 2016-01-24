@@ -55,7 +55,10 @@ data VecVec a = VV { unVV :: [[a]] }
 instance Functor VecVec where
   fmap f x = VV $ (map . map) f (unVV x)
 
-instance Element VecVec a where
+-- instance Element VecVec a where
+--   type ElementIx (VecVec a) = (Int, Int)
+
+
 
 
 
