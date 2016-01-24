@@ -24,7 +24,7 @@ Discuss features, ideas, bugs : [![Gitter chat: petsc-hs](https://badges.gitter.
 
 ## Introduction
 
-The [PETSc](http://www.mcs.anl.gov/petsc/) architecture provides numerical data-structures and algorithms such as linear and nonlinear system solvers, extensive preconditioning facilities, time steppers (integrators) for dynamic problems, advanced meshing primitives for the solution of discretized PDEs and an advanced optimization toolkit. It is based on MPI, to support distributed storage and computations.
+The [PETSc](http://www.mcs.anl.gov/petsc/) architecture provides numerical data-structures and algorithms such as linear and nonlinear system solvers, extensive preconditioning facilities, time steppers (integrators) for dynamic problems, advanced meshing primitives for the solution of discretized PDEs and an advanced optimization toolkit. It is based on MPI, to enable distributed storage and computation.
 
 Currently, `petsc-hs` wraps a core subset of PETSc (and the regular architecture of the C library makes expanding this subset quite straightforward) and 
 
