@@ -55,9 +55,12 @@ import Control.Arrow ((***), (&&&))
 
 withMPIEnv f = runReaderT $ do
   c <- ask
-  let
-    (cs, cr) = (getMPICommSize &&& getMPICommRank) c      
-  lift (f cs cr)
+  return $ f $ getMPICommSize c
+  -- let
+  --   (cs, cr) = (getMPICommSize &&& getMPICommRank) c
+               
+  -- lift (f cs cr)
+  -- lift (f c')
 
 
 
