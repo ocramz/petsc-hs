@@ -51,7 +51,7 @@ import Control.Arrow ((***), (&&&))
 
 
 
--- a monad transformer for accessing MPI environmemt information
+-- a `reader` bracket for reading MPI environmemt information
 
 withMPIEnv f = runReaderT $ do
   c <- ask
