@@ -40,8 +40,7 @@ import Foreign.C.String
 import System.IO.Unsafe (unsafePerformIO)
 
 import Control.Monad
-import Control.Arrow
-import Control.Concurrent
+-- import Control.Concurrent
 import Control.Exception
 
 -- import Control.Monad.Reader
@@ -53,7 +52,6 @@ import Control.Arrow ((***), (&&&))
 
 
 -- a monad transformer for accessing MPI environmemt information
-
 
 withMPIEnv f = runReaderT $ do
   c <- ask
@@ -80,13 +78,15 @@ commSelfC = mkMPIComm commSelf
 -- -- interface : mkMPIComm , getMPICommRank, getMPICommSize
 
 mpiCommSize, mpiCommRank :: Comm -> Int
-mpiCommSize comm = unsafePerformIO $ liftM fi $ chk1 (mpiCommSize' comm)
-mpiCommRank comm = unsafePerformIO $ liftM fi $ chk1 (mpiCommRank' comm)
+mpiCommSize c = unsafePerformIO $ liftM fi $ chk1 (mpiCommSize' c)
+mpiCommRank c = unsafePerformIO $ liftM fi $ chk1 (mpiCommRank' c)
 
 
+mkMpiCommSize :: Comm -> MpiCommSize
+mkMpiCommSize c = MkMpiCommSz (mpiCommSize c)
 
-mkMpiCommSize comm = MkMpiCommSz (mpiCommSize comm)
-mkMpiCommRank comm = MkMpiCommRk (mpiCommRank comm)
+mkMpiCommRank :: Comm -> MpiCommRank
+mkMpiCommRank c = MkMpiCommRk (mpiCommRank c)
 
 mkMPIComm :: Comm -> MPIComm
 mkMPIComm c = MPIComm c (mkMpiCommSize c) (mkMpiCommRank c)
