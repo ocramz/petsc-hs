@@ -186,20 +186,20 @@ data PVector = PVector VecInfo Vec (V.Vector Scalar)
 -- | vecCreate
 
 vecCreate :: Comm -> IO Vec
-vecCreate comm = chk1 (vecCreate' comm)
+vecCreate c = chk1 (vecCreate' c)
 
 vecCreateMPI_ :: Comm -> Int -> Int -> IO Vec
-vecCreateMPI_ comm nLocal nGlobal = chk1 (vecCreateMPI' comm nLocal nGlobal)
+vecCreateMPI_ c nLocal nGlobal = chk1 (vecCreateMPI' c nLocal nGlobal)
 
 vecCreateMPI :: Comm -> Int -> Int -> IO Vec 
-vecCreateMPI comm nloc nglob
-  | nloc>=0 && nloc<=nglob = vecCreateMPI_ comm nloc nglob
+vecCreateMPI c nloc nglob
+  | nloc>=0 && nloc<=nglob = vecCreateMPI_ c nloc nglob
   | otherwise = error "vecCreateMPI: [nloc] must sum to nglob"
 
 
 vecCreateMPIdecideLocalSize :: Comm -> Int -> IO Vec
-vecCreateMPIdecideLocalSize comm nglob
-  | nglob > 0 = vcmpidl comm nglob
+vecCreateMPIdecideLocalSize co nglob
+  | nglob > 0 = vcmpidl co nglob
   | otherwise = error "vecCreateMPIdecideLocalSize: global dim must be > 0"
      where
        vcmpidl c n  = chk1 (vecCreateMPIdecideLoc' c n)
@@ -209,10 +209,10 @@ vecCreateMPIdecideLocalSize comm nglob
 -- | " , using VecInfo
 
 vecCreateMPIInfo :: VecInfo -> IO Vec
-vecCreateMPIInfo vi = vecCreateMPI comm nl ng where
+vecCreateMPIInfo vi = vecCreateMPI co nl ng where
   nl = vecInfoSizeLocal vi
   ng = vecInfoSizeGlobal vi
-  comm = vecInfoMpiComm vi
+  co = vecInfoMpiComm vi
 
 vecDestroy :: Vec -> IO ()
 vecDestroy v = chk0 (vecDestroy' v)
@@ -241,8 +241,8 @@ withVec vc = bracket vc vecDestroy
 
 
 withVecCreate :: VecInfo -> (Vec -> IO a) -> IO a
-withVecCreate vv = withVec (vecCreate comm)  where
-  comm = vecInfoMpiComm vv
+withVecCreate vv = withVec (vecCreate c)  where
+  c = vecInfoMpiComm vv
 
 
 withVecCreateMPI :: VecInfo -> (Vec -> IO a) -> IO a
@@ -320,8 +320,8 @@ withVecCopyDuplicate :: Vec -> (Vec -> IO a) -> IO a
 withVecCopyDuplicate v = withVec (vecCopyDuplicate v) 
 
 withVecNew :: Comm -> V.Vector PetscScalar_ -> (Vec -> IO a) -> IO a
-withVecNew comm v =
-  withVec (vecCreateMPIFromVectorDecideLocalSize comm v)
+withVecNew c v =
+  withVec (vecCreateMPIFromVectorDecideLocalSize c v)
 
 
 
@@ -367,15 +367,15 @@ vecSetValuesUnsafe v ix y im =
 --   where vsvu v ix = vecSetValuesUnsafe v (map toCInt ix)
 
 -- safeInsertIndicesVec ::
---   (Vec -> [Int] -> [a] -> b -> c) -> Vec -> [Int] -> [a] -> b -> c
-safeInsertIndicesVec f v ix_ y_  im
-  |c1 && c2 = f v ix_ y_  im
-  |otherwise = error "safeInsertIndicesVec : size error "
-   where
-  c1 = V.length ix_ == V.length y_
-  c2 = a >= 0 && b <= ub
-  (a, b) = (V.head ix_, V.last ix_) -- Hp: ix_ is ordered
-  ub = vecGetSizeUnsafe v - 1
+--   (Vec -> V.Vector Int -> V.Vector a -> b -> c) -> Vec -> V.Vector Int -> V.Vector a -> b -> c 
+-- safeInsertIndicesVec f v ix_ y_  im
+--   |c1 && c2 = f v ix_ y_  im
+--   |otherwise = error "safeInsertIndicesVec : size error "
+--    where
+--   c1 = V.length ix_ == V.length y_
+--   c2 = a >= 0 && b <= ub
+--   (a, b) = (V.head ix_, V.last ix_) -- Hp: ix_ is ordered
+--   ub = vecGetSizeUnsafe v - 1
 
 -- safeFlag ix_ y_ sv_ = c1 && c2 where
 --   c1 = length ix_ == length y_
