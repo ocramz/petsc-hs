@@ -118,16 +118,27 @@ taoIsGradientDefined tao = chk1 $ taoIsGradientDefined' tao
 
 
 
+
+
+
 -- | with- Tao brackets
 
 -- create, set type, set initial vector
 
-withTaoSetup :: Comm -> TaoType_ -> Vec -> (Tao -> IO a) -> (Tao -> IO b) -> IO b 
-withTaoSetup c ty v pre f = withTaoCreate c $ \tt -> do
+withTaoCreateInit ::
+  Comm ->
+  TaoType_ ->
+  Vec ->           -- initial vector (NB : will be modified)
+  (Tao -> IO a) ->
+  (Tao -> IO b) ->
+  IO b 
+withTaoCreateInit c ty v pre f = withTaoCreate c $ \tt -> do
   taoSetType tt ty
   taoSetInitialVector tt v
   pre tt
   f tt
+
+
 
 
 

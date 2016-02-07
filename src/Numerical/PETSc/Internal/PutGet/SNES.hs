@@ -162,7 +162,7 @@ snesSetJacobian ::
   IO ()
 snesSetJacobian snes amat pmat fj = chk0 $ snesSetJacobian_' snes amat pmat gj
   where
-    gj a b c d = return0 (fj a b c d)
+    gj a b c d = return0 (fj a b c d)    
 
 
 

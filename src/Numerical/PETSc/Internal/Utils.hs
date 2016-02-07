@@ -87,6 +87,8 @@ assertWithStringM c es f = do
   c ~?~ es
   f
 
+  
+
 
 -- checkNonNegM :: (Show a, Num a, Ord a, Monad m) => a -> m b -> m b
 -- checkNonNegM n f = do
