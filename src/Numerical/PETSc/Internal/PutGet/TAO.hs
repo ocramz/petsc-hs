@@ -63,6 +63,30 @@ taoSetVariableBounds ::
   IO ()
 taoSetVariableBounds tao xmin xmax = chk0 $ taoSetVariableBounds' tao xmin xmax
 
+
+
+
+-- | callback setters
+-- (NB : callbacks are made to return `0 :: CInt` to PETSc )
+
+taoSetConstraintsRoutine :: Tao -> Vec -> (Tao -> Vec -> Vec -> IO a) -> IO ()
+taoSetConstraintsRoutine tt v f = chk0 (taoSetConstraintsRoutine' tt v g) where
+  g ttt v1 v2 = return0 (f ttt v1 v2)
+
+taoSetJacobianRoutine :: Tao -> Mat -> Mat -> (Tao -> Vec -> Mat -> Mat -> IO a) -> IO ()
+taoSetJacobianRoutine tt m1 m2 f = chk0 (taoSetJacobianRoutine' tt m1 m2 g) where
+  g ttt v mm1 mm2 = return0 (f ttt v mm1 mm2)
+
+taoSetVariableBoundsRoutine :: Tao -> (Tao -> Vec -> Vec -> IO a) -> IO ()
+taoSetVariableBoundsRoutine tt f = chk0 (taoSetVariableBoundsRoutine' tt g) where
+  g ttt v1 v2 = return0 (f ttt v1 v2)
+
+
+
+
+
+
+
 taoSolve :: Tao -> IO ()
 taoSolve tao = chk0 $ taoSolve' tao
 
@@ -82,10 +106,15 @@ taoIsGradientDefined tao = chk1 $ taoIsGradientDefined' tao
 
 
 
-withTaoSetup :: Comm -> TaoType_ -> Vec -> (Tao -> IO a) -> IO a 
-withTaoSetup c ty v f = withTaoCreate c $ \tt -> do
+-- | with- Tao brackets
+
+-- create, set type, set initial vector
+
+withTaoSetup :: Comm -> TaoType_ -> Vec -> (Tao -> IO a) -> (Tao -> IO b) -> IO b 
+withTaoSetup c ty v pre f = withTaoCreate c $ \tt -> do
   taoSetType tt ty
   taoSetInitialVector tt v
+  pre tt
   f tt
 
 

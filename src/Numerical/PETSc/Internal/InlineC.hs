@@ -2980,12 +2980,12 @@ taoSetVariableBounds' tao x1 x2 =
 -- PETSC_EXTERN PetscErrorCode TaoGetInequalityBounds(Tao, Vec*, Vec*);
 
 -- PETSC_EXTERN PetscErrorCode TaoSetVariableBoundsRoutine(Tao, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
-taoSetVariableBoundsRoutine' tao f =
+taoSetVariableBoundsRoutine0' tao f =
   [C.exp|int{TaoSetVariableBoundsRoutine($(Tao tao),
                                            $fun:(int (*f)(Tao, Vec, Vec, void*)),
                                            NULL)}|]
-taoSetVariableBoundsRoutine tao f =
-  taoSetVariableBoundsRoutine' tao f' where
+taoSetVariableBoundsRoutine' tao f =
+  taoSetVariableBoundsRoutine0' tao f' where
     f' t v1 v2 _ = f t v1 v2
 
   
