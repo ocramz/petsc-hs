@@ -110,11 +110,15 @@ ms' = ms + 1
 main = withDmda1d comm DmBNone ms' 1 1 [] $ \dm -> do
   (xs, xm) <- dmdaGetCorners1d dm
   (gxs, gxm) <- dmdaGetGhostCorners1d dm
+  let
+    uservt1_ = V.generate gxm
+               (\i -> if i==gxm-1 && gxs+gxm==ms' then 0
+                      else max (strike - sval i gxs) 0)
   withDmCreateGlobalVector dm $ \x_ -> do    -- line 183
+    
+    -- | initialize x_ with values from uservt1_ (lines 230-233)
+    
     let
-      uservt1_ = V.generate gxm
-             (\i -> if i==gxm-1 && gxs+gxm==ms' then 0
-                                                  else max (strike - sval i gxs) 0)
       userc_ = V.generate gxm (\i -> (delta - rate) * (sval i gxs))
       userd_ = V.generate gxm (\i -> -0.5 * (sigma**2) * (sval i gxs) ** alpha)
 
