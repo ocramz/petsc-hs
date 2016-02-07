@@ -19,6 +19,7 @@ import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
 import Numerical.PETSc.Internal.PutGet.Vec
+import Numerical.PETSc.Internal.PutGet.Mat
 
 import Numerical.PETSc.Internal.Storable.Vector (vectorFreezeFromStorablePtr,
                                                  vectorCopyToForeignPtr)
@@ -150,6 +151,9 @@ dmCreate comm = chk1 (dmCreate' comm)
 
 
 
+
+
+
 -- | global and local vectors from/to DM
 
 dmCreateGlobalVector, dmCreateLocalVector, dmGetGlobalVector, dmGetLocalVector :: 
@@ -164,6 +168,21 @@ dmRestoreGlobalVector dm v = chk0 (dmRestoreGlobalVector' dm v)
 
 dmGetLocalVector dm = chk1 (dmGetLocalVector' dm)
 dmRestoreLocalVector dm v = chk0 (dmRestoreLocalVector' dm v)
+
+
+
+
+
+
+
+-- | matrix from DM
+
+dmCreateMatrix :: DM -> IO Mat
+dmCreateMatrix dm = chk1 (dmCreateMatrix' dm)
+
+
+
+
 
 
 
@@ -215,6 +234,9 @@ dmDestroy dm = chk0 (dmDestroy' dm)
 
 
 
+
+
+
 -- | with DM brackets
 
 withDm :: IO DM -> (DM -> IO a) -> IO a
@@ -243,6 +265,10 @@ withDmdaVecGetVector ::
 withDmdaVecGetVector dm v len =
   bracket (dmdaVecGetVector dm v len) (dmdaVecRestoreVector dm v len) 
 
+
+
+withDmCreateMatrix :: DM -> (Mat -> IO a) -> IO a
+withDmCreateMatrix dm = withMat (dmCreateMatrix dm)
 
 
 
@@ -608,7 +634,6 @@ dmdaGetCorners1d dm = do
   t <- chk1 $ dmdaGetCorners1d' dm >>= \x -> return $ f1d x
   return $ fromIntegralTup t
 
-
 dmdaGetCorners2d ::
   DM ->
   IO ((Int,    -- 1. dim, index of 1st entry
@@ -625,6 +650,33 @@ dmdaGetCorners3d dm = do
   x <- chk1 $ dmdaGetCorners3d' dm >>= \x -> return $ f3d x
   return $ fromIntegralTup3 x
 
+
+-- -- "ghost" corners (i.e. local copies of mesh entries pertaining to other processes)
+
+dmdaGetGhostCorners1d ::
+  DM ->
+  IO (Int,     -- index of first entry
+      Int)     -- # entries
+dmdaGetGhostCorners1d dm = do 
+  t <- chk1 $ dmdaGetCorners1d' dm >>= \x -> return $ f1d x
+  return $ fromIntegralTup t
+
+dmdaGetGhostCorners2d ::
+  DM ->
+  IO ((Int,    -- 1. dim, index of 1st entry
+       Int),   -- ", # entries
+      (Int,    -- 2. dim, index of 1st entry
+       Int))   -- ", # entries
+dmdaGetGhostCorners2d dm = do 
+  t <- chk1 $ dmdaGetCorners2d' dm >>= \x -> return $ f2d x
+  return $ fromIntegralTup2 t
+
+
+dmdaGetGhostCorners3d ::
+  DM -> IO ((Int,Int,Int), (Int,Int,Int))
+dmdaGetGhostCorners3d dm = do
+  x <- chk1 $ dmdaGetGhostCorners3d' dm >>= \x -> return $ f3d x
+  return $ fromIntegralTup3 x
 
 
 

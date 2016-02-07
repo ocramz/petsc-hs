@@ -43,8 +43,12 @@ taoCreate comm = chk1 $ taoCreate' comm
 taoDestroy :: Tao -> IO ()
 taoDestroy tao = chk0 $ taoDestroy' tao
 
-withTao :: Comm -> (Tao -> IO a) -> IO a
-withTao comm = bracket (taoCreate comm) taoDestroy
+withTao :: IO Tao -> (Tao -> IO a) -> IO a
+withTao mc = bracket mc taoDestroy
+
+withTaoCreate :: Comm -> (Tao -> IO a) -> IO a
+withTaoCreate c = withTao (taoCreate c)
+
 
 taoSetType :: Tao -> TaoType_ -> IO ()
 taoSetType tao ty = chk0 $ taoSetType' tao ty
@@ -78,6 +82,11 @@ taoIsGradientDefined tao = chk1 $ taoIsGradientDefined' tao
 
 
 
+withTaoSetup :: Comm -> TaoType_ -> Vec -> (Tao -> IO a) -> IO a 
+withTaoSetup c ty v f = withTaoCreate c $ \tt -> do
+  taoSetType tt ty
+  taoSetInitialVector tt v
+  f tt
 
 
 

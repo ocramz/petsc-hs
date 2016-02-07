@@ -1,6 +1,6 @@
-module Numerical.PETSc.TaoBlackScholes where
+module TaoBlackScholes where
 
-import Numerical.PETSc.Test2
+import Numerical.PETSc
 
 import Foreign.C.Types
 import Control.Monad
@@ -13,10 +13,10 @@ import qualified Data.Vector as V -- hiding (toList)
 import Data.Vector.Storable as VS  (toList)
 import Data.Vector.Primitive.Mutable as VM
 
-import Data.Array.Repa                  as R hiding ((++), map)
-import qualified Data.Array.Repa as R
-import Data.Array.Repa.Unsafe           as R
-import qualified Data.Array.Repa.Repr.ForeignPtr as RFP
+-- import Data.Array.Repa                  as R hiding ((++), map)
+-- import qualified Data.Array.Repa as R
+-- import Data.Array.Repa.Unsafe           as R
+-- import qualified Data.Array.Repa.Repr.ForeignPtr as RFP
 
 rate = 0.04  -- interest rate
 sigma = 0.4  -- volatility

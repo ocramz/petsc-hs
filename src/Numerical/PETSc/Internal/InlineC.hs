@@ -1314,8 +1314,9 @@ dmRestoreGlobalVector' dm vv = with vv ( \v -> [C.exp|int{DMRestoreGlobalVector(
 
 
 
-dmCreateMatrix' dm mat = [C.exp|int{DMCreateMatrix($(DM dm),$(Mat* mat))}|]
-dmCreateMatrix dm = withPtr (dmCreateMatrix' dm) 
+dmCreateMatrix0' dm mat = [C.exp|int{DMCreateMatrix($(DM dm),$(Mat* mat))}|]
+
+dmCreateMatrix' dm = withPtr (dmCreateMatrix0' dm) 
 
 
 
@@ -2847,62 +2848,62 @@ taoSetHessianRoutine t m1 m2 f = taoSetHessianRoutine' t m1 m2 f' where
 
 -- PETSC_EXTERN PetscErrorCode TaoSetSeparableObjectiveRoutine(Tao, Vec, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
 -- PETSC_EXTERN PetscErrorCode TaoSetConstraintsRoutine(Tao, Vec, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
-taoSetConstraintsRoutine' tao vec f =
+taoSetConstraintsRoutine0' tao vec f =
   [C.exp|int{TaoSetConstraintsRoutine(
                 $(Tao tao), $(Vec vec),
                 $fun:(int (*f)(Tao, Vec, Vec, void*)),
                 NULL)}|] 
-taoSetConstraintsRoutine t v f = taoSetConstraintsRoutine' t v f' where
+taoSetConstraintsRoutine' t v f = taoSetConstraintsRoutine0' t v f' where
   f' ta v1 v2  _ = f ta v1 v2
   
 -- PETSC_EXTERN PetscErrorCode TaoSetInequalityConstraintsRoutine(Tao, Vec, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
-taoSetInequalityConstraintsRoutine' tao vec f =
+taoSetInequalityConstraintsRoutine0' tao vec f =
   [C.exp|int{TaoSetInequalityConstraintsRoutine(
                 $(Tao tao), $(Vec vec),
                 $fun:(int (*f)(Tao, Vec, Vec, void*)),
                 NULL)}|] 
-taoSetInequalityConstraintsRoutine t v f =
-  taoSetInequalityConstraintsRoutine' t v f' where
+taoSetInequalityConstraintsRoutine' t v f =
+  taoSetInequalityConstraintsRoutine0' t v f' where
     f' ta v1 v2  _ = f ta v1 v2
   
 -- PETSC_EXTERN PetscErrorCode TaoSetEqualityConstraintsRoutine(Tao, Vec, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
-taoSetEqualityConstraintsRoutine' tao vec f =
+taoSetEqualityConstraintsRoutine0' tao vec f =
   [C.exp|int{TaoSetEqualityConstraintsRoutine(
                 $(Tao tao), $(Vec vec),
                 $fun:(int (*f)(Tao, Vec, Vec, void*)),
                 NULL)}|] 
-taoSetEqualityConstraintsRoutine t v f =
-  taoSetEqualityConstraintsRoutine' t v f' where
+taoSetEqualityConstraintsRoutine' t v f =
+  taoSetEqualityConstraintsRoutine0' t v f' where
      f' ta v1 v2  _ = f ta v1 v2
   
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianRoutine(Tao,Mat,Mat, PetscErrorCode(*)(Tao,Vec, Mat, Mat, void*), void*);
-taoSetJacobianRoutine' tao m1 m2 f =
+taoSetJacobianRoutine0' tao m1 m2 f =
   [C.exp|int{TaoSetJacobianRoutine(
                 $(Tao tao), $(Mat m1), $(Mat m2),
                 $fun:(int (*f)(Tao, Vec, Mat, Mat, void*)),
                 NULL)}|] 
-taoSetJacobianRoutine t m1 m2 f =
-  taoSetJacobianRoutine' t m1 m2 f' where
+taoSetJacobianRoutine' t m1 m2 f =
+  taoSetJacobianRoutine0' t m1 m2 f' where
      f' ta v v1 v2  _ = f ta v v1 v2
      
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianStateRoutine(Tao,Mat,Mat,Mat, PetscErrorCode(*)(Tao,Vec, Mat, Mat, Mat, void*), void*);
-taoSetJacobianStateRoutine' tao m1 m2 m3 f =
+taoSetJacobianStateRoutine0' tao m1 m2 m3 f =
   [C.exp|int{TaoSetJacobianStateRoutine(
                 $(Tao tao), $(Mat m1), $(Mat m2), $(Mat m3),
                 $fun:(int (*f)(Tao, Vec, Mat, Mat, Mat, void*)),
                 NULL)}|] 
-taoSetJacobianStateRoutine t m1 m2 m3 f =
-  taoSetJacobianStateRoutine' t m1 m2 m3 f' where
+taoSetJacobianStateRoutine' t m1 m2 m3 f =
+  taoSetJacobianStateRoutine0' t m1 m2 m3 f' where
      f' ta v v1 v2 v3  _ = f ta v v1 v2 v3
 
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianDesignRoutine(Tao,Mat,PetscErrorCode(*)(Tao,Vec, Mat, void*), void*);
-taoSetJacobianDesignRoutine' tao m f =
+taoSetJacobianDesignRoutine0' tao m f =
   [C.exp|int{TaoSetJacobianDesignRoutine(
                 $(Tao tao), $(Mat m),
                 $fun:(int (*f)(Tao, Vec, Mat, void*)),
                 NULL)}|] 
-taoSetJacobianDesignRoutine t m f =
-  taoSetJacobianDesignRoutine' t m f' where
+taoSetJacobianDesignRoutine' t m f =
+  taoSetJacobianDesignRoutine0' t m f' where
      f' ta v v1  _ = f ta v v1
      
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianInequalityRoutine(Tao,Mat,Mat,PetscErrorCode(*)(Tao,Vec, Mat, Mat, void*), void*);
