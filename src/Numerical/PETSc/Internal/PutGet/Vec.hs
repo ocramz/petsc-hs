@@ -53,8 +53,6 @@ import qualified Data.Vector.Generic       as VG
 
 
 
-type Vec' = Vec
-
 
 -- | instances
 
@@ -203,6 +201,8 @@ vecCreateMPIdecideLocalSize co nglob
   | otherwise = error "vecCreateMPIdecideLocalSize: global dim must be > 0"
      where
        vcmpidl c n  = chk1 (vecCreateMPIdecideLoc' c n)
+
+
 
 
 

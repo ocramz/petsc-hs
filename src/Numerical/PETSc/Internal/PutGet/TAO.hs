@@ -69,15 +69,27 @@ taoSetVariableBounds tao xmin xmax = chk0 $ taoSetVariableBounds' tao xmin xmax
 -- | callback setters
 -- (NB : callbacks are made to return `0 :: CInt` to PETSc )
 
-taoSetConstraintsRoutine :: Tao -> Vec -> (Tao -> Vec -> Vec -> IO a) -> IO ()
+taoSetConstraintsRoutine ::
+  Tao ->
+  Vec ->
+  (Tao -> Vec -> Vec -> IO a) ->
+  IO ()
 taoSetConstraintsRoutine tt v f = chk0 (taoSetConstraintsRoutine' tt v g) where
   g ttt v1 v2 = return0 (f ttt v1 v2)
 
-taoSetJacobianRoutine :: Tao -> Mat -> Mat -> (Tao -> Vec -> Mat -> Mat -> IO a) -> IO ()
+taoSetJacobianRoutine ::
+  Tao ->
+  Mat ->
+  Mat ->
+  (Tao -> Vec -> Mat -> Mat -> IO a) ->
+  IO ()
 taoSetJacobianRoutine tt m1 m2 f = chk0 (taoSetJacobianRoutine' tt m1 m2 g) where
   g ttt v mm1 mm2 = return0 (f ttt v mm1 mm2)
 
-taoSetVariableBoundsRoutine :: Tao -> (Tao -> Vec -> Vec -> IO a) -> IO ()
+taoSetVariableBoundsRoutine ::
+  Tao ->
+  (Tao -> Vec -> Vec -> IO a) ->
+  IO ()
 taoSetVariableBoundsRoutine tt f = chk0 (taoSetVariableBoundsRoutine' tt g) where
   g ttt v1 v2 = return0 (f ttt v1 v2)
 

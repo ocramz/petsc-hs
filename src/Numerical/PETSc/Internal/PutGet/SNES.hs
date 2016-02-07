@@ -150,19 +150,20 @@ snesComputeFunction snes x y = chk0 $ snesComputeFunction' snes x y
 
 -- callback really means : SNES -> Vec -> IO Vec
 
--- snesSetJacobian ::
---   SNES ->
---   Mat ->        -- amat : storage for approximate Jacobian
---   Mat ->        -- pmat : storage for preconditioner (usually == amat)
---     (SNES ->       
---      Vec ->        -- vector at which to compute Jacobian
---      Mat ->        
---      Mat ->
---      IO a) ->
---   IO ()
-snesSetJacobian snes amat pmat fj = chk0 $ snesSetJacobian_' snes amat pmat fj
-  -- where
-  --   fj' = wrapCb3 fj
+snesSetJacobian ::
+  SNES ->
+  Mat ->        -- amat : storage for approximate Jacobian
+  Mat ->        -- pmat : storage for preconditioner (usually == amat)
+    (SNES ->       
+     Vec ->        -- vector at which to compute Jacobian
+     Mat ->        
+     Mat ->
+     IO a) ->
+  IO ()
+snesSetJacobian snes amat pmat fj = chk0 $ snesSetJacobian_' snes amat pmat gj
+  where
+    gj a b c d = return0 (fj a b c d)
+
 
 
 
