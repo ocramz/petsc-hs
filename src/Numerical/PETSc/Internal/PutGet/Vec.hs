@@ -780,7 +780,7 @@ data V = V Vec
 
 -- get the first n entries
 
--- vecGetVectorN :: Vec -> Int -> IO (VS.Vector PetscScalar_)
+vecGetVectorNSafe :: Vec -> Int -> IO (VS.Vector PetscScalar_)
 vecGetVectorNSafe v n
   | n > 0 && n <= len = vecGetVectorN v n
   | otherwise = error "vecGetVectorN :" where
