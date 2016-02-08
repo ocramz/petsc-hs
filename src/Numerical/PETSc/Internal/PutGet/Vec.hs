@@ -470,42 +470,47 @@ vecSetValuesRange v y im
     yc = V.convert y
     ixc = V.convert (V.map toCInt $ V.fromList [0 .. m])
 
--- | generic functions using length of Vec ang VG.Vector
 
 
-whenEqualInts :: Int -> Int -> String -> a -> a
-whenEqualInts lv l c m
-  | lv /= l = error c
-  | otherwise = m
 
-withVecVectorLengths :: VG.Vector v a => Vec -> v a -> (Vec -> Int -> v a -> Int -> b) -> b
-withVecVectorLengths v v2 m =
-  whenEqualInts lv lv2 ("withVecVectorLengths : length mismatch : " ++ show lv2 ++ " /= " ++ show lv) (m v lv v2 lv2) where
-    lv = vecSize v
-    lv2 = VG.length v2
-
--- withVecVector :: (VG.Vector v PetscScalar_, VG.Vector vi CInt) =>
---      Vec ->             -- reference Vec (e.g. to be filled)
---      v PetscScalar_ ->  -- generic Vector (e.g. with the content)
---      vi CInt ->         -- " with indices
---      t ->               -- extra parameter (e.g. InsertMode_)
---      (Vec -> Int -> Ptr CInt -> Ptr PetscScalar_ -> Int -> t -> IO b) ->
---      IO b
-withVecVector v y im m =
-  withVecVectorLengths v y $ \v1 lv1 v2 lv2 -> do
-   let
-     ix = V.fromList [0 .. (toCInt lv2)-1]
-     ixc = V.convert ix
-   VS.unsafeWith ixc $ \ixx -> do
-     let yc = V.convert v2
-     VS.unsafeWith yc $ \yy -> m v1 lv1 ixx yy lv2 im
-
-vecSetValuesRange1 v y im = 
-  withVecVector v y im $ \v1 lv1 ixp v2p _ imm -> 
-    chk0 (vecSetValues' v1 (toCInt lv1) ixp v2p imm)
     
 
-        
+-- | generic functions using length of Vec ang VG.Vector :
+-- all the `VecSet..` functions should be refactored in terms of these ones
+
+
+    
+-- -- 3 vectors : Vec, Vector and Vector of indices
+
+whenEqualInts3 :: Int -> Int -> Int -> String -> a -> a
+whenEqualInts3 l1 l2 l3 c m | l1==l2 && l1==l3 = m | otherwise = error c
+
+withVecVectorLengths3 v v2 v3 m =
+  whenEqualInts3 lv lv2 lv3 ("withVecVectorLengths : length mismatch : " ++ show lv ++ " , " ++ show lv2 ++ ", " ++ show lv3) (m v lv v2 lv2 v3 lv3) where
+    lv = vecSize v
+    lv2 = VG.length v2
+    lv3 = VG.length v3
+
+withVecVectorIxPtr ::
+  (VG.Vector v a, VG.Vector vi b, Storable a, Storable b) =>
+  Vec ->         -- Vec
+  v a ->         -- VG.Vector (contents)
+  vi b ->        -- VG.Vector (indices, i.e. b ~ CInt)
+  t ->
+  (Vec -> Int -> Ptr b -> Int -> Ptr a -> Int -> t -> IO c) ->
+  IO c
+withVecVectorIxPtr v y ix im m =
+  withVecVectorLengths3 v ix y $ \v1 lv1 v2 lv2 v3 lv3 -> do
+    let ixc = V.convert v2           -- position index
+    VS.unsafeWith ixc $ \ixcp -> do
+      let yc = V.convert v3          -- contents
+      VS.unsafeWith yc $ \ycp -> m v1 lv1 ixcp lv2 ycp lv3 im
+
+-- vecSetValuesRange2 v y im =
+--   withVecVectorIndexPointers v y ix im $ \v1 lv1 ixp lv2 yp lv3 imm ->
+--     let ix = V.fromList [0 .. (toCInt lv2)-1]
+--     chk0 (vecSetValues' v (toCInt lv1) ixp yp imm) 
+
 
 
 
