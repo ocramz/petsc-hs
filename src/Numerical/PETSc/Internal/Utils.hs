@@ -123,8 +123,14 @@ range0Safe m | m>=0 = range0 m
              | otherwise = error "range0Safe : m must be >= 0"
 
 
+inRange0 :: Int -> Int -> Bool
+inRange0 l = Ix.inRange (0, l-1)
 
+safeIndices :: [a] -> [Int] -> Bool
+safeIndices w = all (inRange0 (length w))
 
+safeIndicesV :: V.Vector a -> V.Vector Int -> Bool
+safeIndicesV w = V.all (inRange0 (V.length w))
 
 
 -- * indexing

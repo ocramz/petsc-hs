@@ -20,7 +20,7 @@ import           Numerical.PETSc.Internal.Utils
 import           Numerical.PETSc.Internal.Storable.Vector
 
 
-import qualified Data.Ix as Ix (range)
+import qualified Data.Ix as Ix (range, inRange)
 
 import           Foreign
 -- import           Foreign.ForeignPtr.Unsafe
@@ -394,16 +394,7 @@ vecSetValuesUnsafe v ix y im =
 -- vecSetValuesSafe = safeInsertIndicesVec vsvu
 --   where vsvu v ix = vecSetValuesUnsafe v (map toCInt ix)
 
--- safeInsertIndicesVec ::
---   (Vec -> V.Vector Int -> V.Vector a -> b -> c) -> Vec -> V.Vector Int -> V.Vector a -> b -> c 
--- safeInsertIndicesVec f v ix_ y_  im
---   |c1 && c2 = f v ix_ y_  im
---   |otherwise = error "safeInsertIndicesVec : size error "
---    where
---   c1 = V.length ix_ == V.length y_
---   c2 = a >= 0 && b <= ub
---   (a, b) = (V.head ix_, V.last ix_) -- Hp: ix_ is ordered
---   ub = vecGetSizeUnsafe v - 1
+
 
 -- safeFlag ix_ y_ sv_ = c1 && c2 where
 --   c1 = length ix_ == length y_
@@ -411,11 +402,9 @@ vecSetValuesUnsafe v ix y im =
 --   ixs = qsort ix_
 --   (a, b) = (head ixs, last ixs)
 
--- safeFlagv ix_ y_ sv_ = c1 && c2 where
---   c1 = V.length ix_ == V.length y_
---   c2 = a >= 0 && b <= sv_
---   ixs = V.sort ix_
---   (a, b) = (V.head ixs, V.last ixs)
+safeFlag ix y = c1 && c2 where
+  c1 = length ix == length y
+  c2 = safeIndices y ix
 
 
 
@@ -467,8 +456,12 @@ vecSetValuesUnsafeVector1 v ixy =
     
 -- -- 3 vectors : Vec, Vector and Vector of indices
 
+assertOtherwise :: Bool -> String -> a -> a
+assertOtherwise q c m | q = m | otherwise = error c
+
 whenEqualInts3 :: Int -> Int -> Int -> String -> a -> a
-whenEqualInts3 l1 l2 l3 c m | l1==l2 && l1==l3 = m | otherwise = error c
+whenEqualInts3 l1 l2 l3 = assertOtherwise (l1==l2 && l1==l3)
+
 
 withVecVectorLengths3 :: (VG.Vector v1 a1, VG.Vector v a) =>
      Vec ->
