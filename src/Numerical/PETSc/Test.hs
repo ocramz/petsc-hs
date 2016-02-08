@@ -453,11 +453,11 @@ t15 = withSlepc0 t15'
 -- | vecSetValuesRange
 
 t17' m = withVecMPIPipeline vinfo
-       (\v -> vecSetValuesRange v vIn InsertValues)
+       (\v -> vecSetValuesRange1 v vIn InsertValues)
        vecViewStdout
   where
   vinfo = VecInfo cw n n
   cw = commWorld
   n = 5
   vIn = V.fromList lIn
-  lIn = [0 .. m] :: [PetscScalar_]
+  lIn = [0 .. m-1] :: [PetscScalar_]

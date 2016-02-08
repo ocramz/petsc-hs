@@ -470,8 +470,6 @@ vecSetValuesRange v y im
     yc = V.convert y
     ixc = V.convert (V.map toCInt $ V.fromList [0 .. m])
 
-
-
 -- | generic functions using length of Vec ang VG.Vector
 
 
@@ -486,19 +484,26 @@ withVecVectorLengths v v2 m =
     lv = vecSize v
     lv2 = VG.length v2
 
-vecSetValuesVectorM :: VG.Vector v PetscScalar_ =>
-     Vec ->
-     v PetscScalar_ ->
-     VS.Vector CInt ->
-     t ->
-     (Vec -> Int -> Ptr CInt -> Ptr PetscScalar_ -> Int -> t -> IO b) ->
-     IO b
-vecSetValuesVectorM v y ixc im m =
-  withVecVectorLengths v y $ \v1 lv1 v2 lv2 ->
+-- withVecVector :: (VG.Vector v PetscScalar_, VG.Vector vi CInt) =>
+--      Vec ->             -- reference Vec (e.g. to be filled)
+--      v PetscScalar_ ->  -- generic Vector (e.g. with the content)
+--      vi CInt ->         -- " with indices
+--      t ->               -- extra parameter (e.g. InsertMode_)
+--      (Vec -> Int -> Ptr CInt -> Ptr PetscScalar_ -> Int -> t -> IO b) ->
+--      IO b
+withVecVector v y im m =
+  withVecVectorLengths v y $ \v1 lv1 v2 lv2 -> do
+   let
+     ix = V.fromList [0 .. (toCInt lv2)-1]
+     ixc = V.convert ix
    VS.unsafeWith ixc $ \ixx -> do
      let yc = V.convert v2
      VS.unsafeWith yc $ \yy -> m v1 lv1 ixx yy lv2 im
 
+vecSetValuesRange1 v y im = 
+  withVecVector v y im $ \v1 lv1 ixp v2p _ imm -> 
+    chk0 (vecSetValues' v1 (toCInt lv1) ixp v2p imm)
+    
 
         
 
