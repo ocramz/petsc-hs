@@ -500,11 +500,11 @@ withVecVectorIxPtr ::
   (Vec -> Int -> Ptr b -> Int -> Ptr a -> Int -> t -> IO c) ->
   IO c
 withVecVectorIxPtr v y ix im m =
-  withVecVectorLengths3 v ix y $ \v1 lv1 v2 lv2 v3 lv3 -> do
-    let ixc = V.convert v2           -- position index
+  withVecVectorLengths3 v ix y $ \vv lvv ixx lix yy lyy -> do
+    let ixc = V.convert ixx           -- position index
     VS.unsafeWith ixc $ \ixcp -> do
-      let yc = V.convert v3          -- contents
-      VS.unsafeWith yc $ \ycp -> m v1 lv1 ixcp lv2 ycp lv3 im
+      let yc = V.convert yy           -- contents
+      VS.unsafeWith yc $ \ycp -> m vv lvv ixcp lix ycp lyy im
 
 -- vecSetValuesRange2 v y im =
 --   withVecVectorIndexPointers v y ix im $ \v1 lv1 ixp lv2 yp lv3 imm ->
