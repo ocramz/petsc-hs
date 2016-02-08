@@ -447,3 +447,17 @@ t15 = withSlepc0 t15'
 -- t16' = do
 --   let vinfo = VecInfo commWorld 5 5
 --   v <- initRemote vinfo
+
+
+
+-- | vecSetValuesRange
+
+t17' m = withVecMPIPipeline vinfo
+       (\v -> vecSetValuesRange v vIn InsertValues)
+       vecViewStdout
+  where
+  vinfo = VecInfo cw n n
+  cw = commWorld
+  n = 5
+  vIn = V.fromList lIn
+  lIn = [0 .. m] :: [PetscScalar_]

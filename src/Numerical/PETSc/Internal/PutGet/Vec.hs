@@ -186,14 +186,14 @@ data PVector = PVector VecInfo Vec (V.Vector Scalar)
 vecCreate :: Comm -> IO Vec
 vecCreate c = chk1 (vecCreate' c)
 
-vecCreateMPI_ :: Comm -> Int -> Int -> IO Vec
-vecCreateMPI_ c nLocal nGlobal = chk1 (vecCreateMPI' c nLocal nGlobal)
 
 vecCreateMPI :: Comm -> Int -> Int -> IO Vec 
 vecCreateMPI c nloc nglob
   | nloc>=0 && nloc<=nglob = vecCreateMPI_ c nloc nglob
   | otherwise = error "vecCreateMPI: [nloc] must sum to nglob"
-
+    where
+      vecCreateMPI_ co nLocal nGlobal = chk1 (vecCreateMPI' co nLocal nGlobal)
+      
 
 vecCreateMPIdecideLocalSize :: Comm -> Int -> IO Vec
 vecCreateMPIdecideLocalSize co nglob
@@ -221,6 +221,8 @@ vecDestroy v = chk0 (vecDestroy' v)
 
 vecSetSizes :: Vec -> Int -> IO ()
 vecSetSizes v n = chk0 $ vecSetSizes1 v (toCInt n)
+
+
 
 
 
@@ -264,6 +266,9 @@ withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
 
 
 
+
+
+
 -- | assembly 
 
 vecAssemblyBegin, vecAssemblyEnd :: Vec -> IO ()
@@ -286,6 +291,10 @@ withVecAssemblyChk v = bracket_ (vecAssemblyBegin v) (vecAssemblyEnd v)
 -- | vecEqual : compares two vectors. Returns true if the two vectors are either pointing to the same memory buffer, or if the two vectors have the same local and global layout as well as bitwise equality of all entries. Does NOT take round-off errors into account.
 vecEqual :: Vec -> Vec -> IO PetscBool
 vecEqual v1 v2 = chk1 $ vecEqual1 v1 v2
+
+
+
+
 
 
 
@@ -331,16 +340,17 @@ withVecNew c v =
 
 
 
+
+
+
+
 -- | setting Vec attributes
 
 vecSetName :: Vec -> String -> IO ()
 vecSetName v name = chk0 $ vecSetName1 v name
 
-vecSet_ :: Vec -> PetscScalar_ -> IO ()
-vecSet_ v n = chk0 $ vecSet1 v n
-
-vecSet :: Vec -> PetscScalar_ -> IO Vec
-vecSet v n = do {vecSet_ v n ; return v}
+vecSet :: Vec -> PetscScalar_ -> IO ()
+vecSet v n = chk0 $ vecSet1 v n
 
 
 
@@ -349,7 +359,25 @@ vecSet v n = do {vecSet_ v n ; return v}
 
 
 
--- | setting Vec values 
+
+
+
+
+
+
+
+
+
+
+-- | setting Vec values
+
+
+-- common pattern :
+
+-- setWPointers ix y wiv m =
+--   wiv ix $ \ixx ->
+--    wiv y $ \yy ->
+--     m ixx yy
 
 vecSetValuesUnsafe0 ::
   Vec -> CInt -> Ptr CInt -> Ptr PetscScalar_ -> InsertMode_ -> IO ()
@@ -443,6 +471,40 @@ vecSetValuesRange v y im
     ixc = V.convert (V.map toCInt $ V.fromList [0 .. m])
 
 
+
+-- | generic functions using length of Vec ang VG.Vector
+
+
+whenEqualInts :: Int -> Int -> String -> a -> a
+whenEqualInts lv l c m
+  | lv /= l = error c
+  | otherwise = m
+
+withVecVectorLengths :: VG.Vector v a => Vec -> v a -> (Vec -> Int -> v a -> Int -> b) -> b
+withVecVectorLengths v v2 m =
+  whenEqualInts lv lv2 ("withVecVectorLengths : length mismatch : " ++ show lv2 ++ " /= " ++ show lv) (m v lv v2 lv2) where
+    lv = vecSize v
+    lv2 = VG.length v2
+
+vecSetValuesVectorM :: VG.Vector v PetscScalar_ =>
+     Vec ->
+     v PetscScalar_ ->
+     VS.Vector CInt ->
+     t ->
+     (Vec -> Int -> Ptr CInt -> Ptr PetscScalar_ -> Int -> t -> IO b) ->
+     IO b
+vecSetValuesVectorM v y ixc im m =
+  withVecVectorLengths v y $ \v1 lv1 v2 lv2 ->
+   VS.unsafeWith ixc $ \ixx -> do
+     let yc = V.convert v2
+     VS.unsafeWith yc $ \yy -> m v1 lv1 ixx yy lv2 im
+
+
+        
+
+
+
+-- staggeredFill vIn vOut ixDelta
 
 
 
