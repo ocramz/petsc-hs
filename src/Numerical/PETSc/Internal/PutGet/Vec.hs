@@ -485,14 +485,23 @@ vecSetValuesRange v y im
 whenEqualInts3 :: Int -> Int -> Int -> String -> a -> a
 whenEqualInts3 l1 l2 l3 c m | l1==l2 && l1==l3 = m | otherwise = error c
 
+withVecVectorLengths3 :: (VG.Vector v1 a1, VG.Vector v a) =>
+     Vec ->
+     v1 a1 ->
+     v a ->
+     (Vec -> Int -> v1 a1 -> Int -> v a -> Int -> a2) -> 
+     a2
 withVecVectorLengths3 v v2 v3 m =
-  whenEqualInts3 lv lv2 lv3 ("withVecVectorLengths : length mismatch : " ++ show lv ++ " , " ++ show lv2 ++ ", " ++ show lv3) (m v lv v2 lv2 v3 lv3) where
+  whenEqualInts3 lv lv2 lv3
+    ("withVecVectorLengths3 : length mismatch : " ++
+     show lv ++ ", " ++ show lv2 ++ ", " ++ show lv3)
+    (m v lv v2 lv2 v3 lv3)
+  where
     lv = vecSize v
     lv2 = VG.length v2
     lv3 = VG.length v3
 
-withVecVectorIxPtr ::
-  (VG.Vector v a, VG.Vector vi b, Storable a, Storable b) =>
+withVecVectorIxPtr :: (VG.Vector v a, VG.Vector vi b, Storable a, Storable b) =>
   Vec ->         -- Vec
   v a ->         -- VG.Vector (contents)
   vi b ->        -- VG.Vector (indices, i.e. b ~ CInt)
@@ -506,10 +515,18 @@ withVecVectorIxPtr v y ix im m =
       let yc = V.convert yy           -- contents
       VS.unsafeWith yc $ \ycp -> m vv lvv ixcp lix ycp lyy im
 
--- vecSetValuesRange2 v y im =
---   withVecVectorIndexPointers v y ix im $ \v1 lv1 ixp lv2 yp lv3 imm ->
---     let ix = V.fromList [0 .. (toCInt lv2)-1]
---     chk0 (vecSetValues' v (toCInt lv1) ixp yp imm) 
+
+vecSetValuesRange :: Vec -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
+vecSetValuesRange v y im = do
+  let ix = V.fromList [0 .. toCInt ly-1]
+  withVecVectorIxPtr v y ix im $ \vv _ ixp _ yp _ imm ->
+    chk0 (vecSetValues' vv (toCInt lv) ixp yp imm)
+  where
+    lv = vecSize v
+    ly = V.length y
+
+  
+
 
 
 

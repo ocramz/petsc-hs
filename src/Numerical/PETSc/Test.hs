@@ -452,14 +452,15 @@ t15 = withSlepc0 t15'
 
 -- | vecSetValuesRange
 
--- t17' m = withVecMPIPipeline vinfo
---        (\v -> vecSetValuesRange1 v vIn InsertValues)
---        vecViewStdout
---   where
---   vinfo = VecInfo cw n n
---   cw = commWorld
---   n = 5
---   vIn = V.fromList lIn
---   lIn = [0 .. (CDouble (fromIntegral m))-1]
+t17' :: Int -> IO ()
+t17' m = withVecMPIPipeline vinfo
+       (\v -> vecSetValuesRange2 v vIn InsertValues)
+       vecViewStdout
+  where
+  vinfo = VecInfo cw n n
+  cw = commWorld
+  n = 5
+  vIn = V.fromList lIn
+  lIn = [0 .. CDouble (fromIntegral m)-1]
 
--- t17 = withPetsc0 (t17' 5)
+t17 = withPetsc0 (t17' 5)
