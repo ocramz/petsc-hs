@@ -460,4 +460,6 @@ t17' m = withVecMPIPipeline vinfo
   cw = commWorld
   n = 5
   vIn = V.fromList lIn
-  lIn = [0 .. m-1] :: [PetscScalar_]
+  lIn = [0 .. (CDouble (fromIntegral m))-1]
+
+t17 = withPetsc0 (t17' 5)
