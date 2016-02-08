@@ -453,22 +453,7 @@ vecSetValuesUnsafeVector1 v ixy =
       (ix, y) = V.unzip ixy
 
 
-vecSetValuesRange ::
-  VG.Vector v PetscScalar_ =>
-  Vec ->
-  v PetscScalar_ ->
-  InsertMode_ ->
-  IO ()
-vecSetValuesRange v y im
-  | m == ly = 
-    VS.unsafeWith ixc $ \ixx ->
-     VS.unsafeWith yc $ \yy -> chk0 (vecSetValues' v (toCInt m) ixx yy im)
-  | otherwise = error "vecSetValuesRange : v and y must be of the same length !"
-  where
-    m = vecSize v
-    ly = VG.length y
-    yc = V.convert y
-    ixc = V.convert (V.map toCInt $ V.fromList [0 .. m])
+
 
 
 
@@ -516,6 +501,8 @@ withVecVectorIxPtr v y ix im m =
       VS.unsafeWith yc $ \ycp -> m vv lvv ixcp lix ycp lyy im
 
 
+
+
 vecSetValuesRange :: Vec -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
 vecSetValuesRange v y im = do
   let ix = V.fromList [0 .. toCInt ly-1]
@@ -527,11 +514,7 @@ vecSetValuesRange v y im = do
 
   
 
-
-
-
-
--- staggeredFill vIn vOut ixDelta
+-- vecSetValuesArbRange vIn vOut ixDelta
 
 
 
