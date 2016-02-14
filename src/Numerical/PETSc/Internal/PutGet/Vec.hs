@@ -462,8 +462,14 @@ assertOtherwise q c m | q = m | otherwise = error c
 whenEqualInts3 :: Int -> Int -> Int -> String -> a -> a
 whenEqualInts3 l1 l2 l3 = assertOtherwise (l1==l2 && l1==l3)
 
-validVecIndex :: Vec -> Int -> Bool
-validVecIndex v = Ix.inRange (0, vecSize v - 1)
+
+-- | index in range of Vec ?
+-- validVecIndex :: Vec -> Int -> Bool
+-- validVecIndex v = Ix.inRange (0, vecSize v - 1)
+
+
+
+
 
 
 withVecVectorLengths3 :: (VG.Vector v1 a1, VG.Vector v a) =>

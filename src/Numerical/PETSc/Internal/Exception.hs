@@ -7,7 +7,7 @@
 -- Maintainer  :  zocca . marco . gmail . com
 -- Stability   :  experimental
 --
--- | Exception handling for calls wrapped by PutGet interfaces
+-- | Exception handling
 --
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Exception
@@ -35,6 +35,17 @@ import Control.Monad
 infixl 0 ~!~
 (~!~) :: Monad m => Bool -> String -> m ()
 c ~!~ s = when c (error s)
+
+
+
+-- | vector indexing errors
+
+data IndexErrCode_ =
+  IndexTooLow | IndexTooHigh | IndexSizeMismatch deriving (Eq, Show, Typeable)
+
+instance Exception IndexErrCode_
+
+
 
 
 -- | Petsc error codes and strings (from $PETSC/src/sys/error/err.c )
