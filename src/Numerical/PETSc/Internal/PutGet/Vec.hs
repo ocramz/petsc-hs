@@ -301,23 +301,23 @@ vecEqual v1 v2 = chk1 $ vecEqual1 v1 v2
 
 
 
--- | vecCopy, vecDuplicate
+-- | vecCopy, vecDuplicate -> vecClone
 
-vecCopy_ :: Vec -> Vec -> IO ()
-vecCopy_ vorig vcopy = chk0 $ vecCopy1 vorig vcopy
+vecCopy :: Vec -> Vec -> IO ()
+vecCopy vorig vcopy = chk0 $ vecCopy1 vorig vcopy
 
-vecCopy :: Vec -> Vec -> IO Vec
-vecCopy vorig vcopy = do {vecCopy_ vorig vcopy ;  return vcopy}
+-- | vecDuplicate : allocates memory for an indentical Vec
 
 vecDuplicate :: Vec -> IO Vec
 vecDuplicate v = chk1 $ vecDuplicate1 v
 
--- | vecCopyDuplicate : duplicates Vec and copies content
+-- | vecClone : duplicates Vec and copies content
 
-vecCopyDuplicate :: Vec -> IO Vec
-vecCopyDuplicate v = do
-  x <- vecDuplicate v
-  vecCopy v x
+vecClone :: Vec -> IO Vec
+vecClone v = do
+  vcopy <- vecDuplicate v
+  vecCopy v vcopy
+  return vcopy
 
 
 
@@ -325,8 +325,8 @@ vecCopyDuplicate v = do
 withVecDuplicate :: Vec -> (Vec -> IO a) -> IO a
 withVecDuplicate v = withVec (vecDuplicate v)
 
-withVecCopyDuplicate :: Vec -> (Vec -> IO a) -> IO a
-withVecCopyDuplicate v = withVec (vecCopyDuplicate v) 
+withVecClone :: Vec -> (Vec -> IO a) -> IO a
+withVecClone v = withVec (vecClone v) 
 
 withVecNew :: Comm -> V.Vector PetscScalar_ -> (Vec -> IO a) -> IO a
 withVecNew c v =
@@ -658,6 +658,10 @@ withVecSize v f = f v (vecSize v)
 
 
 
+
+
+
+
 -- | getting/restoring a contiguous array from/to a Vec 
 
 
@@ -742,12 +746,7 @@ modifyVec v f = do
   let ym = f x
   vecRestoreIOVector v ym
   fromMutableV ym
-  -- x <- vecGetVector v
-  -- -- y <- withVG x f
-  -- xm <- toMutableV x
-  -- let ym = f xm
-  -- y <- fromMutableV ym
-  -- vecRestoreVector v y
+
 
 
 
@@ -769,9 +768,7 @@ vecRestoreIOVector v iov = do
 
 
 
-data V = V Vec
 
--- instance Num V where
 
 
 
