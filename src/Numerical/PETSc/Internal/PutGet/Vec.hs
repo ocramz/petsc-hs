@@ -56,11 +56,9 @@ import qualified Data.Vector.Generic       as VG
 
 
 -- | instances
-
--- instance 
-
--- -- instance Show Vec where ...
-
+ 
+instance Show Vec where        
+  show v = show (unsafePerformIO $ vecGetVector v)
 
 
 
@@ -671,6 +669,7 @@ vecGetArrayPtr v = chk1 (vecGetArray1' v)
 
 vecRestoreArrayPtr :: Vec -> Ptr PetscScalar_ -> IO ()
 vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
+
 
 
 

@@ -204,6 +204,7 @@ t7' = withVecNew commWorld vd1 $ \e1 ->
   withVecNew commWorld vd2 $ \e2 -> do
     x <- vecDot e1 e2
     print x
+    print e1 >> print e2
       where
         vd1 = V.convert $ V.fromList [0 , 1]
         vd2 = V.convert $ V.fromList [1 , 0]
