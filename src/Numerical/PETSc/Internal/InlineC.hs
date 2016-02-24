@@ -355,50 +355,24 @@ vecGetArray1' v = withPtr $ \p -> vecGetArray0' v p
 
 
 
-vectorFromC :: Storable a => Int -> Ptr a -> IO (V.Vector a)
-vectorFromC len ptr = do
-  ptr' <- newForeignPtr_ ptr
-  V.freeze $ VM.unsafeFromForeignPtr0 ptr' len
-
-  
-
-
--- withMutV :: (PrimMonad m, Storable a, Storable b) =>
---  V.Vector a ->
---  ( VM.MVector (PrimState m) a -> VM.MVector (PrimState m) b ) ->
---  m (V.Vector b )
--- withMutV v f = do
---   a <- V.thaw v
---   V.freeze $ f a 
-
-
-
-vectorToC0 :: Storable a => V.Vector a -> Int -> Ptr a -> IO ()
-vectorToC0 vec len ptr = do
-  ptr' <- newForeignPtr_ ptr
-  V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
-
-
-vectorToC :: Storable a => V.Vector a -> Ptr a -> IO ()
-vectorToC vec ptr = do
-  p <- newForeignPtr_ ptr
-  V.copy (VM.unsafeFromForeignPtr0 p len) vec
-   where
-     len = V.length vec
 
 
 
 
-funIO :: (Storable a, Storable b) =>
-         (V.Vector a -> V.Vector b) ->
-         Int -> Ptr a -> Ptr b ->
-         IO ()
-funIO fun dim y f = do
---         -- Convert the pointer we get from C (y) to a vector, and then
---         -- apply the user-supplied function.
-        fImm <- fun <$> vectorFromC dim y
---         -- Fill in the provided pointer with the resulting vector.
-        vectorToC0 fImm dim f
+
+
+
+
+-- funIO :: (Storable a, Storable b) =>
+--          (V.Vector a -> V.Vector b) ->
+--          Int -> Ptr a -> Ptr b ->
+--          IO ()
+-- funIO fun dim y f = do
+-- --         -- Convert the pointer we get from C (y) to a vector, and then
+-- --         -- apply the user-supplied function.
+--         fImm <- fun <$> vectorFromC dim y
+-- --         -- Fill in the provided pointer with the resulting vector.
+--         vectorToC0 fImm dim f
 
 
 

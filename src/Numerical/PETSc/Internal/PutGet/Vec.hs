@@ -44,6 +44,7 @@ import Control.Monad.IO.Class
 
 import           Data.STRef
 
+import           Control.Monad.ST
 import           Control.Monad.ST.Unsafe            (unsafeIOToST)    -- for HMatrix bits
 
 import qualified Data.Vector as V
@@ -727,6 +728,8 @@ toMutableV :: (VG.Vector v a, Storable a) => v a -> IO (VM.IOVector a)
 toMutableV = VS.thaw . VG.convert
 
 
+
+
 withVG :: (VG.Vector v a, Storable a) =>
               v a ->
               (VM.IOVector a -> VM.IOVector a) ->
@@ -809,9 +812,11 @@ vecGetVectorNSafe v n
 --             readSTRef s
 
 -- withSTRef v f = runST $ do
---   s <- newSTRef v
---   let y = f v
+--   vv <- unsafeIOToST $ vecGetVector v
+--   s <- newSTRef vv
+--   let y = f vv
 --   writeSTRef s y
+--   unsafeIOToST $ vecRestoreVector v y
 --   readSTRef s
 
 
@@ -876,7 +881,7 @@ petscVecVecFunctionAdapt v1 v2 fv =
 
 -- -- MVar stuff
 
--- data PetscVec = PetscVec { unPetscVec :: MVar PVec }
+-- data PetscVec = PetscVec { unPetscVec :: MVar Vec }
 
 -- makePetscVec v vi = do
 --   m <- newMVar (PVec v vi)

@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeFamilies, GeneralizedNewtypeDeriving, TypeSynonymInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Types
@@ -13,7 +13,7 @@
 module Numerical.PETSc.Internal.Types where
 
 import Numerical.PETSc.Internal.Utils
--- import Numerical.PETSc.Internal.Storable.StorableContainer
+import Numerical.PETSc.Internal.Storable.StorableContainer
 
 import Data.Complex
 import Foreign.Storable.Complex
@@ -97,6 +97,10 @@ instance Storable PetscReal where
 newtype IS = IS (Ptr IS) deriving Storable
 
 newtype Vec = Vec (Ptr Vec) deriving Storable
+
+-- instance StorableContainer Vec IO PetscScalar_ where
+  
+
 
 newtype Mat = Mat (Ptr Mat) deriving Storable
 

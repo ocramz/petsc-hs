@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Storable.StorableContainer where
 
-import Numerical.PETSc.Internal.Types
+-- import Numerical.PETSc.Internal.Types
 -- import Numerical.PETSc.Internal.PutGet.Vec
 
 import Control.Monad
@@ -41,22 +41,16 @@ import Control.Exception
 class Functor f => Element f a where
   type ElementIx a :: *
   elementRange :: f a -> ElementIx a -> ElementIx a -> f a
-  elementConst :: a -> Int -> f a
+  elementConst :: a -> f a
 
-instance Element [] a where
-  type ElementIx a = Int
-  elementRange xs i1 i2
-    | length xs >= i2 && i2 >= i1 = drop i1 (take i2 xs) 
-    | otherwise = error "elementRange [a] : indices out of range"
-  elementConst = flip replicate
+-- instance Element [] a where
+--   type ElementIx a = Int
+--   elementRange xs i1 i2
+--     | length xs >= i2 && i2 >= i1 = drop i1 (take i2 xs) 
+--     | otherwise = error "elementRange [a] : indices out of range"
+--   elementConst = flip replicate
 
-data VecVec a = VV { unVV :: [[a]] }
 
-instance Functor VecVec where
-  fmap f x = VV $ (map . map) f (unVV x)
-
--- instance Element VecVec a where
---   type ElementIx (VecVec a) = (Int, Int)
 
 
 
@@ -64,12 +58,24 @@ instance Functor VecVec where
 
 -- | `Container` class from Data.Packed.Internal.Matrix
 
--- class Element e => Container c e where
---   type IndexOf (c :: * -> *) :: *
---   type ArgOf (c :: * -> *) a
---   containerSize :: c e -> IndexOf c
---   containerScalar :: e -> c e
---   scale :: e -> c e -> c e
+class (Functor c, Element c e) => Container c e where
+  -- type IndexOf (c :: * -> *) :: *
+  type SizeOf (c :: * -> *) :: *
+  -- type ArgOf (c :: * -> *) a
+  containerSize :: c e -> SizeOf c
+  containerConst :: e -> c e
+  scale :: e -> c e -> c e
+
+
+
+
+
+
+
+-- | IxContainer
+
+class (Ord a) => IxContainer c a where
+  type IndexOf (c :: * -> *) :: *
 
 
 
@@ -83,14 +89,14 @@ instance Functor VecVec where
 -- first type : PETSc side (Storable types in Internal.Types)
 -- third type : Haskell side (e.g. PetscVector in PutGet.Vec)
 
--- class (Storable p, Monad m) => StorableContainer p m a where
---   type SCInfo p 
---   type SCLocal a
---   initP :: SCInfo p -> m p
---   updateH :: p -> m (SCLocal a)
---   updateP :: p -> SCLocal a -> m ()
---   withP :: p -> (SCLocal a -> m b) -> m b
---   destroyP :: p -> m ()
+class (Storable p, Monad m) => StorableContainer p m a where
+  type SCInfo p 
+  type SCLocal a
+  initP :: SCInfo p -> m p
+  updateH :: p -> m (SCLocal a)
+  updateP :: p -> SCLocal a -> m ()
+  withP :: p -> (SCLocal a -> m b) -> m b
+  destroyP :: p -> m ()
 
 {-
 -- | usage example :  
