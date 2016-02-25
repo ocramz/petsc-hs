@@ -16,9 +16,11 @@ module Numerical.PETSc.Internal.PutGet.PetscMisc
          commWorld, commSelf,
          commWorldC, commSelfC,
          mkMPIComm, getMPICommSize, getMPICommRank,
-         withMPIEnv,
+         -- withMPIEnv,
          petscInit0, petscInit, petscFin,
-         withPetsc0, withPetsc
+         withPetsc0, withPetsc,
+         withPetsc0MpiComm, withPetscMpiComm,
+         isMpiRoot
        )
        where
 
@@ -53,14 +55,14 @@ import Control.Arrow ((***), (&&&))
 
 -- a `reader` bracket for reading MPI environmemt information
 
-withMPIEnv f = runReaderT $ do
-  c <- ask
-  return $ f $ getMPICommSize c
-  -- let
-  --   (cs, cr) = (getMPICommSize &&& getMPICommRank) c
+-- withMPIEnv f = runReaderT $ do
+--   c <- ask
+--   return $ f $ getMPICommSize c
+--   -- let
+--   --   (cs, cr) = (getMPICommSize &&& getMPICommRank) c
                
-  -- lift (f cs cr)
-  -- lift (f c')
+--   -- lift (f cs cr)
+--   -- lift (f c')
 
 
 
@@ -94,11 +96,13 @@ mkMpiCommRank c = MkMpiCommRk (mpiCommRank c)
 mkMPIComm :: Comm -> MPIComm
 mkMPIComm c = MPIComm c (mkMpiCommSize c) (mkMpiCommRank c)
 
--- | MPICOmm accessors
+-- | MPIComm accessors
 getMPICommSize, getMPICommRank :: MPIComm -> Int
-getMPICommSize = unCommSize' . commSize
-getMPICommRank = unCommRank' . commRank
+getMPICommSize c = fromEnum (commSize c)
+getMPICommRank c = fromEnum (commRank c)
 
+
+  
 
 
 
@@ -115,8 +119,20 @@ petscInit0 = do
 petscFin :: IO ()
 petscFin = chk0 petscFin1 >> putStrLn ("\nPETSc : finalized\n" ++ sep)
 
+withPetscFin :: IO a -> IO b -> IO b
+withPetscFin initializ = bracket_ initializ petscFin
+
 withPetsc0 :: IO a -> IO a
-withPetsc0 = bracket_ petscInit0 petscFin
+withPetsc0 = withPetscFin petscInit0
+
+
+withPetsc0MpiComm :: MPIComm -> (MpiCommSize -> MpiCommRank -> IO a) -> IO a
+withPetsc0MpiComm c act =
+  withPetsc0 $ do
+    let size = commSize c
+        rank = commRank c
+    act size rank
+
 
 petscInit ::
   [String] ->   -- "argv" list of strings
@@ -129,7 +145,31 @@ petscInit args opts help = do
 
 withPetsc ::
   [String] -> String -> String -> IO a -> IO a
-withPetsc a o h = bracket_ (petscInit a o h) petscFin
+withPetsc a o h = withPetscFin (petscInit a o h) 
+
+withPetscMpiComm :: [String] -> String -> String ->
+     MPIComm ->
+     (MpiCommSize -> MpiCommRank -> IO a) -> 
+     IO a
+withPetscMpiComm a o h c act =
+  withPetsc a o h $ do
+    let size = commSize c
+        rank = commRank c
+    act size rank
+
+
+isMpiRoot :: MPIComm -> Bool
+isMpiRoot c = getMPICommRank c == 0
+
+
+
+
+
+
+
+
+
+-- | header
 
 sep, petscHeader :: String 
 sep = "======"

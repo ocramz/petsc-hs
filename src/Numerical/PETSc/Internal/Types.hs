@@ -89,7 +89,7 @@ newtype PetscMPIInt_ = PetscMPIInt_ (Ptr PetscMPIInt_ ) deriving (Show, Storable
 newtype PetscReal = PetscReal (Ptr PetscReal)
 instance Storable PetscReal where
   sizeOf _ = sizeOf (undefined :: PetscReal_)
-  alignment = sizeOf
+  alignment _ = alignment (undefined :: PetscReal_)
   peek = peek
   poke = poke 
 
