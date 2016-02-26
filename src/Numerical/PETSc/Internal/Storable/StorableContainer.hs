@@ -89,14 +89,14 @@ class (Ord a) => IxContainer c a where
 -- first type : PETSc side (Storable types in Internal.Types)
 -- third type : Haskell side (e.g. PetscVector in PutGet.Vec)
 
-class (Storable p, Monad m) => StorableContainer p m a where
-  type SCInfo p 
-  type SCLocal a
-  initP :: SCInfo p -> m p
-  updateH :: p -> m (SCLocal a)
-  updateP :: p -> SCLocal a -> m ()
-  withP :: p -> (SCLocal a -> m b) -> m b
-  destroyP :: p -> m ()
+-- class (Storable p, Monad m) => StorableContainer p m a where
+--   type SCInfo p 
+--   type SCLocal p
+--   initP :: SCInfo p -> m p
+--   updateH :: p -> m (SCLocal p)
+--   updateP :: p -> SCLocal p -> m ()
+--   withP :: p -> (SCLocal p -> m b) -> m b
+--   destroyP :: p -> m ()
 
 {-
 -- | usage example :  

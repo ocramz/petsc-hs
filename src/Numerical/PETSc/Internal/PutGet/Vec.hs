@@ -18,6 +18,7 @@ import           Numerical.PETSc.Internal.Exception
 import           Numerical.PETSc.Internal.Utils
 
 import           Numerical.PETSc.Internal.Storable.Vector
+import           Numerical.PETSc.Internal.Storable.StorableContainer
 
 
 import qualified Data.Ix as Ix (range, inRange)
@@ -59,6 +60,11 @@ import qualified Data.Vector.Generic       as VG
  
 instance Show Vec where        
   show v = show (unsafePerformIO $ vecGetVector v)
+
+
+
+
+
 
 
 
