@@ -10,7 +10,7 @@
 -- | Vec Mid-level interface
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Internal.PutGet.Vec  where
+module Numerical.PETSc.Internal.PutGet.Vec where
 
 import           Numerical.PETSc.Internal.InlineC
 import           Numerical.PETSc.Internal.Types
@@ -52,16 +52,37 @@ import qualified Data.Vector as V
 import qualified Data.Vector.Storable               as VS 
 import qualified Data.Vector.Storable.Mutable       as VM
 import qualified Data.Vector.Generic       as VG
-
+import qualified Data.Vector.Generic.Mutable       as VGM
 
 
 
 -- | instances
  
+
+-- -- Show
+
 instance Show Vec where        
   show v = show (unsafePerformIO $ vecGetVector v)
 
 
+
+
+-- -- Vector.Generic.Mutable
+
+instance VGM.MVector Vec PetscScalar_ where
+  basicLength v = undefined
+
+
+
+-- instance StorableContainer Vec where
+--   type SCInfo Vec = VecInfo
+--   type SCLocal Vec = VS.Vector PetscScalar_
+--   type SCRemote Vec = Vec
+--   initRemote = vecCreateMPIInfo  -- must import PutGet.Vec for these ..
+--   updateLocal = vecGetVector
+--   updateRemote = vecRestoreVector
+--   withRemote v = bracket (vecGetVector v) (vecRestoreVector v)
+--   destroyRemote = vecDestroy
 
 
 

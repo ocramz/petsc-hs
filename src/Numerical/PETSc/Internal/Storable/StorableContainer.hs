@@ -11,7 +11,10 @@
 -- | Storable container class
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Internal.Storable.StorableContainer where
+module Numerical.PETSc.Internal.Storable.StorableContainer
+       (StorableContainer(..)
+       )
+       where
 
 -- import Numerical.PETSc.Internal.Types
 -- import Numerical.PETSc.Internal.PutGet.Vec
@@ -105,15 +108,15 @@ instance StorableContainer Vec IO a where
   type PObjLocal Vec a = V.Vector a
 -}
 
--- class Storable p => StorableContainer p where
---   type SCInfo p 
---   type SCLocal p
---   type SCRemote p
---   initRemote :: SCInfo p -> IO (SCRemote p)
---   updateLocal :: SCRemote p -> IO (SCLocal p)
---   updateRemote :: SCRemote p -> SCLocal p -> IO ()
---   withRemote :: SCRemote p -> (SCLocal p -> IO b) -> IO b
---   destroyRemote :: SCRemote p -> IO ()
+class Storable p => StorableContainer p where
+  type SCInfo p 
+  type SCLocal p
+  type SCRemote p
+  initRemote :: SCInfo p -> IO (SCRemote p)
+  updateLocal :: SCRemote p -> IO (SCLocal p)
+  updateRemote :: SCRemote p -> SCLocal p -> IO ()
+  withRemote :: SCRemote p -> (SCLocal p -> IO b) -> IO b
+  destroyRemote :: SCRemote p -> IO ()
 
 -- instance StorableContainer Vec where
 --   type SCInfo Vec = VecInfo
