@@ -56,6 +56,11 @@ import qualified Data.Vector.Generic.Mutable       as VGM
 
 
 
+
+
+
+
+
 -- | instances
  
 
@@ -69,10 +74,17 @@ instance Show Vec where
 
 -- -- Vector.Generic.Mutable
 
-instance VGM.MVector Vec PetscScalar_ where
-  basicLength v = undefined
+data MVec s a = MVec 
+    {-# UNPACK #-} !Int  -- global vector length (see `vecCreateMPI() `)          
+    {-# UNPACK #-} !Vec
+
+instance VGM.MVector MVec PetscScalar_ where
+  basicLength (MVec n _) = n
 
 
+
+
+-- -- StorableContainer
 
 -- instance StorableContainer Vec where
 --   type SCInfo Vec = VecInfo

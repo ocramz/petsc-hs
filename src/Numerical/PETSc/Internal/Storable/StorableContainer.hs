@@ -12,8 +12,8 @@
 --
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Storable.StorableContainer
-       (StorableContainer(..)
-       )
+       -- (StorableContainer(..)
+       -- )
        where
 
 -- import Numerical.PETSc.Internal.Types
@@ -21,6 +21,7 @@ module Numerical.PETSc.Internal.Storable.StorableContainer
 
 import Control.Monad
 
+import Data.Complex
 import Data.Ix
 import qualified Data.Vector as V
 
@@ -33,18 +34,54 @@ import Control.Monad.Reader.Class
 import Control.Monad.Trans.Class
 
 import Foreign.Storable
+import Foreign.C.Types
 
 import Control.Exception
 
 
 
+-- | algebraic hierarchy from Blanco et al. `Towards a functional run-time for dense NLA domain`, FHPC'13
+
+class (Eq e, Fractional e) => Element e where
+  conj :: e -> e
+  conj = id      -- default
+
+instance Element Double
+instance Element CDouble
+instance Element Float
+instance RealFloat e => Element (Complex e) where
+  conj = conjugate
+
+class Element e => Container c e where
+  type IxC :: *
+  type DimC :: *
+  generateC :: DimC -> (IxC -> IxC -> c e) -> c e
+  selectC :: c e -> IxC -> e   -- or Maybe e ?
+  dimC :: c e -> DimC
+  subC :: c e -> IxC -> IxC -> c e
+  mapC :: (e -> e) -> c e -> c e
+
+class Container c e => Vector c e where
+  fromListV :: [e] -> c e
+  toListV :: c e -> [e]
+  concatV :: [c e] -> c e
+  foldrV :: (e -> a -> a) -> a -> v e -> a
+  zipWithV :: (e -> e -> e) -> c e -> c e -> c e
+
+data TransposedState = NotTransposed | Transposed deriving (Eq, Show)
+
+class Container c e => Matrix c e where
+  fromListM :: Int -> Int -> [e] -> c e
+  -- transposeM :: c e -> c e    -- NB : transposition shd be reflected in type
+
+
 
 -- | `Element` class from Data.Packed.Internal.Matrix
 
-class Functor f => Element f a where
-  type ElementIx a :: *
-  elementRange :: f a -> ElementIx a -> ElementIx a -> f a
-  elementConst :: a -> f a
+-- class Functor f => Element f a where
+--   type ElementIx a :: *
+--   elementRange :: f a -> ElementIx a -> ElementIx a -> f a
+--   elementConst :: a -> f a
 
 -- instance Element [] a where
 --   type ElementIx a = Int
@@ -61,13 +98,13 @@ class Functor f => Element f a where
 
 -- | `Container` class from Data.Packed.Internal.Matrix
 
-class (Functor c, Element c e) => Container c e where
-  -- type IndexOf (c :: * -> *) :: *
-  type SizeOf (c :: * -> *) :: *
-  -- type ArgOf (c :: * -> *) a
-  containerSize :: c e -> SizeOf c
-  containerConst :: e -> c e
-  scale :: e -> c e -> c e
+-- class (Functor c, Element c e) => Container c e where
+--   -- type IndexOf (c :: * -> *) :: *
+--   type SizeOf (c :: * -> *) :: *
+--   -- type ArgOf (c :: * -> *) a
+--   containerSize :: c e -> SizeOf c
+--   containerConst :: e -> c e
+--   scale :: e -> c e -> c e
 
 
 
@@ -77,8 +114,8 @@ class (Functor c, Element c e) => Container c e where
 
 -- | IxContainer
 
-class (Ord a) => IxContainer c a where
-  type IndexOf (c :: * -> *) :: *
+-- class Container c a => IxContainer c a where
+--   type IndexOf (c :: * -> *) :: *
 
 
 
@@ -173,12 +210,12 @@ class Storable p => StorableContainer p where
 
 -- class (Monad m, Storable r) => ManagedContainer m r where
 --   type MCInfo r
---   type MCLocalType r
---   manageP :: MCInfo r -> (MCInfo r -> IO r) -> (r -> IO a) -> Managed r
+--   type MCLocType r
+--   manageP :: MCInfo r -> (MCInfo r -> IO (MCLocType r)) -> (MCLocType r -> IO a) -> Managed (MCLocType r)
 --   manageP info get set = managed (bracket (get info) set)
 
 
--- asdf info get set = managed (bracket (get info) set)
+-- asdf info ini fin = managed (bracket (ini info) fin)
 
 
 -- withSizeArray :: (Storable a, Integral a) => [a] -> (Ptr CULong -> IO b) -> IO b
