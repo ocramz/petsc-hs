@@ -977,6 +977,7 @@ matSetValuesInsert' m x y b = matSetValues' m x y b InsertValues
 
 
 -- PetscErrorCode  MatSetBlockSize(Mat mat,PetscInt bs)
+matSetBlockSize' :: Mat -> Int -> IO CInt
 matSetBlockSize' mat bs = [C.exp|int{MatSetBlockSize($(Mat mat),$(int bsc))}|] where
   bsc = toCInt bs
 -- Logically Collective on Mat
@@ -988,6 +989,9 @@ matSetBlockSize' mat bs = [C.exp|int{MatSetBlockSize($(Mat mat),$(int bsc))}|] w
 -- This must be called before MatSetUp() or MatXXXSetPreallocation() (or will default to 1) and the block size cannot be changed later
 
 -- PetscErrorCode  MatSetValuesBlocked(Mat mat,PetscInt m,const PetscInt idxm[],PetscInt n,const PetscInt idxn[],const PetscScalar v[],InsertMode addv)
+
+matSetValuesBlocked0' ::
+  Mat -> CInt -> Ptr CInt -> CInt -> Ptr CInt -> Ptr PetscScalar_ -> InsertMode_ -> IO CInt
 matSetValuesBlocked0' mat m idxm n idxn v imode =
   [C.exp|int{MatSetValuesBlocked($(Mat mat),
                                  $(int m),
@@ -1046,19 +1050,16 @@ MatSetValuesStencil() uses 0-based row and column numbers in Fortran as well as 
 
 
 
-
+matAssemblyBegin' :: Mat -> IO CInt
 matAssemblyBegin' a = [C.exp|int{MatAssemblyBegin($(Mat a), MAT_FINAL_ASSEMBLY )}|]
 
+matAssemblyEnd' :: Mat -> IO CInt
 matAssemblyEnd' a = [C.exp|int{MatAssemblyEnd($(Mat a), MAT_FINAL_ASSEMBLY )}|]
 
 -- matAssembly =
 --   matAssemblyBegin >> matAssemblyEnd
 
--- withMatAssembly v f = do
---   matAssemblyBegin v
---   f v
---   matAssemblyEnd v
-
+matSetup' :: Mat -> IO CInt
 matSetup' a = [C.exp|int{MatSetUp($(Mat a))}|] 
 
 
@@ -1066,19 +1067,19 @@ matSetup' a = [C.exp|int{MatSetUp($(Mat a))}|]
 -- TODO row (block) indexing : these should not be interpreted as mere Ints but as indices, e.g. FEM mesh nodes
 
 -- PETSC_EXTERN PetscErrorCode MatGetOwnershipRange(Mat,PetscInt*,PetscInt*);
-matGetOwnershipRange0' a =
- withPtr $ \rmin -> 
-  withPtr $ \rmax ->
-   [C.exp|int{MatGetOwnershipRange($(Mat a), $(PetscInt *rmin), $(PetscInt *rmax) )}|]
 
+matGetOwnershipRange' :: Mat -> IO ((Int, Int), CInt)
 matGetOwnershipRange' m = do
-  (r2, (r1, e)) <- matGetOwnershipRange0' m
-  return ((fi r2, fi r1), e)
-
-
+  (r2, (r1, e)) <- mgor m
+  return ((fi r2, fi r1), e) where
+    mgor a =
+      withPtr $ \rmin -> 
+       withPtr $ \rmax ->
+       [C.exp|int{MatGetOwnershipRange($(Mat a), $(PetscInt *rmin), $(PetscInt *rmax) )}|]
 
 
 -- PetscErrorCode  MatGetInfo(Mat mat,MatInfoType flag,MatInfo *info)
+matGetInfo' :: Mat -> MatInfoType_ -> IO (MatInfo, CInt)
 matGetInfo' mat t = withPtr $ \info -> [C.exp|int{MatGetInfo($(Mat mat),$(int inft),$(MatInfo* info))}|]  where inft = toCInt $ matInfoTypeToInt t
 -- Collective on Mat if MAT_GLOBAL_MAX or MAT_GLOBAL_SUM is used as the flag
 -- Input Parameters :
@@ -1099,7 +1100,8 @@ matGetInfo' mat t = withPtr $ \info -> [C.exp|int{MatGetInfo($(Mat mat),$(int in
 -- Input Parameter :
 -- A -the matrix to test 
 -- Output Parameters :
--- flg -the result 
+-- flg -the result
+matIsStructurallySymmetric' :: Mat -> IO (PetscBool, CInt)
 matIsStructurallySymmetric' mat = withPtr $ \b ->
   [C.exp|int{MatIsStructurallySymmetric($(Mat mat),$(PetscBool* b))}|]
 
@@ -1112,13 +1114,15 @@ matIsStructurallySymmetric' mat = withPtr $ \b ->
 -- mat	- the matrix
 -- type	- the type of norm, NORM_1, NORM_FROBENIUS, NORM_INFINITY
 -- Output Parameters :
--- nrm -the resulting norm 
+-- nrm -the resulting norm
+matNorm' :: Mat -> MatNorm_ -> IO (PetscReal_, CInt)
 matNorm' mat ntype = withPtr $ \nrm ->
   [C.exp|int{MatNorm($(Mat mat),$(int nt),$(PetscReal* nrm))}|] where
     nt = toCInt $ matNormToInt ntype
 
 
 -- PetscErrorCode  MatGetTrace(Mat mat,PetscScalar *trace)
+matGetTrace' :: Mat -> IO (PetscScalar_, CInt)
 matGetTrace' mat = withPtr $ \tr -> [C.exp|int{MatGetTrace($(Mat mat),$(PetscScalar* tr))}|]
 
 
