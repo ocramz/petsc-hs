@@ -923,6 +923,7 @@ matSetValueUnsafe' m row col val im =
     colc = toCInt col
 
 -- PETSC_EXTERN PetscErrorCode MatZeroEntries(Mat);
+matZeroEntries' :: Mat -> IO CInt
 matZeroEntries' mat = [C.exp|int{MatZeroEntries($(Mat mat))}|]
 
 
@@ -942,14 +943,7 @@ matZeroEntries' mat = [C.exp|int{MatZeroEntries($(Mat mat))}|]
 -- Negative indices may be passed in idxm and idxn, these rows and columns are simply ignored. This allows easily inserting element stiffness matrices with homogeneous Dirchlet boundary conditions that you don't want represented in the matrix
 
 
-matSetValues0' mat nbx idxx_ nby idxy_ b_ im =
-  [C.exp|int { MatSetValues($(Mat mat),
-                      $(int nbx),
-                      $(int* idxx_),
-                      $(int nby),
-                      $(int* idxy_),
-                      $(PetscScalar* b_), $(int imm))} |] where
-    imm = fromIntegral $ insertModeToInt im
+
 
 matSetValues' mat idxx idxy b im
   | compatDim =
@@ -962,9 +956,20 @@ matSetValues' mat idxx idxy b im
        nbx = toCInt $ length idxx
        nby = toCInt $ length idxy
        nb = toCInt $ length b
-       compatDim = (nbx*nby) == nb
+       compatDim = (nbx*nby) == nb where
+         matSetValues0' mat nbx idxx_ nby idxy_ b_ im =
+           [C.exp|int { MatSetValues($(Mat mat),
+                                     $(int nbx),
+                                     $(int* idxx_),
+                                     $(int nby),
+                                     $(int* idxy_),
+                                     $(PetscScalar* b_), $(int imm))} |] where
+             imm = fromIntegral $ insertModeToInt im
 
+matSetValuesAdd' :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> IO CInt
 matSetValuesAdd' m x y b = matSetValues' m x y b AddValues
+
+matSetValuesInsert' :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> IO CInt
 matSetValuesInsert' m x y b = matSetValues' m x y b InsertValues
 
 
