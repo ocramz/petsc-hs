@@ -205,6 +205,7 @@ t6' n =
  
 t6 = withPetsc0 $ t6' 5
 
+
 t61' = withMatNew commWorld 3 3 MatAij vi InsertValues $ \m ->
   matViewStdout m where
     vi = csrSome3
