@@ -2422,6 +2422,13 @@ snesSetJacobian_' snes amat pmat f =
 
 -- -- monomorphic SNESSetJacobian : see e.g. www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex5s.c.html
 -- -- usage : SNESSetJacobian(snes,J,J,SNESComputeJacobianDefaultColor,fdcoloring);
+snesSetJacobian0mono' ::
+  SNES
+  -> Mat
+  -> Mat
+  -> (SNES -> Vec -> Mat -> Mat -> Ptr MatFDColoring -> IO CInt)
+  -> MatFDColoring
+  -> IO CInt
 snesSetJacobian0mono' snes amat pmat f col =
   [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
                              $fun:(int (*f)(SNES,Vec,Mat,Mat,MatFDColoring*)),
@@ -2444,6 +2451,7 @@ snesSetJacobian0mono' snes amat pmat f col =
 -- -snes_test_err	- Square root of function error tolerance, default square root of machine epsilon (1.e-8 in double, 3.e-4 in single)
 -- -mat_fd_type	- Either wp or ds (see MATMFFD_WP or MATMFFD_DS)
 
+snesComputeJacobianDefault0' :: SNES -> Vec -> Mat -> Mat -> Ptr () -> IO CInt
 snesComputeJacobianDefault0' snes x1 jj bb ctx =
   [C.exp|int{SNESComputeJacobianDefault($(SNES snes),$(Vec x1),$(Mat jj),$(Mat bb),$(void* ctx))}|]
 
@@ -2468,6 +2476,7 @@ snesComputeJacobianDefaultColor0' snes x jj bb fdcoloring =
 -- * SNESLineSearch
 
 -- PetscErrorCode SNESGetLineSearch(SNES snes, SNESLineSearch *linesearch)
+snesGetLineSearch' :: SNES -> IO (SNESLineSearch, CInt)
 snesGetLineSearch' snes =
   withPtr ( \ls ->
      [C.exp|int{SNESGetLineSearch($(SNES snes),
@@ -2476,6 +2485,7 @@ snesGetLineSearch' snes =
 
 
 -- PetscErrorCode SNESSetLineSearch(SNES snes, SNESLineSearch linesearch)
+snesSetLineSearch' :: SNES -> SNESLineSearch -> IO CInt
 snesSetLineSearch' snes ls = [C.exp|int{SNESSetLineSearch($(SNES snes),$(SNESLineSearch ls))}|]
 
 
@@ -2487,6 +2497,18 @@ snesSetLineSearch' snes ls = [C.exp|int{SNESSetLineSearch($(SNES snes),$(SNESLin
 -- func	- [optional] function evaluation routine, see SNESLineSearchPostCheckFunction for the calling sequence
 -- ctx	- [optional] user-defined context for private data for the function evaluation routine (may be NULL)
 
+snesLineSearchSetPostCheck' ::
+  SNESLineSearch
+  -> (SNESLineSearch
+      -> Vec
+      -> Vec
+      -> Vec
+      -> Ptr PetscBool
+      -> Ptr PetscBool
+      -> Ptr ()
+      -> IO CInt)
+  -> Ptr ()
+  -> IO CInt
 snesLineSearchSetPostCheck' snesls f ctx =
   [C.exp|
    int{SNESLineSearchSetPostCheck(
@@ -2494,6 +2516,17 @@ snesLineSearchSetPostCheck' snesls f ctx =
           $fun:(int(*f)(SNESLineSearch,Vec,Vec,Vec,PetscBool*,PetscBool*,void*)),
           $(void* ctx))}|]
 
+snesLineSearchSetPostCheck0' ::
+  SNESLineSearch
+  -> (SNESLineSearch
+      -> Vec
+      -> Vec
+      -> Vec
+      -> Ptr PetscBool
+      -> Ptr PetscBool
+      -> Ptr ()
+      -> IO CInt)
+  -> IO CInt
 snesLineSearchSetPostCheck0' snesls f =
   [C.exp|
    int{SNESLineSearchSetPostCheck(
@@ -2516,7 +2549,17 @@ snesLineSearchSetPostCheck0' snesls f =
 
 
 -- PetscErrorCode  SNESLineSearchSetTolerances(SNESLineSearch linesearch,PetscReal steptol,PetscReal maxstep, PetscReal rtol, PetscReal atol, PetscReal ltol, PetscInt max_its)
-snesLineSearchSetTolerances' ls steptol maxstep rtol atol ltol maxits = [C.exp|int{SNESLineSearchSetTolerances($(SNESLineSearch ls),$(PetscReal steptol),$(PetscReal maxstep),$(PetscReal rtol),$(PetscReal atol),$(PetscReal ltol),$(int mi))}|] where
+snesLineSearchSetTolerances' ::
+  SNESLineSearch
+  -> PetscReal_
+  -> PetscReal_
+  -> PetscReal_
+  -> PetscReal_
+  -> PetscReal_
+  -> Int
+  -> IO CInt
+snesLineSearchSetTolerances' ls steptol maxstep rtol atol ltol maxits =
+  [C.exp|int{SNESLineSearchSetTolerances($(SNESLineSearch ls),$(PetscReal steptol),$(PetscReal maxstep),$(PetscReal rtol),$(PetscReal atol),$(PetscReal ltol),$(int mi))}|] where
   mi = toCInt maxits
 -- Input Parameters :
 -- linesearch	- linesearch context
@@ -2532,6 +2575,7 @@ snesLineSearchSetTolerances' ls steptol maxstep rtol atol ltol maxits = [C.exp|i
 
 
 -- PetscErrorCode  SNESLineSearchGetLambda(SNESLineSearch linesearch,PetscReal *lambda)
+snesLineSearchGetLambda' :: SNESLineSearch -> IO (PetscReal_, CInt)
 snesLineSearchGetLambda' ls = withPtr $ \lam -> [C.exp|int{SNESLineSearchGetLambda($(SNESLineSearch ls), $(PetscReal* lam))}|]
 -- Input Parameters :
 -- linesearch -linesearch context 
@@ -2541,6 +2585,7 @@ snesLineSearchGetLambda' ls = withPtr $ \lam -> [C.exp|int{SNESLineSearchGetLamb
 -- This is useful in methods where the solver is ill-scaled and requires some adaptive notion of the difference in scale between the solution and the function. For instance, SNESQN may be scaled by the line search lambda using the argument -snes_qn_scaling ls.
 
 -- PetscErrorCode  SNESLineSearchSetLambda(SNESLineSearch linesearch, PetscReal lambda)
+snesLineSearchSetLambda' :: SNESLineSearch -> PetscReal_ -> IO CInt
 snesLineSearchSetLambda' ls lam = [C.exp|int{SNESLineSearchSetLambda($(SNESLineSearch ls), $(PetscReal lam))}|]
 -- Input Parameters :
 -- linesearch	- linesearch context
@@ -2560,6 +2605,7 @@ snesLineSearchSetLambda' ls lam = [C.exp|int{SNESLineSearchSetLambda($(SNESLineS
 -- Notes :
 -- If this routine is not called then the lower and upper bounds are set to PETSC_NINFINITY and PETSC_INFINITY respectively during SNESSetUp().
 
+snesVISetVariableBounds' :: SNES -> Vec -> Vec -> IO CInt
 snesVISetVariableBounds' snes xl xu =
   [C.exp|int{SNESVISetVariableBounds($(SNES snes),$(Vec xl),$(Vec xu))}|]
 
@@ -2577,26 +2623,31 @@ snesVISetVariableBounds' snes xl xu =
 
 
 -- PetscErrorCode  TSCreate(MPI_Comm comm, TS *ts)
+tsCreate' :: Comm -> IO (TS, CInt)
 tsCreate' comm =
   withPtr (\ts -> [C.exp|int{TSCreate($(int c), $(TS* ts))}|]) 
   where
    c = unComm comm
 
-tsDestroy0' ts = [C.exp| int{TSDestroy($(TS* ts))} |] 
-tsDestroy' ts = with ts tsDestroy0'
+tsDestroy' :: TS -> IO CInt
+tsDestroy' ts = with ts tsDestroy0' where
+  tsDestroy0' ts = [C.exp| int{TSDestroy($(TS* ts))} |] 
 
 
 -- PetscErrorCode  TSSetProblemType(TS ts, TSProblemType type)
+tsSetProblemType' :: TS -> TsProblemType -> IO CInt
 tsSetProblemType' ts t =
   [C.exp|int{TSSetProblemType($(TS ts), $(int tt))}|] 
    where tt = fromIntegral $ tsProblemTypeToInt t
 
 
 -- PetscErrorCode TSSetInitialTimeStep(TS ts,PetscReal initial_time,PetscReal time_step)
+tsSetInitialTimeStep' :: TS -> PetscReal_ -> PetscReal_ -> IO CInt
 tsSetInitialTimeStep' ts it dt =
   [C.exp|int{TSSetInitialTimeStep($(TS ts), $(PetscReal it), $(PetscReal dt))}|] 
 
 -- PetscErrorCode  TSSetDuration(TS ts,PetscInt maxsteps,PetscReal maxtime)
+tsSetDuration' :: TS -> Int -> PetscReal_ -> IO CInt
 tsSetDuration' ts ms' mt =
   [C.exp|int{TSSetDuration($(TS ts),$(int ms),$(PetscReal mt))}|] 
   where
@@ -2626,12 +2677,21 @@ tsSetDuration' ts ms' mt =
 -- Important :
 -- The user MUST call either this routine or TSSetRHSFunction() to define the ODE. When solving DAEs you must use this function.
 
+tsSetIFunction0' :: TS
+                    -> Vec
+                    -> (TS -> PetscReal_ -> Vec -> Vec -> Vec -> Ptr () -> IO CInt)
+                    -> IO CInt
 tsSetIFunction0' ts res f =
   [C.exp|int{TSSetIFunction($(TS ts),
                             $(Vec res),
                             $fun:(int (*f)(TS,PetscReal,Vec,Vec,Vec,void*)),
                             NULL)}|]
 
+tsSetIFunction' :: TS
+                   -> Vec
+                   -> (TS -> PetscReal_ -> Vec -> Vec -> Vec -> Ptr () -> IO CInt)
+                   -> Ptr ()
+                   -> IO CInt
 tsSetIFunction' ts res f ctx =
   [C.exp|int{TSSetIFunction($(TS ts),
                             $(Vec res),
@@ -2641,13 +2701,39 @@ tsSetIFunction' ts res f ctx =
 
   
 -- PetscErrorCode  TSSetIJacobian(TS ts,Mat Amat,Mat Pmat,TSIJacobian f,void *ctx)
-
+tsSetIJacobian0' :: TS
+                    -> Mat
+                    -> Mat
+                    -> (TS
+                        -> PetscReal_
+                        -> Vec
+                        -> Vec
+                        -> PetscReal_
+                        -> Mat
+                        -> Mat
+                        -> Ptr ()
+                        -> IO CInt)
+                    -> IO CInt
 tsSetIJacobian0' ts amat pmat f =
   [C.exp|int{TSSetIJacobian($(TS ts),
                      $(Mat amat),
                      $(Mat pmat),
                      $fun:(int (*f)(TS,PetscReal,Vec,Vec,PetscReal,Mat,Mat,void*)), NULL)}|]
 
+tsSetIJacobian' :: TS
+                   -> Mat
+                   -> Mat
+                   -> (TS
+                       -> PetscReal_
+                       -> Vec
+                       -> Vec
+                       -> PetscReal_
+                       -> Mat
+                       -> Mat
+                       -> Ptr ()
+                       -> IO CInt)
+                   -> Ptr ()
+                   -> IO CInt
 tsSetIJacobian' ts amat pmat f ctx =
   [C.exp|int{TSSetIJacobian($(TS ts),$(Mat amat),$(Mat pmat),$fun:(int (*f)(TS,PetscReal,Vec,Vec,PetscReal,Mat,Mat,void*)),$(void* ctx))}|]
 
@@ -2690,6 +2776,10 @@ tsSetIJacobian' ts amat pmat f ctx =
 -- F	- function vector
 -- ctx	- [optional] user-defined function context
 -- Notes: You must call this function or TSSetIFunction() to define your ODE. You cannot use this function when solving a DAE.
+tsSetRHSFunction0' :: TS
+                      -> Vec
+                      -> (TS -> PetscReal_ -> Vec -> Vec -> Ptr () -> IO CInt)
+                      -> IO CInt
 tsSetRHSFunction0' ts r f =
   [C.exp|int{TSSetRHSFunction(
                 $(TS ts),
@@ -2697,7 +2787,12 @@ tsSetRHSFunction0' ts r f =
                 $fun:(int (*f)(TS, PetscReal,Vec,Vec,void*)),
                 NULL)}
         |]
-
+  
+tsSetRHSFunction' :: TS
+                     -> Vec
+                     -> (TS -> PetscReal_ -> Vec -> Vec -> Ptr () -> IO CInt)
+                     -> Ptr ()
+                     -> IO CInt
 tsSetRHSFunction' ts r f ctx =
   [C.exp|int{TSSetRHSFunction(
                 $(TS ts),
@@ -2723,9 +2818,20 @@ tsSetRHSFunction' ts r f ctx =
 -- Pmat	- matrix from which preconditioner is to be constructed (usually the same as Amat)
 -- ctx	- [optional] user-defined context for matrix evaluation routine
 
+tsSetRHSJacobian0' :: TS
+                      -> Mat
+                      -> Mat
+                      -> (TS -> PetscReal_ -> Vec -> Mat -> Mat -> Ptr () -> IO CInt)
+                      -> IO CInt
 tsSetRHSJacobian0' ts amat pmat f =
   [C.exp|int{TSSetRHSJacobian($(TS ts),$(Mat amat),$(Mat pmat),$fun:(int(*f)(TS, PetscReal, Vec, Mat, Mat, void*)),NULL)}|]
 
+tsSetRHSJacobian' :: TS
+                     -> Mat
+                     -> Mat
+                     -> (TS -> PetscReal_ -> Vec -> Mat -> Mat -> Ptr () -> IO CInt)
+                     -> Ptr ()
+                     -> IO CInt
 tsSetRHSJacobian' ts amat pmat f ctx =
   [C.exp|int{TSSetRHSJacobian($(TS ts),$(Mat amat),$(Mat pmat),$fun:(int(*f)(TS, PetscReal, Vec, Mat, Mat, void*)),$(void* ctx))}|]
 
@@ -2736,7 +2842,7 @@ tsSetRHSJacobian' ts amat pmat f ctx =
 -- Input Parameters :
 -- ts	- the preconditioner context
 -- dm	- the dm
-
+tsSetDm' :: TS -> DM -> IO CInt
 tsSetDm' ts dm = [C.exp|int{TSSetDM($(TS ts),$(DM dm))}|]
 
 
@@ -2771,6 +2877,7 @@ tsSetDm' ts dm = [C.exp|int{TSSetDM($(TS ts),$(DM dm))}|]
 
 
 -- PetscErrorCode  TSSetSolution(TS ts,Vec u)
+tsSetSolution' :: TS -> Vec -> IO CInt
 tsSetSolution' ts u = [C.exp|int{TSSetSolution($(TS ts),$(Vec u))}|]
 
 
@@ -2781,17 +2888,19 @@ tsSetSolution' ts u = [C.exp|int{TSSetSolution($(TS ts),$(Vec u))}|]
 -- u	- the solution vector (can be null if TSSetSolution() was used, otherwise must contain the initial conditions)
 -- Notes :
 -- The final time returned by this function may be different from the time of the internally held state accessible by TSGetSolution() and TSGetTime() because the method may have stepped over the final time.
-
+tsSolve' :: TS -> Vec -> IO CInt
 tsSolve' ts u = [C.exp|int{TSSolve($(TS ts),$(Vec u))}|]
 
+tsSolve_' :: TS -> IO CInt
 tsSolve_' ts = [C.exp|int{TSSolve($(TS ts), NULL)}|]
 
 
-
+tsStep' :: TS -> IO CInt
 tsStep' ts = [C.exp|int{TSStep($(TS ts))}|]
 
 
 -- PetscErrorCode  TSGetConvergedReason(TS ts,TSConvergedReason *reason)
+tsGetConvergedReason' :: TS -> IO (CInt, CInt)
 tsGetConvergedReason' ts = withPtr (\p -> [C.exp|int{TSGetConvergedReason($(TS ts),$(int* p))}|])
 
 --    TSGetTimeStepNumber(ts,&steps);
@@ -2801,8 +2910,11 @@ tsGetConvergedReason' ts = withPtr (\p -> [C.exp|int{TSGetConvergedReason($(TS t
 --       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 --    TSView(ts,PETSC_VIEWER_STDOUT_SELF);
+tsViewStdout' :: TS -> IO CInt
 tsViewStdout' ts =
   [C.exp|int{TSView($(TS ts), PETSC_VIEWER_STDOUT_SELF)}|] 
+
+
 
 
 
@@ -2821,7 +2933,7 @@ tsViewStdout' ts =
 -- mu	- gradients with respect to the parameters, the number of entries in these vectors is the same as the number of parameters
 -- Notes: the entries in these vectors must be correctly initialized with the values
 -- -- lamda_i = df/dy|finaltime ; mu_i = df/dp|finaltime
-
+tsSetCostGradients' :: TS -> PetscInt_ -> Ptr Vec -> Ptr Vec -> IO CInt
 tsSetCostGradients' ts numcost lambda mu =
   [C.exp|int{TSSetCostGradients($(TS ts),$(PetscInt numcost),$(Vec* lambda),$(Vec* mu))}|]
 
@@ -2830,6 +2942,12 @@ tsSetCostGradients' ts numcost lambda mu =
 -- PetscErrorCode  TSSetCostIntegrand(TS ts,PetscInt numcost, PetscErrorCode (*rf)(TS,PetscReal,Vec,Vec,void*),
 -- PetscErrorCode (*drdyf)(TS,PetscReal,Vec,Vec*,void*),
 -- PetscErrorCode (*drdpf)(TS,PetscReal,Vec,Vec*,void*),void *ctx)
+tsSetCostIntegrand0' :: TS
+                        -> PetscInt_
+                        -> (TS -> PetscReal_ -> Vec -> Vec -> Ptr () -> IO CInt)
+                        -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
+                        -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
+                        -> IO CInt
 tsSetCostIntegrand0' ts n rf drdyf drdpf =
   [C.exp|
    int{TSSetCostIntegrand($(TS ts),
@@ -2838,6 +2956,13 @@ tsSetCostIntegrand0' ts n rf drdyf drdpf =
                           $fun:(int (*drdyf)(TS,PetscReal,Vec,Vec*,void*)),
                           $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),NULL)}|]
 
+tsSetCostIntegrand' :: TS
+                       -> PetscInt_
+                       -> (TS -> PetscReal_ -> Vec -> Vec -> Ptr () -> IO CInt)
+                       -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
+                       -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
+                       -> Ptr ()
+                       -> IO CInt
 tsSetCostIntegrand' ts n rf drdyf drdpf ctx =
   [C.exp|
    int{TSSetCostIntegrand($(TS ts),
@@ -2846,7 +2971,7 @@ tsSetCostIntegrand' ts n rf drdyf drdpf ctx =
                           $fun:(int (*drdyf)(TS,PetscReal,Vec,Vec*,void*)),
                           $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),$(void* ctx))}|]  
 
-
+tsGetCostIntegral' :: TS -> IO (Vec, CInt)
 tsGetCostIntegral' ts = withPtr $ \p -> [C.exp|int{TSGetCostIntegral($(TS ts),$(Vec* p))}|]
 
 -- Logically Collective on TS
@@ -2886,12 +3011,21 @@ tsGetCostIntegral' ts = withPtr $ \p -> [C.exp|int{TSGetCostIntegral($(TS ts),$(
 -- ctx	- [optional] user-defined function context
 -- Notes: Amat has the same number of rows and the same row parallel layout as u, Amat has the same number of columns and parallel layout as p
 
+tsAdjointSetRHSJacobian0' :: TS
+                             -> Mat
+                             -> (TS -> PetscReal_ -> Vec -> Mat -> Ptr () -> IO CInt)
+                             -> IO CInt
 tsAdjointSetRHSJacobian0' ts amat f =
   [C.exp|int{TSAdjointSetRHSJacobian($(TS ts),
                                      $(Mat amat),
                                      $fun:(int (*f)(TS, PetscReal,Vec, Mat, void*)),
                                      NULL)}|]
 
+tsAdjointSetRHSJacobian' :: TS
+                            -> Mat
+                            -> (TS -> PetscReal_ -> Vec -> Mat -> Ptr () -> IO CInt)
+                            -> Ptr ()
+                            -> IO CInt
 tsAdjointSetRHSJacobian' ts amat f ctx =
   [C.exp|int{TSAdjointSetRHSJacobian($(TS ts),
                                      $(Mat amat),
@@ -2900,6 +3034,7 @@ tsAdjointSetRHSJacobian' ts amat f ctx =
   
 
 -- PetscErrorCode TSAdjointSolve(TS ts)
+tsAdjointSolve' :: TS -> IO CInt
 tsAdjointSolve' ts = [C.exp|int{TSAdjointSolve($(TS ts))}|]
 
 
@@ -2908,14 +3043,17 @@ tsAdjointSolve' ts = [C.exp|int{TSAdjointSolve($(TS ts))}|]
 -- | TS Trajectory (state history)
 
 -- PETSC_EXTERN PetscErrorCode TSSetSaveTrajectory(TS);
+tsSetSaveTrajectory' :: TS -> IO CInt
 tsSetSaveTrajectory' ts = [C.exp|int{TSSetSaveTrajectory($(TS ts))}|]
 
 -- PETSC_EXTERN PetscErrorCode TSTrajectoryCreate(MPI_Comm,TSTrajectory*);
+tsTrajectoryCreate' :: Comm -> IO (TSTrajectory, CInt)
 tsTrajectoryCreate' comm = withPtr $ \tst ->
   [C.exp|int{TSTrajectoryCreate($(int c),$(TSTrajectory* tst))}|] where
     c = unComm comm
   
 -- PETSC_EXTERN PetscErrorCode TSTrajectoryDestroy(TSTrajectory*);
+tsTrajectoryDestroy' :: TSTrajectory -> IO CInt
 tsTrajectoryDestroy' tst =
   with tst $ \tstp -> [C.exp|int{TSTrajectoryDestroy($(TSTrajectory* tstp))}|]
     
@@ -2960,17 +3098,20 @@ tsTrajectoryDestroy' tst =
 --   taoFin
 
 -- withTaoInit0 = withTaoInit [] [] [] 
-
+taoCreate' :: Comm -> IO (Tao, CInt)
 taoCreate' comm = withPtr (\p -> [C.exp| int{TaoCreate($(int c), $(Tao *p))} |] )
   where
   c = unComm comm
 
+taoDestroy' :: Tao -> IO CInt
 taoDestroy' p = with p ( \pp -> [C.exp| int{TaoDestroy($(Tao *pp))}  |] ) 
 
+taoSetType' :: Tao -> TaoType_ -> IO CInt
 taoSetType' tao ti = withCString ti_ ( \tip -> [C.exp|int{TaoSetType($(Tao tao), $(char* tip ))}|] )
   where
   ti_ = taoTypeToStr ti
 
+taoViewStdout' :: Tao -> IO CInt
 taoViewStdout' tao = [C.exp|int{TaoView($(Tao tao), PETSC_VIEWER_STDOUT_SELF)}|]
 
 -- taoGetConvergedReason tao = liftM taoConvergedIntToReason $
@@ -2978,114 +3119,165 @@ taoViewStdout' tao = [C.exp|int{TaoView($(Tao tao), PETSC_VIEWER_STDOUT_SELF)}|]
 
 
 -- TaoSetInitialVector(TaoSolver tao, Vec x);
+taoSetInitialVector' :: Tao -> Vec -> IO CInt
 taoSetInitialVector' tao x = [C.exp|int{TaoSetInitialVector($(Tao tao),$(Vec x))}|] 
 
 -- TaoSolve(TaoSolver tao);
+taoSolve' :: Tao -> IO CInt
 taoSolve' tao = [C.exp|int{TaoSolve($(Tao tao))}|] 
 
 
 
 -- PETSC_EXTERN PetscErrorCode TaoGetSolutionVector(Tao, Vec*);
+taoGetSolutionVector' :: Tao -> IO (Vec, CInt)
 taoGetSolutionVector' tao = withPtr (\p -> [C.exp|int{TaoGetSolutionVector($(Tao tao), $(Vec* p))}|])
 
 -- PETSC_EXTERN PetscErrorCode TaoGetGradientVector(Tao, Vec*);
+taoGetGradientVector' :: Tao -> IO (Vec, CInt)
 taoGetGradientVector' tao = withPtr (\p -> [C.exp|int{TaoGetGradientVector($(Tao tao), $(Vec* p))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode TaoSetObjectiveRoutine(Tao, PetscErrorCode(*)(Tao, Vec, PetscReal*,void*), void*);
-taoSetObjectiveRoutine' tao f =
-  [C.exp|int{TaoSetObjectiveRoutine($(Tao tao),
-                                    $fun:(int (*f)(Tao, Vec, PetscReal*, void*)),
-                                    NULL)}|] 
+taoSetObjectiveRoutine ::
+  Tao ->
+  (Tao -> Vec -> Ptr PetscReal_ -> IO CInt) ->
+  IO CInt  
 taoSetObjectiveRoutine t f = taoSetObjectiveRoutine' t f' where
   f' ta v r _ = f ta v r
+  taoSetObjectiveRoutine' tao f =
+    [C.exp|int{TaoSetObjectiveRoutine($(Tao tao),
+                                      $fun:(int (*f)(Tao, Vec, PetscReal*, void*)),
+                                      NULL)}|]
 
 
 -- PETSC_EXTERN PetscErrorCode TaoSetGradientRoutine(Tao, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
-taoSetGradientRoutine' tao f =
-  [C.exp|int{TaoSetGradientRoutine($(Tao tao),
-                                    $fun:(int (*f)(Tao, Vec, Vec, void*)),
-                                    NULL)}|] 
+
+taoSetGradientRoutine :: Tao -> (Tao -> Vec -> Vec -> IO CInt) -> IO CInt
 taoSetGradientRoutine t f = taoSetGradientRoutine' t f' where
   f' ta v r _ = f ta v r
+  taoSetGradientRoutine' tao f =
+    [C.exp|int{TaoSetGradientRoutine($(Tao tao),
+                                     $fun:(int (*f)(Tao, Vec, Vec, void*)),
+                                     NULL)}|]
   
 -- PETSC_EXTERN PetscErrorCode TaoSetObjectiveAndGradientRoutine(Tao, PetscErrorCode(*)(Tao, Vec, PetscReal*, Vec, void*), void*);
-taoSetObjectiveAndGradientRoutine' tao f =
-  [C.exp|int{TaoSetObjectiveAndGradientRoutine(
-                $(Tao tao),
-                $fun:(int (*f)(Tao, Vec, PetscReal*, Vec, void*)),
-                NULL)}|] 
+
+taoSetObjectiveAndGradientRoutine ::
+  Tao ->
+  (Tao -> Vec -> Ptr PetscReal_ -> Vec -> IO CInt) ->
+  IO CInt
 taoSetObjectiveAndGradientRoutine t f =
   taoSetObjectiveAndGradientRoutine' t f' where
     f' ta v r v2 _ = f ta v r v2
+    taoSetObjectiveAndGradientRoutine' tao f =
+      [C.exp|int{TaoSetObjectiveAndGradientRoutine(
+                    $(Tao tao),
+                    $fun:(int (*f)(Tao, Vec, PetscReal*, Vec, void*)),
+                    NULL)}|] 
   
 -- PETSC_EXTERN PetscErrorCode TaoSetHessianRoutine(Tao,Mat,Mat,PetscErrorCode(*)(Tao,Vec, Mat, Mat, void*), void*);
-taoSetHessianRoutine' tao m1 m2 f =
-  [C.exp|int{TaoSetHessianRoutine($(Tao tao), $(Mat m1), $(Mat m2),
-                                    $fun:(int (*f)(Tao, Vec, Mat, Mat, void*)),
-                                    NULL)}|] 
+
+taoSetHessianRoutine ::
+  Tao -> Mat -> Mat ->
+  (Tao -> Vec -> Mat -> Mat -> IO CInt) ->
+  IO CInt
 taoSetHessianRoutine t m1 m2 f = taoSetHessianRoutine' t m1 m2 f' where
   f' ta v n1 n2 _ = f ta v n1 n2
+  taoSetHessianRoutine' tao m1 m2 f =
+    [C.exp|int{TaoSetHessianRoutine($(Tao tao), $(Mat m1), $(Mat m2),
+                                    $fun:(int (*f)(Tao, Vec, Mat, Mat, void*)),
+                                    NULL)}|]
 
 
 -- PETSC_EXTERN PetscErrorCode TaoSetSeparableObjectiveRoutine(Tao, Vec, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
 -- PETSC_EXTERN PetscErrorCode TaoSetConstraintsRoutine(Tao, Vec, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
-taoSetConstraintsRoutine0' tao vec f =
-  [C.exp|int{TaoSetConstraintsRoutine(
-                $(Tao tao), $(Vec vec),
-                $fun:(int (*f)(Tao, Vec, Vec, void*)),
-                NULL)}|] 
+
+taoSetConstraintsRoutine' ::
+  Tao -> Vec ->
+  (Tao -> Vec -> Vec -> IO CInt) -> IO CInt
 taoSetConstraintsRoutine' t v f = taoSetConstraintsRoutine0' t v f' where
   f' ta v1 v2  _ = f ta v1 v2
+  taoSetConstraintsRoutine0' tao vec f =
+    [C.exp|int{TaoSetConstraintsRoutine(
+                  $(Tao tao), $(Vec vec),
+                  $fun:(int (*f)(Tao, Vec, Vec, void*)),
+                  NULL)}|]
   
 -- PETSC_EXTERN PetscErrorCode TaoSetInequalityConstraintsRoutine(Tao, Vec, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
-taoSetInequalityConstraintsRoutine0' tao vec f =
-  [C.exp|int{TaoSetInequalityConstraintsRoutine(
-                $(Tao tao), $(Vec vec),
-                $fun:(int (*f)(Tao, Vec, Vec, void*)),
-                NULL)}|] 
+
+taoSetInequalityConstraintsRoutine' ::
+  Tao -> Vec ->
+  (Tao -> Vec -> Vec -> IO CInt) -> IO CInt
 taoSetInequalityConstraintsRoutine' t v f =
   taoSetInequalityConstraintsRoutine0' t v f' where
     f' ta v1 v2  _ = f ta v1 v2
+    taoSetInequalityConstraintsRoutine0' tao vec f =
+      [C.exp|int{TaoSetInequalityConstraintsRoutine(
+                    $(Tao tao), $(Vec vec),
+                    $fun:(int (*f)(Tao, Vec, Vec, void*)),
+                    NULL)}|] 
   
 -- PETSC_EXTERN PetscErrorCode TaoSetEqualityConstraintsRoutine(Tao, Vec, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
-taoSetEqualityConstraintsRoutine0' tao vec f =
-  [C.exp|int{TaoSetEqualityConstraintsRoutine(
-                $(Tao tao), $(Vec vec),
-                $fun:(int (*f)(Tao, Vec, Vec, void*)),
-                NULL)}|] 
+
+taoSetEqualityConstraintsRoutine' ::
+  Tao -> Vec ->
+  (Tao -> Vec -> Vec -> IO CInt) -> IO CInt
 taoSetEqualityConstraintsRoutine' t v f =
   taoSetEqualityConstraintsRoutine0' t v f' where
      f' ta v1 v2  _ = f ta v1 v2
+     taoSetEqualityConstraintsRoutine0' tao vec f =
+       [C.exp|int{TaoSetEqualityConstraintsRoutine(
+                     $(Tao tao), $(Vec vec),
+                     $fun:(int (*f)(Tao, Vec, Vec, void*)),
+                     NULL)}|]
   
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianRoutine(Tao,Mat,Mat, PetscErrorCode(*)(Tao,Vec, Mat, Mat, void*), void*);
-taoSetJacobianRoutine0' tao m1 m2 f =
-  [C.exp|int{TaoSetJacobianRoutine(
-                $(Tao tao), $(Mat m1), $(Mat m2),
-                $fun:(int (*f)(Tao, Vec, Mat, Mat, void*)),
-                NULL)}|] 
+
+
+taoSetJacobianRoutine' ::
+  Tao -> Mat -> Mat ->
+  (Tao -> Vec -> Mat -> Mat -> IO CInt) -> IO CInt
 taoSetJacobianRoutine' t m1 m2 f =
   taoSetJacobianRoutine0' t m1 m2 f' where
      f' ta v v1 v2  _ = f ta v v1 v2
+     taoSetJacobianRoutine0' tao m1 m2 f =
+       [C.exp|int{TaoSetJacobianRoutine(
+                     $(Tao tao), $(Mat m1), $(Mat m2),
+                     $fun:(int (*f)(Tao, Vec, Mat, Mat, void*)),
+                     NULL)}|]
      
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianStateRoutine(Tao,Mat,Mat,Mat, PetscErrorCode(*)(Tao,Vec, Mat, Mat, Mat, void*), void*);
-taoSetJacobianStateRoutine0' tao m1 m2 m3 f =
-  [C.exp|int{TaoSetJacobianStateRoutine(
-                $(Tao tao), $(Mat m1), $(Mat m2), $(Mat m3),
-                $fun:(int (*f)(Tao, Vec, Mat, Mat, Mat, void*)),
-                NULL)}|] 
+
+taoSetJacobianStateRoutine' ::
+  Tao
+  -> Mat
+  -> Mat
+  -> Mat
+  -> (Tao -> Vec -> Mat -> Mat -> Mat -> IO CInt)
+  -> IO CInt
 taoSetJacobianStateRoutine' t m1 m2 m3 f =
   taoSetJacobianStateRoutine0' t m1 m2 m3 f' where
      f' ta v v1 v2 v3  _ = f ta v v1 v2 v3
+     taoSetJacobianStateRoutine0' tao m1 m2 m3 f =
+       [C.exp|int{TaoSetJacobianStateRoutine(
+                     $(Tao tao), $(Mat m1), $(Mat m2), $(Mat m3),
+                     $fun:(int (*f)(Tao, Vec, Mat, Mat, Mat, void*)),
+                     NULL)}|] 
 
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianDesignRoutine(Tao,Mat,PetscErrorCode(*)(Tao,Vec, Mat, void*), void*);
-taoSetJacobianDesignRoutine0' tao m f =
-  [C.exp|int{TaoSetJacobianDesignRoutine(
-                $(Tao tao), $(Mat m),
-                $fun:(int (*f)(Tao, Vec, Mat, void*)),
-                NULL)}|] 
+
+taoSetJacobianDesignRoutine' ::
+  Tao ->
+  Mat ->
+  (Tao -> Vec -> Mat -> IO CInt) ->
+  IO CInt
 taoSetJacobianDesignRoutine' t m f =
   taoSetJacobianDesignRoutine0' t m f' where
      f' ta v v1  _ = f ta v v1
+     taoSetJacobianDesignRoutine0' tao m f =
+       [C.exp|int{TaoSetJacobianDesignRoutine(
+                     $(Tao tao), $(Mat m),
+                     $fun:(int (*f)(Tao, Vec, Mat, void*)),
+                     NULL)}|] 
      
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianInequalityRoutine(Tao,Mat,Mat,PetscErrorCode(*)(Tao,Vec, Mat, Mat, void*), void*);
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianEqualityRoutine(Tao,Mat,Mat,PetscErrorCode(*)(Tao,Vec, Mat, Mat, void*), void*);
@@ -3093,11 +3285,13 @@ taoSetJacobianDesignRoutine' t m f =
 -- PETSC_EXTERN PetscErrorCode TaoSetStateDesignIS(Tao, IS, IS);
 
 -- PETSC_EXTERN PetscErrorCode TaoComputeObjective(Tao, Vec, PetscReal*);
+taoComputeObjective' :: Tao -> Vec -> IO (PetscReal_, CInt)
 taoComputeObjective' tao v =
   withPtr (\p -> [C.exp|int{TaoComputeObjective($(Tao tao),$(Vec v),$(PetscReal* p))}|] ) 
 -- PETSC_EXTERN PetscErrorCode TaoComputeSeparableObjective(Tao, Vec, Vec);
 
 -- PETSC_EXTERN PetscErrorCode TaoComputeGradient(Tao, Vec, Vec);
+taoComputeGradient' :: Tao -> Vec -> IO (Vec, CInt)
 taoComputeGradient' tao v =
  -- -- -- -- DIRTY HACK WARNING: will it work?
   withPtr (\p -> [C.exp|int{TaoComputeGradient($(Tao tao),$(Vec v),$(Vec* p))}|] ) 
@@ -3108,12 +3302,14 @@ taoComputeGradient' tao v =
 -- PETSC_EXTERN PetscErrorCode TaoComputeEqualityConstraints(Tao, Vec, Vec);
 -- PETSC_EXTERN PetscErrorCode TaoDefaultComputeGradient(Tao, Vec, Vec, void*);
 -- PETSC_EXTERN PetscErrorCode TaoIsObjectiveDefined(Tao,PetscBool*);
+taoIsObjectiveDefined' :: Tao -> IO (PetscBool, CInt)
 taoIsObjectiveDefined' t =
  withPtr
   (\p -> [C.exp|int{TaoIsObjectiveDefined($(Tao t),
                                           $(PetscBool* p))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode TaoIsGradientDefined(Tao,PetscBool*);
+taoIsGradientDefined' :: Tao -> IO (PetscBool, CInt)
 taoIsGradientDefined' t =
  withPtr
   (\p -> [C.exp|int{TaoIsGradientDefined($(Tao t),
@@ -3152,6 +3348,7 @@ taoIsGradientDefined' t =
 -- PETSC_EXTERN PetscErrorCode TaoComputeDualVariables(Tao, Vec, Vec);
 -- PETSC_EXTERN PetscErrorCode TaoComputeDualVariables(Tao, Vec, Vec);
 -- PETSC_EXTERN PetscErrorCode TaoSetVariableBounds(Tao, Vec, Vec);
+taoSetVariableBounds' :: Tao -> Vec -> Vec -> IO CInt
 taoSetVariableBounds' tao x1 x2 =
   [C.exp|int{TaoSetVariableBounds($(Tao tao), $(Vec x1), $(Vec x2))}|]
   
@@ -3161,13 +3358,18 @@ taoSetVariableBounds' tao x1 x2 =
 -- PETSC_EXTERN PetscErrorCode TaoGetInequalityBounds(Tao, Vec*, Vec*);
 
 -- PETSC_EXTERN PetscErrorCode TaoSetVariableBoundsRoutine(Tao, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
-taoSetVariableBoundsRoutine0' tao f =
-  [C.exp|int{TaoSetVariableBoundsRoutine($(Tao tao),
-                                           $fun:(int (*f)(Tao, Vec, Vec, void*)),
-                                           NULL)}|]
+
+taoSetVariableBoundsRoutine' ::
+  Tao ->
+  (Tao -> Vec -> Vec -> IO CInt) ->
+  IO CInt
 taoSetVariableBoundsRoutine' tao f =
   taoSetVariableBoundsRoutine0' tao f' where
     f' t v1 v2 _ = f t v1 v2
+    taoSetVariableBoundsRoutine0' tao f =
+      [C.exp|int{TaoSetVariableBoundsRoutine($(Tao tao),
+                                             $fun:(int (*f)(Tao, Vec, Vec, void*)),
+                                             NULL)}|]
 
   
 -- PETSC_EXTERN PetscErrorCode TaoComputeVariableBounds(Tao);
@@ -3203,11 +3405,12 @@ taoSetVariableBoundsRoutine' tao f =
 
 
 -- * Viewer
-
+petscViewerCreate' :: Comm -> IO (PetscViewer, CInt)
 petscViewerCreate' comm = withPtr $ \h -> 
   [C.exp|int{PetscViewerCreate($(int c),$(PetscViewer* h))}|] where c = unComm comm
 
 -- PetscErrorCode  PetscViewerSetType(PetscViewer viewer,PetscViewerType type)
+petscViewerSetType' :: PetscViewer -> PetscViewerType_ -> IO CInt
 petscViewerSetType' v t = withCString ts $ \tsp ->
   [C.exp|int{PetscViewerSetType($(PetscViewer v),$(char* tsp))}|] where
     -- tc = toCInt $ viewerTypeToInt t
@@ -3216,6 +3419,7 @@ petscViewerSetType' v t = withCString ts $ \tsp ->
 
 
 -- PetscErrorCode  PetscViewerSetFormat(PetscViewer viewer,PetscViewerFormat format)
+petscViewerSetFormat' :: PetscViewer -> PetscViewerFormat_ -> IO CInt
 petscViewerSetFormat' v fmt =
   [C.exp|int{PetscViewerSetFormat($(PetscViewer v), $(int e))}|]
     where
@@ -3227,16 +3431,19 @@ petscViewerSetFormat' v fmt =
 
 
 -- PetscErrorCode PetscViewerFileSetMode(PetscViewer viewer,PetscFileMode type)
+petscViewerFileSetMode' :: PetscViewer -> PetscFileMode_ -> IO CInt
 petscViewerFileSetMode' v m =
   [C.exp|int{PetscViewerFileSetMode($(PetscViewer v),$(int mp))}|] where
     mp = toCInt $ fileModeToInt m
 
 -- PetscErrorCode  PetscViewerFileSetName(PetscViewer viewer,const char name[])
+petscViewerFileSetName' :: PetscViewer -> String -> IO CInt
 petscViewerFileSetName' v name = withCString name $ \n -> 
   [C.exp|int{PetscViewerFileSetName($(PetscViewer v),$(char* n))}|] 
 
 
 -- PetscErrorCode  PetscViewerDestroy(PetscViewer *viewer)
+petscViewerDestroy' :: PetscViewer -> IO CInt
 petscViewerDestroy' v =
   with v $ \vp -> [C.exp|int{PetscViewerDestroy($(PetscViewer* vp))}|]
 
@@ -3287,13 +3494,16 @@ petscViewerDestroy' v =
 -- PETSC_EXTERN PetscErrorCode PetscLogStagePush(PetscLogStage);
 
 -- petscLogStageRegister :: String -> PetscLogStage_ -> IO CInt
+petscLogStageRegister' :: String -> PetscLogStage_ -> IO CInt
 petscLogStageRegister' s ls =
   withCString s $ \c ->
    with ls $ \lls -> 
     [C.exp|int{PetscLogStageRegister($(char *c), $(PetscLogStage* lls ))}|] 
 
+petscLogStagePush' :: PetscLogStage_ -> IO CInt
 petscLogStagePush' ls = [C.exp|int{PetscLogStagePush($(PetscLogStage ls))}|] 
 
+petscLogStagePop' :: IO CInt
 petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|] 
 
 
@@ -3311,6 +3521,8 @@ petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|]
 petscOptionsGetInt' :: Ptr CChar -> Ptr CChar -> Ptr CInt -> Ptr PetscBool -> IO CInt
 petscOptionsGetInt' pre name n s = [C.exp| int{PetscOptionsGetInt($(char *pre), $(char *name), $(int *n), $(PetscBool *s))} |]
 
+petscOptionsGetInt'' ::
+  String -> String -> IO (CInt, (PetscBool, CInt))
 petscOptionsGetInt'' prefix name = 
   withCString prefix ( \p ->
    withCString name $ \n ->
@@ -3338,6 +3550,7 @@ petscOptionsGetInt'' prefix name =
 -- PETSC_EXTERN PetscErrorCode PetscInitialized(PetscBool *);
 
 -- petscInitialized :: IO Bool
+petscInitialized :: IO (PetscBool, CInt)
 petscInitialized = withPtr ( \b ->
      [C.exp|int{ PetscInitialized($(PetscBool * b)) } |] )   
 
@@ -3346,16 +3559,18 @@ petscInitialized = withPtr ( \b ->
 -- PETSC_EXTERN PetscErrorCode PetscFinalized(PetscBool *);
 
 -- petscFinalized :: IO Bool
+petscFinalized :: IO (PetscBool, CInt)
 petscFinalized = withPtr ( \p ->
   [C.exp|int{ PetscFinalized($(PetscBool * p))  }|] )
 
 
 
 -- petscInit0 :: IO ()
+petscInit01 :: IO CInt
 petscInit01 = [C.exp| int{ PetscInitializeNoArguments()  }|]
 
 -- -- PETSC_EXTERN PetscErrorCode PetscInitialize(int*,char***,const char[],const char[]);
-
+petscInitialize1 :: Argv -> OptsStr -> HelpStr -> IO CInt
 petscInitialize1 args opts help = 
  let acc = fromIntegral $ length args in 
   with acc $ \ac ->
@@ -3369,8 +3584,10 @@ type Argv = [String]
 type OptsStr = String
 type HelpStr = String
 
+petscFin1 :: IO CInt
 petscFin1 = [C.block| int{ PetscFinalize(); }|] 
 
+withPetsc01 :: IO a -> IO CInt
 withPetsc01 f = do -- returns IO ()
   petscInit01
   f
@@ -3385,6 +3602,7 @@ withPetsc01' = bracket_ petscInit01 petscFin1 -- returns IO a
 withPetsc' :: Argv -> OptsStr -> HelpStr -> IO a -> IO a
 withPetsc' a o h = bracket_ (petscInitialize1 a o h) petscFin1
 
+withPetsc'' :: Argv -> OptsStr -> HelpStr -> IO b -> IO b
 withPetsc'' a o h f = petscInitialize1 a o h >> (f `finally` petscFin1)
 
 -- -- NB : bracket_ ignores the return type of the allocation action
@@ -3398,6 +3616,7 @@ withPetsc'' a o h f = petscInitialize1 a o h >> (f `finally` petscFin1)
 -- | version string
 
 -- -- PetscErrorCode PetscGetVersion(char version[], size_t len)
+petscGetVersion0' :: Ptr CChar -> CInt -> IO CInt
 petscGetVersion0' version szt =
   [C.exp|int{PetscGetVersion($(char* version), $(int szt))}|]
 
@@ -3410,7 +3629,7 @@ petscGetVersion0' version szt =
 -- | error codes
 
 -- -- PETSC_EXTERN PetscErrorCode PetscErrorMessage(int,const char*[],char **);
-
+petscErrorMessage' :: CInt -> Ptr (Ptr CChar) -> IO CInt
 petscErrorMessage' nn mp =
   [C.exp|int{PetscErrorMessage($(int nn), $(char** mp), NULL)} |]
 
@@ -3446,13 +3665,13 @@ petscErrorMessage' nn mp =
 
 
 -- mpiCommSize c = withPtr $ \p -> [C.exp|int{ MPI_Comm_Size($(int c), $(PetscMPIInt_ *p)) }|] 
-
+mpiCommSize' :: Comm -> IO (CInt, CInt)
 mpiCommSize' comm = withPtr (\p -> [C.exp| int{ MPI_Comm_size($(int c), $(int *p))}|] )
   where
    c = unComm comm
 -- mpiCommSize c =  unsafePerformIO $ mpiCommSize' c 
 
-
+mpiCommRank' :: Comm -> IO (CInt, CInt)
 mpiCommRank' comm =
   withPtr
    (\p ->
@@ -3465,20 +3684,23 @@ mpiCommRank' comm =
 
 
 {-# NOINLINE commWorld1 #-}
+commWorld1, commSelf1 :: Comm
 commWorld1 = Comm $ unsafePerformIO [C.exp| int{ MPI_COMM_WORLD }  |] 
+{-# NOINLINE commSelf1 #-}
 commSelf1 = Comm $ unsafePerformIO [C.exp| int{ MPI_COMM_SELF }  |]
 
 
 
     -- PetscPrintf - Prints to standard out, only from the first
     -- processor in the communicator. Calls from other processes are ignored.
+petscPrintf :: Comm -> String -> IO CInt
 petscPrintf comm s =
   withCString s
    ( \s_ -> [C.exp|int{PetscPrintf($(int c), $(char* s_))}|] ) -- >>= handleErr
   where
     c = unComm comm
 
-
+petscSynchronizedPrintf' :: Comm -> String -> IO CInt
 petscSynchronizedPrintf' comm s = withCString s ( \s_ ->
   [C.exp|int{PetscSynchronizedPrintf($(int c), $(char* s_))}|] )
     where c = unComm comm
@@ -3486,7 +3708,7 @@ petscSynchronizedPrintf' comm s = withCString s ( \s_ ->
 -- petscSynchronizedFlushStdout comm =
 --   [C.exp|int{PetscSynchronizedFlush($(int c),PETSC_STDOUT )}|]
 --     where c = unComm comm
-
+petscSynchronizedFlushStdout :: Comm -> IO CInt
 petscSynchronizedFlushStdout comm =
   [C.exp|int{PetscSynchronizedFlush($(int c), 0 )}|]
     where c = unComm comm
@@ -3517,17 +3739,21 @@ petscSynchronizedFlushStdout comm =
 
 
 -- EPSCreate(MPI_Comm comm,EPS *eps);
+epsCreate' :: Comm -> IO (EPS, CInt)
 epsCreate' comm = withPtr $ \e -> [C.exp|int{EPSCreate($(int c), $(EPS* e))}|] where
   c = unComm comm
 
 -- EPSSetOperators(EPS eps,Mat A,Mat B);
+epsSetOperators' :: EPS -> Mat -> Mat -> IO CInt
 epsSetOperators' e matA matB = [C.exp|int{EPSSetOperators($(EPS e),$(Mat matA),$(Mat matB))}|]
   
 -- EPSSetProblemType(EPS eps,EPSProblemType type);
+epsSetProblemType' :: EPS -> EpsProblemType_ -> IO CInt
 epsSetProblemType' e ty = [C.exp|int{EPSSetProblemType($(EPS e),$(int tyi))}|] where
   tyi = toCInt $ epsProblemTypeToInt ty
 
 -- EPSSetUp(EPS eps)
+epsSetup' :: EPS -> IO CInt
 epsSetup' e = [C.exp|int{EPSSetUp($(EPS e))}|]
 
 -- EPSSetFromOptions(EPS eps);
@@ -3537,6 +3763,7 @@ epsSetup' e = [C.exp|int{EPSSetUp($(EPS e))}|]
 -- Input Parameters :
 -- eps	- eigensolver context obtained from EPSCreate()
 -- which	- the portion of the spectrum to be sought
+epsSetWhichEigenpairs' :: EPS -> EpsWhich_ -> IO CInt
 epsSetWhichEigenpairs' e wh = [C.exp|int{EPSSetWhichEigenpairs($(EPS e),$(int ew))}|] where ew = toCInt $ epsWhichToInt wh
 
 
@@ -3545,17 +3772,21 @@ epsSetWhichEigenpairs' e wh = [C.exp|int{EPSSetWhichEigenpairs($(EPS e),$(int ew
 -- Input Parameters :
 -- eps	- eigensolver context
 -- target	- the value of the target
+epsSetTarget' :: EPS -> PetscScalar_ -> IO CInt
 epsSetTarget' eps target = [C.exp|int{EPSSetTarget($(EPS eps),$(PetscScalar target))}|]
 
               
 -- EPSSolve(EPS eps);
+epsSolve' :: EPS -> IO CInt
 epsSolve' e = [C.exp|int{EPSSolve($(EPS e))}|]
 
 -- EPSGetConverged(EPS eps, int *nconv);
+epsGetConverged' :: EPS -> IO (CInt, CInt)
 epsGetConverged' e = withPtr $ \nconv -> [C.exp|int{EPSGetConverged($(EPS e),$(int* nconv))}|]
 
 -- Computes the error (based on the residual norm) associated with the i-th computed eigenpair.
 -- PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *error)  -- Collective on EPS
+epsComputeError' :: EPS -> Int -> EpsErrorType_ -> IO (PetscReal_, CInt)
 epsComputeError' eps i ty = withPtr $ \err -> [C.exp|int{EPSComputeError($(EPS eps),$(int ii),$(int et),$(PetscReal* err))}|] where
   ii = toCInt i
   et = toCInt $ epsErrorTypeToInt ty
@@ -3569,13 +3800,22 @@ epsComputeError' eps i ty = withPtr $ \err -> [C.exp|int{EPSComputeError($(EPS e
 
 
 -- EPSGetEigenpair(EPS eps,int i,PetscScalar *kr,PetscScalar *ki,Vec xr,Vec xi);
+epsGetEigenpair' :: EPS
+                    -> CInt
+                    -> Ptr PetscScalar_
+                    -> Ptr PetscScalar_
+                    -> Vec
+                    -> Vec
+                    -> IO CInt
 epsGetEigenpair' e i kr ki xr xi =
   [C.exp|int{EPSGetEigenpair($(EPS e),$(int i),$(PetscScalar* kr),$(PetscScalar* ki),$(Vec xr),$(Vec xi))}|]
 
 -- | is the operator Hermitian?
+epsIsHermitian' :: EPS -> IO (PetscBool, CInt)
 epsIsHermitian' e = withPtr $ \ish -> [C.exp|int{EPSIsHermitian($(EPS e),$(PetscBool* ish))}|]
 
 -- | is the operator positive definite?
+epsIsPositive' :: EPS -> IO (PetscBool, CInt)
 epsIsPositive' e = withPtr $ \isp -> [C.exp|int{EPSIsPositive($(EPS e),$(PetscBool* isp))}|]
 
 
@@ -3583,13 +3823,16 @@ epsIsPositive' e = withPtr $ \isp -> [C.exp|int{EPSIsPositive($(EPS e),$(PetscBo
 -- nev : # eigenvalues
 -- ncv : subspace dim
 -- mpd : max. projected dimension
+epsSetDimensions' :: EPS -> Int -> Int -> Int -> IO CInt
 epsSetDimensions' e nev ncv mpd = [C.exp|int{EPSSetDimensions($(EPS e),$(int nevc),$(int ncvc),$(int mpdc))}|] where
   (nevc, ncvc, mpdc) = (toCInt nev, toCInt ncv, toCInt mpd)
 
+epsSetInterval' :: EPS -> PetscReal_ -> PetscReal_ -> IO CInt
 epsSetInterval' e smin smax = [C.exp|int{EPSSetInterval($(EPS e),$(PetscReal smin),$(PetscReal smax))}|]
 
 -- | sets subspace (array of Vec's) from which EPSSolve starts to iterate
 -- PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
+epsSetInitialSpace' :: EPS -> [Vec] -> IO CInt
 epsSetInitialSpace' e subspace = withArray subspace $ \isp -> 
   [C.exp|int{EPSSetInitialSpace($(EPS e),$(int nc),$(Vec* isp))}|]
     where nc = toCInt n
@@ -3605,20 +3848,24 @@ epsSetInitialSpace' e subspace = withArray subspace $ \isp ->
 -- When a deflation space is given, the eigensolver seeks the eigensolution in the restriction of the problem to the orthogonal complement of this space. This can be used for instance in the case that an invariant subspace is known beforehand (such as the nullspace of the matrix).
 -- These vectors do not persist from one EPSSolve() call to the other, so the deflation space should be set every time.
 -- The vectors do not need to be mutually orthonormal, since they are explicitly orthonormalized internally.
+epsSetDeflationSpace' :: EPS -> [Vec] -> IO CInt
 epsSetDeflationSpace' e deflspace = withArray deflspace $ \dsp -> [C.exp|int{EPSSetDeflationSpace($(EPS e),$(int nd),$(Vec* dsp))}|]
    where nd = toCInt n
          n = length deflspace
          
 
 -- EPSDestroy(EPS eps);
+epsDestroy' :: EPS -> IO CInt
 epsDestroy' e = with e $ \ep -> [C.exp|int{EPSDestroy($(EPS* ep))}|]
 
 -- PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
+epsView' :: EPS -> PetscViewer -> IO CInt
 epsView' eps v = [C.exp|int{EPSView($(EPS eps),$(PetscViewer v))}|]
 
 
 
 -- PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
+epsVectorsView' :: EPS -> PetscViewer -> IO CInt
 epsVectorsView' eps vi = [C.exp|int{EPSVectorsView($(EPS eps),$(PetscViewer vi))}|]
 
 
@@ -3630,13 +3877,16 @@ epsVectorsView' eps vi = [C.exp|int{EPSVectorsView($(EPS eps),$(PetscViewer vi))
 
 -- * ST -- spectral transformations
 
+stCreate' :: Comm -> IO (ST, CInt)
 stCreate' comm = withPtr $ \s -> [C.exp|int{STCreate($(int c),$(ST* s))}|]
   where c = unComm comm
 
+stSetType' :: ST -> StType_ -> IO CInt
 stSetType' st t =
   withCString ts $ \tp -> [C.exp|int{STSetType($(ST st),$(char* tp))}|]
     where ts = stTypeToString t
 
+stDestroy' :: ST -> IO CInt
 stDestroy' st = with st $ \stp -> [C.exp|int{STDestroy($(ST* stp))}|]
 
 
@@ -3654,26 +3904,32 @@ stDestroy' st = with st $ \stp -> [C.exp|int{STDestroy($(ST* stp))}|]
 
 
 -- SVDCreate(MPI_Comm comm,SVD *svd);
+svdCreate' :: Comm -> IO (SVD, CInt)
 svdCreate' comm = withPtr $ \s -> [C.exp|int{SVDCreate($(int c),$(SVD* s))}|] where
   c = unComm comm
   
 -- SVDSetOperator(SVD svd,Mat A);
+svdSetOperator' :: SVD -> Mat -> IO CInt
 svdSetOperator' s matA = [C.exp|int{SVDSetOperator($(SVD s),$(Mat matA))}|]
   
 -- SVDSetFromOptions(SVD svd);
 
 -- SVDSolve(SVD svd);
+svdSolve' :: SVD -> IO CInt
 svdSolve' s = [C.exp|int{SVDSolve($(SVD s))}|]
 
 -- SVDGetConverged(SVD svd, int *nconv);
+svdGetConverged' :: SVD -> IO (CInt, CInt)
 svdGetConverged' s = withPtr $ \n -> [C.exp|int{SVDGetConverged($(SVD s),$(int* n))}|]
 
 -- SVDGetSingularTriplet(SVD svd,int i,PetscReal *sigma,Vec u,Vec v);
+svdGetSingularTriplet' :: SVD -> CInt -> Vec -> Vec -> IO (PetscReal_, CInt)
 svdGetSingularTriplet' s i u v =
   withPtr $ \sig ->
   [C.exp|int{SVDGetSingularTriplet($(SVD s),$(int i),$(PetscReal* sig),$(Vec u),$(Vec v))}|]
 
 -- SVDDestroy(SVD svd);
+svdDestroy' :: SVD -> IO CInt
 svdDestroy' s = with s $ \sp -> [C.exp|int{SVDDestroy($(SVD* sp))}|]
 
 
@@ -3692,16 +3948,17 @@ svdDestroy' s = with s $ \sp -> [C.exp|int{SVDDestroy($(SVD* sp))}|]
 
 -- SlepcInitialize(int *argc,char ***argv,char *file,char *help);
 -- ierr = SlepcFinalize();
-
+slepcInitialized' :: IO (PetscBool, CInt)
 slepcInitialized' = withPtr ( \b ->
      [C.exp|int{ SlepcInitialized($(PetscBool * b)) } |] )   
 
   
 
 
-
+slepcInit01 :: IO CInt
 slepcInit01 = [C.exp| int{ SlepcInitializeNoArguments()  }|]
 
+slepcInitialize' :: Argv -> OptsStr -> HelpStr -> IO CInt
 slepcInitialize' args opts help = 
  let acc = fromIntegral $ length args in 
   with acc $ \ac ->
@@ -3712,11 +3969,13 @@ slepcInitialize' args opts help =
     [C.exp|int{SlepcInitialize($(int *ac), $(char*** a), $(char* o), $(char *h))}|] 
 
 
+slepcFin1 :: IO CInt
 slepcFin1 = [C.block| int{ SlepcFinalize(); }|] 
 
 
 
 -- -- PetscErrorCode PetscGetVersion(char version[], size_t len)
+slepcGetVersion0' :: Ptr CChar -> CInt -> IO CInt
 slepcGetVersion0' version szt =
   [C.exp|int{SlepcGetVersion($(char* version), $(int szt))}|]
 
