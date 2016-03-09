@@ -68,17 +68,22 @@ data MatrixData a =
 
 
 
+
+-- | predicates
+
+-- | predicates for MatrixData
+
 checkMatrixData :: MatrixData a -> Bool
 checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
   (lr, lc, le) = (V.length idxx, V.length idxy, V.length vals)
 
 
-inMatrixBounds :: PetscMatrix -> (Int, Int) -> Bool
-inMatrixBounds m (ii, jj) = cRow && cCol where
-  cRow = in0m (getMatRows m) ii
-  cCol = in0m (getMatCols m) jj
+-- | predicates for PetscMatrix
 
+inMatRowRange m = in0m (getMatRows m)
+inMatColRange m = in0m (getMatCols m)
 
+inMatrixBounds m (ii, jj) = inMatRowRange m ii && inMatColRange m jj
 
 
 -- | PetscMatrix getters
