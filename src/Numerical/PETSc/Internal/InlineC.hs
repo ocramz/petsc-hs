@@ -66,6 +66,7 @@ C.include "<slepcsvd.h>"
 
 -- * IS
 
+isCreateStride_ :: CInt -> PetscInt_ -> PetscInt_ -> PetscInt_ -> Ptr IS -> IO CInt
 isCreateStride_ c n first step is = [C.exp|
      int{ISCreateStride(
             $(int c),
@@ -74,6 +75,7 @@ isCreateStride_ c n first step is = [C.exp|
             $(PetscInt step),
             $(IS* is)) }|]
 
+isCreateStride' :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> IO (IS, CInt)
 isCreateStride' comm n first step =
   withPtr $ \is -> isCreateStride_ c n first step is
    where c = unComm comm
@@ -99,6 +101,8 @@ isCreateStride' comm n first step =
 --    distributed sets of indices and thus certain operations on them are
 --    collective.
 
+isCreateGeneral_ ::
+  CInt -> PetscInt_ -> Ptr PetscInt_ -> CInt -> Ptr IS -> IO CInt
 isCreateGeneral_ c n idxp mo isp  =
   [C.exp|int{ISCreateGeneral($(int c),
                              $(PetscInt n),
@@ -106,15 +110,17 @@ isCreateGeneral_ c n idxp mo isp  =
                              $(int mo),
                              $(IS* isp))}|]
 
+isCreateGeneral' ::
+  Comm -> PetscInt_ -> [PetscInt_] -> PetscCopyMode_ -> IO (IS, CInt)
 isCreateGeneral' comm n idx mode =
    withArray idx $ \idxp ->
     withPtr $ \isp -> isCreateGeneral_ c n idxp mo isp 
      where mo = fromIntegral $ petscCopyModeToInt mode
            c = unComm comm
 
-isDestroy_ iisp = [C.exp|int{ISDestroy($(IS* iisp))} |]
-
-isDestroy' iis = with iis isDestroy_
+isDestroy' :: IS -> IO CInt
+isDestroy' iis = with iis isd where
+  isd iisp = [C.exp|int{ISDestroy($(IS* iisp))} |]
 
 
 
@@ -142,6 +148,7 @@ isColoringCreate' comm ncolors n cols copymode =
 
 
 -- PetscErrorCode  ISColoringDestroy(ISColoring *iscoloring)
+isColoringDestroy' :: ISColoring -> IO CInt
 isColoringDestroy' isc = with isc $ \iscp -> [C.exp|int{ISColoringDestroy($(ISColoring* iscp))}|]
 
 
@@ -158,29 +165,36 @@ isColoringDestroy' isc = with isc $ \iscp -> [C.exp|int{ISColoringDestroy($(ISCo
 -- * Vec
 
 -- PetscErrorCode  VecView(Vec vec,PetscViewer viewer)
+vecView1 :: Vec -> PetscViewer -> IO CInt
 vecView1 ve viewer =
   [C.exp|int{VecView($(Vec ve),$(PetscViewer viewer))}|]
   
 
 -- PetscErrorCode  PetscObjectSetName(PetscObject obj,const char name[])
+vecSetName1 :: Vec -> String -> IO CInt
 vecSetName1 v name = withCString name $ \n ->
   [C.exp|int{PetscObjectSetName($(Vec v),$(char* n))}|]
 
 
-vecCreate0' comm p = [C.exp|int{VecCreate($(int c), $(Vec *p))} |]
-  where c = unComm comm
+
 
 vecCreate' :: Comm -> IO (Vec, CInt)
-vecCreate' c = withPtr (vecCreate0' c) 
+vecCreate' c = withPtr (vc0 c) where
+  vc0 comm p = [C.exp|int{VecCreate($(int c), $(Vec *p))} |]
+   where c = unComm comm
+  
 
 -- PetscErrorCode VecCreateMPI(MPI_Comm comm, int m, int M, Vec* x)
-vecCreateMPI0' comm m1' m2' p = [C.exp|int{VecCreateMPI($(int c), $(int m1), $(int m2), $(Vec *p))}|] 
-  where c = unComm comm
-        m1 = toCInt m1'
-        m2 = toCInt m2'
+
+
 
 vecCreateMPI' :: Comm -> Int -> Int -> IO (Vec, CInt)
-vecCreateMPI' c nlocal nglobal = withPtr (vecCreateMPI0' c nlocal nglobal) 
+vecCreateMPI' c nlocal nglobal = withPtr (vcm0 c nlocal nglobal)
+  where
+    vcm0 comm m1' m2' p = [C.exp|int{VecCreateMPI($(int c), $(int m1), $(int m2), $(Vec *p))}|] 
+      where c = unComm comm
+            m1 = toCInt m1'
+            m2 = toCInt m2'
 
 -- vecCreateMPILocal c m = vecCreateMPI' c m m
 
@@ -189,11 +203,13 @@ vecCreateMPI' c nlocal nglobal = withPtr (vecCreateMPI0' c nlocal nglobal)
 -- -- have PETSc decide the local Vec dimension
 
 -- PetscErrorCode VecCreateMPI(MPI_Comm comm, int m, int M, Vec* x)
+vecCreateMPIdecideLoc0' :: Comm -> Int -> Ptr Vec -> IO CInt
 vecCreateMPIdecideLoc0' comm nglob p =
   [C.exp|int{VecCreateMPI($(int c), PETSC_DECIDE, $(int m1), $(Vec *p))}|] 
     where c = unComm comm
           m1 = toCInt nglob
 
+vecCreateMPIdecideLoc' :: Comm -> Int -> IO (Vec, CInt)
 vecCreateMPIdecideLoc' comm nglob = withPtr (vecCreateMPIdecideLoc0' comm nglob)
 
 
@@ -203,6 +219,7 @@ vecCreateMPIdecideLoc' comm nglob = withPtr (vecCreateMPIdecideLoc0' comm nglob)
 
 
 -- PetscErrorCode  VecSetBlockSize(Vec v,PetscInt bs)
+vecSetBlockSize1 :: Vec -> Int -> IO CInt
 vecSetBlockSize1 v bs =
   [C.exp|int{VecSetBlockSize($(Vec v), $(int b))}|] where b = toCInt bs
                                                           
@@ -261,23 +278,28 @@ vecSetValues x ix y im =
 -- | Compares two vectors. Returns true if the two vectors are either pointing to the same memory buffer, or if the two vectors have the same local and global layout as well as bitwise equality of all entries. Does NOT take round-off errors into account.
 
 -- PETSC_EXTERN PetscErrorCode VecEqual(Vec,Vec,PetscBool *);
+vecEqual1 :: Vec -> Vec -> IO (PetscBool, CInt)
 vecEqual1 v1 v2 = withPtr ( \b ->
   [C.exp|int{VecEqual($(Vec v1), $(Vec v2), $(PetscBool* b))}|] )
 
 
 
-vecDestroy0' p = [C.exp|int{VecDestroy($(Vec *p))}|]
+
 
 vecDestroy' :: Vec -> IO CInt
-vecDestroy' p = with p vecDestroy0' 
+vecDestroy' p = with p vd0 where
+  vd0 pp = [C.exp|int{VecDestroy($(Vec *pp))}|]
 
 
+vecCopy1 :: Vec -> Vec -> IO CInt
 vecCopy1 vorig vcopy = [C.exp|int{VecCopy($(Vec vorig), $(Vec vcopy))}|] 
 
 -- -- NB : VecDuplicate DOES NOT COPY CONTENTS (only structure): use VecCopy
 -- PetscErrorCode  VecDuplicate(Vec v,Vec *newv)
-vecDuplicate' p1 p2 = [C.exp| int{VecDuplicate($(Vec p1), $(Vec *p2))}|] 
-vecDuplicate1 v = withPtr (vecDuplicate' v) 
+
+vecDuplicate1 :: Vec -> IO (Vec, CInt)
+vecDuplicate1 v = withPtr (vdup v) where
+  vdup p1 p2 = [C.exp| int{VecDuplicate($(Vec p1), $(Vec *p2))}|] 
 
 
 vecAssemblyBegin' :: Vec -> IO CInt
@@ -288,26 +310,24 @@ vecAssemblyEnd' v = [C.exp|int{VecAssemblyEnd($(Vec v))}|]
 
 -- vecAssembly1 v = vecAssemblyBegin v >> vecAssemblyEnd v
 
--- withVecAssembly v f = do
---   vecAssemblyBegin v
---   f v
---   vecAssemblyEnd v
 
--- -- -- vecAssembly' = (,) <$> vecAssemblyBegin <*> vecAssemblyEnd 
-
+vecSet1 :: Vec -> PetscScalar_ -> IO CInt
 vecSet1 v n = [C.exp|int{VecSet( $(Vec v), $(PetscScalar n))}|] 
 
+vecSetSizes1 :: Vec -> CInt -> IO CInt
 vecSetSizes1 v n = [C.exp|int{VecSetSizes( $(Vec v), PETSC_DECIDE, $(int n))}|] 
 
 
 -- | get Vec length
 
 -- PETSC_EXTERN PetscErrorCode VecGetSize(Vec,PetscInt*);
-vecGetSize0' v p =  [C.exp|int{VecGetSize($(Vec v), $(int *p))}|]
+
 
 vecGetSize' :: Vec -> IO (CInt, CInt)
-vecGetSize' v = withPtr $ \p -> vecGetSize0' v p
+vecGetSize' v = withPtr $ \p -> vgs0 v p where
+  vgs0 v p =  [C.exp|int{VecGetSize($(Vec v), $(int *p))}|]
 
+vecGetSizeUnsafe' :: Vec -> (CInt, CInt)
 vecGetSizeUnsafe' = unsafePerformIO . vecGetSize'
 
 vecSize' :: Vec -> Int
@@ -424,6 +444,7 @@ a -location to put pointer to the array
 -}
 -- NB : type CArray = Ptr 
 
+vecGetArray1d' :: Vec -> CInt -> CInt -> IO (Ptr PetscScalar_, CInt)
 vecGetArray1d' x m mstart = withPtr $ \arr -> 
   [C.exp|int{VecGetArray1d($(Vec x),$(int m),$(int mstart),$(PetscScalar** arr))}|]
 
@@ -444,6 +465,7 @@ mstart	- first index you will use in first coordinate direction (often 0)
 a	- location of pointer to array obtained from VecGetArray21()
 -}
 
+vecRestoreArray1d' :: Vec -> CInt -> CInt -> Ptr (Ptr PetscScalar_) -> IO CInt
 vecRestoreArray1d' x m mstart arr =
   [C.exp|int{VecRestoreArray1d($(Vec x),$(int m),$(int mstart),$(PetscScalar** arr))}|]
 
@@ -454,29 +476,33 @@ vecRestoreArray1d' x m mstart arr =
 
 -- TODO row (block) indexing : these should not be interpreted as mere Ints but as indices, e.g. FEM mesh nodes -- see repa 
 
-vecGetOwnershipRange' a =
- withPtr $ \rmin -> 
-  withPtr $ \rmax ->
-   [C.exp|int{VecGetOwnershipRange($(Vec a), $(PetscInt *rmin), $(PetscInt * rmax) )}|] 
-
+vecGetOwnershipRange1 :: Vec -> IO ((Int, Int), CInt)
 vecGetOwnershipRange1 v = do
-  (r1, (r2, e)) <- vecGetOwnershipRange' v
+  (r1, (r2, e)) <- vgor v
   let (r1', r2') = (fi r1, fi r2)
-  return ((r1', r2'), e) 
+  return ((r1', r2'), e)  where
+    vgor a =
+      withPtr $ \rmin -> 
+      withPtr $ \rmax ->
+       [C.exp|int{VecGetOwnershipRange($(Vec a), $(PetscInt *rmin), $(PetscInt * rmax) )}|] 
     
 
 
 
 -- | misc. math functions on Vec
-vecDot' v1 v2 v = [C.exp|int{VecDot( $(Vec v1), $(Vec v2), $(PetscScalar * v))}|] 
-vecDot1 v1 v2 = withPtr (vecDot' v1 v2) 
+
+vecDot1 :: Vec -> Vec -> IO (PetscScalar_, CInt)
+vecDot1 v1 v2 = withPtr (vdot v1 v2) where
+  vdot v1 v2 v = [C.exp|int{VecDot( $(Vec v1), $(Vec v2), $(PetscScalar * v))}|] 
 
 
 
 -- PETSC_EXTERN PetscErrorCode VecNorm(Vec,NormType,PetscReal *);
-vecNorm' nt v p = [C.exp|int{VecNorm($(Vec v),$(int nti),$(PetscReal* p))}|] where
+
+vecNorm1 :: VecNorm_ -> Vec -> IO (PetscReal_, CInt)
+vecNorm1 nt v = withPtr (vnorm nt v) where
+  vnorm nt v p = [C.exp|int{VecNorm($(Vec v),$(int nti),$(PetscReal* p))}|] where
     nti = fromIntegral $ vecNormToInt nt
-vecNorm1 nt v = withPtr (vecNorm' nt v)
 -- vecNorm v nt = unsafePerformIO $ withPtrHandleErr2 vecNorm' nt v
 
 
@@ -484,15 +510,20 @@ vecNorm1 nt v = withPtr (vecNorm' nt v)
 
 
 -- PETSC_EXTERN PetscErrorCode VecSum(Vec,PetscScalar*);
-vecSum' v p = [C.exp|int{VecSum($(Vec v), $(PetscScalar* p))}|]
-vecSum1 v = withPtr (vecSum' v)
+
+vecSum1 :: Vec -> IO (PetscScalar_, CInt)
+vecSum1 v = withPtr (vs v) where
+  vs v p = [C.exp|int{VecSum($(Vec v), $(PetscScalar* p))}|]
 -- vecSum v = unsafePerformIO $ withPtrHandleErr1 vecSum' v
 
 -- PETSC_EXTERN PetscErrorCode VecMax(Vec,PetscInt*,PetscReal *);
+vecMax' :: Vec -> Ptr PetscInt_ -> Ptr PetscReal_ -> IO CInt
 vecMax' v i r = [C.exp|int{VecMax($(Vec v),$(PetscInt* i),$(PetscReal* r))}|]
 -- PETSC_EXTERN PetscErrorCode VecMin(Vec,PetscInt*,PetscReal *);
+vecMin' :: Vec -> Ptr PetscInt_ -> Ptr PetscReal_ -> IO CInt
 vecMin' v i r = [C.exp|int{VecMin($(Vec v),$(PetscInt* i),$(PetscReal* r))}|]
 -- PETSC_EXTERN PetscErrorCode VecScale(Vec,PetscScalar);
+vecScale' :: Vec -> PetscScalar_ -> IO CInt
 vecScale' v n = [C.exp|int{VecScale($(Vec v),$(PetscScalar n))}|]
 -- PETSC_EXTERN PetscErrorCode VecPointwiseMax(Vec,Vec,Vec);
 -- PETSC_EXTERN PetscErrorCode VecPointwiseMaxAbs(Vec,Vec,Vec);
@@ -501,17 +532,23 @@ vecScale' v n = [C.exp|int{VecScale($(Vec v),$(PetscScalar n))}|]
 -- PETSC_EXTERN PetscErrorCode VecPointwiseDivide(Vec,Vec,Vec);
 -- PETSC_EXTERN PetscErrorCode VecMaxPointwiseDivide(Vec,Vec,PetscReal*);
 -- PETSC_EXTERN PetscErrorCode VecShift(Vec,PetscScalar);
+vecShift' :: Vec -> PetscScalar_ -> IO CInt
 vecShift' v n = [C.exp|int{VecShift($(Vec v),$(PetscScalar n))}|]
 -- PETSC_EXTERN PetscErrorCode VecReciprocal(Vec);
+vecReciprocal' :: Vec -> IO CInt
 vecReciprocal' v = [C.exp|int{VecReciprocal($(Vec v))}|]
 -- PETSC_EXTERN PetscErrorCode VecPermute(Vec, IS, PetscBool );
-vecPetmute' v i b = [C.exp|int{VecPermute($(Vec v),$(IS i),$(PetscBool b))}|]
+vecPermute' :: Vec -> IS -> PetscBool -> IO CInt
+vecPermute' v i b = [C.exp|int{VecPermute($(Vec v),$(IS i),$(PetscBool b))}|]
 -- PETSC_EXTERN PetscErrorCode VecSqrtAbs(Vec);
 -- PETSC_EXTERN PetscErrorCode VecLog(Vec);
+vecLog' :: Vec -> IO CInt
 vecLog' v = [C.exp|int{VecLog($(Vec v))}|]
 -- PETSC_EXTERN PetscErrorCode VecExp(Vec);
+vecExp' :: Vec -> IO CInt
 vecExp' v = [C.exp|int{VecExp($(Vec v))}|]
 -- PETSC_EXTERN PetscErrorCode VecAbs(Vec);
+vecAbs' :: Vec -> IO CInt
 vecAbs' v = [C.exp|int{VecAbs($(Vec v))}|]
 
 
@@ -520,6 +557,7 @@ vecAbs' v = [C.exp|int{VecAbs($(Vec v))}|]
 --    VecAXPY - Computes y = alpha x + y.
 --    Notes: x and y MUST be different vectors
 -- PetscErrorCode  VecAXPY(Vec y,PetscScalar alpha,Vec x)
+vecAxpy' :: Vec -> PetscScalar_ -> Vec -> IO CInt
 vecAxpy' y a x = [C.exp|int{VecAXPY($(Vec y),$(PetscScalar a),$(Vec x))}|]
 -- PETSC_EXTERN PetscErrorCode VecAXPBY(Vec,PetscScalar,PetscScalar,Vec);
 -- PETSC_EXTERN PetscErrorCode VecMAXPY(Vec,PetscInt,const PetscScalar[],Vec[]);
@@ -534,6 +572,7 @@ vecAxpy' y a x = [C.exp|int{VecAXPY($(Vec y),$(PetscScalar a),$(Vec x))}|]
    Level: intermediate
    Notes: w cannot be either x or y, but x and y can be the same    -}
 -- PetscErrorCode  VecWAXPY(Vec w,PetscScalar alpha,Vec x,Vec y)
+vecWaxpy' :: Vec -> PetscScalar_ -> Vec -> Vec -> IO CInt
 vecWaxpy' w a x y =
   [C.exp|int{VecWAXPY($(Vec w),$(PetscScalar a),$(Vec x),$(Vec y))}|]
 
@@ -577,6 +616,7 @@ vecWaxpy' w a x y =
 
 
 -- PETSC_EXTERN PetscErrorCode MatSetType(Mat,MatType);
+matSetType' :: Mat -> MatType_ -> IO CInt
 matSetType' m mt = withCString cs $ \c -> [C.exp|int{MatSetType($(Mat m), $(char *c))}|] 
   where cs = matTypeToStr mt
 
@@ -584,12 +624,14 @@ matSetType' m mt = withCString cs $ \c -> [C.exp|int{MatSetType($(Mat m), $(char
 
 
 -- matCreate' c p = [C.exp| int{MatCreate($(int c), $(Mat *p))} |]
-matCreate0' comm = withPtr $ \p -> [C.exp| int{MatCreate($(int c), $(Mat *p))} |] 
-  where c = unComm comm
-matCreate' = matCreate0' 
+matCreate' :: Comm -> IO (Mat, CInt)
+matCreate' = matCreate0' where
+  matCreate0' comm = withPtr $ \p -> [C.exp| int{MatCreate($(int c), $(Mat *p))} |] 
+    where c = unComm comm
 
-matDestroy0' m = [C.exp|int{MatDestroy($(Mat *m))}|]
-matDestroy' m = with m matDestroy0' 
+matDestroy' :: Mat -> IO CInt
+matDestroy' m = with m matDestroy0' where
+  matDestroy0' m = [C.exp|int{MatDestroy($(Mat *m))}|]
 
 
 matSetSizes0' :: Mat -> Int -> Int -> Int -> Int -> IO CInt
@@ -609,7 +651,8 @@ matSetSizes' mat m n = [C.exp|int{MatSetSizes($(Mat mat), PETSC_DECIDE, PETSC_DE
 
 
 -- PetscErrorCode  MatCreateSeqAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt nz,const PetscInt nnz[],Mat *A)
-
+matCreateSeqAIJ' ::
+  Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> [PetscInt_] -> IO (Mat, CInt)
 matCreateSeqAIJ' comm m n nz nnz =
   withPtr (\mat ->
    withArray nnz $ \nnzp ->
@@ -631,6 +674,7 @@ matCreateSeqAIJ' comm m n nz nnz =
 -- Output Parameter :
 -- A -the matrix 
 
+matCreateSeqAIJ1 :: Comm -> Int -> Int -> [Int] -> IO (Mat, CInt)
 matCreateSeqAIJ1 comm m' n' nnz' =
   withPtr (\mat ->
    withArray nnz $ \nnzp ->
@@ -643,6 +687,7 @@ matCreateSeqAIJ1 comm m' n' nnz' =
   where c = unComm comm
         (m, n, nnz) = (toCInt m', toCInt n', map toCInt nnz')
 
+matCreateSeqAIJconstNZperRow1 :: Comm -> Int -> Int -> Int -> IO (Mat, CInt)
 matCreateSeqAIJconstNZperRow1 comm m' n' nz' =
   withPtr (\mat ->
             [C.exp|int{MatCreateSeqAIJ($(int c),
@@ -655,7 +700,7 @@ matCreateSeqAIJconstNZperRow1 comm m' n' nz' =
         (m, n, nz) = (toCInt m', toCInt n', toCInt nz')
 
 
-
+matTranspose' :: Mat -> MatReuse_ -> IO (Mat, CInt)
 matTranspose' mat mr =
   withPtr $ \mp -> [C.exp|int{MatTranspose($(Mat mat),$(int mr'),$(Mat* mp))}|]
    where mr' = toCInt $ matReuseToInt mr
@@ -669,6 +714,7 @@ matTranspose' mat mr =
 -- N -the matrix that represents A' 
 -- Notes: The transpose A' is NOT actually formed! Rather the new matrix object performs the matrix-vector product by using the MatMultTranspose() on the original matrix
 
+matCreateTranspose' :: Mat -> IO (Mat, CInt)
 matCreateTranspose' mat = withPtr $ \mp -> [C.exp|int{MatCreateTranspose($(Mat mat),$(Mat* mp))}|]
 
 
@@ -686,6 +732,12 @@ matCreateTranspose' mat = withPtr $ \mp -> [C.exp|int{MatCreateTranspose($(Mat m
 -- Output Parameter
 -- A -the matrix 
 -- It is recommended that one use the MatCreate(), MatSetType() and/or MatSetFromOptions(), MatXXXXSetPreallocation() paradgm instead of this routine directly
+matCreateAIJ0' :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> PetscInt_
+                        -> PetscInt_
+                        -> [PetscInt_]
+                        -> PetscInt_
+                        -> [PetscInt_]
+                        -> IO (Mat, CInt)
 matCreateAIJ0' comm m n mm nn dnz dnnz onz onnz = 
   withPtr ( \mat ->
     withArray dnnz ( \dnnzp ->
