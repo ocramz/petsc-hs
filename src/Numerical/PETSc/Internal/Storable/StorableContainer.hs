@@ -57,63 +57,68 @@ import Control.Exception
 
 
 
--- | algebraic hierarchy from Blanco et al. `Towards a functional run-time for dense NLA domain`, FHPC'13
+-- -- | algebraic hierarchy from Blanco et al. `Towards a functional run-time for dense NLA domain`, FHPC'13
 
--- class (Eq e, Fractional e) => Element e where
-class Num e => Element e where
-  conj :: e -> e
-  conj = id      -- default
+-- -- class (Eq e, Fractional e) => Element e where
+-- class Num e => Element e where
+--   conj :: e -> e
+--   conj = id      -- default
 
-instance Element Int
-instance Element Double
-instance Element CDouble
-instance Element Float
-instance RealFloat e => Element (Complex e) where
-  conj = conjugate
+-- instance Element Int
+-- instance Element Double
+-- instance Element CDouble
+-- instance Element Float
+-- instance RealFloat e => Element (Complex e) where
+--   conj = conjugate
 
--- data TransposedState = NotTransposed | Transposed deriving (Eq, Show)
+-- -- data TransposedState = NotTransposed | Transposed deriving (Eq, Show)
 
-{-- | NB : complex conjugation and transposition are aspects of a more general concept, that of Hermitian transposition.
--}
+-- {-- | NB : complex conjugation and transposition are aspects of a more general concept, that of Hermitian transposition.
+-- -}
 
--- class Transposable t where
---   data Transposed -- = T | NT
+-- -- class Transposable t where
+-- --   data Transposed -- = T | NT
 
-class (Functor c, Element e) => Container c e where
-  type IxC :: *    -- Int for Vectors, (Int, Int) for Matrices ..
-  type DimC :: *
-  generateC :: DimC -> (IxC -> e) -> c e
-  selectC :: c e -> IxC -> e   -- or Maybe e ?
-  dimC :: c e -> DimC
-  subC :: c e -> IxC -> IxC -> c e
-  mapC :: (e -> e) -> c e -> c e
+-- class (Functor c, Element e) => Container c e where
+--   type IxC :: *    -- Int for Vectors, (Int, Int) for Matrices ..
+--   type DimC :: *
+--   generateC :: DimC -> (IxC -> e) -> c e
+--   selectC :: c e -> IxC -> e   -- or Maybe e ?
+--   dimC :: c e -> DimC
+--   subC :: c e -> IxC -> IxC -> c e
+--   mapC :: (e -> e) -> c e -> c e
 
--- instance Element a => Container [] a where
---   type IxC = Int
---   type DimC = Int
---   dimC = length
---   selectC = (!!)
---   subC l a b = drop a (take b l)
---   mapC = map
---   generateC n f = map f [0 .. n-1]
+-- -- instance Element a => Container [] a where
+-- --   type IxC = Int
+-- --   type DimC = Int
+-- --   dimC = length
+-- --   selectC = (!!)
+-- --   subC l a b = drop a (take b l)
+-- --   mapC = map
+-- --   generateC n f = map f [0 .. n-1]
 
--- -- example :
--- -- generateC 3 (^2) :: [Int]
-
-
-
-class Container c e => Vector c e where
-  fromListV :: [e] -> c e
-  toListV :: c e -> [e]
-  concatV :: [c e] -> c e
-  foldrV :: (e -> a -> a) -> a -> c e -> a  -- NB : works IFF args have same dims
-  zipWithV :: (e -> e -> e) -> c e -> c e -> c e -- "
+-- -- -- example :
+-- -- -- generateC 3 (^2) :: [Int]
 
 
 
-class Container c e => Matrix c e where
-  fromListM :: Int -> Int -> [e] -> c e
-  -- transposeM :: c e -> c e    -- NB : transposition shd be reflected in type
+-- class Container c e => Vector c e where
+--   fromListV :: [e] -> c e
+--   toListV :: c e -> [e]
+--   concatV :: [c e] -> c e
+--   foldrV :: (e -> a -> a) -> a -> c e -> a  -- NB : works IFF args have same dims
+--   zipWithV :: (e -> e -> e) -> c e -> c e -> c e -- "
+
+
+
+-- class Container c e => Matrix c e where
+--   fromListM :: Int -> Int -> [e] -> c e
+--   -- transposeM :: c e -> c e    -- NB : transposition shd be reflected in type
+
+
+
+
+
 
 
 
