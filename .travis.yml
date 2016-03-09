@@ -126,7 +126,7 @@ script:
   
 
   # # # run an example program
-  # - stack exec "$DIST_DIR"/petsc-example
+  - stack exec "$DIST_DIR"/petsc-example
 
   # # stack $ARGS --no-terminal --install-ghc test --haddock
 

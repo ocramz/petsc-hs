@@ -114,8 +114,8 @@ class Container c e => Vector c e where
 
 
 
--- class Container c e => Matrix c e where
---   fromListM :: Int -> Int -> [e] -> c e
+class Container c e => Matrix c e where
+  fromListM :: Int -> Int -> [e] -> c e
 --   -- transposeM :: c e -> c e    -- NB : transposition shd be reflected in type
 
 
