@@ -31,7 +31,7 @@ import qualified Data.Vector.Generic as VG
 import Control.Arrow ((***),(&&&))
 import Control.Monad
 
-import Control.Monad.Managed
+import qualified Control.Monad.Managed as Mng
 
 import Control.Monad.Trans.Class
 -- import Control.Monad.Trans.Resource
@@ -324,11 +324,11 @@ t10 = withPetsc0 t10'
 
 -- | managed resources, obj stdout
 
-t11'  = runManaged $ do
+t11'  = Mng.runManaged $ do
   -- dm <- managed $ withDmda1d0 cw DmBNone n 1 1
-  dm <- managed $ withDmda2d0 cw (DmBNone, DmBNone) DmSStar (n,n) 1 1
-  vi <- managed $ withPetscViewerAscii cw 
-  liftIO $ dmView dm vi
+  dm <- Mng.managed $ withDmda2d0 cw (DmBNone, DmBNone) DmSStar (n,n) 1 1
+  vi <- Mng.managed $ withPetscViewerAscii cw 
+  Mng.liftIO $ dmView dm vi
     where
       n = 10
       cw = commWorld

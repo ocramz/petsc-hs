@@ -78,8 +78,8 @@ data MVec s a = MVec
     {-# UNPACK #-} !Int  -- global vector length (see `vecCreateMPI() `)          
     {-# UNPACK #-} !Vec
 
-instance VGM.MVector MVec PetscScalar_ where
-  basicLength (MVec n _) = n
+-- instance VGM.MVector MVec PetscScalar_ where
+--   basicLength (MVec n _) = n
 
 
 
