@@ -80,19 +80,19 @@ instance RealFloat e => Element (Complex e) where
 -- --   data Transposed -- = T | NT
 
 class (Functor c, Element e) => Container c e where
-  type IxC c :: *    -- Int for Vectors, (Int, Int) for Matrices ..
-  type DimC c :: *
-  generateC :: DimC c -> (IxC c -> e) -> c e
-  selectC :: c e -> IxC c -> e   -- or Maybe e ?
-  dimC :: c e -> DimC c
-  subC :: c e -> IxC c -> IxC c -> c e
+  type IxC c e :: *    -- Int for Vectors, (Int, Int) for Matrices ..
+  type DimC c e :: *
+  generateC :: DimC c e -> (IxC c e -> e) -> c e
+  selectC :: c e -> IxC c e-> e   -- or Maybe e ?
+  dimC :: c e -> DimC c e
+  subC :: c e -> IxC c e -> IxC c e -> c e
   mapC :: (e -> e) -> c e -> c e
 
 -- class (Monad m, Container c e) => MContainer m c e where
 
 instance Element a => Container [] a where
-  type IxC [] = Int
-  type DimC [] = Int
+  type IxC [] a = Int
+  type DimC [] a = Int
   dimC = length
   selectC = (!!)
   subC l a b = drop a (take b l)
