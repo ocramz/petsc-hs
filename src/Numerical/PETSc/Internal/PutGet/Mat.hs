@@ -69,6 +69,8 @@ data MatrixData a =
 
 
 
+
+
 -- | predicates
 
 -- | predicates for MatrixData
@@ -84,6 +86,8 @@ inMatRowRange m = in0m (getMatRows m)
 inMatColRange m = in0m (getMatCols m)
 
 inMatrixBounds m (ii, jj) = inMatRowRange m ii && inMatColRange m jj
+
+
 
 
 -- | PetscMatrix getters

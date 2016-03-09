@@ -80,17 +80,19 @@ instance RealFloat e => Element (Complex e) where
 -- --   data Transposed -- = T | NT
 
 class (Functor c, Element e) => Container c e where
-  type IxC -- :: *    -- Int for Vectors, (Int, Int) for Matrices ..
-  type DimC -- :: *
-  generateC :: DimC -> (IxC -> e) -> c e
-  selectC :: c e -> IxC -> e   -- or Maybe e ?
-  dimC :: c e -> DimC
-  subC :: c e -> IxC -> IxC -> c e
+  type IxC c :: *    -- Int for Vectors, (Int, Int) for Matrices ..
+  type DimC c :: *
+  generateC :: DimC c -> (IxC c -> e) -> c e
+  selectC :: c e -> IxC c -> e   -- or Maybe e ?
+  dimC :: c e -> DimC c
+  subC :: c e -> IxC c -> IxC c -> c e
   mapC :: (e -> e) -> c e -> c e
 
+-- class (Monad m, Container c e) => MContainer m c e where
+
 instance Element a => Container [] a where
-  type IxC = Int
-  type DimC = Int
+  type IxC [] = Int
+  type DimC [] = Int
   dimC = length
   selectC = (!!)
   subC l a b = drop a (take b l)
@@ -109,14 +111,13 @@ class Container c e => Vector c e where
   foldrV :: (e -> a -> a) -> a -> c e -> a  
   zipWithV :: (e -> e -> e) -> c e -> c e -> c e -- NB : works IFF args have same dims
 
--- instance Vector [] Int where
---   concatV = concat
 
 
 
-class Container c e => Matrix c e where
-  fromListM :: Int -> Int -> [e] -> c e
---   -- transposeM :: c e -> c e    -- NB : transposition shd be reflected in type
+
+-- class Container c e => Matrix c e where
+--   fromListM :: Int -> Int -> [e] -> c e
+-- --   -- transposeM :: c e -> c e    -- NB : transposition shd be reflected in type
 
 
 
