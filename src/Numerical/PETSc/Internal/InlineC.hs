@@ -762,7 +762,15 @@ matCreateAIJ0' comm m n mm nn dnz dnnz onz onnz =
 --     Output Parameter :
 -- mat -the matrix 
 
-
+matCreateMPIAIJWithArrays0' :: Comm
+                                     -> PetscInt_
+                                     -> PetscInt_
+                                     -> PetscInt_
+                                     -> PetscInt_
+                                     -> Ptr PetscInt_
+                                     -> Ptr PetscInt_
+                                     -> Ptr PetscScalar_
+                                     -> IO (Mat, CInt)
 matCreateMPIAIJWithArrays0' comm m n mm nn ip jp aap =
   withPtr ( \mat -> [C.exp|int{MatCreateMPIAIJWithArrays($(PetscInt c),
                                     $(PetscInt m),
@@ -773,7 +781,12 @@ matCreateMPIAIJWithArrays0' comm m n mm nn ip jp aap =
                                     $(Mat* mat))}|] )
     where c = unComm comm 
 
-        
+
+matCreateMPIAIJWithArrays' :: Comm
+                                    -> [PetscInt_]
+                                    -> [PetscInt_]
+                                    -> [PetscScalar_]
+                                    -> IO (Mat, CInt)
 matCreateMPIAIJWithArrays' comm i j a =
   withArray i $ \ip ->
    withArray j $ \jp ->
@@ -790,7 +803,7 @@ matCreateMPIAIJWithArrays' comm i j a =
         n = fromIntegral $ length j -- # local rows
 
 
-
+matViewStdout' :: Mat -> IO CInt
 matViewStdout' v = [C.exp|int{MatView($(Mat v), PETSC_VIEWER_STDOUT_SELF)}|]
 
 
@@ -826,12 +839,13 @@ matViewStdout' v = [C.exp|int{MatView($(Mat v), PETSC_VIEWER_STDOUT_SELF)}|]
 
 
 -- PETSC_EXTERN PetscErrorCode MatGetSize(Mat,PetscInt*,PetscInt*);
-matGetSize0' v sx sy =  [C.exp|int{MatGetSize($(Mat v), $(int *sx), $(int *sy))}|]
+
 
 matGetSize' :: Mat -> IO ((CInt, CInt), CInt)
 matGetSize' v = withPtr ( \px ->
-  withPtr $ \py -> matGetSize0' v px py ) >>= fst2M
-
+  withPtr $ \py -> matGetSize0' v px py ) >>= fst2M where
+   matGetSize0' v sx sy =  [C.exp|int{MatGetSize($(Mat v), $(int *sx), $(int *sy))}|]
+   
 matGetSizeUnsafeCInt' :: Mat -> ((CInt, CInt), CInt)
 matGetSizeUnsafeCInt' = unsafePerformIO . matGetSize'
 
@@ -844,6 +858,7 @@ matGetSizeUnsafeCInt' = unsafePerformIO . matGetSize'
 -- f' g h = g . fst &&& h. snd
 -- f'' g = f' g g
 
+matSetFromOptions :: Mat -> IO CInt
 matSetFromOptions p = [C.exp| int{MatSetFromOptions($(Mat p))} |] 
 
 
@@ -860,6 +875,7 @@ matSetFromOptions p = [C.exp| int{MatSetFromOptions($(Mat p))} |]
 -- -- nnz	- array containing the number of nonzeros in the various rows (possibly different for each row) or NULL
 -- -- -- NB : If nnz is given then nz is ignored
 
+matSeqAIJSetPreallocation' :: Mat -> CInt -> [CInt] -> IO CInt
 matSeqAIJSetPreallocation' mat nz nnz =
     withArray nnz ( \nnzp ->
                      [C.exp|int{MatSeqAIJSetPreallocation( $(Mat mat),
@@ -876,6 +892,8 @@ matSeqAIJSetPreallocation' mat nz nnz =
 -- o_nz	- number of nonzeros per row in the OFF-DIAGONAL portion of local submatrix (same value is used for all local rows).
 -- o_nnz	- array containing the number of nonzeros in the various rows of the OFF-DIAGONAL portion of the local submatrix (possibly different for each row) or NULL (PETSC_NULL_INTEGER in Fortran), if o_nz is used to specify the nonzero structure. The size of this array is equal to the number of local rows, i.e 'm'.
 -- If the *_nnz parameter is given then the *_nz parameter is ignored
+
+matMPIAIJSetPreallocation' :: Mat -> CInt -> [CInt] -> CInt -> [CInt] -> IO CInt
 matMPIAIJSetPreallocation' b dnz dnnz onz onnz =
   withArray dnnz $ \dnnzp ->
   withArray onnz $ \onnzp ->
@@ -885,6 +903,7 @@ matMPIAIJSetPreallocation' b dnz dnnz onz onnz =
                                        $(int onz),
                                        $(int* onnzp))}|]
 
+matMPIAIJSetPreallocationConstNZPR' :: Mat -> CInt -> CInt -> IO CInt
 matMPIAIJSetPreallocationConstNZPR' b dnz onz =
   [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
                                        $(int dnz),
@@ -896,6 +915,7 @@ matMPIAIJSetPreallocationConstNZPR' b dnz onz =
 
 
 -- PetscErrorCode MatSetValue(Mat m,PetscInt row,PetscInt col,PetscScalar value,InsertMode mode)
+matSetValueUnsafe' :: Mat -> Int -> Int -> PetscScalar_ -> InsertMode_ -> IO CInt
 matSetValueUnsafe' m row col val im =
   [C.exp|int{MatSetValue($(Mat m),$(int rowc),$(int colc),$(PetscScalar val),$(int imm))}|] where
     imm = fromIntegral $ insertModeToInt im
