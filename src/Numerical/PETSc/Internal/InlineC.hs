@@ -944,7 +944,7 @@ matZeroEntries' mat = [C.exp|int{MatZeroEntries($(Mat mat))}|]
 
 
 
-
+matSetValues' :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO CInt
 matSetValues' mat idxx idxy b im
   | compatDim =
      withArray idxx $ \idxx_ ->
@@ -956,15 +956,18 @@ matSetValues' mat idxx idxy b im
        nbx = toCInt $ length idxx
        nby = toCInt $ length idxy
        nb = toCInt $ length b
-       compatDim = (nbx*nby) == nb where
-         matSetValues0' mat nbx idxx_ nby idxy_ b_ im =
+       compatDim = (nbx*nby) == nb
+
+matSetValues0' ::
+  Mat -> CInt -> Ptr CInt -> CInt -> Ptr CInt -> Ptr PetscScalar_ -> InsertMode_ -> IO CInt
+matSetValues0' mat nbx idxx_ nby idxy_ b_ im =
            [C.exp|int { MatSetValues($(Mat mat),
                                      $(int nbx),
                                      $(int* idxx_),
                                      $(int nby),
                                      $(int* idxy_),
                                      $(PetscScalar* b_), $(int imm))} |] where
-             imm = fromIntegral $ insertModeToInt im
+              imm = fromIntegral $ insertModeToInt im
 
 matSetValuesAdd' :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> IO CInt
 matSetValuesAdd' m x y b = matSetValues' m x y b AddValues
@@ -1133,17 +1136,20 @@ matGetTrace' mat = withPtr $ \tr -> [C.exp|int{MatGetTrace($(Mat mat),$(PetscSca
 -- A	- The Mat
 -- fraction	- An optional percentage of the Frobenius norm of the matrix that the bandwidth should enclose
 -- Output Parameter :
--- bw -The matrix bandwidth 
+-- bw -The matrix bandwidth
+matComputeBandwidth' :: Mat -> PetscReal_ -> IO (PetscInt_, CInt)
 matComputeBandwidth' mat f = withPtr $ \bw ->
   [C.exp|int{MatComputeBandwidth($(Mat mat),$(PetscReal f),$(PetscInt* bw))}|]
 
 
 
 -- PetscErrorCode  MatLUFactor(Mat mat,IS row,IS col,const MatFactorInfo *info)
+matLUFactor' :: Mat -> IS -> IS -> Ptr MatFactorInfo -> IO CInt
 matLUFactor' mat is col info =
   [C.exp|int{MatLUFactor($(Mat mat),$(IS is),$(IS col),$(MatFactorInfo* info))}|]
 
 -- PetscErrorCode  MatFactorInfoInitialize(MatFactorInfo *info)
+matFactorInfoInitialize' :: IO (MatFactorInfo, CInt)
 matFactorInfoInitialize' = withPtr $ \i -> mfii i where
   mfii info = [C.exp|int{MatFactorInfoInitialize($(MatFactorInfo* info))}|]
 
@@ -1157,6 +1163,7 @@ matFactorInfoInitialize' = withPtr $ \i -> mfii i where
 -- y -the result 
 -- Notes :
 -- The vectors x and y cannot be the same. I.e., one cannot call MatMult(A,y,y).
+matMult' :: Mat -> Vec -> Vec -> IO CInt
 matMult' mat v vresult = [C.exp|int{MatMult($(Mat mat),$(Vec v),$(Vec vresult))}|]
 
 
@@ -1171,6 +1178,7 @@ matMult' mat v vresult = [C.exp|int{MatMult($(Mat mat),$(Vec v),$(Vec vresult))}
 -- Notes :
 -- The vectors x and y cannot be the same. I.e., one cannot call MatMultTranspose(A,y,y).
 -- For complex numbers this does NOT compute the Hermitian (complex conjugate) transpose multiple, use MatMultHermitianTranspose()
+matMultTranspose' :: Mat -> Vec -> Vec -> IO CInt
 matMultTranspose' mat v vresult = [C.exp|int{MatMultTranspose($(Mat mat),$(Vec v),$(Vec vresult))}|]
 
 
@@ -1183,6 +1191,7 @@ matMultTranspose' mat v vresult = [C.exp|int{MatMultTranspose($(Mat mat),$(Vec v
 -- v3 -the result        v3 = v2 + A * v1
 -- Notes
 -- The vectors v1 and v3 cannot be the same. I.e., one cannot call MatMultAdd(A,v1,v2,v1).
+matMultAdd' :: Mat -> Vec -> Vec -> Vec -> IO CInt
 matMultAdd' mat v1 v2 v3 =
   [C.exp|int{MatMultAdd($(Mat mat),$(Vec v1),$(Vec v2),$(Vec v3))}|]
 
@@ -1196,6 +1205,7 @@ matMultAdd' mat v1 v2 v3 =
 -- v3 -the result           v3 = v2 + A' * v1
 -- Notes : 
 -- The vectors v1 and v3 cannot be the same. I.e., one cannot call MatMultTransposeAdd(A,v1,v2,v1).
+matMultTransposeAdd' :: Mat -> Vec -> Vec -> Vec -> IO CInt
 matMultTransposeAdd' mat v1 v2 v3 = [C.exp|int{MatMultTransposeAdd($(Mat mat),$(Vec v1),$(Vec v2),$(Vec v3))}|]
 
 
@@ -1212,7 +1222,7 @@ matMultTransposeAdd' mat v1 v2 v3 = [C.exp|int{MatMultTransposeAdd($(Mat mat),$(
 -- The vectors x and y cannot be the same. I.e., one cannot call MatMultHermitianTranspose(A,y,y).
 -- Also called the conjugate transpose, complex conjugate transpose, or adjoint.
 -- For real numbers MatMultTranspose() and MatMultHermitianTranspose() are identical.
-
+matMultHermitianTranspose' :: Mat -> Vec -> Vec -> IO CInt
 matMultHermitianTranspose' m x y = [C.exp|int{MatMultHermitianTranspose($(Mat m),$(Vec x),$(Vec y))}|]
 
 
@@ -1228,14 +1238,18 @@ matMultHermitianTranspose' m x y = [C.exp|int{MatMultHermitianTranspose($(Mat m)
 -- Notes :
 -- The vectors v1 and v3 cannot be the same. I.e., one cannot call MatMultHermitianTransposeAdd(A,v1,v2,v1).
 
+
+matMultHermitianTransposeAdd' :: Mat -> Vec -> Vec -> Vec -> IO CInt
 matMultHermitianTransposeAdd' m v1 v2 v3 = [C.exp|int{MatMultHermitianTransposeAdd($(Mat m),$(Vec v1),$(Vec v2),$(Vec v3))}|]
 
 
 
 -- PETSC_EXTERN PetscErrorCode MatScale(Mat,PetscScalar);
+matScale' :: Mat -> PetscScalar_ -> IO CInt
 matScale' mat s = [C.exp|int{MatScale($(Mat mat),$(PetscScalar s))}|]
 
 -- PETSC_EXTERN PetscErrorCode MatShift(Mat,PetscScalar);
+matShift' :: Mat -> PetscScalar_ -> IO CInt
 matShift' mat s = [C.exp|int{MatShift($(Mat mat),$(PetscScalar s))}|]
 
 
@@ -1303,19 +1317,22 @@ matShift' mat s = [C.exp|int{MatShift($(Mat mat),$(PetscScalar s))}|]
 -- -- * Mat FD Coloring
 
 -- PetscErrorCode  MatFDColoringCreate(Mat mat,ISColoring iscoloring,MatFDColoring *color)
-
+matFDColoringCreate0' :: Mat -> ISColoring -> Ptr MatFDColoring -> IO CInt
 matFDColoringCreate0' m i c =
   [C.exp| int{MatFDColoringCreate($(Mat m),$(ISColoring i),$(MatFDColoring* c)) } |]
 
+matFDColoringCreate' :: Mat -> ISColoring -> IO (MatFDColoring, CInt)
 matFDColoringCreate' m i = withPtr $ \c -> matFDColoringCreate0' m i c
 
 
 
 -- PetscErrorCode MatFDColoringSetUp(Mat mat,ISColoring iscoloring,MatFDColoring color)
+matFDColoringSetUp' :: Mat -> ISColoring -> MatFDColoring -> IO CInt
 matFDColoringSetUp' mat iscoloring color =
   [C.exp|int{MatFDColoringSetUp($(Mat mat),$(ISColoring iscoloring),$(MatFDColoring color))}|]
 
 -- PetscErrorCode  MatFDColoringDestroy(MatFDColoring *c)
+matFDColoringDestroy' :: MatFDColoring -> IO CInt
 matFDColoringDestroy' color = with color $ \cp -> [C.exp|int{MatFDColoringDestroy($(MatFDColoring* cp))}|]
 
 
@@ -1334,18 +1351,22 @@ matFDColoringDestroy' color = with color $ \cp -> [C.exp|int{MatFDColoringDestro
 
 
 -- PETSC_EXTERN PetscErrorCode DMCreate(MPI_Comm,DM*);
+dmCreate' :: Comm -> IO (DM, CInt)
 dmCreate' comm = withPtr ( \dm -> [C.exp|int{DMCreate($(int c), $(DM* dm))} |] ) 
   where c = unComm comm
 
+dmDestroy' :: DM -> IO CInt
 dmDestroy' dm = with dm ( \dmp -> [C.exp|int{DMDestroy($(DM* dmp))}|] ) 
 
 -- -- DMCreate* are for setting up longer-lived data
 -- -- DMGet* and DMRestore* are for temporary access (always go in pairs)
 
 -- PETSC_EXTERN PetscErrorCode DMCreateGlobalVector(DM,Vec*);
+dmCreateGlobalVector' :: DM -> IO (Vec, CInt)
 dmCreateGlobalVector' dm = withPtr ( \v -> [C.exp|int{DMCreateGlobalVector($(DM dm), $(Vec* v))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode DMCreateLocalVector(DM,Vec*);
+dmCreateLocalVector' :: DM -> IO (Vec, CInt)
 dmCreateLocalVector' dm = withPtr ( \v -> [C.exp|int{DMCreateLocalVector($(DM dm), $(Vec* v))}|]) 
 
 
@@ -1355,23 +1376,26 @@ dmCreateLocalVector' dm = withPtr ( \v -> [C.exp|int{DMCreateLocalVector($(DM dm
 -- This is intended to be used for vectors you need for a short time, like within a single function call. For vectors that you intend to keep around (for example in a C struct) or pass around large parts of your code you should use DMCreateLocalVector().
 -- VecStride*() operations can be useful when using DM with dof > 1
 
+dmGetLocalVector' :: DM -> IO (Vec, CInt)
 dmGetLocalVector' dm = withPtr ( \v -> [C.exp|int{DMGetLocalVector($(DM dm),$(Vec* v))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode DMRestoreLocalVector(DM,Vec *);
+dmRestoreLocalVector' :: DM -> Vec -> IO CInt
 dmRestoreLocalVector' dm vv = with vv ( \v -> [C.exp|int{DMRestoreLocalVector($(DM dm),$(Vec* v))}|]) 
 
 
 -- PETSC_EXTERN PetscErrorCode DMGetGlobalVector(DM,Vec *);
+dmGetGlobalVector' :: DM -> IO (Vec, CInt)
 dmGetGlobalVector' dm = withPtr ( \v -> [C.exp|int{DMGetGlobalVector($(DM dm),$(Vec* v))}|])
 
 -- PETSC_EXTERN PetscErrorCode DMRestoreGlobalVector(DM,Vec *);
+dmRestoreGlobalVector' :: DM -> Vec -> IO CInt
 dmRestoreGlobalVector' dm vv = with vv ( \v -> [C.exp|int{DMRestoreGlobalVector($(DM dm),$(Vec* v))}|]) 
 
 
-
-dmCreateMatrix0' dm mat = [C.exp|int{DMCreateMatrix($(DM dm),$(Mat* mat))}|]
-
-dmCreateMatrix' dm = withPtr (dmCreateMatrix0' dm) 
+dmCreateMatrix' :: DM -> IO (Mat, CInt)
+dmCreateMatrix' dm = withPtr (dmCreateMatrix0' dm) where
+  dmCreateMatrix0' dm mat = [C.exp|int{DMCreateMatrix($(DM dm),$(Mat* mat))}|]
 
 
 
@@ -1385,6 +1409,7 @@ dmCreateMatrix' dm = withPtr (dmCreateMatrix0' dm)
 -- This is a borrowed reference, so the user should NOT destroy this vector
 -- Each process has only the local coordinates (does NOT have the ghost coordinates).
 -- For DMDA, in two and three dimensions coordinates are interlaced (x_0,y_0,x_1,y_1,...) and (x_0,y_0,z_0,x_1,y_1,z_1...)
+dmGetCoordinates :: DM -> IO (Vec, CInt)
 dmGetCoordinates dm =
  withPtr (\c-> [C.exp| int{DMGetCoordinates($(DM dm),$(Vec*c))} |] ) 
 
@@ -1395,6 +1420,7 @@ dmGetCoordinates dm =
 
 
 -- PetscErrorCode  DMCreateColoring(DM dm,ISColoringType ctype,ISColoring *coloring)
+dmCreateColoring' :: DM -> ISColoringType_ -> IO (ISColoring, CInt)
 dmCreateColoring' d c = withPtr $ \col -> [C.exp|int{DMCreateColoring($(DM d),$(int ctype),$(ISColoring* col))}|] where
   ctype = toCInt $ isColoringTypeToInt c
 
@@ -1420,7 +1446,7 @@ dmCreateColoring' d c = withPtr $ \col -> [C.exp|int{DMCreateColoring($(DM d),$(
 -- data DMDADirection = DMDA_X | DMDA_Y | DMDA_Z deriving (Eq, Show, Enum)
 -- dmdaDirectionToInt x = fromEnum (x :: DMDADirection)
 
-
+dmdaCreate' :: Comm -> IO (DM, CInt)
 dmdaCreate' comm = withPtr ( \p -> [C.exp|int{DMDACreate($(int c), $(DM* p))}|] ) where
   c = unComm comm
 
@@ -1435,6 +1461,7 @@ dmdaCreate' comm = withPtr ( \p -> [C.exp|int{DMDACreate($(int c), $(DM* p))}|] 
 
 
 -- PETSC_EXTERN PetscErrorCode DMDASetSizes(DM,PetscInt,PetscInt,PetscInt);
+dmdaSetSizes' :: DM -> PetscInt_ -> PetscInt_ -> PetscInt_ -> IO CInt
 dmdaSetSizes' dm x y z = [C.exp|int{DMDASetSizes($(DM dm), $(PetscInt x), $(PetscInt y), $(PetscInt z))}|] 
 
 -- PetscErrorCode  DMDACreate1d(MPI_Comm comm, DMBoundaryType bx, PetscInt M, PetscInt dof, PetscInt s, const PetscInt lx[], DM *da)   -- Collective on MPI_Comm
@@ -1447,6 +1474,8 @@ dmdaSetSizes' dm x y z = [C.exp|int{DMDASetSizes($(DM dm), $(PetscInt x), $(Pets
 -- s	- stencil width
 -- lx	- array containing number of nodes in the X direction on each processor, or NULL. If non-null, must be of length as the number of processes in the MPI_Comm.
 
+dmdaCreate1d0' ::
+  Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> IO (DM, CInt)
 dmdaCreate1d0' comm bx m dof s =
    withPtr ( \ dm -> [C.exp|int{DMDACreate1d($(int c),
                                               $(int bxe),
@@ -1458,6 +1487,8 @@ dmdaCreate1d0' comm bx m dof s =
   where c = unComm comm
         bxe = toEnum $ dmBoundaryTypeToInt bx
 
+dmdaCreate1d' ::
+  Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> [CInt] -> IO (DM, CInt)
 dmdaCreate1d' comm bx m dof s lx_ =
   withArray lx_ ( \ lx ->
    withPtr ( \ dm -> [C.exp|int{DMDACreate1d($(int c),
@@ -1496,7 +1527,19 @@ dmdaCreate1d' comm bx m dof s lx_ =
 --    Output Parameter:
 -- .  da - the resulting distributed array object
 
-
+dmdaCreate2d0' :: Comm
+                        -> DMBoundaryType_
+                        -> DMBoundaryType_
+                        -> DMDAStencilType
+                        -> PetscInt_
+                        -> PetscInt_
+                        -> PetscInt_
+                        -> PetscInt_
+                        -> PetscInt_
+                        -> PetscInt_
+                        -> [CInt]
+                        -> [CInt]
+                        -> IO (DM, CInt)
 dmdaCreate2d0' comm bx by sten mm nn m n dof s lx_ ly_ =
   withArray lx_ $ \lx ->
    withArray ly_ $ \ly -> 
@@ -1521,6 +1564,15 @@ dmdaCreate2d0' comm bx by sten mm nn m n dof s lx_ ly_ =
 -- | Hp : lx == ly == NULL
 -- (customary in PETSc examples )
 
+dmdaCreate2d' :: Comm
+                       -> DMBoundaryType_
+                       -> DMBoundaryType_
+                       -> DMDAStencilType
+                       -> PetscInt_
+                       -> PetscInt_
+                       -> PetscInt_
+                       -> PetscInt_
+                       -> IO (DM, CInt)
 dmdaCreate2d' comm bx by sten mm nn dof s  =
     withPtr ( \dm -> [C.exp|int{DMDACreate2d($(int c),
                           $(int bxe),
@@ -1546,6 +1598,7 @@ dmdaCreate2d' comm bx by sten mm nn dof s  =
 
 
 -- PETSC_EXTERN PetscErrorCode DMDACreateNaturalVector(DM,Vec *);
+dmdaCreateNaturalVector :: DM -> IO (Vec, CInt)
 dmdaCreateNaturalVector dm = withPtr (\v ->[C.exp|int{DMDACreateNaturalVector($(DM dm), $(Vec * v))} |] )
 
 
@@ -1556,6 +1609,7 @@ dmdaCreateNaturalVector dm = withPtr (\v ->[C.exp|int{DMDACreateNaturalVector($(
 
 -- NB 4-6 outputs
 
+dmdaGetCorners1d' :: DM -> IO (PetscInt_, (PetscInt_, CInt))
 dmdaGetCorners1d' dm =
   withPtr $ \x ->
   withPtr $ \m -> [C.exp|int{DMDAGetCorners($(DM dm),
@@ -1566,6 +1620,8 @@ dmdaGetCorners1d' dm =
                                NULL,
                                NULL)} |]
 
+dmdaGetCorners2d' ::
+  DM -> IO (PetscInt_, (PetscInt_, (PetscInt_, (PetscInt_, CInt))))
 dmdaGetCorners2d' dm =
   withPtr $ \x ->
   withPtr $ \y ->
@@ -1578,6 +1634,8 @@ dmdaGetCorners2d' dm =
                                $(PetscInt* n),
                                NULL)} |] 
 
+dmdaGetCorners3d' ::
+  DM -> IO (PetscInt_, (PetscInt_, (PetscInt_, (PetscInt_, (PetscInt_, (PetscInt_, CInt))))))
 dmdaGetCorners3d' dm =
      withPtr $ \x ->
      withPtr $ \y ->
@@ -1592,13 +1650,19 @@ dmdaGetCorners3d' dm =
                                $(PetscInt* n),
                                $(PetscInt* p))} |] 
 
+f1d :: (t1, (t2, t)) -> ((t1, t2), t)
 f1d (a, (b, c)) = ((a, b), c)
+
+f2d :: (t1, (t2, (t3, (t4, t)))) -> (((t1, t2), (t3, t4)), t)
 f2d (a,(b,(c,(d,e)))) = (((a,b), (c, d)), e)
+
+f3d :: (t1, (t2, (t3, (t4, (t5, (t6, t)))))) -> (((t1, t2, t3), (t4, t5, t6)), t)
 f3d (a, (b, (c, (d, (e, (f, g)))))) = (((a, b, c), (d, e, f)), g)
 
 
 -- PETSC_EXTERN PetscErrorCode DMDAGetGhostCorners(DM,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
 
+dmdaGetGhostCorners1d' :: DM -> IO (PetscInt_, (PetscInt_, CInt))
 dmdaGetGhostCorners1d' dm =
   withPtr $ \x ->
   withPtr $ \m -> [C.exp|int{DMDAGetCorners($(DM dm),
@@ -1609,6 +1673,7 @@ dmdaGetGhostCorners1d' dm =
                                NULL,
                                NULL)} |]
 
+dmdaGetGhostCorners2d' :: DM -> IO (PetscInt_, (PetscInt_, (PetscInt_, (PetscInt_, CInt))))
 dmdaGetGhostCorners2d' dm =
   withPtr $ \x ->
   withPtr $ \y ->
@@ -1621,6 +1686,7 @@ dmdaGetGhostCorners2d' dm =
                                $(PetscInt* n),
                                NULL)} |] 
 
+dmdaGetGhostCorners3d' :: DM -> IO (PetscInt_, (PetscInt_, (PetscInt_, (PetscInt_, (PetscInt_, (PetscInt_, CInt))))))
 dmdaGetGhostCorners3d' dm =
      withPtr $ \x ->
      withPtr $ \y ->
@@ -1661,6 +1727,14 @@ dmdaGetGhostCorners3d' dm =
 -- xmin,xmax	- extremes in the x direction
 -- ymin,ymax	- extremes in the y direction (value ignored for 1 dimensional problems)
 -- zmin,zmax	- extremes in the z direction (value ignored for 1 or 2 dimensional problems)
+dmdaSetUniformCoordinates' :: DM
+                                    -> PetscReal_
+                                    -> PetscReal_
+                                    -> PetscReal_
+                                    -> PetscReal_
+                                    -> PetscReal_
+                                    -> PetscReal_
+                                    -> IO CInt
 dmdaSetUniformCoordinates' da xmin xmax ymin ymax zmin zmax =
   [C.exp|int{DMDASetUniformCoordinates($(DM da),$(PetscReal xmin),$(PetscReal xmax),$(PetscReal ymin),$(PetscReal ymax),$(PetscReal zmin),$(PetscReal zmax))}|] 
 
@@ -1681,7 +1755,7 @@ dmdaSetUniformCoordinates' da xmin xmax ymin ymax zmin zmax =
 
 -- appropriate DMGlobalToLocalBegin() and DMGlobalToLocalEnd() to have correct values in the ghost locations.
 
--- dmdaVecGetArray' :: DM -> Vec -> Ptr PetscScalar_ -> IO CInt
+dmdaVecGetArray' :: DM -> Vec -> IO (Ptr PetscScalar_, CInt)
 dmdaVecGetArray' dm v = withPtr $ \vvp -> 
   [C.exp|int{DMDAVecGetArray($(DM dm),
                              $(Vec v),
@@ -1689,13 +1763,14 @@ dmdaVecGetArray' dm v = withPtr $ \vvp ->
 
 
 
--- PetscErrorCode  DMDARestoreArray(DM da,PetscBool ghosted,void *vptr)
-dmdaRestoreArray' dm ghosted vptr = withArray vptr ( \vp -> 
-  [C.exp|int{DMDARestoreArray($(DM dm),
-                              $(PetscBool ghosted),
-                              $(PetscScalar* vp))}|] ) 
+-- -- PetscErrorCode  DMDARestoreArray(DM da,PetscBool ghosted,void *vptr)
+-- dmdaRestoreArray' dm ghosted vptr = withArray vptr ( \vp -> 
+--   [C.exp|int{DMDARestoreArray($(DM dm),
+--                               $(PetscBool ghosted),
+--                               $(PetscScalar* vp))}|] ) 
 
 -- PetscErrorCode  DMDAVecRestoreArray(DM da,Vec vec,void *array)
+dmdaVecRestoreArray' :: DM -> Vec -> Ptr PetscScalar_ -> IO CInt
 dmdaVecRestoreArray' dm v arr_ =
   [C.exp|int{DMDAVecRestoreArray($(DM dm), $(Vec v), $(PetscScalar* arr_))}|]
 
@@ -1709,17 +1784,20 @@ dmdaVecRestoreArray' dm v arr_ =
 -- g	- the global vector
 -- mode	- INSERT_VALUES or ADD_VALUES
 -- l	- the local vector
+dmGlobalToLocalBegin' :: DM -> Vec -> InsertMode_ -> Vec -> IO CInt
 dmGlobalToLocalBegin' dm g mode l = [C.exp|int{DMGlobalToLocalBegin($(DM dm),$(Vec g),$(int imode),$(Vec l))}|] where
   imode = toCInt $ insertModeToInt mode
 
 
 -- PetscErrorCode  DMGlobalToLocalEnd(DM dm,Vec g,InsertMode mode,Vec l)
+dmGlobalToLocalEnd' :: DM -> Vec -> InsertMode_ -> Vec -> IO CInt
 dmGlobalToLocalEnd' dm g mode l = [C.exp|int{DMGlobalToLocalEnd($(DM dm),$(Vec g),$(int imode),$(Vec l))}|] where
   imode = toCInt $ insertModeToInt mode
 
 
 
 -- PetscErrorCode  DMLocalToGlobalBegin(DM dm,Vec l,InsertMode mode,Vec g)
+dmLocalToGlobalBegin' :: DM -> Vec -> InsertMode_ -> Vec -> IO CInt
 dmLocalToGlobalBegin' dm locv im globv = [C.exp|int{DMLocalToGlobalBegin($(DM dm),$(Vec locv),$(int imode),$(Vec globv))}|]
   where imode = toCInt $ insertModeToInt im
 -- Neighbor-wise Collective on DM
@@ -1730,7 +1808,7 @@ dmLocalToGlobalBegin' dm locv im globv = [C.exp|int{DMLocalToGlobalBegin($(DM dm
 -- g	- the global vector
 -- Notes: In the ADD_VALUES case you normally would zero the receiving vector before beginning this operation. INSERT_VALUES is not supported for DMDA, in that case simply compute the values directly into a global vector instead of a local one.
 
-
+dmLocalToGlobalEnd' :: DM -> Vec -> InsertMode_ -> Vec -> IO CInt
 dmLocalToGlobalEnd' dm locv im globv = [C.exp|int{DMLocalToGlobalEnd($(DM dm),$(Vec locv),$(int imode),$(Vec globv))}|]
   where imode = toCInt $ insertModeToInt im
 
@@ -1797,6 +1875,14 @@ dmdaGetInfo_' da dim mm nn pp m n p dof s bxp byp bzp stp =
   [C.exp|
    int{DMDAGetInfo($(DM da), $(PetscInt* dim), $(PetscInt* mm), $(PetscInt* nn), $(PetscInt* pp), $(PetscInt* m), $(PetscInt* n), $(PetscInt* p), $(PetscInt* dof), $(PetscInt* s), $(int* bxp), $(int* byp), $(int* bzp), $(int* stp))} |]
 
+dmdaGetInfo__' :: DM -> IO ((PetscInt_,
+                             (PetscInt_, PetscInt_, PetscInt_),
+                             (PetscInt_, PetscInt_, PetscInt_),
+                             PetscInt_,
+                             PetscInt_,
+                             (CInt, CInt, CInt),
+                             CInt),
+                            CInt)
 dmdaGetInfo__' da = withPtr ( \dim ->
   withPtr $ \mm ->
   withPtr $ \nn ->
@@ -1832,7 +1918,8 @@ dmdaGetInfo__' da = withPtr ( \dim ->
 -- Input Parameter :
 -- comm -the processors that will share the global vector 
 -- Output Parameter :
--- packer -the packer object 
+-- packer -the packer object
+dmCompositeCreate :: Comm -> IO (DM, CInt)
 dmCompositeCreate comm =
   withPtr ( \p -> [C.exp|int{DMCompositeCreate($(int c), $(DM* p))}|] )
   where c = unComm comm
@@ -1841,6 +1928,7 @@ dmCompositeCreate comm =
 -- | viewing DM
 
 -- PetscErrorCode  DMView(DM dm,PetscViewer v)
+dmView' :: DM -> PetscViewer -> IO CInt
 dmView' dm vi = [C.exp|int{DMView($(DM dm),$(PetscViewer vi))}|]
 
 
@@ -1866,7 +1954,7 @@ dmView' dm vi = [C.exp|int{DMView($(DM dm),$(PetscViewer vi))}|]
 
 
 
-
+kspGetConvergedReason' :: KSP -> IO (CInt, CInt)
 kspGetConvergedReason' ksp =
   withPtr ( \r ->
              [C.exp| int{ KSPGetConvergedReason( $(KSP ksp),
@@ -1874,10 +1962,10 @@ kspGetConvergedReason' ksp =
           ) 
 
 
-
-kspCreate0' comm p = [C.exp| int{KSPCreate($(int c), $(KSP *p))}|] where
-  c = unComm comm
-kspCreate' c = withPtr (kspCreate0' c)
+kspCreate' :: Comm -> IO (KSP, CInt)
+kspCreate' c = withPtr (kspCreate0' c) where
+  kspCreate0' comm p = [C.exp| int{KSPCreate($(int c), $(KSP *p))}|] where
+    c = unComm comm
 
 kspSetType' :: KSP -> KspType_ -> IO CInt
 kspSetType' ksp kt = withCString strk $ \strp -> [C.exp|int{KSPSetType($(KSP ksp), $(char* strp))}|] where
@@ -1891,8 +1979,9 @@ kspSetType' ksp kt = withCString strk $ \strp -> [C.exp|int{KSPSetType($(KSP ksp
 --                            [C.exp|int{KSPGetType($(KSP ksp), $(char *strp))}|]
 --                            peekString strp) 
 
-kspDestroy0' p = [C.exp| int{KSPDestroy($(KSP *p))}  |]
-kspDestroy' p = with p kspDestroy0' 
+kspDestroy' :: KSP -> IO CInt
+kspDestroy' p = with p kspDestroy0'  where
+  kspDestroy0' p = [C.exp| int{KSPDestroy($(KSP *p))}  |]
 
 -- withKspSetupSolve c mat1 mat2 ignz kt x v post = withKsp c $ \ksp -> do
 --   kspSetOperators ksp mat1 mat2
@@ -1917,14 +2006,17 @@ kspDestroy' p = with p kspDestroy0'
      --   -- kspReasonView ksp
      --   -- return soln
 
-
+kspSetOperators' :: KSP -> Mat -> Mat -> IO CInt
 kspSetOperators' ksp amat pmat =
   [C.exp|int{KSPSetOperators($(KSP ksp), $(Mat amat), $(Mat pmat))}|] 
 
+kspSetUp' :: KSP -> IO CInt
 kspSetUp' ksp = [C.exp|int{KSPSetUp($(KSP ksp))}|]
 
+kspSolve' :: KSP -> Vec -> Vec -> IO CInt
 kspSolve' ksp b x = [C.exp|int{KSPSolve($(KSP ksp), $(Vec b), $(Vec x))}|] 
 
+kspSolveTranspose' :: KSP -> Vec -> Vec -> IO CInt
 kspSolveTranspose' ksp b x =
   [C.exp|int{KSPSolveTranspose($(KSP ksp), $(Vec b), $(Vec x))}|] 
 
@@ -1935,6 +2027,7 @@ kspSolveTranspose' ksp b x =
 -- PETSC_EXTERN PetscErrorCode KSPReset(KSP);
 
 -- PETSC_EXTERN PetscErrorCode KSPSetReusePreconditioner(KSP,PetscBool);
+kspSetReusePreconditioner' :: KSP -> PetscBool -> IO CInt
 kspSetReusePreconditioner' ksp b = [C.exp|int{KSPSetReusePreconditioner($(KSP ksp), $(PetscBool b))}|] 
 
 -- PETSC_EXTERN PetscErrorCode KSPRegisterAll(void);
@@ -1949,6 +2042,7 @@ kspSetReusePreconditioner' ksp b = [C.exp|int{KSPSetReusePreconditioner($(KSP ks
 -- kspSetTolerances ksp 
 
 -- PETSC_EXTERN PetscErrorCode KSPSetInitialGuessNonzero(KSP,PetscBool );
+kspSetInitialGuessNonzero' :: KSP -> PetscBool -> IO CInt
 kspSetInitialGuessNonzero' ksp b = [C.exp|int{KSPSetInitialGuessNonzero($(KSP ksp), $(PetscBool b))}|]
 
 -- PETSC_EXTERN PetscErrorCode KSPGetInitialGuessNonzero(KSP,PetscBool  *);
@@ -1956,32 +2050,39 @@ kspSetInitialGuessNonzero' ksp b = [C.exp|int{KSPSetInitialGuessNonzero($(KSP ks
 -- PETSC_EXTERN PetscErrorCode KSPGetInitialGuessKnoll(KSP,PetscBool *);
 
 -- PETSC_EXTERN PetscErrorCode KSPSetErrorIfNotConverged(KSP,PetscBool );
+kspSetErrorIfNotConverged :: KSP -> PetscBool -> IO CInt
 kspSetErrorIfNotConverged ksp b = [C.exp|int{KSPSetErrorIfNotConverged($(KSP ksp), $(PetscBool b))}|] 
 
 -- PETSC_EXTERN PetscErrorCode KSPGetErrorIfNotConverged(KSP,PetscBool  *);
 -- PETSC_EXTERN PetscErrorCode KSPGetComputeEigenvalues(KSP,PetscBool *);
 
 -- PETSC_EXTERN PetscErrorCode KSPSetComputeEigenvalues(KSP,PetscBool );
+kspSetComputeEigenValues :: KSP -> PetscBool -> IO CInt
 kspSetComputeEigenValues ksp b = [C.exp|int{KSPSetComputeEigenvalues($(KSP ksp), $(PetscBool b))}|]
 
 -- PETSC_EXTERN PetscErrorCode KSPGetComputeSingularValues(KSP,PetscBool *);
 
 -- PETSC_EXTERN PetscErrorCode KSPSetComputeSingularValues(KSP,PetscBool );
+kspSetComputeSingularValues :: KSP -> PetscBool -> IO CInt
 kspSetComputeSingularValues ksp b = [C.exp|int{KSPSetComputeSingularValues($(KSP ksp), $(PetscBool b))}|] 
 
 -- PETSC_EXTERN PetscErrorCode KSPGetRhs(KSP,Vec *);
+kspGetRhs' :: KSP -> IO (Vec, CInt)
 kspGetRhs' ksp = withPtr $ \v -> [C.exp|int{KSPGetRhs($(KSP ksp), $(Vec *v))}|]
 -- kspGetRhs ksp = kspGetRhs' ksp 
 
 -- PETSC_EXTERN PetscErrorCode KSPGetSolution(KSP,Vec *);
+kspGetSolution' :: KSP -> IO (Vec, CInt)
 kspGetSolution' ksp = withPtr $ \v -> [C.exp|int{KSPGetSolution($(KSP ksp), $(Vec *v))}|]
 -- kspGetSolution :: KSP -> IO Vec
 -- kspGetSolution ksp = kspGetSolution' ksp 
 
 -- PETSC_EXTERN PetscErrorCode KSPGetResidualNorm(KSP,PetscReal*);
+kspGetResidualNorm' :: KSP -> IO (PetscReal_, CInt)
 kspGetResidualNorm' ksp = withPtr $ \v -> [C.exp|int{KSPGetResidualNorm($(KSP ksp), $(PetscReal *v))}|]
 
 -- PETSC_EXTERN PetscErrorCode KSPGetIterationNumber(KSP,PetscInt*);
+kspGetIterationNumber' :: KSP -> IO (CInt, CInt)
 kspGetIterationNumber' ksp = withPtr ( \v -> [C.exp|int{KSPGetIterationNumber($(KSP ksp), $(int *v))}|] ) 
 
 -- PETSC_EXTERN PetscErrorCode KSPSetNullSpace(KSP,MatNullSpace);
