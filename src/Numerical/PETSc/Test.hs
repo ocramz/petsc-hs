@@ -62,6 +62,13 @@ csrAllNxN_ n = V.zip3 x y a where
   a = V.fromList [0 .. nc^2-1 :: PetscScalar_ ] where
     nc = fromIntegral n
 
+csrSome3 :: V.Vector (Int, Int, PetscScalar_)
+csrSome3 = V.zip3 x y a where
+  x = V.fromList [2, 0, 1]
+  y = V.fromList [1, 1, 2]
+  a = V.fromList [pi, exp 1, sqrt 2]
+
+
 -- --
 
 t1' = do
@@ -197,6 +204,13 @@ t6' n =
      vi = csrAllNxN_ n    -- test mtx ( NB : dense )
  
 t6 = withPetsc0 $ t6' 5
+
+t61' = withMatNew commWorld 3 3 MatAij vi InsertValues $ \m ->
+  matViewStdout m where
+    vi = csrSome3
+
+t61 = withPetsc0 t61'
+
 
 
 -- -- 

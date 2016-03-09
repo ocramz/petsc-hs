@@ -539,6 +539,7 @@ data SnesConvergedReason = SnesConvergedFnormAbs
                            | SnesOtherReason Int
                               deriving (Eq, Show)  
 
+snesConvergedIntToReason :: Int -> SnesConvergedReason
 snesConvergedIntToReason x =
   case x of 
 --               SNES_CONVERGED_FNORM_ABS         =  2, /* ||F|| < atol */
