@@ -627,6 +627,7 @@ data TaoType_ = TaoLmvm | TaoNls | TaoNtr | TaoNtl | TaoCg | TaoTron | TaoOwlqn
               | TaoLcl | TaoSsils | TaoSSfls | TaoAsils | TaoAsfls | TaoIpm | TaoTest
               deriving (Eq, Show)
 
+taoTypeToStr :: TaoType_ -> String
 taoTypeToStr TaoLmvm = "lmvm"
 taoTypeToStr TaoNls = "nls"
 taoTypeToStr TaoNtr = "ntr"
@@ -642,6 +643,7 @@ data TaoConvergedReason_ = TaoConvFaTol | TaoConvFrTol | TaoConvGaTol
                          | TaoDivMaxIts | TaoDivNan | TaoDivMaxFcn | TaoDivLsFail
                          | TaoDivTrReduct | TaoDivUser deriving (Eq,Show,Enum)
 
+taoConvergedIntToReason :: Int -> TaoConvergedReason_
 taoConvergedIntToReason x =
   case x of 1 -> TaoConvFaTol
             2 -> TaoConvFrTol
@@ -705,6 +707,7 @@ data PetscViewerFormat_ =
     | ViewFmtViewerNative | ViewFmtHdf5Viz | ViewFmtNoFormat
     deriving (Eq, Show, Enum)
 
+petscViewerFormatToCInt :: PetscViewerFormat_ -> CInt
 petscViewerFormatToCInt x = toCInt $ fromEnum (x :: PetscViewerFormat_)
 
 
@@ -758,6 +761,10 @@ data MPIComm = MPIComm { comm :: Comm, commSize :: MpiCommSize, commRank :: MpiC
 
 
 
+
+
+
+
 -- | SLEPc datatypes and enum conversion hacks
 
 
@@ -770,6 +777,7 @@ data EpsType_ =
   | EpsRqcg | EpsLobpcg | EpsCiss | EpsLapack | EpsArpack | EpsBlzpack | EpsTrlan
   | EpsBlopex | EpsPrimme | EpsFeast deriving (Eq, Show, Enum)
 
+epsTypeToString :: EpsType_ -> String
 epsTypeToString t =
   case t of EpsPower -> "power"
             EpsSubspace -> "subspace"
@@ -858,6 +866,7 @@ data SvdType_ =
 data StType_ =
   StShell | StShift | StSInvert | StCayley | StPrecond deriving (Eq, Ord, Show)
 
+stTypeToString :: StType_ -> String
 stTypeToString t =
   case t of StShell -> "shell"
             StShift -> "shift"

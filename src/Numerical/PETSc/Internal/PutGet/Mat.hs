@@ -66,10 +66,32 @@ data MatrixData a =
                matDataColIdxs :: !(V.Vector Int),
                matDataEntries :: !(V.Vector a)} deriving (Eq, Show)
 
+
+
 checkMatrixData :: MatrixData a -> Bool
 checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
   (lr, lc, le) = (V.length idxx, V.length idxy, V.length vals)
 
+
+inMatrixBounds :: PetscMatrix -> (Int, Int) -> Bool
+inMatrixBounds m (ii, jj) = cRow && cCol where
+  cRow = in0m (getMatRows m) ii
+  cCol = in0m (getMatCols m) jj
+
+
+
+
+-- | PetscMatrix getters
+
+getMatrixInfoBase :: PetscMatrix -> MatrixInfoBase
+getMatrixInfoBase (PetscMatrix (MIConstNZPR mib _) _) = mib
+
+getMatComm :: PetscMatrix -> Comm
+getMatComm = matComm . getMatrixInfoBase
+
+getMatRows, getMatCols :: PetscMatrix -> Int
+getMatRows = matRows . getMatrixInfoBase
+getMatCols = matCols . getMatrixInfoBase
 
 
 
