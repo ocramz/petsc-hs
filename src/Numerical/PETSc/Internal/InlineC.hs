@@ -2102,13 +2102,14 @@ ksp	- the KSP context
 b	- right hand side of linear system
 ctx	- optional user-provided context
 -}
-kspSetComputeRHS_' :: KSP -> (KSP -> Vec -> Ptr () -> IO CInt) -> IO CInt
-kspSetComputeRHS_' ksp f =
-  [C.exp|int{KSPSetComputeRHS($(KSP ksp),$fun:(int (* f)(KSP, Vec, void*)), NULL  )}|]
+
+
 
 kspSetComputeRHS__' :: KSP -> (KSP -> Vec -> IO CInt) -> IO CInt
 kspSetComputeRHS__' ksp f = kspSetComputeRHS_' ksp g where
   g k v _ = f k v
+  kspSetComputeRHS_' ksp f =
+    [C.exp|int{KSPSetComputeRHS($(KSP ksp),$fun:(int (* f)(KSP, Vec, void*)), NULL  )}|]
 
 
 -- PetscErrorCode  KSPReasonView(KSP ksp,PetscViewer viewer)
@@ -2135,6 +2136,7 @@ kspSetComputeRHS__' ksp f = kspSetComputeRHS_' ksp g where
 -- comm	- MPI communicator
 -- dimin	- dimension of the space you are mapping from
 -- dimout	- dimension of the space you are mapping to
+pfCreate' :: Comm -> Int -> Int -> IO (PF, CInt)
 pfCreate' comm dimin dimout = withPtr ( \pf ->[C.exp|int{PFCreate($(int c),$(int diminc),$(int dimoutc),$(PF*pf) )}|] ) 
   where
     c = unComm comm
@@ -2142,12 +2144,15 @@ pfCreate' comm dimin dimout = withPtr ( \pf ->[C.exp|int{PFCreate($(int c),$(int
     dimoutc = toCInt dimout
 
 -- PetscErrorCode  PFDestroy(PF *pf)
+pfDestroy' :: PF -> IO CInt
 pfDestroy' pf = with pf $ \pfp -> [C.exp|int{PFDestroy($(PF* pfp))}|]
 
 -- PETSC_EXTERN PetscErrorCode DMDACreatePF(DM,PF*);
+dmdaCreatePF' :: DM -> IO (PF, CInt)
 dmdaCreatePF' dm = withPtr (\pf -> [C.exp|int{DMDACreatePF($(DM dm),$(PF*pf))}|]) 
 
 -- PETSC_EXTERN PetscErrorCode PFSetType(PF,PFType,void*);
+-- pfSetType' :: PF -> PFType_ -> Ptr () -> IO CInt
 pfSetType' pf t o = -- not sure how to represent the pointer to void 
   withCString tstr (\tp->   [C.exp|int{PFSetType($(PF pf),$(char*tp),$(void*o))}|]
                    )  where
@@ -2255,12 +2260,12 @@ pfSetVec' pf applyvec =
 
 
 
+
+
 -- * SNES
 
 
-
-
-
+snesCreate' :: Comm -> IO (SNES, CInt)
 snesCreate' comm = withPtr $ \p -> [C.exp| int{SNESCreate($(int c), $(SNES *p))}|] where
   c = unComm comm 
 
@@ -2295,11 +2300,18 @@ Output Parameter
 f -vector to put residual (function value) 
 -}
 
-
+snesSetFunction0' :: SNES
+                     -> Vec
+                     -> (SNES -> Vec -> Vec -> Ptr () -> IO CInt)
+                     -> Ptr ()
+                     -> IO CInt
 snesSetFunction0' snes r f ctx =
   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
                              $fun:(int (*f)(SNES, Vec, Vec, void*) ),
                              $(void* ctx))}|]
+  
+snesSetFunction_' ::
+  SNES -> Vec -> (SNES -> Vec -> Vec -> Ptr () -> IO CInt) -> IO CInt
 snesSetFunction_' snes r f =
   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
                              $fun:(int (*f)(SNES, Vec, Vec, void*) ),
@@ -2317,30 +2329,37 @@ snesSetFunction_' snes r f =
 -- snes	- the SNES context
 -- x	- input vector
 -- Output Parameter :
--- y -function vector, as set by SNESSetFunction() 
+-- y -function vector, as set by SNESSetFunction()
+snesComputeFunction' :: SNES -> Vec -> Vec -> IO CInt
 snesComputeFunction' snes x y = [C.exp|int{SNESComputeFunction($(SNES snes),$(Vec x),$(Vec y))}|]
 
     
 
 
 -- PETSC_EXTERN PetscErrorCode SNESDestroy(SNES*);
+snesDestroy' :: SNES -> IO CInt
 snesDestroy' p = with p $ \pp -> [C.exp| int{SNESDestroy($(SNES *pp))}  |]
 
 
 -- PETSC_EXTERN PetscErrorCode SNESSetUp(SNES);
+snesSetUp' :: SNES -> IO CInt
 snesSetUp' s = [C.exp|int{SNESSetUp($(SNES s))}|] 
 
 -- PETSC_EXTERN PetscErrorCode SNESSolve(SNES,Vec,Vec);
+snesSolve' :: SNES -> Vec -> Vec -> IO CInt
 snesSolve' s b x = [C.exp|int{SNESSolve($(SNES s), $(Vec b), $(Vec x))}|]
 
+snesSolve0' :: SNES -> Vec -> IO CInt
 snesSolve0' s x = [C.exp|int{SNESSolve($(SNES s), NULL, $(Vec x))}|]
 
 
 
 -- PETSC_EXTERN PetscErrorCode SNESGetSolution(SNES,Vec*);
+snesGetSolution' :: SNES -> IO (Vec, CInt)
 snesGetSolution' s = withPtr ( \v ->
   [C.exp|int{SNESGetSolution($(SNES s), $(Vec *v))}|] ) 
 
+snesGetConvergedReason' :: SNES -> IO (CInt, CInt)
 snesGetConvergedReason' s =  withPtr ( \v ->
   [C.exp|int{SNESGetConvergedReason($(SNES s), $(int* v))}|] ) 
 
@@ -2376,23 +2395,29 @@ Pmat	- the matrix to be used in constructing the preconditioner, usually the sam
 ctx	- [optional] user-defined Jacobian context
 -}
 
-snesSetJacobian0' snes amat pmat f ctx =
-  [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
-                             $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)),$(void* ctx))}|]
-
+snesSetJacobian' :: SNES
+                    -> Mat
+                    -> Mat
+                    -> (SNES -> Vec -> Mat -> Mat -> IO CInt)
+                    -> Ptr ()
+                    -> IO CInt
 snesSetJacobian' snes amat pmat f =
   snesSetJacobian0' snes amat pmat f' where
-    f' s v a p _ = f s v a p 
+    f' s v a p _ = f s v a p
+    snesSetJacobian0' snes amat pmat f ctx =
+      [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
+                             $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)),$(void* ctx))}|]
 
-snesSetJacobian0_' snes amat pmat f =
-  [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
-                             $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)), NULL)}|]
+
 
 snesSetJacobian_' ::
   SNES -> Mat -> Mat -> (SNES -> Vec -> Mat -> Mat -> IO CInt) -> IO CInt
 snesSetJacobian_' snes amat pmat f =
   snesSetJacobian0_' snes amat pmat f' where
-    f' s v a p _ = f s v a p 
+    f' s v a p _ = f s v a p
+    snesSetJacobian0_' snes amat pmat f =
+      [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
+                             $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)), NULL)}|]
 
 
 -- -- monomorphic SNESSetJacobian : see e.g. www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex5s.c.html
