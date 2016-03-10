@@ -82,9 +82,11 @@ checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
 
 -- | predicates for PetscMatrix
 
+inMatRowRange, inMatColRange :: PetscMatrix -> Int -> Bool
 inMatRowRange m = in0m (getMatRows m)
 inMatColRange m = in0m (getMatCols m)
 
+inMatrixBounds :: PetscMatrix -> (Int, Int) -> Bool
 inMatrixBounds m (ii, jj) = inMatRowRange m ii && inMatColRange m jj
 
 
