@@ -670,6 +670,7 @@ vecView :: Vec -> IO ()
 vecView v =
   V.withPetscViewerTypeFmt P.commWorld ViewerAscii ViewFmtAsciiInfoDetail (vecView0 v)
 
+vecViewStdout :: Vec -> IO ()
 vecViewStdout = vecView
 
 

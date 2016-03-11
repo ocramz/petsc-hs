@@ -3507,12 +3507,12 @@ petscViewerDestroy' v =
 
 
 -- -- PetscErrorCode  PetscViewerHDF5PushGroup(PetscViewer viewer, const char *name)
--- petscViewerHDF5PushGroup' v name = withCString name $ \n -> 
---   [C.exp|int{PetscViewerHDF5PushGroup($(PetscViewer v),$(char* n))}|]
+petscViewerHDF5PushGroup' v name = withCString name $ \n -> 
+  [C.exp|int{PetscViewerHDF5PushGroup($(PetscViewer v),$(char* n))}|]
 
 -- -- PetscErrorCode  PetscViewerHDF5PopGroup(PetscViewer viewer)
--- petscViewerHDF5PopGroup' v =
---   [C.exp|int{PetscViewerHDF5PopGroup($(PetscViewer v))}|]
+petscViewerHDF5PopGroup' v =
+  [C.exp|int{PetscViewerHDF5PopGroup($(PetscViewer v))}|]
 
 
 
