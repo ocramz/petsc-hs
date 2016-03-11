@@ -143,12 +143,34 @@ matCreateSeqAIJConstNZPR ::
 matCreateSeqAIJConstNZPR comm m n nz =
   chk1 (matCreateSeqAIJconstNZperRow1 comm m n nz)
 
-matCreateAIJ0 :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> PetscInt_ ->
+matCreateAIJ :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> PetscInt_ ->
       PetscInt_ -> [PetscInt_] ->
       PetscInt_ -> [PetscInt_] ->
       IO Mat
-matCreateAIJ0 comm m n mm nn dnz dnnz onz onnz =
-  chk1 ( matCreateAIJ0' comm m n mm nn dnz dnnz onz onnz)
+matCreateAIJ comm m n mm nn dnz dnnz onz onnz =
+  chk1 ( matCreateAIJ' comm m n mm nn dnz dnnz onz onnz)
+
+matCreateAIJDecideV ::
+  Comm -> Int -> Int -> Int -> V.Vector Int -> Int -> V.Vector Int -> IO Mat
+matCreateAIJDecideV comm mm nn dnz dnnz onz onnz =
+  chk1 (matCreateAIJDecideVS' comm mmc nnc dnzc dnnz_ onzc onnz_) where
+    dnnz_ = V.convert (V.map toCInt dnnz)
+    onnz_ = V.convert (V.map toCInt onnz)
+    mmc = toCInt mm
+    nnc = toCInt nn
+    dnzc = toCInt dnz
+    onzc = toCInt onz
+
+matCreateAIJDecideConstNZPR :: Comm -> Int -> Int -> Int -> Int -> IO Mat
+matCreateAIJDecideConstNZPR comm mm nn dnz onz =
+  chk1 (matCreateAIJ0DecideConstNZPR' comm mmc nnc dnzc onzc) where
+    mmc = toCInt mm
+    nnc = toCInt nn
+    dnzc = toCInt dnz
+    onzc = toCInt onz
+
+
+-- | matCreateMPIAIJWithArrays
 
 matCreateMPIAIJWithArrays ::
   Comm -> [PetscInt_] -> [PetscInt_] -> [PetscScalar_] -> IO Mat

@@ -33,7 +33,7 @@ import           Foreign.C.String
 
 import qualified Data.ByteString as BS
 
-import qualified Data.Vector.Storable              as V
+import qualified Data.Vector.Storable              as VS
 import qualified Data.Vector.Storable.Mutable      as VM
 
 import           System.IO.Unsafe                  (unsafePerformIO)
@@ -732,23 +732,52 @@ matCreateTranspose' mat = withPtr $ \mp -> [C.exp|int{MatCreateTranspose($(Mat m
 -- Output Parameter
 -- A -the matrix 
 -- It is recommended that one use the MatCreate(), MatSetType() and/or MatSetFromOptions(), MatXXXXSetPreallocation() paradgm instead of this routine directly
-matCreateAIJ0' :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> PetscInt_
+matCreateAIJ' :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> PetscInt_
                         -> PetscInt_
                         -> [PetscInt_]
                         -> PetscInt_
                         -> [PetscInt_]
                         -> IO (Mat, CInt)
-matCreateAIJ0' comm m n mm nn dnz dnnz onz onnz = 
-  withPtr ( \mat ->
+matCreateAIJ' comm m n mm nn dnz dnnz onz onnz = 
     withArray dnnz ( \dnnzp ->
-    withArray onnz ( \onnzp -> [C.exp|int{MatCreateAIJ($(int c),
-                                    $(PetscInt m), $(PetscInt n),
-                                    $(PetscInt mm), $(PetscInt nn),
-                                    $(PetscInt dnz), $(PetscInt* dnnzp),
-                                    $(PetscInt onz), $(PetscInt* onnzp),
-                                    $(Mat* mat))}|] )))
-      where c = unComm comm
-            
+    withArray onnz ( \onnzp -> matCreateAIJ0' comm m n mm nn dnz dnnzp onz onnzp ))
+
+
+matCreateAIJ0' comm m n mm nn dnz dnnzp onz onnzp = withPtr ( \mat ->
+  [C.exp|int{MatCreateAIJ($(int c),
+                          $(PetscInt m), $(PetscInt n),
+                          $(PetscInt mm), $(PetscInt nn),
+                          $(PetscInt dnz), $(PetscInt* dnnzp),
+                          $(PetscInt onz), $(PetscInt* onnzp),
+                          $(Mat* mat))}|] ) where c = unComm comm
+ 
+-- | matCreateAIJDecide' : matCreateAIJ inferring the local sizes :
+
+matCreateAIJ0Decide' comm mm nn dnz dnnzp onz onnzp = withPtr ( \mat ->
+  [C.exp|int{MatCreateAIJ($(int c),
+                          PETSC_DECIDE, PETSC_DECIDE,
+                          $(PetscInt mm), $(PetscInt nn),
+                          $(PetscInt dnz), $(PetscInt* dnnzp),
+                          $(PetscInt onz), $(PetscInt* onnzp),
+                          $(Mat* mat))}|] ) where c = unComm comm
+
+-- | matCreateAIJDecideVS' : matCreateAIJ0Decide using VS.Vector rather than arrays :
+
+matCreateAIJDecideVS' comm mm nn dnz dnnz onz onnz =
+  VS.unsafeWith dnnz $ \dnnzp ->
+  VS.unsafeWith onnz $ \onnzp ->
+  matCreateAIJ0Decide' comm mm nn dnz dnnzp onz onnzp
+
+-- | matCreateAIJDecideConstNZPR' : matCreateAIJ inferring the local sizes, assuming a constant # of nonzeros per row, both on- and off- diagonal :
+
+matCreateAIJ0DecideConstNZPR' comm mm nn dnz onz = withPtr ( \mat ->
+  [C.exp|int{MatCreateAIJ($(int c),
+                          PETSC_DECIDE, PETSC_DECIDE,
+                          $(PetscInt mm), $(PetscInt nn),
+                          $(PetscInt dnz), NULL,
+                          $(PetscInt onz), NULL,
+                          $(Mat* mat))}|] ) where c = unComm comm
+                                                  
 --     PetscErrorCode  MatCreateMPIAIJWithArrays(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt M,PetscInt N,const PetscInt i[],const PetscInt j[],const PetscScalar a[],Mat *mat)    -- Collective on MPI_Comm
 -- Input Parameters :
 -- comm	- MPI communicator
