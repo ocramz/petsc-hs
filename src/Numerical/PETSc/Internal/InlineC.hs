@@ -165,8 +165,8 @@ isColoringDestroy' isc = with isc $ \iscp -> [C.exp|int{ISColoringDestroy($(ISCo
 -- * Vec
 
 -- PetscErrorCode  VecView(Vec vec,PetscViewer viewer)
-vecView1 :: Vec -> PetscViewer -> IO CInt
-vecView1 ve viewer =
+vecView' :: Vec -> PetscViewer -> IO CInt
+vecView' ve viewer =
   [C.exp|int{VecView($(Vec ve),$(PetscViewer viewer))}|]
   
 

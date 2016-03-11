@@ -633,7 +633,7 @@ matGetTrace mat = chk1 (matGetTrace' mat)
 matView0 :: Mat -> PetscViewer -> IO ()
 matView0 m v = chk0 (matView' m v)
 
-matView m = V.withPetscViewer P.commWorld (matView0 m)
+matView m = V.withPetscViewerTypeFmt P.commWorld ViewerAscii ViewFmtAsciiInfoDetail (matView0 m)
 
 matViewStdout = matView
 

@@ -689,13 +689,6 @@ viewerTypeToStr v = case v of
   ViewerMatlab -> "matlab"
   ViewerSaws -> "saws"
 
-
-
-
-
-
-
-
 data PetscViewerFormat_ =
     ViewFmtDefault | ViewFmtAsciiMatlab | ViewFmtAsciiMathematica
     | ViewFmtAsciiImpl | ViewFmtAsciiInfo | ViewFmtAsciiInfoDetail

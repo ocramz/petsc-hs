@@ -16,6 +16,8 @@ import           Numerical.PETSc.Internal.InlineC
 import           Numerical.PETSc.Internal.Types
 import           Numerical.PETSc.Internal.Exception
 import           Numerical.PETSc.Internal.Utils
+import qualified Numerical.PETSc.Internal.PutGet.PetscMisc as P
+import qualified Numerical.PETSc.Internal.PutGet.Viewer as V
 
 import           Numerical.PETSc.Internal.Storable.Vector
 import           Numerical.PETSc.Internal.Storable.StorableContainer
@@ -654,14 +656,21 @@ modifyVecVector v f = do
 
 -- | view Vec contents 
 
-vecView :: Vec -> PetscViewer -> IO ()
-vecView v vi = chk0 $ vecView1 v vi
+-- vecView :: Vec -> PetscViewer -> IO ()
+-- vecView v vi = chk0 $ vecView' v vi
 
-vecViewStdout :: Vec -> IO ()
-vecViewStdout v = chk0 $ vecViewStdout1 v
+-- vecViewStdout :: Vec -> IO ()
+-- vecViewStdout v = chk0 $ vecViewStdout1 v
 
 
+vecView0 :: Vec -> PetscViewer -> IO ()
+vecView0 m v = chk0 (vecView' m v)
 
+vecView :: Vec -> IO ()
+vecView v =
+  V.withPetscViewerTypeFmt P.commWorld ViewerAscii ViewFmtAsciiInfoDetail (vecView0 v)
+
+vecViewStdout = vecView
 
 
 
