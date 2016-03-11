@@ -82,15 +82,16 @@ petscViewerSetFormat v fmt = chk0 (petscViewerSetFormat' v fmt)
 --  53:   PetscViewerHDF5PushGroup(viewer, "/testTimestep");
 -- -}
 
-withPetscViewerHDF5Group ::
-  PetscViewer ->
-  (t -> PetscViewer -> IO a) ->
-  [(t, String)] -> IO ()
-withPetscViewerHDF5Group vi vact vlist = do
-  forM_ vlist $ \(vobj, vname) -> do
-    vact vobj vi
-    petscViewerHDF5PushGroup vi vname
-  petscViewerHDF5PopGroup vi
+
+-- withPetscViewerHDF5Group ::
+--   PetscViewer ->
+--   (t -> PetscViewer -> IO a) ->
+--   [(t, String)] -> IO ()
+-- withPetscViewerHDF5Group vi vact vlist = 
+--   forM_ vlist $ \(vobj, vname) -> do
+--     petscViewerHDF5PushGroup vi vname
+--     vact vobj vi
+--     petscViewerHDF5PopGroup vi
 
 
 
@@ -102,7 +103,7 @@ petscViewerHDF5PopGroup vi = chk0 (petscViewerHDF5PopGroup' vi)
 
 
 
--- petscViewerHDF5Open :: Comm -> String -> PetscViewerType_ -> IO PetscViewer
--- petscViewerHDF5Open comm name ty = chk1 (petscViewerHDF5Open' comm name ty)
+petscViewerHDF5Open :: Comm -> String -> PetscFileMode_ -> IO PetscViewer
+petscViewerHDF5Open comm name fm = chk1 (petscViewerHDF5Open' comm name fm)
 
 
