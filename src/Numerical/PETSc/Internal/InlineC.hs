@@ -831,9 +831,13 @@ matCreateMPIAIJWithArrays' comm i j a =
         m = fromIntegral $ length i -- # local rows
         n = fromIntegral $ length j -- # local rows
 
+matView' m v = [C.exp|int{MatView($(Mat m),$(PetscViewer v))}|]
 
-matViewStdout' :: Mat -> IO CInt
-matViewStdout' v = [C.exp|int{MatView($(Mat v), PETSC_VIEWER_STDOUT_SELF)}|]
+-- matViewStdoutSelf' :: Mat -> IO CInt
+-- matViewStdoutSelf' v = [C.exp|int{MatView($(Mat v), PETSC_VIEWER_STDOUT_SELF)}|]
+
+-- matViewStdoutWorld' :: Mat -> IO CInt
+-- matViewStdoutWorld' v = [C.exp|int{MatView($(Mat v), PETSC_VIEWER_STDOUT_WORLD)}|]
 
 
 -- PETSC_EXTERN PetscErrorCode MatCreateMPIAIJWithSplitArrays(MPI_Comm,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt[],PetscInt[],PetscScalar[],PetscInt[],PetscInt[],PetscScalar[],Mat*);

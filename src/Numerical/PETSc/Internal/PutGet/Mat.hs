@@ -17,6 +17,8 @@ module Numerical.PETSc.Internal.PutGet.Mat where
 import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
+import qualified Numerical.PETSc.Internal.PutGet.PetscMisc as P
+import qualified Numerical.PETSc.Internal.PutGet.Viewer as V
 import Numerical.PETSc.Internal.Utils (both, fi, toCInt, in0m, allIn0mV)
 
 import Numerical.PETSc.Internal.Storable.Vector
@@ -235,6 +237,12 @@ withMat mc = bracket mc matDestroy
 withMatCreate :: Comm -> (Mat -> IO a) -> IO a
 withMatCreate comm = withMat (matCreate comm)
 
+withMatAIJDecideConstNZPRCreate comm mm nn dnz onz after =
+  withMat (matCreateAIJDecideConstNZPR comm mm nn dnz onz)
+  (\mat -> do
+      matSetup mat
+      after mat)
+
 -- | withMatCreateSetup : (create, setSizes, setup, <body>, cleanup) bracket
 withMatCreateSetup ::
   Comm ->
@@ -249,22 +257,6 @@ withMatCreateSetup comm m n ty after = withMatCreate comm $ \mat -> do
   matSetup mat
   after mat         -- set values, assemble can be done here
 
--- withMatCreateSetup1 ::
---   Comm ->
---   Int ->
---   Int ->
---   MatType_ -> 
---   (Mat -> IO a) ->
---   (Mat -> IO b) ->
---   (Mat -> IO c) ->
---   IO c
--- withMatCreateSetup1 comm m n ty before setup  after =
---   withMatCreate comm $ \mat -> do
---     matSetSizes mat m n
---     matSetType mat ty
---     before mat    -- e.g. set block size for MPIBAIJ
---     setup mat     -- matMPISetPreallocation or matSetup
---     after mat
 
 
 
@@ -284,6 +276,20 @@ withMatNew ::
 withMatNew comm m n ty v_ imode after =
   withMatCreateSetup comm m n ty $ \mat -> 
     withMatSetValueVectorSafe mat m n v_ imode after
+
+
+withMatAIJDecideConstNZPRNew ::
+  Comm ->
+  Int -> Int ->                        -- # rows, columns
+  Int -> Int ->                        -- # nonzeros: on- and off-diagonal
+  V.Vector (Int, Int, PetscScalar_) -> -- (row, col, value)
+  InsertMode_ ->                       -- InsertValues | AddValues
+  (Mat -> IO a) ->                     -- what to do with mat AFTER assembly
+  IO a
+withMatAIJDecideConstNZPRNew comm mm nn dnz onz v_ imode after =
+  withMatAIJDecideConstNZPRCreate comm mm nn dnz onz $ \mat ->
+   withMatSetValueVectorSafe mat mm nn v_ imode after
+   
 
 -- | withMatSetValueVectorSafe :  fill + setup Mat with index bound checks
 withMatSetValueVectorSafe ::
@@ -623,11 +629,18 @@ matGetTrace mat = chk1 (matGetTrace' mat)
 
 
 -- | view Mat on stdout
+matView0 m v = chk0 (matView' m v)
 
-matViewStdout :: Mat -> IO ()
-matViewStdout m = chk0 (matViewStdout' m)
+matView m = V.withPetscViewer P.commWorld (matView0 m)
+
+matViewStdout = matView
+
+-- matViewStdoutSelf :: Mat -> IO ()
+-- matViewStdoutSelf m = chk0 (matViewStdoutSelf' m)
 
 
+-- matViewStdoutWorld :: Mat -> IO ()
+-- matViewStdoutWorld m = chk0 (matViewStdoutWorld' m)
 
 
 
