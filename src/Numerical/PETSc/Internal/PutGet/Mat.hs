@@ -629,11 +629,15 @@ matGetTrace mat = chk1 (matGetTrace' mat)
 
 
 -- | view Mat on stdout
+
+matView0 :: Mat -> PetscViewer -> IO ()
 matView0 m v = chk0 (matView' m v)
 
 matView m = V.withPetscViewer P.commWorld (matView0 m)
 
 matViewStdout = matView
+
+
 
 -- matViewStdoutSelf :: Mat -> IO ()
 -- matViewStdoutSelf m = chk0 (matViewStdoutSelf' m)

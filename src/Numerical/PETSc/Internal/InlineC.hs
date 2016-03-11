@@ -3438,6 +3438,11 @@ taoSetVariableBoundsRoutine' tao f =
 
 
 -- * Viewer
+
+petscViewerStdoutCreate' comm = withPtr $ \v ->
+  [C.exp|int{PETSC_VIEWER_STDOUT_($(int c))}|] where c = unComm comm
+
+    
 petscViewerCreate' :: Comm -> IO (PetscViewer, CInt)
 petscViewerCreate' comm = withPtr $ \h -> 
   [C.exp|int{PetscViewerCreate($(int c),$(PetscViewer* h))}|] where c = unComm comm
