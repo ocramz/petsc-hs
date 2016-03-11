@@ -72,7 +72,7 @@ petscViewerSetFormat v fmt = chk0 (petscViewerSetFormat' v fmt)
 
 
 
--- -- | HDF5-specific stuff (can we do the same with a generic PetscViewer and setting its type to HDF5 ?)
+-- -- | HDF5-specific stuff 
 
 
 -- {- -- -- usage of HDF5 groups: 
@@ -95,11 +95,11 @@ petscViewerSetFormat v fmt = chk0 (petscViewerSetFormat' v fmt)
 
 
 
-petscViewerHDF5PushGroup :: PetscViewer -> String -> IO ()
-petscViewerHDF5PushGroup vi name = chk0 (petscViewerHDF5PushGroup' vi name)
+-- petscViewerHDF5PushGroup :: PetscViewer -> String -> IO ()
+-- petscViewerHDF5PushGroup vi name = chk0 (petscViewerHDF5PushGroup' vi name)
 
-petscViewerHDF5PopGroup :: PetscViewer -> IO ()
-petscViewerHDF5PopGroup vi = chk0 (petscViewerHDF5PopGroup' vi)
+-- petscViewerHDF5PopGroup :: PetscViewer -> IO ()
+-- petscViewerHDF5PopGroup vi = chk0 (petscViewerHDF5PopGroup' vi)
 
 
 
