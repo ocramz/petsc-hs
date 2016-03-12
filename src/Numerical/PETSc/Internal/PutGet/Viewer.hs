@@ -103,7 +103,7 @@ petscViewerSetFormat v fmt = chk0 (petscViewerSetFormat' v fmt)
 
 
 
-petscViewerHDF5Open :: Comm -> String -> PetscFileMode_ -> IO PetscViewer
-petscViewerHDF5Open comm name fm = chk1 (petscViewerHDF5Open' comm name fm)
+-- petscViewerHDF5Open :: Comm -> String -> PetscFileMode_ -> IO PetscViewer
+-- petscViewerHDF5Open comm name fm = chk1 (petscViewerHDF5Open' comm name fm)
 
 

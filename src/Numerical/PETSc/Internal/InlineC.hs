@@ -3490,14 +3490,14 @@ petscViewerDestroy' v =
 
 -- -- | HDF5 stuff
 
--- PetscErrorCode  PetscViewerHDF5Open(MPI_Comm comm, const char name[], PetscFileMode type, PetscViewer *hdf5v)
-petscViewerHDF5Open' comm name ty =
-  withPtr $ \f ->
-   withCString name $ \np -> 
-  [C.exp|int{PetscViewerHDF5Open($(int c),$(const char* np),$(int t),$(PetscViewer* f))}|]
-   where
-     c = unComm comm
-     t = toCInt $ fileModeToInt ty
+-- -- PetscErrorCode  PetscViewerHDF5Open(MPI_Comm comm, const char name[], PetscFileMode type, PetscViewer *hdf5v)
+-- petscViewerHDF5Open' comm name ty =
+--   withPtr $ \f ->
+--    withCString name $ \np -> 
+--   [C.exp|int{PetscViewerHDF5Open($(int c),$(const char* np),$(int t),$(PetscViewer* f))}|]
+--    where
+--      c = unComm comm
+--      t = toCInt $ fileModeToInt ty
     
 -- -- -- usage
 -- -- 339:   PetscViewerCreate(comm, hdf5v);
