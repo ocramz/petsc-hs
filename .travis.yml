@@ -115,7 +115,6 @@ script:
 
   # # where is the petsc-example binary? 
   - stack path
-
   - find . -name petsc-example
 
 
@@ -129,10 +128,8 @@ script:
   - stack exec ./"$DIST_DIR"/petsc-example/petsc-example
 
 
+  # # # run example with `mpirun`
   # - find ~ -name mpirun*
-
-  # - ln -s "$PETSC_DIR"/"$PETSC_ARCH"/bin/mpirun mpirun 
-
   - export PATH="$PETSC_DIR"/"$PETSC_ARCH"/bin/:$PATH
   - mpirun -n 2 ./"$DIST_DIR"/petsc-example/petsc-example
 
