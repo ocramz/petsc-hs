@@ -130,7 +130,9 @@ script:
 
   # - mpirun-mpich-mp -n 2 ./"$DIST_DIR"/petsc-example/petsc-example
   - find ~ -name mpirun*
-  - "$PETSC_DIR"/"$PETSC_ARCH"/bin/mpirun -n 2 ./"$DIST_DIR"/petsc-example/petsc-example
+
+  - ln -s "$PETSC_DIR"/"$PETSC_ARCH"/bin/mpirun mpirun 
+  - mpirun -n 2 ./"$DIST_DIR"/petsc-example/petsc-example
 
   # # stack $ARGS --no-terminal --install-ghc test --haddock
 
