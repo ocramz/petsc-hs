@@ -15,7 +15,13 @@ curl -L $PETSC_TAR | tar xz --strip-components=1 -C $PETSC_DIR/
 cd $PETSC_DIR/
 
 # configure
-./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
+if [${NODETYPE} == "master"]; then 
+    echo "=== Configuring as Master node"
+    ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich --with-batch 
+else
+    echo "=== Configuring as Compute node"
+    ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
+fi
 
 # compile
 make PETSC_DIR=$PETSC_DIR PETSC_ARCH=$PETSC_ARCH all
