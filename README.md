@@ -7,9 +7,7 @@
 
 
 
-petsc-hs - Haskell bindings for the scientific computation library PETSc
-
-(Portable Extensible Toolkit for Scientific Computation)
+Haskell bindings for the scientific computing library PETSc (Portable Extensible Toolkit for Scientific Computation)
 
 Copyright (c) 2015 - , Marco Zocca ( zocca at marco dot gmail at com ) - [![GPL license](https://img.shields.io/badge/license-GPL-blue.svg)](https://github.com/ocramz/petsc-hs/blob/master/LICENSE)
 
