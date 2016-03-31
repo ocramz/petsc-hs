@@ -1,8 +1,6 @@
-# petsc-hs
-
 <p align="center">
   <a href="https://github.com/ocramz/petsc-hs">
-    <img src="https://github.com/ocramz/petsc-hs/doc/img/logo.png"/>
+    <img src="https://raw.githubusercontent.com/ocramz/petsc-hs/master/doc/img/logo.png"/>
   </a>
 </p>
 
