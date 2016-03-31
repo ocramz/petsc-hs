@@ -1,13 +1,13 @@
 # petsc-hs
 
 <p align="center">
-  <a href="http://dev.stephendiehl.com/hask/">
-    <img src="http://dev.stephendiehl.com/hask/img/title.png"/>
+  <a href="https://github.com/ocramz/petsc-hs">
+    <img src="https://github.com/ocramz/petsc-hs/doc/img/logo.png"/>
   </a>
 </p>
 
 
-[![GPL license](https://img.shields.io/badge/license-GPL-blue.svg)](https://github.com/ocramz/petsc-hs/master/LICENSE)
+
 
 petsc-hs - Haskell bindings for the scientific computation library PETSc
 
@@ -15,7 +15,7 @@ petsc-hs - Haskell bindings for the scientific computation library PETSc
 
 Copyright (c) 2015 - , Marco Zocca ( zocca at marco dot gmail at com )
 
-
+[![GPL license](https://img.shields.io/badge/license-GPL-blue.svg)](https://github.com/ocramz/petsc-hs/master/LICENSE)
 
 Travis CI : [![Build Status](https://travis-ci.org/ocramz/petsc-hs.svg?branch=master)](https://travis-ci.org/ocramz/petsc-hs)
 
