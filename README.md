@@ -1,5 +1,14 @@
 # petsc-hs
 
+<p align="center">
+  <a href="http://dev.stephendiehl.com/hask/">
+    <img src="http://dev.stephendiehl.com/hask/img/title.png"/>
+  </a>
+</p>
+
+
+[![GPL license](https://img.shields.io/badge/license-GPL-blue.svg)](https://github.com/ocramz/petsc-hs/master/LICENSE)
+
 petsc-hs - Haskell bindings for the scientific computation library PETSc
 
 (Portable Extensible Toolkit for Scientific Computation)
