@@ -206,7 +206,9 @@ t6' n =
 t6 = withPetsc0 $ t6' 5
 
 
-t61' = withMatNew commWorld 3 3 MatAij vi InsertValues $ \m ->
+t61' = withMatNew commWorld 3 3 MatAij vi InsertValues $ \m -> -- do
+  -- (n, i_, v_) <- matViewRow m 0
+  -- print (n, i_, v_)
   matViewStdout m where
     vi = csrSome3
 

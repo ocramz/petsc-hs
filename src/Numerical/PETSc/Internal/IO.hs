@@ -21,9 +21,9 @@ import           Numerical.PETSc.Internal.Utils
 
 import qualified Data.Vector                    as V
 
+
+
 -- | printing
-
-
 
 -- | show only first n elements and last of Vector v
 
@@ -41,3 +41,7 @@ showV l = showVn l 20
 
 
 
+
+
+-- ", for Vector (Vector a)
+-- showVVn v_

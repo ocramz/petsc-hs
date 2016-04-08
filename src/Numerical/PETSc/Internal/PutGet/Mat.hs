@@ -41,6 +41,8 @@ import Control.Arrow
 import Control.Concurrent
 import Control.Exception
 
+import qualified Data.IntMap as IM
+
 import qualified Data.Vector as V 
 import qualified Data.Vector.Storable as VS (unsafeWith, Vector)
 import qualified Data.Vector.Generic as VG
@@ -613,17 +615,33 @@ matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 matGetInfo :: Mat -> MatInfoType_ -> IO MatInfo
 matGetInfo mat infotype = chk1 (matGetInfo' mat infotype)
 
-matGetRow mat r = do
+matGetRow mat ro = do
   (nc, cols, vals) <- chk1 (matGetRow' mat r)
   let n = fi nc
   colsv <- getVS n cols
   valsv <- getVS n vals
-  return (n, colsv, valsv)
+  return (n, (colsv, valsv)) where
+    r = toCInt ro
 
 -- matRestoreRow = matRestoreRow'
-matRestoreRow :: Mat -> CInt -> IO ()
-matRestoreRow m r = chk0 (matRestoreRow0Safe' m r)
+-- matRestoreRow :: Mat -> CInt -> IO ()
+matRestoreRow m ro = chk0 (matRestoreRow0Safe' m r) where
+  r = toCInt ro
 
+-- matViewRow :: Mat -> Int -> IO (Int, VS.Vector CInt, VS.Vector PetscScalar_)
+matViewRow mat r = bracket (matGetRow mat r) (const $ matRestoreRow mat r) return
+
+matGetRows mat r1 r2 = forM [r1 .. r2] $ \r -> do
+  x <- matGetRow mat r
+  return (r, x)
+
+-- asdf mat r1 r2 = matGetRows mat r1 r2 >>= \x -> return (MatCSR (IM.fromAscList x))
+
+
+
+data MatCSR = MatCSR {unMatCSR :: IM.IntMap (Int, VS.Vector CInt, VS.Vector PetscScalar_) }
+
+-- mkMatCSR 
 
 -- matGetColumnIJ
 -- matRestoreColumnIJ
