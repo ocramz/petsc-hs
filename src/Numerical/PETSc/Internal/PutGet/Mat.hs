@@ -620,7 +620,7 @@ matGetRow mat ro = do
   let n = fi nc
   colsv <- getVS n cols
   valsv <- getVS n vals
-  return (n, (colsv, valsv)) where
+  return (n, colsv, valsv) where
     r = toCInt ro
 
 -- matRestoreRow = matRestoreRow'
@@ -629,17 +629,18 @@ matRestoreRow m ro = chk0 (matRestoreRow0Safe' m r) where
   r = toCInt ro
 
 -- matViewRow :: Mat -> Int -> IO (Int, VS.Vector CInt, VS.Vector PetscScalar_)
+matViewRow :: Mat -> Int -> IO (Int, VS.Vector CInt, VS.Vector PetscScalar_)
 matViewRow mat r = bracket (matGetRow mat r) (const $ matRestoreRow mat r) return
 
-matGetRows mat r1 r2 = forM [r1 .. r2] $ \r -> do
-  x <- matGetRow mat r
+matViewRows mat r1 r2 = forM [r1 .. r2] $ \r -> do
+  x <- matViewRow mat r
   return (r, x)
 
--- asdf mat r1 r2 = matGetRows mat r1 r2 >>= \x -> return (MatCSR (IM.fromAscList x))
+matViewRowsMkMatCSR :: Mat -> Int -> Int -> IO MatCSR
+matViewRowsMkMatCSR m r1 r2 = liftM (MatCSR . IM.fromAscList) (matViewRows m r1 r2 )
 
 
-
-data MatCSR = MatCSR {unMatCSR :: IM.IntMap (Int, VS.Vector CInt, VS.Vector PetscScalar_) }
+data MatCSR = MatCSR {unMatCSR :: IM.IntMap (Int, VS.Vector CInt, VS.Vector PetscScalar_) } deriving (Eq, Show)
 
 -- mkMatCSR 
 
