@@ -1128,6 +1128,34 @@ matGetInfo' mat t = withPtr $ \info -> [C.exp|int{MatGetInfo($(Mat mat),$(int in
 --       -info -mat_view ::ascii_info
 
 
+-- PetscErrorCode MatGetRow(Mat mat,PetscInt row,PetscInt *ncols,const PetscInt *cols[],const PetscScalar *vals[])
+matGetRow0' mat row ncols cols vals = [C.exp|int{MatGetRow($(Mat mat),$(int row),$(int* ncols),$(int** cols),$(PetscScalar** vals))}|]
+
+
+-- PetscErrorCode MatRestoreRow(Mat mat,PetscInt row,PetscInt *ncols,const PetscInt *cols[],const PetscScalar *vals[]) -- Not Collective
+matRestoreRow0' mat row ncols cols vals = [C.exp|int{MatRestoreRow($(Mat mat),$(int row),$(int* ncols),$(int** cols),$(PetscScalar** vals))}|]
+-- Input Parameters :
+-- mat	- the matrix
+-- row	- the row to get
+-- ncols, cols	- the number of nonzeros and their columns
+-- vals	- if nonzero the column values
+-- Notes :
+-- This routine should be called after you have finished examining the entries.
+-- This routine zeros out ncols, cols, and vals. This is to prevent accidental us of the array after it has been restored. If you pass NULL, it will not zero the pointers. Use of cols or vals after MatRestoreRow is invalid.
+
+
+
+-- PetscErrorCode MatGetColumnIJ(Mat mat,PetscInt shift,PetscBool symmetric,PetscBool inodecompressed,PetscInt *n,const PetscInt *ia[],const PetscInt *ja[],PetscBool  *done)
+matGetColumnIJ' mat s symm inodec n ia ja = withPtr $ \done ->
+  [C.exp|int{MatGetColumnIJ($(Mat mat),$(int s),$(PetscBool* symm),$(PetscBool* inodec),$(int* n),$(int* ia),$(int* ja), $(PetscBool* done))}|]
+
+-- matGetColumnIJ mat shift symm inodec n ia ja =
+--   with symm $ \symmp ->
+--   with inodec $ \inodecp ->
+--   with n $ \np ->
+--   withPtr ia $ \iap ->
+--   withPtr ja $ \jap -> matGetColumnIJ' mat shift symmp inodecp np iap jap
+
 
 
 

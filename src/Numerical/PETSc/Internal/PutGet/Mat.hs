@@ -28,6 +28,7 @@ import Numerical.PETSc.Internal.Storable.Common (unsafeWithVS)
 import Foreign.Ptr
 import Foreign.Storable
 import Foreign.C.Types
+import Foreign.Marshal.Utils
 
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -43,6 +44,13 @@ import Control.Exception
 import qualified Data.Vector as V 
 import qualified Data.Vector.Storable as VS (unsafeWith, Vector)
 import qualified Data.Vector.Generic as VG
+
+
+
+-- | instances
+
+-- instance Show Mat where
+--   show m = show 
 
 
 
@@ -604,6 +612,12 @@ matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 
 matGetInfo :: Mat -> MatInfoType_ -> IO MatInfo
 matGetInfo mat infotype = chk1 (matGetInfo' mat infotype)
+
+-- matGetRow
+-- matRestoreRow
+
+-- matGetColumnIJ
+-- matRestoreColumnIJ
 
 
 matIsStructurallySymmetric :: Mat -> IO PetscBool
