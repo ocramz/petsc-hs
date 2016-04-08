@@ -613,9 +613,17 @@ matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 matGetInfo :: Mat -> MatInfoType_ -> IO MatInfo
 matGetInfo mat infotype = chk1 (matGetInfo' mat infotype)
 
-matGetRow mat r = chk1 (matGetRow' mat r)
--- matGetRow mat row = chk1 $ matGetRow' mat row >>= snoc3
--- matRestoreRow
+matGetRow mat r = do
+  (nc, cols, vals) <- chk1 (matGetRow' mat r)
+  let n = fi nc
+  colsv <- getVS n cols
+  valsv <- getVS n vals
+  return (n, colsv, valsv)
+
+-- matRestoreRow = matRestoreRow'
+matRestoreRow :: Mat -> CInt -> IO ()
+matRestoreRow m r = chk0 (matRestoreRow0Safe' m r)
+
 
 -- matGetColumnIJ
 -- matRestoreColumnIJ

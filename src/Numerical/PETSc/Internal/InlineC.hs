@@ -1155,11 +1155,14 @@ matRestoreRow0' mat row ncols cols vals = [C.exp|int{MatRestoreRow($(Mat mat),$(
 -- This routine zeros out ncols, cols, and vals. This is to prevent accidental us of the array after it has been restored. If you pass NULL, it will not zero the pointers. Use of cols or vals after MatRestoreRow is invalid.
 matRestoreRow' mat row ncols cols vals = with ncols $ \ncolsp -> with cols $ \colsp -> with vals $ \valsp -> matRestoreRow0' mat row ncolsp colsp valsp
 
+matRestoreRow0Safe' mat row = [C.exp|int{MatRestoreRow($(Mat mat),$(int row),NULL, NULL, NULL)}|]
+
+
 
 
 -- PetscErrorCode MatGetColumnIJ(Mat mat,PetscInt shift,PetscBool symmetric,PetscBool inodecompressed,PetscInt *n,const PetscInt *ia[],const PetscInt *ja[],PetscBool  *done)
-matGetColumnIJ' mat s symm inodec n ia ja = withPtr $ \done ->
-  [C.exp|int{MatGetColumnIJ($(Mat mat),$(int s),$(PetscBool* symm),$(PetscBool* inodec),$(int* n),$(PetscInt** ia),$(PetscInt** ja), $(PetscBool* done))}|]
+-- matGetColumnIJ' mat s symm inodec n ia ja = withPtr $ \done ->
+--   [C.exp|int{MatGetColumnIJ($(Mat mat),$(int s),$(PetscBool* symm),$(PetscBool* inodec),$(int* n),$(PetscInt** ia),$(PetscInt** ja), $(PetscBool* done))}|]
 
 -- matGetColumnIJ mat shift symm inodec n ia ja =
 --   with symm $ \symmp ->
