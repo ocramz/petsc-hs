@@ -64,12 +64,17 @@ class Storable a => StorableVector a where
 
 
 
+
+
 -- | instances
 
 -- instance PStore VS.Vector where
 --   toForeignPtr = VS.unsafeToForeignPtr
 --   fromForeignPtr = VS.unsafeFromForeignPtr
 --   smap = VS.map
+
+
+
 
 
 

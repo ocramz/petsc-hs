@@ -1159,7 +1159,7 @@ matRestoreRow' mat row ncols cols vals = with ncols $ \ncolsp -> with cols $ \co
 
 -- PetscErrorCode MatGetColumnIJ(Mat mat,PetscInt shift,PetscBool symmetric,PetscBool inodecompressed,PetscInt *n,const PetscInt *ia[],const PetscInt *ja[],PetscBool  *done)
 matGetColumnIJ' mat s symm inodec n ia ja = withPtr $ \done ->
-  [C.exp|int{MatGetColumnIJ($(Mat mat),$(int s),$(PetscBool* symm),$(PetscBool* inodec),$(int* n),$(int** ia),$(int** ja), $(PetscBool* done))}|]
+  [C.exp|int{MatGetColumnIJ($(Mat mat),$(int s),$(PetscBool* symm),$(PetscBool* inodec),$(int* n),$(PetscInt** ia),$(PetscInt** ja), $(PetscBool* done))}|]
 
 -- matGetColumnIJ mat shift symm inodec n ia ja =
 --   with symm $ \symmp ->
