@@ -261,11 +261,28 @@ fst2M = return . fst2
 
 -- |-- tuple unpacking stuff
 
+snoc2 :: Monad m => (t1, (t2, t)) -> m ((t1, t2), t)
+snoc2 x = do
+  let (a, (b, z)) = x
+  return ((a, b), z)
 
+snoc3 :: Monad m => (t1, (t2, (t3, t))) -> m ((t1, t2, t3), t)
+snoc3 x = do
+  let (a, (b, (c, z))) = x
+  return ((a, b, c), z)
+
+
+-- projections
+  
+fstOf2 :: (a, (c, b)) -> c
 fstOf2 = fst . snd
 
+sndOf2 :: (a1, (a, c)) -> c
 sndOf2 =  snd . snd
 
+
+
+both' :: Arrow a => a b' c' -> a (b', b') (c', c')
 both' f =  f *** f
 
 both :: (a, a) -> (a -> b) -> (b, b)
@@ -419,3 +436,9 @@ fromCDouble (CDouble x) = x
 
 toCDouble :: Double -> CDouble
 toCDouble = CDouble
+
+
+
+
+-- | classes
+

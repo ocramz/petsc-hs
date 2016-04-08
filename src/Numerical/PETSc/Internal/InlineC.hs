@@ -1130,6 +1130,17 @@ matGetInfo' mat t = withPtr $ \info -> [C.exp|int{MatGetInfo($(Mat mat),$(int in
 
 -- PetscErrorCode MatGetRow(Mat mat,PetscInt row,PetscInt *ncols,const PetscInt *cols[],const PetscScalar *vals[])
 matGetRow0' mat row ncols cols vals = [C.exp|int{MatGetRow($(Mat mat),$(int row),$(int* ncols),$(int** cols),$(PetscScalar** vals))}|]
+-- Input Parameters :
+-- mat	- the matrix
+-- row	- the row to get
+-- Output Parameters :
+-- ncols	- if not NULL, the number of nonzeros in the row
+-- cols	- if not NULL, the column numbers
+-- vals	- if not NULL, the values
+-- For better efficiency, set cols and/or vals to NULL if you do not wish to extract these quantities.
+-- The user can only examine the values extracted with MatGetRow(); the values cannot be altered. To change the matrix entries, one must use MatSetValues().
+-- You can only have one call to MatGetRow() outstanding for a particular matrix at a time, per processor. MatGetRow() can only obtain rows associated with the given processor, it cannot get rows from the other processors; for that we suggest using MatGetSubMatrices(), then MatGetRow() on the submatrix. The row index passed to MatGetRows() is in the global number of rows.
+matGetRow' mat row = withPtr ( \ncols -> withPtr $ \cols -> withPtr $ \vals -> matGetRow0' mat row ncols cols vals) >>= snoc3
 
 
 -- PetscErrorCode MatRestoreRow(Mat mat,PetscInt row,PetscInt *ncols,const PetscInt *cols[],const PetscScalar *vals[]) -- Not Collective
@@ -1142,12 +1153,13 @@ matRestoreRow0' mat row ncols cols vals = [C.exp|int{MatRestoreRow($(Mat mat),$(
 -- Notes :
 -- This routine should be called after you have finished examining the entries.
 -- This routine zeros out ncols, cols, and vals. This is to prevent accidental us of the array after it has been restored. If you pass NULL, it will not zero the pointers. Use of cols or vals after MatRestoreRow is invalid.
+matRestoreRow' mat row ncols cols vals = with ncols $ \ncolsp -> with cols $ \colsp -> with vals $ \valsp -> matRestoreRow0' mat row ncolsp colsp valsp
 
 
 
 -- PetscErrorCode MatGetColumnIJ(Mat mat,PetscInt shift,PetscBool symmetric,PetscBool inodecompressed,PetscInt *n,const PetscInt *ia[],const PetscInt *ja[],PetscBool  *done)
 matGetColumnIJ' mat s symm inodec n ia ja = withPtr $ \done ->
-  [C.exp|int{MatGetColumnIJ($(Mat mat),$(int s),$(PetscBool* symm),$(PetscBool* inodec),$(int* n),$(int* ia),$(int* ja), $(PetscBool* done))}|]
+  [C.exp|int{MatGetColumnIJ($(Mat mat),$(int s),$(PetscBool* symm),$(PetscBool* inodec),$(int* n),$(int** ia),$(int** ja), $(PetscBool* done))}|]
 
 -- matGetColumnIJ mat shift symm inodec n ia ja =
 --   with symm $ \symmp ->

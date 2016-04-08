@@ -19,7 +19,7 @@ import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import qualified Numerical.PETSc.Internal.PutGet.PetscMisc as P
 import qualified Numerical.PETSc.Internal.PutGet.Viewer as V
-import Numerical.PETSc.Internal.Utils (both, fi, toCInt, in0m, allIn0mV)
+import Numerical.PETSc.Internal.Utils -- (both, fi, toCInt, in0m, allIn0mV)
 
 import Numerical.PETSc.Internal.Storable.Vector
 import Numerical.PETSc.Internal.Storable.Matrix
@@ -613,7 +613,8 @@ matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 matGetInfo :: Mat -> MatInfoType_ -> IO MatInfo
 matGetInfo mat infotype = chk1 (matGetInfo' mat infotype)
 
--- matGetRow
+
+-- matGetRow mat row = chk1 $ matGetRow' mat row >>= snoc3
 -- matRestoreRow
 
 -- matGetColumnIJ
