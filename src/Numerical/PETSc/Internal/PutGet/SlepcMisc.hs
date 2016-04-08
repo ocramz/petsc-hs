@@ -16,7 +16,7 @@ module Numerical.PETSc.Internal.PutGet.SlepcMisc
        where
 
 import Numerical.PETSc.Internal.InlineC
-import Numerical.PETSc.Internal.Types
+-- import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 

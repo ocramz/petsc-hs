@@ -62,5 +62,4 @@ class PetscStore s where
 
 
   
-class Storable a => FromStorable a b where
-  fromStorable :: Ptr a -> V.Vector a
+

@@ -1,4 +1,4 @@
--- {-# language MultiParamTypeClasses #-}
+{-# language MultiParamTypeClasses #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
@@ -55,6 +55,12 @@ import qualified Foreign.Marshal.Utils as FMU
 class Storable a => StorableVector a where
   fromArray :: Ptr a -> IO (V.Vector a)
   toArray :: V.Vector a -> Int -> Ptr a -> IO ()
+
+class (Storable a, Functor c) => StorableContainer c a where
+  fromSC :: Ptr a -> IO (c a)
+  toSC :: c a -> Int -> Ptr a -> IO ()
+
+
 
 
 

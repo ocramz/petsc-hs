@@ -613,7 +613,7 @@ matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 matGetInfo :: Mat -> MatInfoType_ -> IO MatInfo
 matGetInfo mat infotype = chk1 (matGetInfo' mat infotype)
 
-
+matGetRow mat r = chk1 (matGetRow' mat r)
 -- matGetRow mat row = chk1 $ matGetRow' mat row >>= snoc3
 -- matRestoreRow
 
