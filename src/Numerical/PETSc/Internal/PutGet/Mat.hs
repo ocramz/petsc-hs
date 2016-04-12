@@ -61,9 +61,14 @@ import qualified Data.Vector.Generic as VG
 -- | a datatype encapsulating matrix information and the typed pointer
 data PetscMatrix = PetscMatrix !MatrixInfo Mat
 
+data PetscMatrix' a = PetscMatrix' MatrixInfoBase NZPR (MatrixData a)
+
 data MatrixInfo =
   MIConstNZPR MatrixInfoBase !Int
   | MIVarNZPR MatrixInfoBase !(V.Vector Int)
+
+-- | (dnz, onz) and (dnnz, onnz) : # NZ/row ON DIAGONAL and OFF DIAGONAL, constant and variable-number case respectively
+data NZPR = ConstNZPR (Int, Int) | VarNZPR (V.Vector Int, V.Vector Int) deriving (Eq, Show) 
 
 data MatrixInfoBase =
   MatrixInfoBase { matComm  :: Comm
@@ -80,7 +85,40 @@ data MatrixData a =
 
 
 
+toMatrixData :: V.Vector (Int, Int, a) -> MatrixData a
+toMatrixData ixd = MatrixData ii jj dd where
+  (ii, jj, dd) = V.unzip3 ixd
 
+
+mkMatrix ::
+  Comm
+  -> Int
+  -> Int
+  -> V.Vector (Int, Int, PetscScalar_)
+  -> NZPR
+  -> InsertMode_
+  -> (PetscMatrix -> IO a)
+  -> IO a
+mkMatrix comm m n ixd (ConstNZPR nz@(dnz, onz)) imode after = do
+  let mib = MatrixInfoBase comm m n
+  mat <- matCreateAIJDecideConstNZPR comm m n dnz onz
+  matSetValueVectorSafe mat (m, n) ixd imode
+  matAssembly mat
+  m <- return $ PetscMatrix (MIConstNZPR mib (dnz+onz)) mat
+  after m
+
+
+
+
+
+
+
+
+
+
+
+
+    
 
 
 -- | predicates
@@ -615,34 +653,41 @@ matGetSizeCIntUnsafe = unsafePerformIO . matGetSizeCInt
 matGetInfo :: Mat -> MatInfoType_ -> IO MatInfo
 matGetInfo mat infotype = chk1 (matGetInfo' mat infotype)
 
+-- matGetRow
+--   :: (VG.Vector v PetscScalar_, VG.Vector v CInt,
+--       VG.Vector v (CInt, PetscScalar_)) =>
+--      Mat -> Int -> IO (v (CInt, PetscScalar_))
 matGetRow mat ro = do
   (nc, cols, vals) <- chk1 (matGetRow' mat r)
-  let n = fi nc
-  colsv <- getVS n cols
-  valsv <- getVS n vals
-  return (n, colsv, valsv) where
+  let n = fi nc             -- # nonzeros
+  colsv <- getIVG n cols
+  valsv <- getVG n vals
+  return $ VG.zip colsv valsv where
     r = toCInt ro
 
--- matRestoreRow = matRestoreRow'
--- matRestoreRow :: Mat -> CInt -> IO ()
+matRestoreRow :: Mat -> Int -> IO ()
 matRestoreRow m ro = chk0 (matRestoreRow0Safe' m r) where
   r = toCInt ro
 
 -- matViewRow :: Mat -> Int -> IO (Int, VS.Vector CInt, VS.Vector PetscScalar_)
-matViewRow :: Mat -> Int -> IO (Int, VS.Vector CInt, VS.Vector PetscScalar_)
 matViewRow mat r = bracket (matGetRow mat r) (const $ matRestoreRow mat r) return
 
-matViewRows mat r1 r2 = forM [r1 .. r2] $ \r -> do
+
+matViewRows mat r_ = forM r_ $ \r -> do
   x <- matViewRow mat r
   return (r, x)
 
-matViewRowsMkMatCSR :: Mat -> Int -> Int -> IO MatCSR
-matViewRowsMkMatCSR m r1 r2 = liftM (MatCSR . IM.fromAscList) (matViewRows m r1 r2 )
+-- matMkMatCSR :: Mat -> [Int] -> IO MatCSR
+-- matMkMatCSR m r_ = liftM (MatCSR . IM.fromList) (matViewRows m r_)
 
 
-data MatCSR = MatCSR {unMatCSR :: IM.IntMap (Int, VS.Vector CInt, VS.Vector PetscScalar_) } deriving (Eq, Show)
+-- data MatCSR = MatCSR {unMatCSR :: IM.IntMap (Int, VS.Vector CInt, VS.Vector PetscScalar_) } deriving (Eq, Show)
 
--- mkMatCSR 
+
+
+
+
+
 
 -- matGetColumnIJ
 -- matRestoreColumnIJ

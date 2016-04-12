@@ -211,6 +211,16 @@ putVG w = putVS (VG.convert w)
 
 
 
+-- -- getVS/putVS specialized to arrays of CInt (e.g. index sets)
+
+getIVG :: VG.Vector w Int => Int -> Ptr CInt -> IO (w Int)
+getIVG n p = do
+  w <- getVS n p
+  return (VG.convert $ VG.map fi w)
+
+putIVG :: (VG.Vector v CInt, VG.Vector v Int) => v Int -> Int -> Ptr CInt -> IO ()
+putIVG w = putVG (VG.map toCInt w)
+
 
 
 

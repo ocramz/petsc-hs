@@ -20,7 +20,7 @@ import           Numerical.PETSc.Internal.Utils
 -- import Numerical.PETSc.Internal.Internal
 
 import qualified Data.Vector                    as V
-
+import qualified Data.Vector.Generic            as VG
 
 
 -- | printing
@@ -45,3 +45,14 @@ showV l = showVn l 20
 
 -- ", for Vector (Vector a)
 -- showVVn v_
+
+-- padSparse (i, x) v = if i==v then show x else "."
+
+padSparse [] _ = []
+padSparse _ [] = []
+padSparse xx@((i,x):xs) (v:vs)
+  | i==v = show x : padSparse xs vs
+  | otherwise = "." : padSparse xx vs
+
+asdf = padSparse [(1, 'x'), (3, 'w')] [1..10]
+
