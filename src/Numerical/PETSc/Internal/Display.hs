@@ -59,9 +59,6 @@ padSparse xx@((i,x):xs) (v:vs)
   | otherwise = "." : padSparse xx vs
 
 
--- -- examples:
-asdf = unwords $ padSparse [(1, "x"), (3, "w")] [1..10]
-fdsa = unwords $ padSparse [(1, 1), (3, 3), (4, 4), (7, 9)] [1..10]
 
 
 -- | fq generalizes padSparse
@@ -69,6 +66,15 @@ fq :: (a -> b -> Bool) -> (a -> c) -> c -> [a] -> [b] -> [c]
 fq q f t xx@(a:as) (v:vs) 
   | q a v = f a : fq q f t as vs
   | otherwise = t : fq q f t xx vs
+fq _ _ _ [] _ = []
+fq _ _ _ _ [] = []
 
 padSparse' :: (Show b, Eq a) => [(a, b)] -> [a] -> [String]
 padSparse' = fq (\a b -> fst a == b) (show . snd) "."
+
+showSparse' x n = unwords (padSparse' x [0..n-1])
+
+
+-- -- examples:
+asdf = showSparse' [(1, "x"), (3, "w")] 10
+fdsa = showSparse' [(1, 1), (3, -2), (4, 4), (7, 9)] 10
