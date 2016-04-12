@@ -69,3 +69,6 @@ fq :: (a -> b -> Bool) -> (a -> c) -> c -> [a] -> [b] -> [c]
 fq q f t xx@(a:as) (v:vs) 
   | q a v = f a : fq q f t as vs
   | otherwise = t : fq q f t xx vs
+
+padSparse' :: (Show b, Eq a) => [(a, b)] -> [a] -> [String]
+padSparse' = fq (\a b -> fst a == b) (show . snd) "."
