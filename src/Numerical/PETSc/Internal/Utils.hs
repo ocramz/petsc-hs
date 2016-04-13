@@ -238,6 +238,16 @@ mean x = sum x / fromIntegral (length x)
 
 
 
+
+
+
+
+
+
+
+
+-- |-- tuple unpacking stuff
+
 sndM :: Monad m => m (a, b) -> m b
 sndM = liftM snd
 
@@ -254,12 +264,7 @@ fst2M :: Monad m => (a, (b, c)) -> m ((a, b), c)
 fst2M = return . fst2
 
 
-
-
-
-
-
--- |-- tuple unpacking stuff
+-- tuple reordering
 
 snoc2 :: Monad m => (t1, (t2, t)) -> m ((t1, t2), t)
 snoc2 x = do
@@ -288,8 +293,12 @@ both' f =  f *** f
 both :: (a, a) -> (a -> b) -> (b, b)
 both (a, b) f = (f a, f b)
 
-bothF :: (Functor f1, Functor f2) => (f1 a, f2 a) -> (a -> b) -> (f1 b, f2 b)
-bothF (a, b) f = (fmap f a, fmap f b)
+fmapBoth :: (Functor f) => (a -> b) -> (f a, f a) -> (f b, f b)
+fmapBoth f (a, b) = (fmap f a, fmap f b)
+
+-- vFmapBoth f (va, vb) = (V.map f va, V.map f vb)
+
+-- fmapBoth' f = fmap f *** fmap f  -- so arrow, much category theory, wow
 
 all3 :: (a, a, a) -> (a -> b) -> (b, b, b)
 all3 (a,b,c) f = (f a, f b, f c)

@@ -13,6 +13,7 @@
 module Numerical.PETSc.Internal.InlineC where
 
 import           Numerical.PETSc.Internal.Internal
+import           Numerical.PETSc.Internal.Storable.Common (unsafeWithVS)
 import           Numerical.PETSc.Internal.Types
 import           Numerical.PETSc.Internal.Utils
 
@@ -926,23 +927,43 @@ matSeqAIJSetPreallocation' mat nz nnz =
 -- o_nnz	- array containing the number of nonzeros in the various rows of the OFF-DIAGONAL portion of the local submatrix (possibly different for each row) or NULL (PETSC_NULL_INTEGER in Fortran), if o_nz is used to specify the nonzero structure. The size of this array is equal to the number of local rows, i.e 'm'.
 -- If the *_nnz parameter is given then the *_nz parameter is ignored
 
-matMPIAIJSetPreallocation' :: Mat -> CInt -> [CInt] -> CInt -> [CInt] -> IO CInt
-matMPIAIJSetPreallocation' b dnz dnnz onz onnz =
-  withArray dnnz $ \dnnzp ->
-  withArray onnz $ \onnzp ->
-  [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
+matMPIAIJsp0' b dnz dnnzp onz onnzp =
+    [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
                                        $(int dnz),
                                        $(int* dnnzp),
                                        $(int onz),
                                        $(int* onnzp))}|]
 
-matMPIAIJSetPreallocationConstNZPR' :: Mat -> CInt -> CInt -> IO CInt
-matMPIAIJSetPreallocationConstNZPR' b dnz onz =
-  [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
+-- | ", constant # zeros per row
+matMPIAIJsp0cnzpr' b dnz onz =
+    [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
                                        $(int dnz),
                                        NULL,
                                        $(int onz),
                                        NULL)}|]
+    
+matMPIAIJsp0vnzpr' b dnnzp onnzp =
+    [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
+                                       NULL,
+                                       $(int* dnnzp),
+                                       NULL,
+                                       $(int* onnzp))}|]
+
+matMPIAIJSetPreallocation' :: Mat -> CInt -> [CInt] -> CInt -> [CInt] -> IO CInt
+matMPIAIJSetPreallocation' b dnz dnnz onz onnz =
+  withArray dnnz $ \dnnzp ->
+  withArray onnz $ \onnzp ->
+   matMPIAIJsp0' b dnz dnnzp onz onnzp
+
+matMPIAIJSetPreallocationConstNZPR' :: Mat -> CInt -> CInt -> IO CInt
+matMPIAIJSetPreallocationConstNZPR' = matMPIAIJsp0cnzpr'
+
+-- matMPIAIJSetPreallocationVarNZPR' :: Mat -> CInt -> CInt -> IO CInt
+matMPIAIJSetPreallocationVarNZPR' b dnnz onnz =
+  VS.unsafeWith dnnz $ \dnnzp ->
+  VS.unsafeWith onnz $ \onnzp -> matMPIAIJsp0vnzpr' b dnnzp onnzp
+
+
 
 
 

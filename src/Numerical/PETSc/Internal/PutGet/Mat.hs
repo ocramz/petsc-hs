@@ -59,16 +59,12 @@ import qualified Data.Vector.Generic as VG
 
 
 -- | a datatype encapsulating matrix information and the typed pointer
--- data PetscMatrix = PetscMatrix !MatrixInfo Mat
 
 data PetscMatrix a = PetscMatrix MatrixInfoBase NZPR (MatrixDataZ a) Mat
 
 toPetscMatrix = PetscMatrix
 fromPetscMatrix (PetscMatrix mib nz md m) = (mib, nz, md, m)
 
--- data MatrixInfo =
---   MIConstNZPR MatrixInfoBase !Int
---   | MIVarNZPR MatrixInfoBase !(V.Vector Int)
 
 -- | (dnz, onz) and (dnnz, onnz) : # NZ/row ON-DIAGONAL BLOCK and OFF-DIAGONAL BLOCK, constant and variable-number case respectively
 type DNZ = Int -- diagonal
@@ -76,66 +72,58 @@ type ONZ = Int -- off-diagonal
 data NZPR = ConstNZPR (DNZ, ONZ)
           | VarNZPR (V.Vector DNZ, V.Vector ONZ) deriving (Eq, Show) 
 
+type NumRows = Int
+type NumCols = Int
 data MatrixInfoBase =
   MatrixInfoBase { matComm  :: Comm
-                  ,matRows  :: !Int
-                  ,matCols  :: !Int
+                  ,matRows  :: !NumRows
+                  ,matCols  :: !NumCols
                   -- ,matOrder :: !MatrixOrder
                  } deriving (Eq, Show)
 
 
--- data MatrixData a =
---   MatrixData { matDataRowIdxs :: !(V.Vector Int),
---                matDataColIdxs :: !(V.Vector Int),
---                matDataEntries :: !(V.Vector a)} deriving (Eq, Show)
-
+type IdxRow = Int
+type IdxCol = Int
 data MatrixDataZ a =
-  MatrixDataZ {matDataZ :: V.Vector (Int, Int, a)} deriving (Eq, Show)
-
--- toMatrixDataZ md@(MatrixData ii jj dd)
---   | checkMatrixData md = MatrixDataZ $ V.zip3 ii jj dd
---   | otherwise = error "toMatrixData : mismatching input vector sizes"
+  MatrixDataZ {matDataZ :: V.Vector (IdxRow, IdxCol, a)} deriving (Eq, Show)
 
 
 
 
 
--- toMatrixData :: V.Vector (Int, Int, a) -> MatrixData a
--- toMatrixData ixd = MatrixData ii jj dd where
---   (ii, jj, dd) = V.unzip3 ixd
 
--- diag d = toMatrixData 
-
-
--- mkMatrix ::
---   Comm
---   -> Int    -- # rows
---   -> Int    -- # columns
---   -> V.Vector (Int, Int, PetscScalar_) -- (row, col, entry)
---   -> NZPR
---   -> InsertMode_
---   -> (PetscMatrix -> IO a)
---   -> IO a
-mkMatrix comm m n ixd nz@(ConstNZPR (dnz, onz)) imode after = do
+petscMatrixCreate
+  :: Comm
+     -> NumRows
+     -> NumCols
+     -> V.Vector (IdxRow, IdxCol, PetscScalar_)
+     -> NZPR
+     -> InsertMode_
+     -> (Comm -> NumRows -> NumCols -> NZPR -> IO Mat)  -- Mat creation routine
+     -> IO (PetscMatrix PetscScalar_)
+petscMatrixCreate comm m n ixd nz imode matc = do
   let mib = MatrixInfoBase comm m n
       mixd = MatrixDataZ ixd
-  mat <- matCreateAIJDecideConstNZPR comm m n dnz onz
+  mat <- matc comm m n nz
   matSetValueVectorSafe mat (m, n) ixd imode
   matAssembly mat
-  m <- return $ PetscMatrix mib nz mixd mat -- (MIConstNZPR mib (dnz+onz)) mat
-  after m
+  let pm = PetscMatrix mib nz mixd mat
+  return pm
 
+petscMatrixDestroy (PetscMatrix _ _ _ mat) = matDestroy mat
 
-
-
-
-
-
-
-
-
-
-
+-- withPetscMatrix
+--   :: Comm
+--      -> NumRows
+--      -> NumCols
+--      -> V.Vector (IdxRow, IdxCol, PetscScalar_)
+--      -> NZPR
+--      -> InsertMode_
+--      -> (Comm -> NumRows -> NumCols -> NZPR -> IO Mat) 
+--      -> (PetscMatrix PetscScalar_ -> IO c)
+--      -> IO c
+withPetscMatrix comm m n ixd nz imode matc =
+  bracket (petscMatrixCreate comm m n ixd nz imode matc) petscMatrixDestroy
     
 
 
@@ -241,10 +229,10 @@ matCreateAIJDecideConstNZPR c mm nn dnz onz =
 
 -- | matCreateMPIAIJWithArrays
 
-matCreateMPIAIJWithArrays ::
-  Comm -> [PetscInt_] -> [PetscInt_] -> [PetscScalar_] -> IO Mat
-matCreateMPIAIJWithArrays c idxx idxy vals =
-  chk1 (matCreateMPIAIJWithArrays' c idxx idxy vals)
+-- matCreateMPIAIJWithArrays ::
+--   Comm -> [PetscInt_] -> [PetscInt_] -> [PetscScalar_] -> IO Mat
+-- matCreateMPIAIJWithArrays c idxx idxy vals =
+--   chk1 (matCreateMPIAIJWithArrays' c idxx idxy vals)
 
 
 matCreateMPIAIJWithVectors ::
@@ -457,40 +445,40 @@ matSetValuesVector1 ma ix iy iv im =
 
 {-| -- --     DO NOT USE      -- --  -}
 
-matSetValuesVector ::
-  Mat ->
-  V.Vector Int ->
-  V.Vector Int ->
-  V.Vector PetscScalar_ ->
-  InsertMode_ ->
-  IO ()
-matSetValuesVector m x y v = msvv0 m nx0 ny0 xc yc vc
-  where
-    xc = V.convert $ V.map toCInt x :: VS.Vector CInt
-    yc = V.convert $ V.map toCInt y :: VS.Vector CInt
-    vc = V.convert v :: VS.Vector PetscScalar_
-    nx0 = toCInt $ V.length x
-    ny0 = toCInt $ V.length y
-    msvv0 ma nx ny idxx idxy vals im =
-      VS.unsafeWith idxx $ \ix ->
-      VS.unsafeWith idxy $ \iy ->
-      VS.unsafeWith vals $ \iv -> chk0 (matSetValues0' ma nx ix ny iy iv im)
+-- matSetValuesVector ::
+--   Mat ->
+--   V.Vector Int ->
+--   V.Vector Int ->
+--   V.Vector PetscScalar_ ->
+--   InsertMode_ ->
+--   IO ()
+-- matSetValuesVector m x y v = msvv0 m nx0 ny0 xc yc vc
+--   where
+--     xc = V.convert $ V.map toCInt x :: VS.Vector CInt
+--     yc = V.convert $ V.map toCInt y :: VS.Vector CInt
+--     vc = V.convert v :: VS.Vector PetscScalar_
+--     nx0 = toCInt $ V.length x
+--     ny0 = toCInt $ V.length y
+--     msvv0 ma nx ny idxx idxy vals im =
+--       VS.unsafeWith idxx $ \ix ->
+--       VS.unsafeWith idxy $ \iy ->
+--       VS.unsafeWith vals $ \iv -> chk0 (matSetValues0' ma nx ix ny iy iv im)
 
-matSetValuesVectorSafe ::
-  Mat ->
-  V.Vector Int ->
-  V.Vector Int ->
-  V.Vector PetscScalar_ ->
-  InsertMode_ ->
-  IO ()
-matSetValuesVectorSafe m ix iy v
-  | c1 && c2 = matSetValuesVector m ix iy v
-  | otherwise = error "matSetValuesVectorSafe : incompatible indices"
-     where
-       (mx, my) = matSize m
-       (lx, ly) = (V.length ix, V.length iy)
-       c1 = lx == ly
-       c2 = allIn0mV mx ix && allIn0mV my iy
+-- matSetValuesVectorSafe ::
+--   Mat ->
+--   V.Vector Int ->
+--   V.Vector Int ->
+--   V.Vector PetscScalar_ ->
+--   InsertMode_ ->
+--   IO ()
+-- matSetValuesVectorSafe m ix iy v
+--   | c1 && c2 = matSetValuesVector m ix iy v
+--   | otherwise = error "matSetValuesVectorSafe : incompatible indices"
+--      where
+--        (mx, my) = matSize m
+--        (lx, ly) = (V.length ix, V.length iy)
+--        c1 = lx == ly
+--        c2 = allIn0mV mx ix && allIn0mV my iy
 
 {-| --    UNTIL HERE    -}
 
@@ -537,24 +525,30 @@ matSetSizes mat m n
   | otherwise = error $ "matSetSizes : invalid size " ++ show (m,n)
 
 
+
+
+
+
+
+
+-- | nonzero preallocation
+-- -- NB : if (onnz, dnnz) are specified, (onz,dnz) are ignored
+
+
 matSeqAIJSetPreallocation :: Mat -> Int -> [Int] -> IO ()
 matSeqAIJSetPreallocation mat nz nnz = chk0 (matSeqAIJSetPreallocation' mat nz' nnz') where
   nz' = toCInt nz 
   nnz' = map toCInt nnz 
 
-
--- | nonzero preallocation of AIJ parallel matrix format
--- -- NB : if (onnz, dnnz) are specified, (onz,dnz) are ignored
-
-matMPIAIJSetPreallocation0 ::
-  Mat ->
-  CInt ->    -- # nonzeros/row in diagonal block of process-local matrix slice
-  [CInt] ->  -- # " in various rows of diagonal part of "" (alternative to ^)
-  CInt ->    -- # NZ/row in off-diagonal block of local mtx slice
-  [CInt] ->  -- # " in various rows of off-diagonal part of " (alt.to ^)
-  IO ()
-matMPIAIJSetPreallocation0 mat dnz dnnz onz onnz =
-  chk0 (matMPIAIJSetPreallocation' mat dnz dnnz onz onnz)
+-- matMPIAIJSetPreallocation0 ::
+--   Mat ->
+--   CInt ->    -- # nonzeros/row in diagonal block of process-local matrix slice
+--   [CInt] ->  -- # " in various rows of diagonal part of "" (alternative to ^)
+--   CInt ->    -- # NZ/row in off-diagonal block of local mtx slice
+--   [CInt] ->  -- # " in various rows of off-diagonal part of " (alt.to ^)
+--   IO ()
+-- matMPIAIJSetPreallocation0 mat dnz dnnz onz onnz =
+--   chk0 (matMPIAIJSetPreallocation' mat dnz dnnz onz onnz)
 
 matMPIAIJSetPreallocationConstNZPR ::
   Mat ->
@@ -565,9 +559,26 @@ matMPIAIJSetPreallocationConstNZPR mat dnz onz =
   chk0 (matMPIAIJSetPreallocationConstNZPR' mat dnz' onz') where
     (dnz', onz') = both (dnz, onz) toCInt
 
+-- matMPIAIJSetPreallocationVarNZPR :: (VG.Vector v Int, VG.Vector v CInt) =>
+--      Mat -> v Int -> v Int -> IO ()
+matMPIAIJSetPreallocationVarNZPR mat dnnz onnz =
+  chk0 (matMPIAIJSetPreallocationVarNZPR' mat dnnz onnz)
+  -- where
+  --   dnnz' = VG.map toCInt dnnz
+  --   onnz' = VG.map toCInt onnz
 
 
--- -- block Mat assembly
+ixs :: (VG.Vector v Int) => Int -> v Int
+ixs n = VG.fromList [0 .. n-1]
+
+onesVG n = VG.fromList (replicate n 1)
+zerosVG n = VG.fromList (replicate n 0)
+
+matAsdf mat n = matMPIAIJSetPreallocationVarNZPR mat (onesVG n) (zerosVG n)
+
+
+
+-- | block Mat assembly
 
 matSetBlockSize :: Mat -> Int -> IO ()
 matSetBlockSize mat bs = chk0 (matSetBlockSize' mat bs)
