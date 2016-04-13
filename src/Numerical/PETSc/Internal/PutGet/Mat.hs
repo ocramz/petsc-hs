@@ -59,16 +59,22 @@ import qualified Data.Vector.Generic as VG
 
 
 -- | a datatype encapsulating matrix information and the typed pointer
-data PetscMatrix = PetscMatrix !MatrixInfo Mat
+-- data PetscMatrix = PetscMatrix !MatrixInfo Mat
 
-data PetscMatrix' a = PetscMatrix' MatrixInfoBase NZPR (MatrixData a)
+data PetscMatrix a = PetscMatrix MatrixInfoBase NZPR (MatrixDataZ a) Mat
 
-data MatrixInfo =
-  MIConstNZPR MatrixInfoBase !Int
-  | MIVarNZPR MatrixInfoBase !(V.Vector Int)
+toPetscMatrix = PetscMatrix
+fromPetscMatrix (PetscMatrix mib nz md m) = (mib, nz, md, m)
 
--- | (dnz, onz) and (dnnz, onnz) : # NZ/row ON DIAGONAL and OFF DIAGONAL, constant and variable-number case respectively
-data NZPR = ConstNZPR (Int, Int) | VarNZPR (V.Vector Int, V.Vector Int) deriving (Eq, Show) 
+-- data MatrixInfo =
+--   MIConstNZPR MatrixInfoBase !Int
+--   | MIVarNZPR MatrixInfoBase !(V.Vector Int)
+
+-- | (dnz, onz) and (dnnz, onnz) : # NZ/row ON-DIAGONAL BLOCK and OFF-DIAGONAL BLOCK, constant and variable-number case respectively
+type DNZ = Int -- diagonal
+type ONZ = Int -- off-diagonal
+data NZPR = ConstNZPR (DNZ, ONZ)
+          | VarNZPR (V.Vector DNZ, V.Vector ONZ) deriving (Eq, Show) 
 
 data MatrixInfoBase =
   MatrixInfoBase { matComm  :: Comm
@@ -78,33 +84,45 @@ data MatrixInfoBase =
                  } deriving (Eq, Show)
 
 
-data MatrixData a =
-  MatrixData { matDataRowIdxs :: !(V.Vector Int),
-               matDataColIdxs :: !(V.Vector Int),
-               matDataEntries :: !(V.Vector a)} deriving (Eq, Show)
+-- data MatrixData a =
+--   MatrixData { matDataRowIdxs :: !(V.Vector Int),
+--                matDataColIdxs :: !(V.Vector Int),
+--                matDataEntries :: !(V.Vector a)} deriving (Eq, Show)
+
+data MatrixDataZ a =
+  MatrixDataZ {matDataZ :: V.Vector (Int, Int, a)} deriving (Eq, Show)
+
+-- toMatrixDataZ md@(MatrixData ii jj dd)
+--   | checkMatrixData md = MatrixDataZ $ V.zip3 ii jj dd
+--   | otherwise = error "toMatrixData : mismatching input vector sizes"
 
 
 
-toMatrixData :: V.Vector (Int, Int, a) -> MatrixData a
-toMatrixData ixd = MatrixData ii jj dd where
-  (ii, jj, dd) = V.unzip3 ixd
 
 
-mkMatrix ::
-  Comm
-  -> Int
-  -> Int
-  -> V.Vector (Int, Int, PetscScalar_)
-  -> NZPR
-  -> InsertMode_
-  -> (PetscMatrix -> IO a)
-  -> IO a
-mkMatrix comm m n ixd (ConstNZPR nz@(dnz, onz)) imode after = do
+-- toMatrixData :: V.Vector (Int, Int, a) -> MatrixData a
+-- toMatrixData ixd = MatrixData ii jj dd where
+--   (ii, jj, dd) = V.unzip3 ixd
+
+-- diag d = toMatrixData 
+
+
+-- mkMatrix ::
+--   Comm
+--   -> Int    -- # rows
+--   -> Int    -- # columns
+--   -> V.Vector (Int, Int, PetscScalar_) -- (row, col, entry)
+--   -> NZPR
+--   -> InsertMode_
+--   -> (PetscMatrix -> IO a)
+--   -> IO a
+mkMatrix comm m n ixd nz@(ConstNZPR (dnz, onz)) imode after = do
   let mib = MatrixInfoBase comm m n
+      mixd = MatrixDataZ ixd
   mat <- matCreateAIJDecideConstNZPR comm m n dnz onz
   matSetValueVectorSafe mat (m, n) ixd imode
   matAssembly mat
-  m <- return $ PetscMatrix (MIConstNZPR mib (dnz+onz)) mat
+  m <- return $ PetscMatrix mib nz mixd mat -- (MIConstNZPR mib (dnz+onz)) mat
   after m
 
 
@@ -125,18 +143,19 @@ mkMatrix comm m n ixd (ConstNZPR nz@(dnz, onz)) imode after = do
 
 -- | predicates for MatrixData
 
-checkMatrixData :: MatrixData a -> Bool
-checkMatrixData (MatrixData idxx idxy vals) = (lr == lc) && (lr == le) where
+checkMatrixData :: MatrixDataZ a -> Bool
+checkMatrixData (MatrixDataZ z) = (lr == lc) && (lr == le) where
   (lr, lc, le) = (V.length idxx, V.length idxy, V.length vals)
+  (idxx, idxy, vals) = V.unzip3 z
 
 
 -- | predicates for PetscMatrix
 
-inMatRowRange, inMatColRange :: PetscMatrix -> Int -> Bool
+inMatRowRange, inMatColRange :: PetscMatrix a -> Int -> Bool
 inMatRowRange m = in0m (getMatRows m)
 inMatColRange m = in0m (getMatCols m)
 
-inMatrixBounds :: PetscMatrix -> (Int, Int) -> Bool
+inMatrixBounds :: PetscMatrix a -> (Int, Int) -> Bool
 inMatrixBounds m (ii, jj) = inMatRowRange m ii && inMatColRange m jj
 
 
@@ -144,13 +163,13 @@ inMatrixBounds m (ii, jj) = inMatRowRange m ii && inMatColRange m jj
 
 -- | PetscMatrix getters
 
-getMatrixInfoBase :: PetscMatrix -> MatrixInfoBase
-getMatrixInfoBase (PetscMatrix (MIConstNZPR mib _) _) = mib
+getMatrixInfoBase :: PetscMatrix a -> MatrixInfoBase
+getMatrixInfoBase (PetscMatrix mib _ _ _) = mib
 
-getMatComm :: PetscMatrix -> Comm
+getMatComm :: PetscMatrix a -> Comm
 getMatComm = matComm . getMatrixInfoBase
 
-getMatRows, getMatCols :: PetscMatrix -> Int
+getMatRows, getMatCols :: PetscMatrix a -> Int
 getMatRows = matRows . getMatrixInfoBase
 getMatCols = matCols . getMatrixInfoBase
 
@@ -738,16 +757,9 @@ matViewStdout = matView
 
 
 
-identityMatrix :: Comm -> Int -> Mat -> PetscMatrix
+-- identityMatrix :: Comm -> Int -> Mat -> PetscMatrix
 identityMatrix comm n =
-  PetscMatrix (MIConstNZPR (MatrixInfoBase comm n n) 1)
-
-
-
-
-mkMatrixInfoBase :: Comm -> MatrixData a -> MatrixInfoBase
-mkMatrixInfoBase comm (MatrixData idxx idxy vals) =
-  MatrixInfoBase comm (V.length idxx) (V.length idxy)
+  PetscMatrix (MatrixInfoBase comm n n) (ConstNZPR (1, 0))
 
 
 
@@ -755,31 +767,41 @@ mkMatrixInfoBase comm (MatrixData idxx idxy vals) =
 
 
 
-petscMatrixBounds :: PetscMatrix -> ((Int, Int), (Int, Int))
+
+
+
+
+
+
+-- petscMatrixBounds :: PetscMatrix -> ((Int, Int), (Int, Int))
 petscMatrixBounds pm = pmib (petscMatrixInfoB pm) where
  pmib mi = (ibx, iby) where
   ibx = (0, matRows mi - 1) :: (Int, Int)
   iby = (0, matCols mi - 1) :: (Int, Int)
 
-petscMatrixInfoB :: PetscMatrix -> MatrixInfoBase
-petscMatrixInfoB (PetscMatrix (MIConstNZPR mi _) _) = mi
-petscMatrixInfoB (PetscMatrix (MIVarNZPR mi _) _) = mi
+-- -- petscMatrixInfoB :: PetscMatrix -> MatrixInfoBase
+petscMatrixInfoB (PetscMatrix mi _ _ _) = mi
+-- petscMatrixInfoB (PetscMatrix (MIVarNZPR mi _) _) = mi
 
-petscMatrixMat :: PetscMatrix -> Mat
-petscMatrixMat (PetscMatrix (MIConstNZPR _ _ ) m) = m
-petscMatrixMat (PetscMatrix (MIVarNZPR _ _ ) m) = m
+-- -- petscMatrixMat :: PetscMatrix -> Mat
+-- petscMatrixMat (PetscMatrix (MIConstNZPR _ _ ) m) = m
+-- petscMatrixMat (PetscMatrix (MIVarNZPR _ _ ) m) = m
 
-validDims0 :: Int -> Int -> Bool
-validDims0 nr nc = nr > 0 && nc > 0 
+
 
 validDims' :: MatrixInfoBase -> Bool
-validDims' mi = validDims0 nr nc
+validDims' mi = nr > 0 && nc > 0
       where (nr, nc) = (matRows &&& matCols) mi
 
-validDims :: MatrixInfo -> Bool
-validDims (MIConstNZPR mi nz) = validDims' mi && nz >= 0 && nz <= matCols mi
-validDims (MIVarNZPR mi nnz) =
-  validDims' mi && V.length nnz == matRows mi && V.all withinCols nnz where
+-- validDims :: MatrixInfo -> Bool
+validDims mi (ConstNZPR (dnz, onz)) =
+  validDims' mi && nz >= 0 && nz <= matCols mi where
+   nz = dnz+onz
+validDims mi (VarNZPR (dnnz, onnz)) =
+  validDims' mi &&
+  -- V.length dnnz == matRows mi &&
+  -- V.length onnz == matCols mi &&
+  V.all withinCols dnnz && V.all withinCols onnz where
     withinCols x = x >= 0 && x <= matCols mi
     
 
