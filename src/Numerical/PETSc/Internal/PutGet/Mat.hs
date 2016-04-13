@@ -243,8 +243,8 @@ matCreateAIJDecideConstNZPR c mm nn dnz onz =
 
 matCreateMPIAIJWithArrays ::
   Comm -> [PetscInt_] -> [PetscInt_] -> [PetscScalar_] -> IO Mat
-matCreateMPIAIJWithArrays comm idxx idxy vals =
-  chk1 (matCreateMPIAIJWithArrays' comm idxx idxy vals)
+matCreateMPIAIJWithArrays c idxx idxy vals =
+  chk1 (matCreateMPIAIJWithArrays' c idxx idxy vals)
 
 
 matCreateMPIAIJWithVectors ::
@@ -253,11 +253,11 @@ matCreateMPIAIJWithVectors ::
   V.Vector Int ->
   V.Vector PetscScalar_ ->
   IO Mat
-matCreateMPIAIJWithVectors comm (m, n) (mm, nn) ix iy ia =
+matCreateMPIAIJWithVectors c (m, n) (mm, nn) ix iy ia =
   VS.unsafeWith ixc $ \ip ->
   VS.unsafeWith iyc $ \jp ->
   VS.unsafeWith iac $ \aap ->
-   chk1 (matCreateMPIAIJWithArrays0' comm m' n' mm' nn' ip jp aap)
+   chk1 (matCreateMPIAIJWithArrays0' c m' n' mm' nn' ip jp aap)
      where
            ixc = V.convert $ V.map toCInt ix :: VS.Vector CInt
            iyc = V.convert $ V.map toCInt iy :: VS.Vector CInt
@@ -304,8 +304,8 @@ withMat mc = bracket mc matDestroy
 withMatCreate :: Comm -> (Mat -> IO a) -> IO a
 withMatCreate comm = withMat (matCreate comm)
 
-withMatAIJDecideConstNZPRCreate comm mm nn dnz onz after =
-  withMat (matCreateAIJDecideConstNZPR comm mm nn dnz onz)
+withMatAIJDecideConstNZPRCreate c mm nn dnz onz after =
+  withMat (matCreateAIJDecideConstNZPR c mm nn dnz onz)
   (\mat -> do
       matSetup mat
       after mat)
@@ -318,7 +318,7 @@ withMatCreateSetup ::
   MatType_ ->
   (Mat -> IO a) ->
   IO a
-withMatCreateSetup comm m n ty after = withMatCreate comm $ \mat -> do
+withMatCreateSetup c m n ty after = withMatCreate c $ \mat -> do
   matSetSizes mat m n
   matSetType mat ty
   matSetup mat
