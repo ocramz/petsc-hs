@@ -200,29 +200,29 @@ getMatCols = matCols . getMatrixInfoBase
 
 matCreate ::
   Comm -> IO Mat
-matCreate comm = chk1 (matCreate' comm)
+matCreate c = chk1 (matCreate' c)
 
 matCreateSeqAIJVarNZPR ::
   Comm -> Int -> Int -> [Int] -> IO Mat
-matCreateSeqAIJVarNZPR comm m n nnz =
-  chk1 (matCreateSeqAIJ1 comm m n nnz)
+matCreateSeqAIJVarNZPR c m n nnz =
+  chk1 (matCreateSeqAIJ1 c m n nnz)
 
 matCreateSeqAIJConstNZPR ::
   Comm -> Int -> Int -> Int -> IO Mat
-matCreateSeqAIJConstNZPR comm m n nz =
-  chk1 (matCreateSeqAIJconstNZperRow1 comm m n nz)
+matCreateSeqAIJConstNZPR c m n nz =
+  chk1 (matCreateSeqAIJconstNZperRow1 c m n nz)
 
 matCreateAIJ :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> PetscInt_ ->
       PetscInt_ -> [PetscInt_] ->
       PetscInt_ -> [PetscInt_] ->
       IO Mat
-matCreateAIJ comm m n mm nn dnz dnnz onz onnz =
-  chk1 ( matCreateAIJ' comm m n mm nn dnz dnnz onz onnz)
+matCreateAIJ c m n mm nn dnz dnnz onz onnz =
+  chk1 ( matCreateAIJ' c m n mm nn dnz dnnz onz onnz)
 
 matCreateAIJDecideV ::
   Comm -> Int -> Int -> Int -> V.Vector Int -> Int -> V.Vector Int -> IO Mat
-matCreateAIJDecideV comm mm nn dnz dnnz onz onnz =
-  chk1 (matCreateAIJDecideVS' comm mmc nnc dnzc dnnz_ onzc onnz_) where
+matCreateAIJDecideV c mm nn dnz dnnz onz onnz =
+  chk1 (matCreateAIJDecideVS' c mmc nnc dnzc dnnz_ onzc onnz_) where
     dnnz_ = V.convert (V.map toCInt dnnz)
     onnz_ = V.convert (V.map toCInt onnz)
     mmc = toCInt mm
@@ -231,8 +231,8 @@ matCreateAIJDecideV comm mm nn dnz dnnz onz onnz =
     onzc = toCInt onz
 
 matCreateAIJDecideConstNZPR :: Comm -> Int -> Int -> Int -> Int -> IO Mat
-matCreateAIJDecideConstNZPR comm mm nn dnz onz =
-  chk1 (matCreateAIJ0DecideConstNZPR' comm mmc nnc dnzc onzc) where
+matCreateAIJDecideConstNZPR c mm nn dnz onz =
+  chk1 (matCreateAIJ0DecideConstNZPR' c mmc nnc dnzc onzc) where
     mmc = toCInt mm
     nnc = toCInt nn
     dnzc = toCInt dnz
