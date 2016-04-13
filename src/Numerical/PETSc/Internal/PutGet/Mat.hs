@@ -340,8 +340,8 @@ withMatNew ::
   InsertMode_ ->                        -- `InsertValues` or `AddValues`
   (Mat -> IO a) ->                      -- bracket body
   IO a 
-withMatNew comm m n ty v_ imode after =
-  withMatCreateSetup comm m n ty $ \mat -> 
+withMatNew c m n ty v_ imode after =
+  withMatCreateSetup c m n ty $ \mat -> 
     withMatSetValueVectorSafe mat m n v_ imode after
 
 
@@ -353,8 +353,8 @@ withMatAIJDecideConstNZPRNew ::
   InsertMode_ ->                       -- InsertValues | AddValues
   (Mat -> IO a) ->                     -- what to do with mat AFTER assembly
   IO a
-withMatAIJDecideConstNZPRNew comm mm nn dnz onz v_ imode after =
-  withMatAIJDecideConstNZPRCreate comm mm nn dnz onz $ \mat ->
+withMatAIJDecideConstNZPRNew c mm nn dnz onz v_ imode after =
+  withMatAIJDecideConstNZPRCreate c mm nn dnz onz $ \mat ->
    withMatSetValueVectorSafe mat mm nn v_ imode after
    
 
