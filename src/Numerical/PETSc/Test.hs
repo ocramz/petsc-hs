@@ -171,12 +171,12 @@ t1 = withPetsc0 t1'
 
 -- | BROKEN : matSetValuesVector passes junk data to C side 
 
-t5''' =
-  withMatSetupSetValuesAssembly
-    (matCreateSeqAIJConstNZPR commWorld 3 3 3) 3 3 vix viy va InsertValues $ \m ->
-       matViewStdout m
+-- t5''' =
+--   withMatSetupSetValuesAssembly
+--     (matCreateSeqAIJConstNZPR commWorld 3 3 3) 3 3 vix viy va InsertValues $ \m ->
+--        matViewStdout m
 
-t5 = withPetsc0 t5'''
+-- t5 = withPetsc0 t5'''
 
 -- t5'' =
 --   withMat (matCreateMPIAIJWithVectors commWorld (3,3) (3,3)  vix viy va) $ \m -> do

@@ -376,24 +376,24 @@ withMatSetValueVectorSafe mat m n v_ imode after = do
 
 
 
-{- -- BROKEN due to matSetValuesVector, see t5 -}
-withMatSetupSetValuesAssembly ::  
-  IO Mat ->
-  Int -> Int ->              -- Mat sizes
-  V.Vector Int ->            -- i indices
-  V.Vector Int ->            -- j " 
-  V.Vector PetscScalar_ ->   -- mat values
-  InsertMode_ ->             
-  (Mat -> IO a) ->
-  IO a
-withMatSetupSetValuesAssembly mc m n ix iy vals imode after =
-  withMat mc $ \mat -> do
-   -- matSetSizes mat m n
-   matSetup mat
-   matSetValuesVectorSafe mat ix iy vals imode      
-   matAssembly mat
-   after mat
-{- -- -}
+-- {- -- BROKEN due to matSetValuesVector, see t5 -}
+-- withMatSetupSetValuesAssembly ::  
+--   IO Mat ->
+--   Int -> Int ->              -- Mat sizes
+--   V.Vector Int ->            -- i indices
+--   V.Vector Int ->            -- j " 
+--   V.Vector PetscScalar_ ->   -- mat values
+--   InsertMode_ ->             
+--   (Mat -> IO a) ->
+--   IO a
+-- withMatSetupSetValuesAssembly mc m n ix iy vals imode after =
+--   withMat mc $ \mat -> do
+--    -- matSetSizes mat m n
+--    matSetup mat
+--    matSetValuesVectorSafe mat ix iy vals imode      
+--    matAssembly mat
+--    after mat
+-- {- -- -}
 
 
 
