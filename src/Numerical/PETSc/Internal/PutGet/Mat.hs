@@ -127,6 +127,14 @@ withPetscMatrix comm m n ixd nz imode matc =
     
 
 
+
+
+
+
+
+
+
+
 -- | predicates
 
 -- | predicates for MatrixData
@@ -540,15 +548,6 @@ matSeqAIJSetPreallocation mat nz nnz = chk0 (matSeqAIJSetPreallocation' mat nz' 
   nz' = toCInt nz 
   nnz' = map toCInt nnz 
 
--- matMPIAIJSetPreallocation0 ::
---   Mat ->
---   CInt ->    -- # nonzeros/row in diagonal block of process-local matrix slice
---   [CInt] ->  -- # " in various rows of diagonal part of "" (alternative to ^)
---   CInt ->    -- # NZ/row in off-diagonal block of local mtx slice
---   [CInt] ->  -- # " in various rows of off-diagonal part of " (alt.to ^)
---   IO ()
--- matMPIAIJSetPreallocation0 mat dnz dnnz onz onnz =
---   chk0 (matMPIAIJSetPreallocation' mat dnz dnnz onz onnz)
 
 matMPIAIJSetPreallocationConstNZPR ::
   Mat ->
@@ -559,8 +558,14 @@ matMPIAIJSetPreallocationConstNZPR mat dnz onz =
   chk0 (matMPIAIJSetPreallocationConstNZPR' mat dnz' onz') where
     (dnz', onz') = both (dnz, onz) toCInt
 
--- matMPIAIJSetPreallocationVarNZPR :: (VG.Vector v Int, VG.Vector v CInt) =>
---      Mat -> v Int -> v Int -> IO ()
+
+matMPIAIJSetPreallocationDiagonal :: Mat -> IO ()
+matMPIAIJSetPreallocationDiagonal mat =
+  matMPIAIJSetPreallocationConstNZPR mat 1 0
+
+
+
+matMPIAIJSetPreallocationVarNZPR :: Mat -> VS.Vector CInt -> VS.Vector CInt -> IO ()
 matMPIAIJSetPreallocationVarNZPR mat dnnz onnz =
   chk0 (matMPIAIJSetPreallocationVarNZPR' mat dnnz onnz)
   -- where
@@ -568,13 +573,11 @@ matMPIAIJSetPreallocationVarNZPR mat dnnz onnz =
   --   onnz' = VG.map toCInt onnz
 
 
-ixs :: (VG.Vector v Int) => Int -> v Int
-ixs n = VG.fromList [0 .. n-1]
 
-onesVG n = VG.fromList (replicate n 1)
-zerosVG n = VG.fromList (replicate n 0)
+-- -- example
+-- matAsdf mat n = matMPIAIJSetPreallocationVarNZPR mat (onesVG n) (zerosVG n)
 
-matAsdf mat n = matMPIAIJSetPreallocationVarNZPR mat (onesVG n) (zerosVG n)
+
 
 
 

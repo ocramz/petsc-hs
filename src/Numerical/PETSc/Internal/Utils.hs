@@ -26,7 +26,7 @@ import Control.Arrow
 -- import GHC.Arr -- Ix
 import qualified Data.Ix as Ix
 import qualified Data.Vector as V
-
+import qualified Data.Vector.Generic as VG
 
 
 
@@ -110,6 +110,17 @@ ifThenElseE :: Bool -> a -> b -> Either a b
 ifThenElseE q a b
   | q = Left a
   | otherwise = Right b
+
+
+
+
+-- * generic Vector: int range, `ones`, `zeros`
+
+-- ixs :: (VG.Vector v Int) => Int -> v Int
+ixs n = VG.fromList [0 .. n-1]
+
+onesVG n = VG.fromList (replicate n 1)
+zerosVG n = VG.fromList (replicate n 0)
 
 
 
