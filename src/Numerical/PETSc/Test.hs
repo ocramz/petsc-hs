@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts, TypeFamilies, MultiParamTypeClasses #-}
+{-# language ParallelListComp #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Test
@@ -451,7 +452,7 @@ t14 = withPetsc0 $ withSlepc0 t13a'
 
 
 
--- | vectorized Mat assembly with matSetValues derivatives
+-- | vectorized Mat assembly with matSetValues 
 
 t15' = withMatCreateSetup cw m n MatAij $ \mat -> do
   matZeroEntries mat
@@ -490,3 +491,8 @@ t17' m = withVecMPIPipeline vinfo
   -- lIn = [0 .. CDouble (fromIntegral m)-1]
 
 t17 = withPetsc0 (t17' 5)
+
+
+-- |
+
+-- kron a b v = [(x,y, z)| x<-a, y<-b | z<-v]

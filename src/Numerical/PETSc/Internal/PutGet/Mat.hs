@@ -441,19 +441,30 @@ matSetValueVectorSafe m (mx, my) v_ mode =
 
 matSetValuesVector1 ::
   Mat ->
-  V.Vector CInt ->
-  V.Vector CInt ->
+  V.Vector IdxRow ->
+  V.Vector IdxCol ->
   V.Vector PetscScalar_ ->
   InsertMode_ ->
+  Int -> 
   IO ()
-matSetValuesVector1 ma ix iy iv im =
-  unsafeWithVS ix $ \ixp ->
-  unsafeWithVS iy $ \iyp ->
+matSetValuesVector1 ma ix iy iv im len =
+  unsafeWithVS ix' $ \ixp ->
+  unsafeWithVS iy' $ \iyp ->
   unsafeWithVS iv $ \ivp -> chk0 (matSetValues0' ma nx ixp ny iyp ivp im)
    where
-     (nx, ny) = both (V.length ix, V.length iy) toCInt
+     -- (nx, ny) = both (V.length ix, V.length iy) toCInt
+     (nx, ny) = both (len, len) toCInt
+     ix' = V.map toCInt ix
+     iy' = V.map toCInt iy
 
-
+matSetValuesVector ::
+  Mat ->
+  V.Vector (IdxRow, IdxCol, PetscScalar_) ->
+  InsertMode_ ->
+  IO ()
+matSetValuesVector m iyv im = matSetValuesVector1 m ix iy iv im l where
+  (ix, iy, iv) = V.unzip3 iyv
+  l = V.length iyv
 
 
 
