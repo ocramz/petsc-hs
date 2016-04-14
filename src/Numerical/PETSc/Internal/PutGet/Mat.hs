@@ -300,17 +300,17 @@ withMat mc = bracket mc matDestroy
 withMatCreate :: Comm -> (Mat -> IO a) -> IO a
 withMatCreate comm = withMat (matCreate comm)
 
-withMatAIJDecideConstNZPRCreate c mm nn dnz onz after =
-  withMat (matCreateAIJDecideConstNZPR c mm nn dnz onz)
-  (\mat -> do
-      matSetup mat
-      after mat)
+-- withMatAIJDecideConstNZPRCreate c mm nn dnz onz after =
+--   withMat (matCreateAIJDecideConstNZPR c mm nn dnz onz)
+--   (\mat -> do
+--       matSetup mat
+--       after mat)
 
--- | withMatCreateSetup : (create, setSizes, setup, <body>, cleanup) bracket
+-- -- | withMatCreateSetup : (create, setSizes, setup, <body>, cleanup) bracket
 withMatCreateSetup ::
   Comm ->
-  Int ->
-  Int ->
+  NumRows ->
+  NumCols ->
   MatType_ ->
   (Mat -> IO a) ->
   IO a
@@ -326,11 +326,11 @@ withMatCreateSetup c m n ty after = withMatCreate c $ \mat -> do
   
 -- -- create, setup AND fill
 
--- | withMatNew :  creation, setup, fill, use, cleanup ; batteries included
+-- -- | withMatNew :  creation, setup, fill, use, cleanup ; batteries included
 withMatNew ::
   Comm ->                               -- MPI communicator
-  Int ->                                -- # rows
-  Int ->                                -- # cols
+  NumRows ->                                -- # rows
+  NumCols ->                                -- # cols
   MatType_ ->
   V.Vector (Int, Int, PetscScalar_) ->  -- (rowIdx, colIdx, value)
   InsertMode_ ->                        -- `InsertValues` or `AddValues`
@@ -341,27 +341,27 @@ withMatNew c m n ty v_ imode after =
     withMatSetValueVectorSafe mat m n v_ imode after
 
 
-withMatAIJDecideConstNZPRNew ::
-  Comm ->
-  Int -> Int ->                        -- # rows, columns
-  Int -> Int ->                        -- # nonzeros: on- and off-diagonal
-  V.Vector (Int, Int, PetscScalar_) -> -- (row, col, value)
-  InsertMode_ ->                       -- InsertValues | AddValues
-  (Mat -> IO a) ->                     -- what to do with mat AFTER assembly
-  IO a
-withMatAIJDecideConstNZPRNew c mm nn dnz onz v_ imode after =
-  withMatAIJDecideConstNZPRCreate c mm nn dnz onz $ \mat ->
-   withMatSetValueVectorSafe mat mm nn v_ imode after
+-- withMatAIJDecideConstNZPRNew ::
+--   Comm ->
+--   Int -> Int ->                        -- # rows, columns
+--   Int -> Int ->                        -- # nonzeros: on- and off-diagonal
+--   V.Vector (Int, Int, PetscScalar_) -> -- (row, col, value)
+--   InsertMode_ ->                       -- InsertValues | AddValues
+--   (Mat -> IO a) ->                     -- what to do with mat AFTER assembly
+--   IO a
+-- withMatAIJDecideConstNZPRNew c mm nn dnz onz v_ imode after =
+--   withMatAIJDecideConstNZPRCreate c mm nn dnz onz $ \mat ->
+--    withMatSetValueVectorSafe mat mm nn v_ imode after
    
 
--- | withMatSetValueVectorSafe :  fill + setup Mat with index bound checks
-withMatSetValueVectorSafe ::
-  Mat ->
-  Int -> Int ->
-  V.Vector (Int, Int, PetscScalar_) ->
-  InsertMode_ ->
-  (Mat -> IO a) ->
-  IO a
+-- -- -- | withMatSetValueVectorSafe :  fill + setup Mat with index bound checks
+-- withMatSetValueVectorSafe ::
+--   Mat ->
+--   Int -> Int ->
+--   V.Vector (Int, Int, PetscScalar_) ->
+--   InsertMode_ ->
+--   (Mat -> IO a) ->
+--   IO a
 withMatSetValueVectorSafe mat m n v_ imode after = do
   matSetValueVectorSafe mat (m, n) v_ imode
   matAssembly mat
@@ -414,14 +414,24 @@ matSetValue ::
 matSetValue m irow icol val mode = chk0 (matSetValueUnsafe' m irow icol val mode)
 
 matSetValueSafe ::
-  Mat -> (Int, Int) -> Int -> Int -> PetscScalar_ -> InsertMode_ -> IO ()
+  Mat ->
+  (NumRows, NumCols) ->
+  IdxRow ->
+  IdxCol ->
+  PetscScalar_ ->
+  InsertMode_ ->
+  IO ()
 matSetValueSafe m (mm, nn) irow icol val mode
   | in0m mm irow && in0m nn icol = matSetValue m irow icol val mode
   | otherwise =
      error $ "matSetValueSafe : index "++ show (irow,icol) ++" out of bounds"
 
 matSetValueVectorSafe ::
-  Mat -> (Int, Int) -> V.Vector (Int, Int, PetscScalar_) -> InsertMode_ -> IO ()
+  Mat ->
+  (NumRows, NumCols) ->
+  V.Vector (IdxRow, IdxCol, PetscScalar_) ->
+  InsertMode_ ->
+  IO ()
 matSetValueVectorSafe m (mx, my) v_ mode =
   V.mapM_ (\(ix,iy,val) -> matSetValueSafe m (mx, my) ix iy val mode) v_
 
@@ -516,8 +526,8 @@ matSetSizes0 ::
   Mat ->
   Int ->            -- # local rows
   Int ->            -- # local columns
-  Int ->            -- # global rows
-  Int ->            -- # global columns
+  NumRows ->            -- # global rows
+  NumCols ->            -- # global columns
   IO ()
 matSetSizes0 mat mloc nloc mm nn =
   chk0 (matSetSizes0' mat mloc nloc mm nn)
@@ -525,8 +535,8 @@ matSetSizes0 mat mloc nloc mm nn =
 
 matSetSizes ::
   Mat ->
-  Int ->            -- # global rows
-  Int ->            -- # global columns
+  NumRows ->            -- # global rows
+  NumCols ->            -- # global columns
   IO ()
 matSetSizes mat m n
   | m > 0 && n > 0 = chk0 (matSetSizes' mat m n)
@@ -562,6 +572,7 @@ matMPIAIJSetPreallocationConstNZPR mat dnz onz =
 matMPIAIJSetPreallocationDiagonal :: Mat -> IO ()
 matMPIAIJSetPreallocationDiagonal mat =
   matMPIAIJSetPreallocationConstNZPR mat 1 0
+
 
 
 
@@ -666,10 +677,10 @@ matGetOwnershipRange m = chk1 (matGetOwnershipRange' m)
 matGetSizeCInt :: Mat -> IO (CInt, CInt)
 matGetSizeCInt m = chk1 (matGetSize' m)
 
-matGetSize :: Mat -> IO (Int, Int)
+matGetSize :: Mat -> IO (NumRows, NumCols)
 matGetSize mat = matGetSizeCInt mat >>= \(m,n) -> return (fi m, fi n)
 
-matGetSizeUnsafe, matSize :: Mat -> (Int, Int)
+matGetSizeUnsafe, matSize :: Mat -> (NumRows, NumCols)
 matGetSizeUnsafe = unsafePerformIO . matGetSize
 
 matSize = matGetSizeUnsafe
@@ -755,6 +766,7 @@ matView0 m v = chk0 (matView' m v)
 
 matView m = V.withPetscViewerTypeFmt P.commWorld ViewerAscii ViewFmtAsciiInfoDetail (matView0 m)
 
+matViewStdout :: Mat -> IO ()
 matViewStdout = matView
 
 

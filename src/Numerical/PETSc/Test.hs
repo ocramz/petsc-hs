@@ -214,12 +214,12 @@ t61' = withMatNew commWorld 3 3 MatAij vi InsertValues $ \m -> -- do
 
 t61 = withPetsc0 t61'
 
-t62' nz = withMatAIJDecideConstNZPRNew commWorld 3 3 nz nz vi InsertValues $ \m -> do
-  matSetType m MatAij
-  matViewStdout m where
-    vi = csrSome3
+-- t62' nz = withMatAIJDecideConstNZPRNew commWorld 3 3 nz nz vi InsertValues $ \m -> do
+--   matSetType m MatAij
+--   matViewStdout m where
+--     vi = csrSome3
 
-t62 = withPetsc0 (t62' 1)
+-- t62 = withPetsc0 (t62' 1)
 
 
 
