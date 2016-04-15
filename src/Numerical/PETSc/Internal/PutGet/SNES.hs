@@ -26,9 +26,9 @@ import Foreign.C.Types
 import System.IO.Unsafe (unsafePerformIO)
 
 import Control.Monad
-import Control.Applicative
-import Control.Arrow
-import Control.Concurrent
+-- import Control.Applicative
+-- import Control.Arrow
+-- import Control.Concurrent
 import Control.Exception
 
 import Control.Monad.ST (ST, runST)

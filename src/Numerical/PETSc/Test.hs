@@ -44,8 +44,8 @@ import Control.Monad.IO.Class
 
 -- | test battery
 
-ts = [t1', t61', t7', t13a']
-testLabels = ["1","61","7","13a"]  --- ugh
+ts = [t1', t61', t61a', t7', t13a']
+testLabels = ["1","61", "61a", "7","13a"]  --- ugh
 
 
 tests = withPetsc0 testActions where
@@ -208,6 +208,16 @@ t61' = withMatNew commWorld 3 3 MatAij vi InsertValues $ \m -> -- do
     vi = csrSome3
 
 t61 = withPetsc0 t61'
+
+
+t61a' = withMatCreateSetup commWorld 3 3 MatAij $ \mat -> do
+  matSeqAIJSetPreallocationConstNZPR mat 3
+  -- matSetup mat
+  matSetValuesVector2 mat vi InsertValues
+  matAssembly mat
+  matViewStdout mat where
+    vi = csrAllNxN_ 3
+
 
 -- t62' nz = withMatAIJDecideConstNZPRNew commWorld 3 3 nz nz vi InsertValues $ \m -> do
 --   matSetType m MatAij
@@ -519,7 +529,7 @@ csrAllNxN_ n = V.zip3 x y a where
   a = V.fromList [0 .. nc^2-1 :: PetscScalar_ ] where
     nc = fromIntegral n
 
-csrSome3 :: V.Vector (Int, Int, PetscScalar_)
+-- csrSome3 :: V.Vector (Int, Int, PetscScalar_)
 csrSome3 = V.zip3 x y a where
   x = V.fromList [2, 0, 1]
   y = V.fromList [1, 1, 2]

@@ -909,14 +909,18 @@ matSetFromOptions p = [C.exp| int{MatSetFromOptions($(Mat p))} |]
 -- -- nnz	- array containing the number of nonzeros in the various rows (possibly different for each row) or NULL
 -- -- -- NB : If nnz is given then nz is ignored
 
-matSeqAIJSetPreallocation' :: Mat -> CInt -> [CInt] -> IO CInt
-matSeqAIJSetPreallocation' mat nz nnz =
-    withArray nnz ( \nnzp ->
+
+matSeqAIJSetPreallocationConstNZPR' :: Mat -> CInt -> IO CInt
+matSeqAIJSetPreallocationConstNZPR' mat nz =
                      [C.exp|int{MatSeqAIJSetPreallocation( $(Mat mat),
                                                            $(int nz),
-                                                           $(int *nnzp))} |]
-                  ) 
+                                                           NULL)} |]
 
+matSeqAIJSetPreallocationVarNZPR' :: Mat -> VS.Vector CInt -> IO CInt
+matSeqAIJSetPreallocationVarNZPR' mat nnz =
+                     [C.exp|int{MatSeqAIJSetPreallocation( $(Mat mat),
+                                                           NULL,
+                                                           $vec-ptr:(int *nnz))} |]
 
 -- PetscErrorCode  MatMPIAIJSetPreallocation(Mat B,PetscInt d_nz,const PetscInt d_nnz[],PetscInt o_nz,const PetscInt o_nnz[])  -- Collective on MPI_Comm
 -- Input Parameters :
@@ -927,41 +931,25 @@ matSeqAIJSetPreallocation' mat nz nnz =
 -- o_nnz	- array containing the number of nonzeros in the various rows of the OFF-DIAGONAL portion of the local submatrix (possibly different for each row) or NULL (PETSC_NULL_INTEGER in Fortran), if o_nz is used to specify the nonzero structure. The size of this array is equal to the number of local rows, i.e 'm'.
 -- If the *_nnz parameter is given then the *_nz parameter is ignored
 
-matMPIAIJsp0' b dnz dnnzp onz onnzp =
-    [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
-                                       $(int dnz),
-                                       $(int* dnnzp),
-                                       $(int onz),
-                                       $(int* onnzp))}|]
 
 -- | ", constant # zeros per row
-matMPIAIJsp0cnzpr' b dnz onz =
-    [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
+
+matMPIAIJSetPreallocationConstNZPR' :: Mat -> CInt -> CInt -> IO CInt
+matMPIAIJSetPreallocationConstNZPR' = [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
                                        $(int dnz),
                                        NULL,
                                        $(int onz),
                                        NULL)}|]
-    
-matMPIAIJsp0vnzpr' b dnnzp onnzp =
-    [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
+
+-- | ", variable # zeros per row
+
+matMPIAIJSetPreallocationVarNZPR' ::
+  Mat -> VS.Vector CInt -> VS.Vector CInt -> IO CInt
+matMPIAIJSetPreallocationVarNZPR' = [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
                                        NULL,
-                                       $(int* dnnzp),
+                                       $vec-ptr:(int* dnnzp),
                                        NULL,
-                                       $(int* onnzp))}|]
-
-matMPIAIJSetPreallocation' :: Mat -> CInt -> [CInt] -> CInt -> [CInt] -> IO CInt
-matMPIAIJSetPreallocation' b dnz dnnz onz onnz =
-  withArray dnnz $ \dnnzp ->
-  withArray onnz $ \onnzp ->
-   matMPIAIJsp0' b dnz dnnzp onz onnzp
-
-matMPIAIJSetPreallocationConstNZPR' :: Mat -> CInt -> CInt -> IO CInt
-matMPIAIJSetPreallocationConstNZPR' = matMPIAIJsp0cnzpr'
-
--- matMPIAIJSetPreallocationVarNZPR' :: Mat -> CInt -> CInt -> IO CInt
-matMPIAIJSetPreallocationVarNZPR' b dnnz onnz =
-  VS.unsafeWith dnnz $ \dnnzp ->
-  VS.unsafeWith onnz $ \onnzp -> matMPIAIJsp0vnzpr' b dnnzp onnzp
+                                       $vec-ptr:(int* onnzp))}|]
 
 
 
@@ -998,19 +986,19 @@ matZeroEntries' mat = [C.exp|int{MatZeroEntries($(Mat mat))}|]
 
 
 
-matSetValues' :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO CInt
-matSetValues' mat idxx idxy b im
-  | compatDim =
-     withArray idxx $ \idxx_ ->
-     withArray idxy $ \idxy_ ->
-     withArray b $ \b_ ->
-     matSetValues0' mat nbx idxx_ nby idxy_ b_ im 
-  | otherwise = error "matSetValues: incompatible dimensions"
-  where
-       nbx = toCInt $ length idxx
-       nby = toCInt $ length idxy
-       nb = toCInt $ length b
-       compatDim = (nbx*nby) == nb
+-- matSetValues' :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO CInt
+-- matSetValues' mat idxx idxy b im
+--   | compatDim =
+--      withArray idxx $ \idxx_ ->
+--      withArray idxy $ \idxy_ ->
+--      withArray b $ \b_ ->
+--      matSetValues0' mat nbx idxx_ nby idxy_ b_ im 
+--   | otherwise = error "matSetValues: incompatible dimensions"
+--   where
+--        nbx = toCInt $ length idxx
+--        nby = toCInt $ length idxy
+--        nb = toCInt $ length b
+--        compatDim = (nbx*nby) == nb
 
 matSetValues0' ::
   Mat -> CInt -> Ptr CInt -> CInt -> Ptr CInt -> Ptr PetscScalar_ -> InsertMode_ -> IO CInt
@@ -1023,11 +1011,23 @@ matSetValues0' mat nbx idxx_ nby idxy_ b_ im =
                                      $(PetscScalar* b_), $(int imm))} |] where
               imm = fromIntegral $ insertModeToInt im
 
-matSetValuesAdd' :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> IO CInt
-matSetValuesAdd' m x y b = matSetValues' m x y b AddValues
+matSetValues0vc' ::
+  Mat -> CInt -> VS.Vector CInt -> CInt -> VS.Vector CInt -> VS.Vector PetscScalar_ -> InsertMode_ -> IO CInt
+matSetValues0vc' mat nbx idxx_ nby idxy_ b_ im =
+           [C.exp|int { MatSetValues($(Mat mat),
+                                     $(int nbx),
+                                     $vec-ptr:(int* idxx_),
+                                     $(int nby),
+                                     $vec-ptr:(int* idxy_),
+                                     $vec-ptr:(PetscScalar* b_), $(int imm))} |] where
+              imm = fromIntegral $ insertModeToInt im
 
-matSetValuesInsert' :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> IO CInt
-matSetValuesInsert' m x y b = matSetValues' m x y b InsertValues
+
+-- matSetValuesAdd' :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> IO CInt
+-- matSetValuesAdd' m x y b = matSetValues' m x y b AddValues
+
+-- matSetValuesInsert' :: Mat -> [CInt] -> [CInt] -> [PetscScalar_] -> IO CInt
+-- matSetValuesInsert' m x y b = matSetValues' m x y b InsertValues
 
 
 

@@ -316,7 +316,7 @@ withMatCreateSetup ::
 withMatCreateSetup c m n ty after = withMatCreate c $ \mat -> do
   matSetSizes mat m n
   matSetType mat ty
-  matSetup mat
+  -- matSetup mat
   after mat         -- set values, assemble can be done here
 
 
@@ -469,6 +469,27 @@ matSetValuesVector m iyv im = matSetValuesVector1 m ix iy iv im l where
 
 
 
+
+-- | matSetValues using inline-c vecCtx
+
+matSetValuesVector2 ::
+  Mat ->
+  V.Vector (Int, Int, PetscScalar_) ->
+  InsertMode_ ->
+  IO ()
+matSetValuesVector2 m iyv imode = chk0 (matSetValues0vc' m nx ix ny iy iv imode) where
+  nx = toCInt l
+  ny = nx
+  l = V.length iyv
+  (ixs, iys, ivs) = V.unzip3 iyv
+  ix = V.convert (VG.map toCInt ixs)
+  iy = V.convert (VG.map toCInt iys)
+  iv = V.convert ivs
+
+
+
+
+
 {-| the matSetValues Vector interface is broken (see t5) -}
 
 {-| -- --     DO NOT USE      -- --  -}
@@ -563,12 +584,20 @@ matSetSizes mat m n
 -- -- NB : if (onnz, dnnz) are specified, (onz,dnz) are ignored
 
 
-matSeqAIJSetPreallocation :: Mat -> Int -> [Int] -> IO ()
-matSeqAIJSetPreallocation mat nz nnz = chk0 (matSeqAIJSetPreallocation' mat nz' nnz') where
-  nz' = toCInt nz 
-  nnz' = map toCInt nnz 
+-- | SEQAIJ
 
 
+matSeqAIJSetPreallocationConstNZPR :: Mat -> Int -> IO ()
+matSeqAIJSetPreallocationConstNZPR mat nz = chk0 (matSeqAIJSetPreallocationConstNZPR' mat nz') where
+  nz' = toCInt nz
+
+matSeqAIJSetPreallocationVarNZPR :: Mat -> VS.Vector Int -> IO ()
+matSeqAIJSetPreallocationVarNZPR mat nnz = chk0 (matSeqAIJSetPreallocationVarNZPR' mat nnz') where
+  nnz' = VG.map toCInt nnz
+  
+  
+
+-- | MPIAIJ 
 matMPIAIJSetPreallocationConstNZPR ::
   Mat ->
   Int ->    -- # nonzeros/row in diagonal block of process-local matrix block
