@@ -57,7 +57,6 @@ import qualified Data.Vector.Generic as VG
 
 
 
-
 -- | a datatype encapsulating matrix information and the typed pointer
 
 data PetscMatrix a = PetscMatrix MatrixInfoBase NZPR (MatrixDataZ a) Mat

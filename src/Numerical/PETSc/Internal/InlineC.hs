@@ -1380,6 +1380,14 @@ matShift' mat s = [C.exp|int{MatShift($(Mat mat),$(PetscScalar s))}|]
 
 -- matSetIdentity mat = matSetDiagonal mat 1.0
 
+-- matSetDiagonal mat val n imm =
+--   [C.block|void{
+--       int i;
+--       for (i=0; i< $(int n); i++){
+--         MatSetValues( $(Mat mat), 1, &i, 1, &i, &$(PetscScalar val), $(int imm));
+--                                  };
+--                                    }|] 
+
 
 
 

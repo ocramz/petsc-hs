@@ -454,19 +454,19 @@ t14 = withPetsc0 $ withSlepc0 t13a'
 
 -- | vectorized Mat assembly with matSetValues 
 
-t15' = withMatCreateSetup cw m n MatAij $ \mat -> do
-  matZeroEntries mat
-  matSetValuesVector1 mat vx vy vv InsertValues
-  matAssembly mat
-  matViewStdout mat
-   where
-     cw = commWorld
-     (m, n) = (3, 3)
-     vx = V.fromList [0,1]
-     vy = V.fromList [1,1]
-     vv = V.fromList [pi , exp 1]
+-- t15' = withMatCreateSetup cw m n MatAij $ \mat -> do
+--   matZeroEntries mat
+--   matSetValuesVector mat vx vy vv InsertValues
+--   matAssembly mat
+--   matViewStdout mat
+--    where
+--      cw = commWorld
+--      (m, n) = (3, 3)
+--      vx = V.fromList [0,1]
+--      vy = V.fromList [1,1]
+--      vv = V.fromList [pi , exp 1]
 
-t15 = withSlepc0 t15'
+-- t15 = withSlepc0 t15'
 
 
 -- | StorableContainer
