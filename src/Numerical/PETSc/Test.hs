@@ -61,7 +61,7 @@ sequence2_ _ _ [] = return ()
 
 prependTestNo = sequence2_ (printTestNo . fst) snd
 
-printTestNo x = putStrLn ("---\nTEST " ++ x ++ "\n---")
+printTestNo x = putStrLn ("\n---\nTEST " ++ x ++ "\n---\n")
 
 -- --
 
