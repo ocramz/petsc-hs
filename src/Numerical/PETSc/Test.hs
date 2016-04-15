@@ -40,35 +40,28 @@ import Control.Monad.IO.Class
 -- import System.IO.Unsafe
 
 
--- --
 
-v0 :: V.Vector PetscScalar_
-v0 = V.fromList [pi .. 10]
 
-lv = V.length v0
+-- | test battery
 
-v0s :: (Storable a, Floating a, Enum a) => VS.Vector a
-v0s = VS.fromList [pi .. 10]
+ts = [t1', t61', t7', t13a']
+testLabels = ["1","61","7","13a"]  --- ugh
 
-vix, viy :: V.Vector Int
-va :: V.Vector PetscScalar_
-vix = V.fromList [0,1,2,0,1,2]
-viy = V.fromList [0,0,0,1,1,1]
-va = V.fromList [0 .. 8]
 
-csrAllNxN_ :: Int -> V.Vector (Int, Int, PetscScalar_)
-csrAllNxN_ n = V.zip3 x y a where
-  x = V.fromList $ concat $ replicate n [0 .. n-1]
-  y = V.fromList $ concatMap (replicate n) [0 .. n-1]
-  a = V.fromList [0 .. nc^2-1 :: PetscScalar_ ] where
-    nc = fromIntegral n
+tests = withPetsc0 testActions
 
-csrSome3 :: V.Vector (Int, Int, PetscScalar_)
-csrSome3 = V.zip3 x y a where
-  x = V.fromList [2, 0, 1]
-  y = V.fromList [1, 1, 2]
-  a = V.fromList [pi, exp 1, sqrt 2]
+testActions = prependTestNo (zip testLabels ts)
 
+
+
+sequence2_ :: Monad m => (t -> m a) -> (t -> m b) -> [t] -> m ()
+sequence2_ f1 f2 (x:xs) = (f1 x >> f2 x) >> sequence2_ f1 f2 xs
+sequence2_ _ _ [] = return ()
+
+
+prependTestNo = sequence2_ (printTestNo . fst) snd
+
+printTestNo x = putStrLn ("---\nTEST " ++ x ++ "\n---")
 
 -- --
 
@@ -496,3 +489,37 @@ t17 = withPetsc0 (t17' 5)
 -- |
 
 -- kron a b v = [(x,y, z)| x<-a, y<-b | z<-v]
+
+
+
+
+-- | test data
+
+-- --
+
+v0 :: V.Vector PetscScalar_
+v0 = V.fromList [pi .. 10]
+
+lv = V.length v0
+
+v0s :: (Storable a, Floating a, Enum a) => VS.Vector a
+v0s = VS.fromList [pi .. 10]
+
+vix, viy :: V.Vector Int
+va :: V.Vector PetscScalar_
+vix = V.fromList [0,1,2,0,1,2]
+viy = V.fromList [0,0,0,1,1,1]
+va = V.fromList [0 .. 8]
+
+csrAllNxN_ :: Int -> V.Vector (Int, Int, PetscScalar_)
+csrAllNxN_ n = V.zip3 x y a where
+  x = V.fromList $ concat $ replicate n [0 .. n-1]
+  y = V.fromList $ concatMap (replicate n) [0 .. n-1]
+  a = V.fromList [0 .. nc^2-1 :: PetscScalar_ ] where
+    nc = fromIntegral n
+
+csrSome3 :: V.Vector (Int, Int, PetscScalar_)
+csrSome3 = V.zip3 x y a where
+  x = V.fromList [2, 0, 1]
+  y = V.fromList [1, 1, 2]
+  a = V.fromList [pi, exp 1, sqrt 2]
