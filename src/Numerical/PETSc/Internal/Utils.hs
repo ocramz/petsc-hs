@@ -266,10 +266,7 @@ fstM :: Monad m => m (a, b) -> m a
 fstM = liftM fst
 
 fst2 :: (a, (b, x)) -> ((a, b), x)
-fst2 x = ((y1, y2), t ) where
-  y1 = fst x
-  y2 = (fst . snd) x
-  t = (snd . snd) x
+fst2 (y1, (y2, t)) = ((y1, y2), t)
 
 fst2M :: Monad m => (a, (b, c)) -> m ((a, b), c)
 fst2M = return . fst2
@@ -304,8 +301,17 @@ both' f =  f *** f
 both :: (a, a) -> (a -> b) -> (b, b)
 both (a, b) f = (f a, f b)
 
+bothFst2 :: (a -> b) -> (a, (a, t)) -> ((b, b), t)
+bothFst2 f (a, (b, c)) = (both t1 f, c) where
+  t1 = (a, b)
+
+-- mapFst2 f g (a, (b, c)) = ((f a, g b), c)
+
+
+
 fmapBoth :: (Functor f) => (a -> b) -> (f a, f a) -> (f b, f b)
 fmapBoth f (a, b) = (fmap f a, fmap f b)
+
 
 -- vFmapBoth f (va, vb) = (V.map f va, V.map f vb)
 

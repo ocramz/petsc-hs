@@ -886,7 +886,6 @@ validDims mi (VarNZPR (dnnz, onnz)) =
   
 
 
--- matGetOwnershipRange m = chk1 ( matGetOwnershipRange1 m ) >>= (`bothM` fi)
   
 
 

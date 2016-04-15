@@ -1126,11 +1126,9 @@ matSetup' a = [C.exp|int{MatSetUp($(Mat a))}|]
 -- PETSC_EXTERN PetscErrorCode MatGetOwnershipRange(Mat,PetscInt*,PetscInt*);
 
 matGetOwnershipRange' :: Mat -> IO ((Int, Int), CInt)
-matGetOwnershipRange' m = do
-  (r2, (r1, e)) <- mgor m
-  return ((fi r2, fi r1), e) where
-    mgor a =
-      withPtr $ \rmin -> 
+matGetOwnershipRange' m = liftM (bothFst2 fi) (mgor m) where
+     mgor a =
+       withPtr $ \rmin -> 
        withPtr $ \rmax ->
        [C.exp|int{MatGetOwnershipRange($(Mat a), $(PetscInt *rmin), $(PetscInt *rmax) )}|]
 

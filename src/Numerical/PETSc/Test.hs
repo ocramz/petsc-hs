@@ -48,9 +48,10 @@ ts = [t1', t61', t7', t13a']
 testLabels = ["1","61","7","13a"]  --- ugh
 
 
-tests = withPetsc0 testActions
-
-testActions = prependTestNo (zip testLabels ts)
+tests = withPetsc0 testActions where
+  testActions = prependTestNo (zip testLabels ts)
+  prependTestNo = sequence2_ (printTestNo . fst) snd
+  printTestNo x = putStrLn ("\n---\nTEST " ++ x ++ "\n---\n")
 
 
 
@@ -59,9 +60,9 @@ sequence2_ f1 f2 (x:xs) = (f1 x >> f2 x) >> sequence2_ f1 f2 xs
 sequence2_ _ _ [] = return ()
 
 
-prependTestNo = sequence2_ (printTestNo . fst) snd
 
-printTestNo x = putStrLn ("\n---\nTEST " ++ x ++ "\n---\n")
+
+
 
 -- --
 
