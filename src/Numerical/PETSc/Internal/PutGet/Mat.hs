@@ -316,7 +316,7 @@ withMatCreateSetup ::
 withMatCreateSetup c m n ty after = withMatCreate c $ \mat -> do
   matSetSizes mat m n
   matSetType mat ty
-  -- matSetup mat
+  matSetup mat
   after mat         -- set values, assemble can be done here
 
 

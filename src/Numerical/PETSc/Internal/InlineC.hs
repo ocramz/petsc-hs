@@ -935,7 +935,7 @@ matSeqAIJSetPreallocationVarNZPR' mat nnz =
 -- | ", constant # zeros per row
 
 matMPIAIJSetPreallocationConstNZPR' :: Mat -> CInt -> CInt -> IO CInt
-matMPIAIJSetPreallocationConstNZPR' = [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
+matMPIAIJSetPreallocationConstNZPR' b dnz onz = [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
                                        $(int dnz),
                                        NULL,
                                        $(int onz),
@@ -945,11 +945,11 @@ matMPIAIJSetPreallocationConstNZPR' = [C.exp|int{MatMPIAIJSetPreallocation($(Mat
 
 matMPIAIJSetPreallocationVarNZPR' ::
   Mat -> VS.Vector CInt -> VS.Vector CInt -> IO CInt
-matMPIAIJSetPreallocationVarNZPR' = [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
+matMPIAIJSetPreallocationVarNZPR' b dnnz onnz = [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
                                        NULL,
-                                       $vec-ptr:(int* dnnzp),
+                                       $vec-ptr:(int* dnnz),
                                        NULL,
-                                       $vec-ptr:(int* onnzp))}|]
+                                       $vec-ptr:(int* onnz))}|]
 
 
 
