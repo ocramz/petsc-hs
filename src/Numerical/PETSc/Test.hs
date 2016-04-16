@@ -42,10 +42,12 @@ import Control.Monad.IO.Class
 
 
 
+
+
 -- | test battery
 
 ts = [t1', t61', t61a', t7', t13a']
-testLabels = ["1","61", "61a", "7","13a"]  --- ugh
+testLabels = ["1", "61", "61a", "7", "13a"]  --- ugh
 
 
 tests = withPetsc0 testActions where
@@ -212,7 +214,6 @@ t61 = withPetsc0 t61'
 
 t61a' = withMatCreateSetup commWorld 3 3 MatAij $ \mat -> do
   matSeqAIJSetPreallocationConstNZPR mat 3
-  -- matSetup mat
   matSetValuesVector2 mat vi InsertValues
   matAssembly mat
   matViewStdout mat where

@@ -1,6 +1,6 @@
 module Main where
 
-import Numerical.PETSc.Test
+import Numerical.PETSc.Spec
 
 main :: IO ()
 main = 
