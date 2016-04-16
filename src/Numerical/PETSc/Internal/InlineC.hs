@@ -1950,10 +1950,6 @@ dmdaSnesSetFunctionLocal' dm imode f ctx =
      where imo = toCInt $ insertModeToInt imode
 
 
--- snesSetFunction0' snes r f ctx =
---   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
---                              $fun:(int (*f)(SNES, Vec, void*) ),
---                              $(void* ctx))}|]
 
 
 

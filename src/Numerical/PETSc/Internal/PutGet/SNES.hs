@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
+{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.PutGet.SNES
@@ -23,25 +23,28 @@ import Numerical.PETSc.Internal.PutGet.Mat
 import Foreign
 import Foreign.C.Types
 
-import System.IO.Unsafe (unsafePerformIO)
+-- import System.IO.Unsafe (unsafePerformIO)
+
+import Data.Functor 
 
 import Control.Monad
+import Control.Monad.IO.Class (liftIO)
 -- import Control.Applicative
 -- import Control.Arrow
 -- import Control.Concurrent
 import Control.Exception
 
-import Control.Monad.ST (ST, runST)
-import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
+-- import Control.Monad.ST (ST, runST)
+-- import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS 
 import qualified Data.Vector.Storable.Mutable as VM
-
+import qualified Data.Vector.Generic as VG
 
 
 snesCreate :: Comm -> IO SNES
-snesCreate comm = chk1 (snesCreate' comm)
+snesCreate c = chk1 (snesCreate' c)
 
 snesDestroy :: SNES -> IO ()
 snesDestroy snes = chk0 (snesDestroy' snes)
@@ -62,11 +65,11 @@ withSnes cf = bracket cf snesDestroy
 --   (SNES -> Vec -> Vec -> IO a) ->
 --   (SNES -> Vec -> Mat -> Mat -> IO b) ->
 --   IO SNES
-snesCreateSetup comm v amat pmat f fj = do
-  s <- snesCreate comm
-  snesSetFunction s v f
-  snesSetJacobian s amat pmat fj
-  return s
+-- snesCreateSetup comm v amat pmat f fj = do
+--   s <- snesCreate comm
+--   snesSetFunction s v f
+--   snesSetJacobian s amat pmat fj
+--   return s
 
 
 
@@ -87,12 +90,12 @@ snesCreateSetup comm v amat pmat f fj = do
 --       ixy = V.zip ix y
 --   vecSetValuesUnsafeVector1A vOut ixy InsertValues
 
-snesFunctionAdapt ::
-  Vec ->
-  Vec ->                 -- SECOND Vec WILL BE MODIFIED
-  (VM.IOVector PetscScalar_ -> VM.IOVector PetscScalar_) ->
-  IO CInt
-snesFunctionAdapt = petscVecVecFunctionAdapt
+-- snesFunctionAdapt ::
+--   Vec ->
+--   Vec ->                 -- SECOND Vec WILL BE MODIFIED
+--   (VM.IOVector PetscScalar_ -> VM.IOVector PetscScalar_) ->
+--   IO CInt
+-- snesFunctionAdapt = petscVecVecFunctionAdapt
 
 
 
@@ -109,8 +112,8 @@ snesFunctionAdapt = petscVecVecFunctionAdapt
 --   (SNES -> Vec -> Mat -> Mat -> IO b) ->
 --   (SNES -> IO c) ->
 --   IO c
-withSnesCreateSetup comm v amat pmat f fj =
-  withSnes (snesCreateSetup comm v amat pmat f fj)
+-- withSnesCreateSetup comm v amat pmat f fj =
+--   withSnes (snesCreateSetup comm v amat pmat f fj)
 
 
 
@@ -128,17 +131,30 @@ withSnesCreateSetup comm v amat pmat f fj =
 --      f'(x) x = -f(x)
 --   where f'(x) denotes the Jacobian matrix and f(x) is the function.
 
--- snesSetFunction ::
---   SNES ->
---   Vec ->        -- r : storage for function value
---     (SNES ->       
---      Vec ->        -- vector at which to compute residual
---      Vec ->        -- residual
---      IO a) -> 
---   IO ()
-snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r f
-  -- where
-  --  g = wrapCb3 f
+
+
+snesSetFunction :: (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
+     SNES ->
+     Vec ->
+     (w PetscScalar_ -> v PetscScalar_) ->
+     IO ()
+snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g
+  where
+   g _snes x y _p = do
+     withVecVector x $ \xv -> do
+       _ <- vecGetVector y
+       vecRestoreVector y (V.convert $ f xv)
+     return (0 :: CInt)
+
+
+
+
+-- fIO :: CDouble -> C.Nag_Integer -> Ptr CDouble -> Ptr CDouble -> Ptr C.Nag_Comm -> IO ()
+--     fIO t n y _yp  _comm = do
+--       yFore <- newForeignPtr_ y
+--       let yVec = VM.unsafeFromForeignPtr0 yFore $ fromIntegral n
+--       ypImm <- f t <$> V.unsafeFreeze yVec
+--       V.copy yVec ypImm
 
 
 -- NB : modifies second Vec argument
@@ -197,7 +213,8 @@ snesLineSearchSetTolerances ::
   PetscReal_ ->
   Int ->
   IO ()
-snesLineSearchSetTolerances ls steptol maxstep rtol atol ltol maxits = chk0 (snesLineSearchSetTolerances' ls steptol maxstep rtol atol ltol maxits)
+snesLineSearchSetTolerances ls steptol maxstep rtol atol ltol maxits =
+  chk0 (snesLineSearchSetTolerances' ls steptol maxstep rtol atol ltol maxits)
 
 
 -- snesLineSearchSetPostCheck ::

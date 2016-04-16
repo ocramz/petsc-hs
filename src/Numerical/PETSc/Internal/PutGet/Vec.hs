@@ -309,6 +309,11 @@ withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
 
 
 
+
+
+
+
+
 -- | assembly 
 
 vecAssemblyBegin, vecAssemblyEnd :: Vec -> IO ()
@@ -374,6 +379,22 @@ withVecNew c v =
 
 
 
+
+
+-- | use a Generic Vector copy of Vec `v`
+
+withVecVector :: VG.Vector w PetscScalar_ =>
+     Vec -> (w PetscScalar_ -> IO a) -> IO a
+withVecVector v io = do
+  vv <- vecGetVector v
+  y <- io (V.convert vv)
+  vecRestoreVector v vv
+  return y
+
+
+-- withVecIOVector v f = do
+--   vv <- vecGetIOVector v
+--   vecRestoreIOVector v (f vv)
 
 
 
@@ -494,65 +515,65 @@ vecSetValuesUnsafeVector1 v ixy =
 
 
     
--- -- 3 vectors : Vec, Vector and Vector of indices
+-- -- -- 3 vectors : Vec, Vector and Vector of indices
 
-assertOtherwise :: Bool -> String -> a -> a
-assertOtherwise q c m | q = m | otherwise = error c
+-- assertOtherwise :: Bool -> String -> a -> a
+-- assertOtherwise q c m | q = m | otherwise = error c
 
-whenEqualInts3 :: Int -> Int -> Int -> String -> a -> a
-whenEqualInts3 l1 l2 l3 = assertOtherwise (l1==l2 && l1==l3)
-
-
--- | index in range of Vec ?
--- validVecIndex :: Vec -> Int -> Bool
--- validVecIndex v = Ix.inRange (0, vecSize v - 1)
+-- whenEqualInts3 :: Int -> Int -> Int -> String -> a -> a
+-- whenEqualInts3 l1 l2 l3 = assertOtherwise (l1==l2 && l1==l3)
 
 
+-- -- | index in range of Vec ?
+-- -- validVecIndex :: Vec -> Int -> Bool
+-- -- validVecIndex v = Ix.inRange (0, vecSize v - 1)
 
 
 
 
-withVecVectorLengths3 :: (VG.Vector v1 a1, VG.Vector v a) =>
-     Vec ->
-     v1 a1 ->
-     v a ->
-     (Vec -> Int -> v1 a1 -> Int -> v a -> Int -> a2) -> 
-     a2
-withVecVectorLengths3 v v2 v3 m =
-  whenEqualInts3 lv lv2 lv3
-    ("withVecVectorLengths3 : length mismatch : " ++
-     show lv ++ ", " ++ show lv2 ++ ", " ++ show lv3)
-    (m v lv v2 lv2 v3 lv3)
-  where
-    lv = vecSize v
-    lv2 = VG.length v2
-    lv3 = VG.length v3
-
-withVecVectorIxPtr :: (VG.Vector v a, VG.Vector vi b, Storable a, Storable b) =>
-  Vec ->         -- Vec
-  v a ->         -- VG.Vector (contents)
-  vi b ->        -- VG.Vector (indices, i.e. b ~ CInt)
-  t ->
-  (Vec -> Int -> Ptr b -> Int -> Ptr a -> Int -> t -> IO c) ->
-  IO c
-withVecVectorIxPtr v y ix im m =
-  withVecVectorLengths3 v ix y $ \vv lvv ixx lix yy lyy -> do
-    let ixc = V.convert ixx           -- position index
-    VS.unsafeWith ixc $ \ixcp -> do
-      let yc = V.convert yy           -- contents
-      VS.unsafeWith yc $ \ycp -> m vv lvv ixcp lix ycp lyy im
 
 
+-- withVecVectorLengths3 :: (VG.Vector v1 a1, VG.Vector v a) =>
+--      Vec ->
+--      v1 a1 ->
+--      v a ->
+--      (Vec -> Int -> v1 a1 -> Int -> v a -> Int -> a2) -> 
+--      a2
+-- withVecVectorLengths3 v v2 v3 m =
+--   whenEqualInts3 lv lv2 lv3
+--     ("withVecVectorLengths3 : length mismatch : " ++
+--      show lv ++ ", " ++ show lv2 ++ ", " ++ show lv3)
+--     (m v lv v2 lv2 v3 lv3)
+--   where
+--     lv = vecSize v
+--     lv2 = VG.length v2
+--     lv3 = VG.length v3
+
+-- withVecVectorIxPtr :: (VG.Vector v a, VG.Vector vi b, Storable a, Storable b) =>
+--   Vec ->         -- Vec
+--   v a ->         -- VG.Vector (contents)
+--   vi b ->        -- VG.Vector (indices, i.e. b ~ CInt)
+--   t ->
+--   (Vec -> Int -> Ptr b -> Int -> Ptr a -> Int -> t -> IO c) ->
+--   IO c
+-- withVecVectorIxPtr v y ix im m =
+--   withVecVectorLengths3 v ix y $ \vv lvv ixx lix yy lyy -> do
+--     let ixc = V.convert ixx           -- position index
+--     VS.unsafeWith ixc $ \ixcp -> do
+--       let yc = V.convert yy           -- contents
+--       VS.unsafeWith yc $ \ycp -> m vv lvv ixcp lix ycp lyy im
 
 
-vecSetValuesRange :: Vec -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
-vecSetValuesRange v y im = do
-  let ix = V.fromList [0 .. toCInt ly-1]
-  withVecVectorIxPtr v y ix im $ \vv _ ixp _ yp _ imm ->
-    chk0 (vecSetValues' vv (toCInt lv) ixp yp imm)
-  where
-    lv = vecSize v
-    ly = V.length y
+
+
+-- vecSetValuesRange :: Vec -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
+-- vecSetValuesRange v y im = do
+--   let ix = V.fromList [0 .. toCInt ly-1]
+--   withVecVectorIxPtr v y ix im $ \vv _ ixp _ yp _ imm ->
+--     chk0 (vecSetValues' vv (toCInt lv) ixp yp imm)
+--   where
+--     lv = vecSize v
+--     ly = V.length y
 
   
 
@@ -787,6 +808,8 @@ withVG v f = do
   fromMutableV (f x)
 
 
+
+
 modifyVec ::
   (VG.Vector v PetscScalar_) =>
   Vec ->
@@ -814,6 +837,7 @@ vecRestoreIOVector :: Vec -> VM.IOVector PetscScalar_  -> IO ()
 vecRestoreIOVector v iov = do
   x <- fromMutableV iov
   vecRestoreVector v x
+
 
 
 

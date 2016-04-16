@@ -399,18 +399,32 @@ liftF1' f get set b = get b >>= \x -> set b (f x)
 
 -- maybe a GADT would look better here? 
 
+lanp1 :: (t1 -> Ptr a -> t) -> t1 -> t
 lanp1 f x = f x nullPtr
+
+lanp2 :: (t1 -> t2 -> Ptr a -> t) -> t1 -> t2 -> t
 lanp2 f x y = f x y nullPtr
+
+lanp3 :: (t1 -> t2 -> t3 -> Ptr a -> t) -> t1 -> t2 -> t3 -> t
 lanp3 f x y z = f x y z nullPtr
+
+lanp4 :: (t1 -> t2 -> t3 -> t4 -> Ptr a -> t) -> t1 -> t2 -> t3 -> t4 -> t
 lanp4 f a b c d = f a b c d nullPtr
 lanp5 f a b c d e = f a b c d e nullPtr
 lanp6 f a b c d e x = f a b c d e x nullPtr
 
 -- | forget last arg of function and return (0 :: CInt) . Really
 
-wrapCb1 f x = return0 (lanp1 f x)
-wrapCb2 f x y = return0 (lanp2 f x y)
-wrapCb3 f x y z = return0 (lanp3 f x y z)
+-- wrapCb1 :: Monad m => (t -> Ptr a1 -> m a) -> t -> m CInt
+wrapCb1 x f = return0 (lanp1 f x)
+
+-- wrapCb2 :: Monad m => (t -> t1 -> Ptr a1 -> m a) -> t -> t1 -> m CInt
+wrapCb2 x y f = return0 (lanp2 f x y)
+
+-- wrapCb3 :: Monad m => (t -> t1 -> t2 -> Ptr a1 -> m a) -> t -> t1 -> t2 -> m CInt
+wrapCb3 x y z f = return0 (lanp3 f x y z)
+
+-- wrapCb4 :: Monad m => (t -> t1 -> t2 -> t3 -> Ptr a1 -> m a) -> t -> t1 -> t2 -> t3 -> m CInt
 wrapCb4 f x y z w = return0 (lanp4 f x y z w)
 wrapCb5 f x y z w a = return0 (lanp5 f x y z w a)
 wrapCb6 f x y z w a b = return0 (lanp6 f x y z w a b)
