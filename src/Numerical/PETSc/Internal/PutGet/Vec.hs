@@ -787,6 +787,9 @@ vecRestoreVector v =
 
 -- | Vec -> Vector.Generic
 
+vecCopyVector ::
+  VG.Vector w PetscScalar_ =>
+  Vec -> IO (w PetscScalar_)
 vecCopyVector v = do
   vc <- vecGetVector v
   vecRestoreVector v vc
