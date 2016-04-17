@@ -167,28 +167,28 @@ snesComputeFunction snes x y = chk0 $ snesComputeFunction' snes x y
 
 
 
--- snesSetJacobian :: -- (VG.Vector w PetscScalar_, VG.Vector v PetscScalar_) =>
---   SNES ->
---   Mat ->        -- amat : storage for approximate Jacobian
---   Mat ->        -- pmat : storage for preconditioner (usually == amat)
---   -- (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
---   (V.Vector Double -> V.Vector Double) ->
---     -- (SNES ->       
---     --  Vec ->        -- vector at which to compute Jacobian
---     --  Mat ->        
---     --  Mat ->
---     --  IO a) ->
---   IO ()
-snesSetJacobian snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat gj
-  where
-    gj _snes x jac jacp = do
-      -- withVecVector x $ \xv -> do
-      xv <- vecCopyVector x
-      let (m, n) = matSize jac
-          -- vvJac :: V.Vector (Int, Int, PetscScalar_)
-          vvJac  = vvToCSR (AD.jacobian f xv)
-      withMatSetValueVectorSafe jac m n vvJac InsertValues return
-      return (0 :: CInt)
+-- -- snesSetJacobian :: -- (VG.Vector w PetscScalar_, VG.Vector v PetscScalar_) =>
+-- --   SNES ->
+-- --   Mat ->        -- amat : storage for approximate Jacobian
+-- --   Mat ->        -- pmat : storage for preconditioner (usually == amat)
+-- --   -- (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+-- --   (V.Vector Double -> V.Vector Double) ->
+-- --     -- (SNES ->       
+-- --     --  Vec ->        -- vector at which to compute Jacobian
+-- --     --  Mat ->        
+-- --     --  Mat ->
+-- --     --  IO a) ->
+-- --   IO ()
+-- snesSetJacobian snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat gj
+--   where
+--     gj _snes x jac jacp = do
+--       -- withVecVector x $ \xv -> do
+--       xv <- vecCopyVector x
+--       let (m, n) = matSize jac
+--           -- vvJac :: V.Vector (Int, Int, PetscScalar_)
+--           vvJac  = vvToCSR (AD.jacobian f xv)
+--       withMatSetValueVectorSafe jac m n vvJac InsertValues return
+--       return (0 :: CInt)
 
 
 {- Internal/Sparse :
