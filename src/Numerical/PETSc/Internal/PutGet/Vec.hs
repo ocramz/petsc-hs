@@ -381,15 +381,17 @@ withVecNew c v =
 
 
 
--- | use a Generic Vector copy of Vec `v`
+-- | use a Generic Vector copy of Vec `v` (does NOT modify `v`)
 
-withVecVector :: VG.Vector w PetscScalar_ =>
-     Vec -> (w PetscScalar_ -> IO a) -> IO a
+-- withVecVector :: VG.Vector w PetscScalar_ =>
+--      Vec -> (w PetscScalar_ -> IO a) -> IO a
 withVecVector v io = do
   vv <- vecGetVector v
   y <- io (V.convert vv)
   vecRestoreVector v vv
-  return y
+  return y -- (y :: V.Vector PetscScalar_)
+
+
 
 
 -- withVecIOVector v f = do
@@ -444,12 +446,12 @@ vecSetValuesUnsafe0 ::
   Vec -> CInt -> Ptr CInt -> Ptr PetscScalar_ -> InsertMode_ -> IO ()
 vecSetValuesUnsafe0 v ni ix y im = chk0 (vecSetValues' v ni ix y im)
 
-vecSetValuesUnsafe :: Vec -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO ()
-vecSetValuesUnsafe v ix y im =
-  withArray ix $ \ixx ->
-   withArray y $ \yy -> chk0 $ vecSetValues' v ni ixx yy im 
-  where
-  ni = toCInt $ length ix
+-- vecSetValuesUnsafe :: Vec -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO ()
+-- vecSetValuesUnsafe v ix y im =
+--   withArray ix $ \ixx ->
+--    withArray y $ \yy -> chk0 $ vecSetValues' v ni ixx yy im 
+--   where
+--   ni = toCInt $ length ix
 
 -- vecSetValuesSafe :: Vec -> [Int] -> [PetscScalar_] -> InsertMode_ -> IO ()
 -- vecSetValuesSafe = safeInsertIndicesVec vsvu
@@ -780,6 +782,15 @@ vecRestoreVector :: Vec -> VS.Vector PetscScalar_ -> IO ()
 vecRestoreVector v =
    vecRestoreVectorN v (vecSize v)
 
+
+
+
+-- | Vec -> Vector.Generic
+
+vecCopyVector v = do
+  vc <- vecGetVector v
+  vecRestoreVector v vc
+  return (V.convert vc)
 
 
 

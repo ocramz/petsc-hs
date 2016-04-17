@@ -96,11 +96,21 @@ data SV a = SV { spVectorDim :: Int ,
 
 data CSR a = CSR { csrNrows :: Int,
                    csrNcols :: Int,
-                   csr :: V.Vector ((Int, Int), a) }
+                   csr :: V.Vector (Int, Int, a) }
 
 
 
 
 
+-- |
 
+llToCSR :: [[c]] -> [(Int, Int, c)]
+llToCSR u = go (0 :: Int) u where
+  m = length (head u)
+  go j (v:vs) = zip3 irows (replicate m j) v ++ go (j+1) vs where
+    irows = [0..m-1]
+  go _ [] = []
+
+vvToCSR :: V.Vector (V.Vector c) -> V.Vector (Int, Int, c)
+vvToCSR vv = V.fromList (llToCSR (V.toList (V.map V.toList vv)))
 
