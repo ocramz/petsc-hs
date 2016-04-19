@@ -52,28 +52,28 @@ instance Container [e] where
 -- -- type SCDim : container dimensions: 1D Int, 2D (Int, Int), ...
 
 
-class SContainer c where
-  type SIdx c
-  type SCe c
-  type SCDim c
-  scIdxValid :: SCDim c -> SIdx c -> Bool
-  scBuild :: SCDim c ->
-             V.Vector (SIdx c) ->
-             V.Vector (SCe c) ->
-             V.Vector (SIdx c, SCe c)
-  -- scBuild d vi ve | q i = V.cons (i, e) (scBuild d vis ves) -- FIXME broken
-  --              | otherwise = scBuild d vis ves 
-  --    where i = V.head vi 
-  --          e = V.head ve 
-  --          vis = V.tail vi
-  --          ves = V.tail ve
-  --          q = scIdxValid d 
+-- class SContainer c where
+--   type SIdx c
+--   type SCe c
+--   type SCDim c
+--   scIdxValid :: SCDim c -> SIdx c -> Bool
+--   scBuild :: SCDim c ->
+--              V.Vector (SIdx c) ->
+--              V.Vector (SCe c) ->
+--              V.Vector (SIdx c, SCe c)
+--   -- scBuild d vi ve | q i = V.cons (i, e) (scBuild d vis ves) -- FIXME broken
+--   --              | otherwise = scBuild d vis ves 
+--   --    where i = V.head vi 
+--   --          e = V.head ve 
+--   --          vis = V.tail vi
+--   --          ves = V.tail ve
+--   --          q = scIdxValid d 
 
-instance SContainer (SV x) where
-  type SIdx (SV x) = Int
-  type SCe (SV x) = x
-  type SCDim (SV x) = Int
-  scIdxValid d i = i >= 0 && i <= d
+-- instance SContainer (SV x) where
+--   type SIdx (SV x) = Int
+--   type SCe (SV x) = x
+--   type SCDim (SV x) = Int
+--   scIdxValid d i = i >= 0 && i <= d
 
 
 
