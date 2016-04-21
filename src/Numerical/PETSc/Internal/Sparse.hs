@@ -18,11 +18,17 @@ import Numerical.PETSc.Internal.Types
 import Data.Functor
 import Control.Monad
 
+import Data.Ix
+
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as VG
 
 import Foreign.C.Types
 
+
+
+
+-- |
 
 
 

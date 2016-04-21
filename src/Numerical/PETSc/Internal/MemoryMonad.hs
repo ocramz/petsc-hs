@@ -43,7 +43,7 @@ import Foreign.Storable
 
 
 
-asdfm = M.managed
+-- asdfm = M.managed
 
 
  

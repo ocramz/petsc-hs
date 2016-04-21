@@ -30,6 +30,13 @@ step3:
 	ghci ${SRCDIR}/Spec.hs ${SRCDIR}/Internal/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal.o -isrc/ -L${PETSC_DIR_ARCH}/lib -L${SLEPC_DIR_ARCH}/lib -lpetsc -lmpich -lslepc
 
 
+step_test:
+	ghci ${SRCDIR}/Test.hs ${SRCDIR}/Internal/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal.o -isrc/ -L${PETSC_DIR_ARCH}/lib -L${SLEPC_DIR_ARCH}/lib -lpetsc -lmpich -lslepc
+
+
+tests:
+	make step_test
+
 
 reload:
 	make step3
