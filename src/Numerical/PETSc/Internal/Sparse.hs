@@ -18,6 +18,7 @@ import Numerical.PETSc.Internal.Types
 import Data.Functor
 import Control.Monad
 
+import Data.Traversable
 import Data.Ix
 
 import qualified Data.Vector as V
@@ -28,7 +29,37 @@ import Foreign.C.Types
 
 
 
--- |
+-- | `IsSparseList`, inspired by `IsList` in Base
+
+
+-- class IsSparseList l where
+--   type SpIx l   -- e.g. Int, or (Int, Int) or Ix i => i
+--   fromSparseList :: [SpIx l] -> l
+--   fromSparseListN :: Int -> [SpIx l] -> l -- first arg: list length
+--   toSparseList :: l -> [SpIx l]
+  
+class Traversable t => IsSparseTraversable t l a where
+  type SpTIx l
+  fromSparseTraversable :: t (SpTIx l, a) -> l
+  fromSparseTraverableN :: Int -> t (SpTIx l, a) -> l
+  toSparseTraversable :: l -> t (SpTIx l, a) -> l
+  
+
+-- instance IsSparseTraversable [] [a] a where -- ewww
+
+
+
+-- | from Data.Vector.Generic
+
+-- type family Mutable (v :: * -> *) :: * -> * -> *
+
+-- class MVector v a where
+--   -- | Length of the mutable vector. This method should not be
+--   -- called directly, use 'length' instead.
+--   basicLength       :: v s a -> Int
+
+-- class MVector (Mutable v) a => Vect v a where -- Vector from Data.Vector.Generic.Base
+--   basicUnsafeFreeze :: PrimMonad m => Mutable v (PrimState m) a -> m (v a)
 
 
 

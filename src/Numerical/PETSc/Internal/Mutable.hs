@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiParamTypeClasses, KindSignatures, TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.Petsc.Internal.Mutable
@@ -18,16 +18,41 @@ import Control.Concurrent.STM
 import Control.Monad
 import Control.Monad.ST (runST, ST)
 
-import Data.IORef
 import Foreign.Storable
 
-
-  
-
+import qualified Control.Monad.Primitive as P
 
 
 
 
+type family MutContainer (mc :: * -> *) :: * -> * -> *
+
+
+class MContainer c a where
+  type MCSize c
+  type MCIdx c
+  basicSize :: c s a -> MCSize c
+  basicUnsafeSlice :: MCIdx c -> MCIdx c -> c s a -> c s a
+  -- basicUnsafeThaw :: P.PrimMonad m => c s a -> m (MutContainer c (P.PrimState m) a)
+  basicInitialize :: P.PrimMonad m => c (P.PrimState m) a -> m ()
+  -- | Yield the element at the given position. This method should not be
+  -- called directly, use 'unsafeRead' instead.
+  basicUnsafeRead  :: P.PrimMonad m => c (P.PrimState m) a -> MCIdx c -> m a
+
+  -- | Replace the element at the given position. This method should not be
+  -- called directly, use 'unsafeWrite' instead.
+  basicUnsafeWrite :: P.PrimMonad m => c (P.PrimState m) a -> MCIdx c -> a -> m ()
+
+-- instance G.Vector Vector a where
+--   basicUnsafeFreeze (MVector i n marr)
+--     = Vector i n `liftM` unsafeFreezeArray marr
+--   basicUnsafeThaw (Vector i n arr)
+--     = MVector i n `liftM` unsafeThawArray arr
+--   basicLength (Vector _ n _) = n
+--   basicUnsafeSlice j n (Vector i _ arr) = Vector (i+j) n arr
+--   basicUnsafeIndexM (Vector i _ arr) j = indexArrayM arr (i+j)
+--   basicUnsafeCopy (MVector i n dst) (Vector j _ src)
+--     = copyArray dst i src j n
 
 
 
