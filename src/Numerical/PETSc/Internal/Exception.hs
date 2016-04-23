@@ -105,13 +105,15 @@ petscErrCodeFromInt n =
             _  -> UndefinedException -- WATCH OUT HERE
 
 
-errCodeInRange :: CInt -> Bool
-errCodeInRange n = (n < maxErrCode && n >= minErrCode) || n == 0 || n==256 || n==8288 where
-  maxErrCode = 90
-  minErrCode = 55
+knownErrCode :: CInt -> Bool
+knownErrCode n =
+  (n < maxErrCode && n >= minErrCode) || safeErrCodes n
+  where
+    maxErrCode = 90
+    minErrCode = 55
 
 unforeseenErrCodeStr :: CInt -> String
-unforeseenErrCodeStr e = "unforeseen case : " ++
+unforeseenErrCodeStr e = "unforeseen error code : " ++
                        show e ++
                        "\nPlease file a bug report"
 
@@ -128,13 +130,13 @@ throwPetscException n = throwIO (petscErrCodeFromInt n)
 bracketChk :: IO (a, CInt) -> (a -> IO CInt) -> (a -> IO c) -> IO c
 bracketChk a o = bracket (chk1 a) (chk0 . o)  
 
-
-safeErrCodes e = e `elem` [0, 256] || e==8288
+safeErrCodes :: CInt -> Bool
+safeErrCodes e = e `elem` [0, 256, 8288]
 
 chk1 :: IO (a, CInt) -> IO a
 chk1 act = do
   (v, e) <- act
-  not (errCodeInRange e) ~!~ unforeseenErrCodeStr e
+  not (knownErrCode e) ~!~ unforeseenErrCodeStr e
   if safeErrCodes e  -- safe error codes
     then return v
     else throwPetscException e
@@ -142,7 +144,7 @@ chk1 act = do
 chk0 :: IO CInt -> IO ()
 chk0 act = do
   e <- act
-  not (errCodeInRange e) ~!~ unforeseenErrCodeStr e
+  not (knownErrCode e) ~!~ unforeseenErrCodeStr e
   unless (safeErrCodes e) (throwPetscException e)
 
 
