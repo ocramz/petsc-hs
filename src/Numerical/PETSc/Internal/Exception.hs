@@ -48,7 +48,13 @@ instance Exception IndexErrCode_
 
 
 
+
 -- | Petsc error codes and strings (from $PETSC/src/sys/error/err.c )
+
+data PetscSafeErrCode_ = NoError0 | NoError256 | NoError8288
+                       deriving (Eq, Show, Typeable)
+instance Exception PetscSafeErrCode_
+
 
 data PetscErrCode_ =
   OutOfMemory | UnsupportedOperOnThisType | UnsupportedOperOnThisSystem | WrongOperationOrder | SignalReceived
@@ -61,7 +67,7 @@ data PetscErrCode_ =
   | UnexpectedDataInFile | ArgsMustBeOnSameComm
   | ZeroPivotInCholeskyFact | OverflowIntegerOper | ValidPointerExpected
   | UnknownType | NotUsed
-  | SysCallError | ObjTypeNotSet | NoError | UndefinedException
+  | SysCallError | ObjTypeNotSet | UndefinedException
   deriving (Eq, Show, Typeable)
 
 instance Exception PetscErrCode_
@@ -100,17 +106,35 @@ petscErrCodeFromInt n =
             87 -> NotUsed
             88 -> SysCallError
             89 -> ObjTypeNotSet
-            0  -> NoError
-            -- n  -> ErrorCall $ show n
             _  -> UndefinedException -- WATCH OUT HERE
 
+-- type PetscResult a = Either PetscErrCode_ a
 
-knownErrCode :: CInt -> Bool
-knownErrCode n =
-  (n < maxErrCode && n >= minErrCode) || safeErrCodes n
+type PetscOutcome = Either PetscErrCode_ PetscSafeErrCode_ 
+
+
+petscSafeErrCodeFromInt :: CInt -> PetscSafeErrCode_
+petscSafeErrCodeFromInt n = case n of 0 -> NoError0
+                                      256 -> NoError256
+                                      8288 -> NoError8288
+
+petscOutcome :: CInt -> Either PetscErrCode_ PetscSafeErrCode_
+petscOutcome n | safeErrCodes n = Right x
+               | errCodeInBounds n = Left e
+               | otherwise = error (unforeseenErrCodeStr n)
+  where
+    e = petscErrCodeFromInt n
+    x = petscSafeErrCodeFromInt n
+
+
+errCodeInBounds n =   (n < maxErrCode && n >= minErrCode) 
   where
     maxErrCode = 90
     minErrCode = 55
+
+knownErrCode :: CInt -> Bool
+knownErrCode n = errCodeInBounds n || safeErrCodes n
+
 
 unforeseenErrCodeStr :: CInt -> String
 unforeseenErrCodeStr e = "unforeseen error code : " ++
@@ -130,6 +154,7 @@ throwPetscException n = throwIO (petscErrCodeFromInt n)
 bracketChk :: IO (a, CInt) -> (a -> IO CInt) -> (a -> IO c) -> IO c
 bracketChk a o = bracket (chk1 a) (chk0 . o)  
 
+-- | no exceptions will be raised for these error codes
 safeErrCodes :: CInt -> Bool
 safeErrCodes e = e `elem` [0, 256, 8288]
 
@@ -137,7 +162,7 @@ chk1 :: IO (a, CInt) -> IO a
 chk1 act = do
   (v, e) <- act
   not (knownErrCode e) ~!~ unforeseenErrCodeStr e
-  if safeErrCodes e  -- safe error codes
+  if safeErrCodes e  
     then return v
     else throwPetscException e
 
