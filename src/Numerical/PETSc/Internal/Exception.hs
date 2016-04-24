@@ -127,7 +127,29 @@ petscOutcome n | safeErrCodes n = Right x
     x = petscSafeErrCodeFromInt n
 
 
-errCodeInBounds n =   (n < maxErrCode && n >= minErrCode) 
+chk1 :: IO (b, CInt) -> IO b
+chk1 act = do
+  (o, ec) <- act
+  let e = petscOutcome ec
+  throwLefts o e
+
+chk0 act = do
+  ec <- act
+  let e = petscOutcome ec
+  throwLefts_ e
+
+throwLefts _ (Left el) = throwIO el
+throwLefts o (Right _) = return o
+
+throwLefts_ (Left el) = throwIO el
+throwLefts_ _ = return ()
+
+
+  
+
+
+errCodeInBounds :: CInt -> Bool
+errCodeInBounds n = n < maxErrCode && n >= minErrCode
   where
     maxErrCode = 90
     minErrCode = 55
@@ -158,19 +180,21 @@ bracketChk a o = bracket (chk1 a) (chk0 . o)
 safeErrCodes :: CInt -> Bool
 safeErrCodes e = e `elem` [0, 256, 8288]
 
-chk1 :: IO (a, CInt) -> IO a
-chk1 act = do
-  (v, e) <- act
-  not (knownErrCode e) ~!~ unforeseenErrCodeStr e
-  if safeErrCodes e  
-    then return v
-    else throwPetscException e
 
-chk0 :: IO CInt -> IO ()
-chk0 act = do
-  e <- act
-  not (knownErrCode e) ~!~ unforeseenErrCodeStr e
-  unless (safeErrCodes e) (throwPetscException e)
+
+-- chk1 :: IO (a, CInt) -> IO a
+-- chk1 act = do
+--   (v, e) <- act
+--   not (knownErrCode e) ~!~ unforeseenErrCodeStr e
+--   if safeErrCodes e  
+--     then return v
+--     else throwPetscException e
+
+-- chk0 :: IO CInt -> IO ()
+-- chk0 act = do
+--   e <- act
+--   not (knownErrCode e) ~!~ unforeseenErrCodeStr e
+--   unless (safeErrCodes e) (throwPetscException e)
 
 
 
