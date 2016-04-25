@@ -16,10 +16,13 @@ module Numerical.PETSc.Internal.Sparse where
 import Numerical.PETSc.Internal.Types
 
 import Data.Functor
+import Control.Applicative
 import Control.Monad
 
+import Data.Foldable
 import Data.Traversable
 import Data.Ix
+import qualified Data.IntMap as IM
 
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as VG
@@ -31,6 +34,56 @@ import Foreign.C.Types
 
 -- | `IsSparseList`, inspired by `IsList` in Base
 
+-- class IsSparse s a where
+--   type SpIx s :: *
+--   fromSparse :: t (SpIx s, a) -> t a
+--   toSparse :: Int -> t a -> t (SpIx s, a)
+
+
+
+-- IntMap a -> V.Vector (ix, a)
+asdfI :: IM.IntMap a -> V.Vector (IM.Key, a)
+asdfI = V.fromList . IM.toList
+
+mapMapWithKeys f = IM.mapWithKey $ \i ro ->
+  IM.mapWithKey (f i) ro
+
+traverse2 f = IM.traverseWithKey $ \i row ->
+  IM.traverseWithKey (f i) row 
+
+
+imInsert20 i l = IM.insert i (IM.fromList l)
+
+imInsert21 l = IM.fromList 
+
+
+-- | IntMap (IntMap a) -> V.Vector (ixy, ixy, a)
+-- imm2v f = 
+
+-- | " reverse :
+-- | V.Vector (ix, iy, a) -> IntMap (IntMap a)
+-- v2i f = V.map $ \(i, j, x) -> 
+--   IM.insert i
+
+
+-- insertImm i j x imm = IM.insert j (IM.insert i x imm)
+
+
+
+toSparseList ::
+  (Ix i, Num i, Applicative f) =>
+  i ->
+  (i -> a -> f b) ->
+  [(i, a)] ->
+  f ()
+toSparseList imax f = traverse_ (uncurry fm) where
+  fm i v | inRange (0, imax-1) i = f i v
+
+toSV = SV
+assembleFromSV (SV imax v) f = toSparseList imax f (V.toList v)
+
+
+-- toSV isize f = SV isize (V.fromList $ toSparseList isize f)
 
 -- class IsSparseList l where
 --   type SpIx l   -- e.g. Int, or (Int, Int) or Ix i => i
@@ -38,11 +91,7 @@ import Foreign.C.Types
 --   fromSparseListN :: Int -> [SpIx l] -> l -- first arg: list length
 --   toSparseList :: l -> [SpIx l]
   
-class Traversable t => IsSparseTraversable t l a where
-  type SpTIx l
-  fromSparseTraversable :: t (SpTIx l, a) -> l
-  fromSparseTraverableN :: Int -> t (SpTIx l, a) -> l
-  toSparseTraversable :: l -> t (SpTIx l, a) -> l
+
   
 
 -- instance IsSparseTraversable [] [a] a where -- ewww

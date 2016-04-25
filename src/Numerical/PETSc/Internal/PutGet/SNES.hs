@@ -158,6 +158,16 @@ snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g
 --       V.copy yVec ypImm
 
 
+-- blap :: (AD.Reverse s a, Floating a) => ([a] -> a) -> [a] -> [a]
+-- blap f x = AD.grad f x
+
+-- f0 [x,y] = x**2 + exp(- y)
+-- gf0 = AD.grad f0
+
+-- gf1 :: forall a. Floating a => ([a] -> a) -> [a] -> [a]
+-- gf1 = AD.grad
+
+
 -- NB : modifies second Vec argument
 snesComputeFunction :: SNES -> Vec -> Vec -> IO ()
 snesComputeFunction snes x y = chk0 $ snesComputeFunction' snes x y

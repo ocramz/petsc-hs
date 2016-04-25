@@ -100,10 +100,10 @@ petscMatrixCreate
      -> InsertMode_
      -> (Comm -> NumRows -> NumCols -> NZPR -> IO Mat)  -- Mat creation routine
      -> IO (PetscMatrix PetscScalar_)
-petscMatrixCreate comm m n ixd nz imode matc = do
-  let mib = MatrixInfoBase comm m n
+petscMatrixCreate c m n ixd nz imode matc = do
+  let mib = MatrixInfoBase c m n
       mixd = MatrixDataZ ixd
-  mat <- matc comm m n nz
+  mat <- matc c m n nz
   matSetValueVectorSafe mat (m, n) ixd imode
   matAssembly mat
   let pm = PetscMatrix mib nz mixd mat

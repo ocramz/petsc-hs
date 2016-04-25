@@ -133,18 +133,18 @@ chk1 act = do
   let e = petscOutcome ec
   throwLefts o e
 
+chk0 :: IO CInt -> IO ()
 chk0 act = do
   ec <- act
   let e = petscOutcome ec
   throwLefts_ e
 
+throwLefts :: Exception e => a -> Either e z -> IO a
 throwLefts _ (Left el) = throwIO el
 throwLefts o (Right _) = return o
 
-throwLefts_ (Left el) = throwIO el
-throwLefts_ _ = return ()
-
-
+throwLefts_ :: Exception e => Either e a -> IO ()
+throwLefts_ = throwLefts ()
   
 
 
@@ -159,7 +159,7 @@ knownErrCode n = errCodeInBounds n || safeErrCodes n
 
 
 unforeseenErrCodeStr :: CInt -> String
-unforeseenErrCodeStr e = "unforeseen error code : " ++
+unforeseenErrCodeStr e = "Unforeseen error code : " ++
                        show e ++
                        "\nPlease file a bug report"
 
