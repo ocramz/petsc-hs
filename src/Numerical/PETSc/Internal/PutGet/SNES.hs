@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes, FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes, FlexibleContexts, TypeSynonymInstances, ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.PutGet.SNES
@@ -174,31 +174,44 @@ snesComputeFunction snes x y = chk0 $ snesComputeFunction' snes x y
 
 
 
+-- snsn x m1 m2 = snesSetJacobian x m1 m2 g where
+--   g y = let [u, v] = V.toList y in V.fromList [u**2, v**2]
+
+instance AD.Mode PetscScalar_ where
+  type Scalar PetscScalar_ = PetscScalar_
+  -- isKnownConstant _ = True
+  -- isKnownZero x = 0 == x
+  auto = id
+  -- (^/) = (/)
 
 
-
--- -- snesSetJacobian :: -- (VG.Vector w PetscScalar_, VG.Vector v PetscScalar_) =>
--- --   SNES ->
--- --   Mat ->        -- amat : storage for approximate Jacobian
--- --   Mat ->        -- pmat : storage for preconditioner (usually == amat)
--- --   -- (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
--- --   (V.Vector Double -> V.Vector Double) ->
--- --     -- (SNES ->       
--- --     --  Vec ->        -- vector at which to compute Jacobian
--- --     --  Mat ->        
--- --     --  Mat ->
--- --     --  IO a) ->
--- --   IO ()
--- snesSetJacobian snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat gj
---   where
---     gj _snes x jac jacp = do
---       -- withVecVector x $ \xv -> do
---       xv <- vecCopyVector x
---       let (m, n) = matSize jac
---           -- vvJac :: V.Vector (Int, Int, PetscScalar_)
---           vvJac  = vvToCSR (AD.jacobian f xv)
---       withMatSetValueVectorSafe jac m n vvJac InsertValues return
---       return (0 :: CInt)
+snesSetJacobian ::  -- (VG.Vector w PetscScalar_, VG.Vector v PetscScalar_) =>
+  SNES ->
+  Mat ->        -- amat : storage for approximate Jacobian
+  Mat ->        -- pmat : storage for preconditioner (usually == amat)
+  -- (V.Vector a -> V.Vector a) ->
+  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+  --(V.Vector (AD.Reverse s PetscScalar_) -> V.Vector (AD.Reverse s PetscScalar_)) ->
+  -- (V.Vector Double -> V.Vector Double) ->
+  -- V.Vector (V.Vector PetscScalar_) ->
+    -- (SNES ->       
+    --  Vec ->        -- vector at which to compute Jacobian
+    --  Mat ->        
+    --  Mat ->
+    --  IO a) ->
+  IO ()
+snesSetJacobian snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat gj
+  where
+    gj _snes x jac jacp = 
+      withVecVector x $ \xv -> do
+      -- xv <- vecCopyVector x
+      let (m, n) = matSize jac
+          -- vvJac :: V.Vector (Int, Int, PetscScalar_)
+          f' :: forall t. (AD.Scalar t ~ PetscScalar_ , AD.Mode t) => V.Vector t -> V.Vector t
+          f' y = f (V.map AD.auto y)
+          vvJac  = vvToCSR  (AD.jacobian f' xv)
+      withMatSetValueVectorSafe jac m n vvJac InsertValues return
+      return (0 :: CInt)
 
 
 {- Internal/Sparse :

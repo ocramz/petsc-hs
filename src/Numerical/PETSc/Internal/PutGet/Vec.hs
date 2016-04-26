@@ -383,8 +383,8 @@ withVecNew c v =
 
 -- | use a Generic Vector copy of Vec `v` (does NOT modify `v`)
 
--- withVecVector :: VG.Vector w PetscScalar_ =>
---      Vec -> (w PetscScalar_ -> IO a) -> IO a
+withVecVector :: VG.Vector w PetscScalar_ =>
+     Vec -> (w PetscScalar_ -> IO a) -> IO a
 withVecVector v io = do
   vv <- vecGetVector v
   y <- io (V.convert vv)
