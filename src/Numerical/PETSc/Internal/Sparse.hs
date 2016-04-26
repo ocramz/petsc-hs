@@ -41,29 +41,7 @@ import Foreign.C.Types
 
 
 
--- IntMap a -> V.Vector (ix, a)
-asdfI :: IM.IntMap a -> V.Vector (IM.Key, a)
-asdfI = V.fromList . IM.toList
 
-mapMapWithKeys f = IM.mapWithKey $ \i ro ->
-  IM.mapWithKey (f i) ro
-
-traverse2 f = IM.traverseWithKey $ \i row ->
-  IM.traverseWithKey (f i) row 
-
-
-imInsert20 i l = IM.insert i (IM.fromList l)
-
-imInsert21 l = IM.fromList 
-
-
--- | IntMap (IntMap a) -> V.Vector (ixy, ixy, a)
--- imm2v f = 
-
--- | " reverse :
--- | V.Vector (ix, iy, a) -> IntMap (IntMap a)
--- v2i f = V.map $ \(i, j, x) -> 
---   IM.insert i
 
 
 -- insertImm i j x imm = IM.insert j (IM.insert i x imm)
@@ -138,28 +116,28 @@ instance Container [e] where
 -- -- type SCDim : container dimensions: 1D Int, 2D (Int, Int), ...
 
 
--- class SContainer c where
---   type SIdx c
---   type SCe c
---   type SCDim c
---   scIdxValid :: SCDim c -> SIdx c -> Bool
---   scBuild :: SCDim c ->
---              V.Vector (SIdx c) ->
---              V.Vector (SCe c) ->
---              V.Vector (SIdx c, SCe c)
---   -- scBuild d vi ve | q i = V.cons (i, e) (scBuild d vis ves) -- FIXME broken
---   --              | otherwise = scBuild d vis ves 
---   --    where i = V.head vi 
---   --          e = V.head ve 
---   --          vis = V.tail vi
---   --          ves = V.tail ve
---   --          q = scIdxValid d 
+class SContainer c where
+  type SIdx c
+  type SCe c
+  type SCDim c
+  scIdxValid :: SCDim c -> SIdx c -> Bool
+  scBuild :: SCDim c ->
+             V.Vector (SIdx c) ->
+             V.Vector (SCe c) ->
+             V.Vector (SIdx c, SCe c)
+  -- scBuild d vi ve | q i = V.cons (i, e) (scBuild d vis ves) -- FIXME broken
+  --              | otherwise = scBuild d vis ves 
+  --    where i = V.head vi 
+  --          e = V.head ve 
+  --          vis = V.tail vi
+  --          ves = V.tail ve
+  --          q = scIdxValid d 
 
--- instance SContainer (SV x) where
---   type SIdx (SV x) = Int
---   type SCe (SV x) = x
---   type SCDim (SV x) = Int
---   scIdxValid d i = i >= 0 && i <= d
+instance SContainer (SV x) where
+  type SIdx (SV x) = Int
+  type SCe (SV x) = x
+  type SCDim (SV x) = Int
+  scIdxValid d i = i >= 0 && i <= d
 
 
 
@@ -188,7 +166,69 @@ data CSR a = CSR { csrNrows :: Int,
 
 
 
--- |
+
+
+
+
+
+
+-- | IntMap-based interface
+
+-- NB : IntMaps don't support replicated entries (which are a necessary subproduct in e.g. finite element analysis)
+
+-- IntMap a -> V.Vector (ix, a)
+asdfI :: IM.IntMap a -> V.Vector (IM.Key, a)
+asdfI = V.fromList . IM.toList
+
+mapMapWithKeys f = IM.mapWithKey $ \i ro ->
+  IM.mapWithKey (f i) ro
+
+traverse2 f = IM.traverseWithKey $ \i row ->
+  IM.traverseWithKey (f i) row 
+
+imInsertRow :: IM.Key -> [(IM.Key, a)] -> IM.IntMap (IM.IntMap a)
+     -> IM.IntMap (IM.IntMap a)
+imInsertRow i l = IM.insert i (IM.fromList l)
+
+imInsertRowV i v = imInsertRow i (V.toList v)
+
+-- | IntMap (IntMap a) -> V.Vector (ixy, ixy, a)
+-- works, but I suspect it's very inefficient
+
+imGetRowsV :: IM.IntMap (IM.IntMap c) -> V.Vector (IM.Key, IM.Key, c)
+imGetRowsV imm = V.concat . snd . unzip . IM.toList $ imGetRows imm where
+  imGetRows :: IM.IntMap (IM.IntMap c) -> IM.IntMap (V.Vector (IM.Key, IM.Key, c))
+  imGetRows = IM.mapWithKey ( \i ro -> let
+    ixs = V.replicate n i
+    (iys, vals) = V.unzip $ V.fromList (IM.toList ro)
+    n = IM.size ro
+    in
+     V.zip3 ixs iys vals )
+
+
+-- --  testing testing
+im0 = IM.fromList [(1, "potato"), (3, "cabbage"), (3, "steamed rice")]
+im1 = IM.fromList [(5, "Chewbacca"), (6, "Han Solo")]
+im = IM.insert 1 im0 IM.empty
+im' = IM.insert 2 im1 im
+imv = imGetRowsV im'
+
+-- | " reverse :
+-- | V.Vector (ix, iy, a) -> IntMap (IntMap a)
+-- v2i f = V.map $ \(i, j, x) -> 
+--   IM.insert i
+
+
+
+
+
+
+
+
+
+
+
+-- | utilities
 
 llToCSR :: [[c]] -> [(Int, Int, c)]
 llToCSR u = go (0 :: Int) u where
