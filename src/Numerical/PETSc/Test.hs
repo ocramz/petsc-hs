@@ -19,6 +19,7 @@ import Control.Applicative
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.PutGet
 import Numerical.PETSc.Internal.Utils
+import qualified Numerical.PETSc.Internal.Sparse as PSparse (vvToCSR)
 
 import Foreign
 import Foreign.C.Types
@@ -39,6 +40,7 @@ import Control.Monad.Trans.Class
 import Control.Monad.IO.Class
 -- import System.IO.Unsafe
 
+import qualified Numeric.AD as AD
 
 
 
@@ -527,6 +529,24 @@ t18' =
     f = V.map (**2)
 
 t18 = withPetsc0 t18'
+
+
+-- | t18debug : why does t18 segfault?
+
+-- t18debug1 : initialize, fill Jacobian matrix using AD and visualize it
+
+t18debug1' = withMatNew c n n MatAij vcsr InsertValues $ \mat -> do
+  print jac
+  matViewStdout mat
+  where
+   c = commWorld
+   n = 3
+   fun = V.map exp
+   xv = V.replicate n 1.0
+   jac = AD.jacobian (V.map realToFrac . fun . V.map realToFrac) xv
+   vcsr = PSparse.vvToCSR jac
+
+t18debug1 = withPetsc0 t18debug1'
 
 
 
