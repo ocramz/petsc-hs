@@ -17,8 +17,8 @@ module Numerical.PETSc.Internal.PutGet.Mat where
 import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
-import qualified Numerical.PETSc.Internal.PutGet.PetscMisc as P
-import qualified Numerical.PETSc.Internal.PutGet.Viewer as V
+import qualified Numerical.PETSc.Internal.PutGet.PetscMisc as PM
+import qualified Numerical.PETSc.Internal.PutGet.Viewer as Viewer
 import Numerical.PETSc.Internal.Utils -- (both, fi, toCInt, in0m, allIn0mV)
 
 import Numerical.PETSc.Internal.Storable.Vector
@@ -354,13 +354,14 @@ withMatNew c m n ty v_ imode after =
    
 
 -- -- -- | withMatSetValueVectorSafe :  fill + setup Mat with index bound checks
--- withMatSetValueVectorSafe ::
---   Mat ->
---   Int -> Int ->
---   V.Vector (Int, Int, PetscScalar_) ->
---   InsertMode_ ->
---   (Mat -> IO a) ->
---   IO a
+withMatSetValueVectorSafe ::
+  Mat ->
+  NumRows ->
+  NumCols ->
+  V.Vector (IdxRow, IdxCol, PetscScalar_) ->
+  InsertMode_ ->
+  (Mat -> IO a) ->
+  IO a
 withMatSetValueVectorSafe mat m n v_ imode after = do
   matSetValueVectorSafe mat (m, n) v_ imode
   matAssembly mat
@@ -803,7 +804,8 @@ matGetTrace mat = chk1 (matGetTrace' mat)
 matView0 :: Mat -> PetscViewer -> IO ()
 matView0 m v = chk0 (matView' m v)
 
-matView m = V.withPetscViewerTypeFmt P.commWorld ViewerAscii ViewFmtAsciiInfoDetail (matView0 m)
+matView :: Mat -> IO ()
+matView m = Viewer.withPetscViewerTypeFmt PM.commWorld ViewerAscii ViewFmtAsciiInfoDetail (matView0 m)
 
 matViewStdout :: Mat -> IO ()
 matViewStdout = matView

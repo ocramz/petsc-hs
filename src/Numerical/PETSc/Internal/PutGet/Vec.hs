@@ -295,7 +295,7 @@ withVecCreateMPI vi = withVec (vecCreateMPIInfo vi)
 withVecMPIPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b 
 withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
   pre v
-  vecAssemblyChk v
+  vecAssembly v
   post v
 
 
@@ -320,13 +320,13 @@ vecAssemblyBegin, vecAssemblyEnd :: Vec -> IO ()
 vecAssemblyBegin v = chk0 (vecAssemblyBegin' v)
 vecAssemblyEnd v = chk0 (vecAssemblyEnd' v)
 
-vecAssemblyChk :: Vec -> IO ()
-vecAssemblyChk v = vecAssemblyBegin v  >> vecAssemblyEnd v 
+vecAssembly :: Vec -> IO ()
+vecAssembly v = vecAssemblyBegin v  >> vecAssemblyEnd v 
 
 
 -- | withVecAssemblyChk : perform a computation while vector assembly takes place
-withVecAssemblyChk :: Vec -> IO a -> IO a
-withVecAssemblyChk v = bracket_ (vecAssemblyBegin v) (vecAssemblyEnd v)
+withVecAssembly :: Vec -> IO a -> IO a
+withVecAssembly v = bracket_ (vecAssemblyBegin v) (vecAssemblyEnd v)
 
 
 
@@ -608,7 +608,7 @@ vecSetValuesUnsafeVector1A ::
   IO Vec
 vecSetValuesUnsafeVector1A v ixy im = do
   vecSetValuesUnsafeVector1 v ixy im
-  vecAssemblyChk v                   
+  vecAssembly v                   
   return v 
 
 
@@ -631,7 +631,7 @@ vecCreateMPIFromVector comm nloc w = do
       ix = V.fromList $ range0 (dimv - 1)
   v <- vecCreateMPI comm nloc dimv
   vecSetValuesUnsafeVector v ix w InsertValues
-  vecAssemblyChk v
+  vecAssembly v
   return v
 
 vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
@@ -640,7 +640,7 @@ vecCreateMPIFromVectorDecideLocalSize comm w = do
       ix = V.fromList $ range0 (dimv - 1)
   v <- vecCreateMPIdecideLocalSize comm dimv
   vecSetValuesUnsafeVector v ix w InsertValues
-  vecAssemblyChk v
+  vecAssembly v
   return v
  
 

@@ -504,6 +504,31 @@ t14 = withPetsc0 $ withSlepc0 t13a'
 
 
 
+-- | SNES
+
+t18' =
+  -- withVecMPIPipeline (VecInfo commWorld n n)
+  withVec (vecCreateMPIFromVectorDecideLocalSize cw w) $ \x ->
+  withVecClone x $ \xtemp ->
+  withMatCreateSetup cw n n MatAij $ \jac ->
+  withSnesCreateSetupAD cw xtemp jac jac f $ \snes -> do
+    -- -- vecViewStdout x
+    -- matAssembly jac
+    -- snesViewStdout snes
+    -- matViewStdout jac
+    snesSolve0 snes x
+    xsol <- snesGetSolution snes
+    vecViewStdout xsol
+    -- vecDot xtemp xtemp
+  where
+    cw = commWorld
+    n = 5
+    w = V.replicate n 0.3
+    f = V.map (**2)
+
+t18 = withPetsc0 t18'
+
+
 
 -- | test data
 
@@ -512,6 +537,7 @@ t14 = withPetsc0 $ withSlepc0 t13a'
 v0 :: V.Vector PetscScalar_
 v0 = V.fromList [pi .. 10]
 
+lv :: Int
 lv = V.length v0
 
 v0s :: (Storable a, Floating a, Enum a) => VS.Vector a

@@ -2674,6 +2674,7 @@ snesLineSearchSetTolerances' ls steptol maxstep rtol atol ltol maxits =
 
 
 -- PetscErrorCode  SNESLineSearchGetLambda(SNESLineSearch linesearch,PetscReal *lambda)
+-- get linesearch step length
 snesLineSearchGetLambda' :: SNESLineSearch -> IO (PetscReal_, CInt)
 snesLineSearchGetLambda' ls = withPtr $ \lam -> [C.exp|int{SNESLineSearchGetLambda($(SNESLineSearch ls), $(PetscReal* lam))}|]
 -- Input Parameters :
@@ -2707,6 +2708,15 @@ snesLineSearchSetLambda' ls lam = [C.exp|int{SNESLineSearchSetLambda($(SNESLineS
 snesVISetVariableBounds' :: SNES -> Vec -> Vec -> IO CInt
 snesVISetVariableBounds' snes xl xu =
   [C.exp|int{SNESVISetVariableBounds($(SNES snes),$(Vec xl),$(Vec xu))}|]
+
+
+
+
+
+
+
+snesView' m v = [C.exp|int{SNESView($(SNES m),$(PetscViewer v))}|]
+
 
 
 

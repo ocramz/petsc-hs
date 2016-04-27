@@ -15,6 +15,8 @@ module Numerical.PETSc.Internal.PutGet.SNES where
 import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
+import qualified Numerical.PETSc.Internal.PutGet.PetscMisc as PM
+import qualified Numerical.PETSc.Internal.PutGet.Viewer as Viewer
 import Numerical.PETSc.Internal.Utils
 
 import Numerical.PETSc.Internal.PutGet.Vec
@@ -62,16 +64,7 @@ snesDestroy snes = chk0 (snesDestroy' snes)
 snesSetType :: SNES -> SnesType_ -> IO ()
 snesSetType snes st = chk0 $ snesSetType' snes st
 
-withSnes :: IO SNES -> (SNES -> IO a) -> IO a
-withSnes cf = bracket cf snesDestroy
 
-
-
-
--- snesCreateSetup c v amat pmat f post = withSnes c $ \s -> do 
---   snesSetFunction s v f
---   snesSetJacobian s amat pmat f
---   post s
 
 
 
@@ -105,21 +98,29 @@ withSnes cf = bracket cf snesDestroy
 
 -- | `with` brackets
 
--- withSnesCreateSetup ::
---   Comm ->
---   Vec ->
---   Mat ->
---   Mat ->
---   (SNES -> Vec -> Vec -> IO a) ->
---   (SNES -> Vec -> Mat -> Mat -> IO b) ->
---   (SNES -> IO c) ->
---   IO c
--- withSnesCreateSetup comm v amat pmat f fj =
---   withSnes (snesCreateSetup comm v amat pmat f fj)
+
+
+withSnes :: IO SNES -> (SNES -> IO a) -> IO a
+withSnes cf = bracket cf snesDestroy
+
+withSnesCreate :: Comm -> (SNES -> IO a) -> IO a
+withSnesCreate c = withSnes (snesCreate c)
 
 
 
-
+withSnesCreateSetupAD ::
+  Comm ->
+  Vec ->
+  Mat ->
+  Mat ->
+  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+  (SNES -> IO a) ->
+  IO a
+withSnesCreateSetupAD c v amat pmat f post = withSnesCreate c $ \s -> do 
+  snesSetFunction s v f
+  snesSetJacobianAD s amat pmat f
+  snesSetUp s
+  post s
 
 
 
@@ -183,7 +184,8 @@ snesComputeFunction snes x y = chk0 $ snesComputeFunction' snes x y
 --   -- (^/) = (/)
 
 
-snesSetJacobian1 ::  -- (VG.Vector w PetscScalar_, VG.Vector v PetscScalar_) =>
+-- | snesSetJacobianAD : computes Jacobian of `f` via AD.jacobian
+snesSetJacobianAD ::  -- (VG.Vector w PetscScalar_, VG.Vector v PetscScalar_) =>
   SNES ->
   Mat ->        -- amat : storage for approximate Jacobian
   Mat ->        -- pmat : storage for preconditioner (usually == amat)
@@ -194,9 +196,9 @@ snesSetJacobian1 ::  -- (VG.Vector w PetscScalar_, VG.Vector v PetscScalar_) =>
     --  Mat ->
     --  IO a) ->
   IO ()
-snesSetJacobian1 snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat gj
+snesSetJacobianAD snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat gj
   where
-    gj _snes x jac jacp = 
+    gj _snes x jac _jacp = 
       withVecVector x $ \xv -> do
       -- xv <- vecCopyVector x
       let (m, n) = matSize jac
@@ -343,6 +345,22 @@ snesSetJacobianComputeDefaultColor snes amat pmat fdcol =
 snesVISetVariableBounds :: SNES -> Vec -> Vec -> IO ()
 snesVISetVariableBounds snes xl xu = chk0 $ snesVISetVariableBounds' snes xl xu
 
+
+
+
+
+
+
+-- | view
+
+snesView0 :: SNES -> PetscViewer -> IO ()
+snesView0 m v = chk0 (snesView' m v)
+
+snesView :: SNES -> IO ()
+snesView m = Viewer.withPetscViewerTypeFmt PM.commWorld ViewerAscii ViewFmtAsciiInfoDetail (snesView0 m)
+
+snesViewStdout :: SNES -> IO ()
+snesViewStdout = snesView
 
 
 
