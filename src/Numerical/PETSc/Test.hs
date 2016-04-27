@@ -535,18 +535,18 @@ t18 = withPetsc0 t18'
 
 -- t18debug1 : initialize, fill Jacobian matrix using AD and visualize it
 
-t18debug1' = withMatNew c n n MatAij vcsr InsertValues $ \mat -> do
-  print jac
-  matViewStdout mat
-  where
-   c = commWorld
-   n = 3
-   fun = V.map exp
-   xv = V.replicate n 1.0
-   jac = AD.jacobian (V.map realToFrac . fun . V.map realToFrac) xv
-   vcsr = PSparse.vvToCSR jac
+-- t18debug1' = withMatNew c n n MatAij vcsr InsertValues $ \mat -> do
+--   print jac
+--   matViewStdout mat
+--   where
+--    c = commWorld
+--    n = 3
+--    fun = V.map exp
+--    xv = V.replicate n (1.0 :: PetscScalar_)
+--    jac = AD.jacobian fun xv -- (V.map realToFrac . fun . V.map realToFrac) xv
+--    vcsr = PSparse.vvToCSR jac
 
-t18debug1 = withPetsc0 t18debug1'
+-- t18debug1 = withPetsc0 t18debug1'
 
 
 
