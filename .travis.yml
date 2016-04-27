@@ -11,8 +11,8 @@ language:
 # # # change flags or use --stack-yaml to point to a different file.
 
 env:
-  - STACK_ARGS="" PETSC_VERSION=3.6.2
-  - STACK_ARGS="" PETSC_VERSION=3.7
+  - STACK_ARGS="" PETSC_VERSION=3.6.2 SLEPC_VERSION=3.6.1
+  - STACK_ARGS="" PETSC_VERSION=3.7 SLEPC_VERSION=3.6.3
   # - STACK_ARGS="--resolver lts-2"
   # - STACK_ARGS="--resolver lts-3"
   # - STACK_ARGS="--resolver lts"
@@ -50,7 +50,7 @@ before_install:
   - export SLEPC_LIB="$SLEPC_DIR"/"$SLEPC_ARCH"/lib/
 
   #- export PETSC_VERSION=3.6.2   ### moved to `env` section at top
-  - export SLEPC_VERSION=3.6.1
+  #- export SLEPC_VERSION=3.6.1
 
   # # # stack args e.g. Stackage LTS version
   # - export STACK_ARGS=""
