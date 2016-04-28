@@ -51,3 +51,6 @@ stack_build:
 
 stack_haddock:
 	./stack-haddock.sh ${ARGS} ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH}
+
+
+

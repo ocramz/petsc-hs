@@ -15,6 +15,7 @@ module Numerical.PETSc.Internal.Sparse where
 
 import Numerical.PETSc.Internal.Types
 
+import Data.Monoid
 import Data.Functor
 import Control.Applicative
 import Control.Monad
@@ -241,6 +242,26 @@ vvToCSR :: V.Vector (V.Vector c) -> V.Vector (Int, Int, c)
 vvToCSR vv = V.fromList (llToCSR (V.toList (V.map V.toList vv)))
 
 
+
+-- sparse versions : explicit nonzero filtering (!)
+
+llToCSRsparse u = go 0 u where
+  m = length (head u)
+  go j (v:vs) = vixnz ++ go (j+1) vs where
+    irows = [0 ..m-1]
+    jrows = replicate m j
+    vixnz = filter (\(_, _, x) -> x /= 0) $ zip3 irows jrows v
+
+vvToCSRsparse :: (Num c, Eq c) => V.Vector (V.Vector c) -> V.Vector (Int, Int, c)
+vvToCSRsparse u = go 0 u where
+  m = V.length (V.head u)
+  go j w | not (V.null w) = vixnz <> go (j+1) (V.fromList vs)
+         | otherwise = V.empty
+   where
+    (v:vs) = V.toList w
+    irows = V.fromList [0 ..m-1]
+    jrows = V.replicate m j
+    vixnz = V.filter (\(_, _, x) -> x /= 0) $ V.zip3 irows jrows v
 
 
 -- | tests
