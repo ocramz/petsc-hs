@@ -58,6 +58,9 @@ tsSetInitialTimeStep ::
 tsSetInitialTimeStep ts it dt = chk0 $ tsSetInitialTimeStep' ts it dt
 
 
+tsSetExactFinalTime :: TS -> TsExactFinalTimeOption_ -> IO ()
+tsSetExactFinalTime ts ft = chk0 (tsSetExactFinalTime' ts ft)
+
 -- tsSetRHSFunction ts r f ctx = chk0 $ tsSetRHSFunction0' ts r f ctx
 
 tsSetDuration ::
@@ -74,18 +77,45 @@ tsSetSolution ::
 tsSetSolution ts isolnv = chk0 $ tsSetSolution' ts isolnv
 
 
-tsSolve_ :: TS -> IO ()
-tsSolve_ ts = chk0 $ tsSolve_' ts
+tsSolve :: TS -> IO ()
+tsSolve ts = chk0 $ tsSolve_' ts
 
 
 tsStep :: TS -> IO ()
 tsStep ts = chk0 (tsStep' ts)
 
 
-tsSolveWithInitialCondition :: TS -> Vec -> IO ()
-tsSolveWithInitialCondition ts isolnv = do
-  tsSetSolution ts isolnv
-  tsSolve_ ts
+-- -- tsSolveWithInitialCondition :: TS -> Vec -> IO ()
+-- tsSolveWithInitialCondition ts isolnv fto = do
+--   tsSetSolution ts isolnv
+--   tsSetExactFinalTime ts fto   
+--   tsSolve ts
+
+withTsSolveWithInitialCondition ::
+  TS ->
+  Vec ->                      -- initial condition
+  TsExactFinalTimeOption_ ->  -- what to do if final time is exceeded
+  (TS -> IO a) ->             -- " before setting initial condition
+  (TS -> IO b) -> IO b        -- " after solving TS
+withTsSolveWithInitialCondition ts v fto before =
+  withTsSolve ts fto f0
+  where
+    f0 ts0 = do
+      before ts0
+      tsSetSolution ts0 v   -- set initial condition vector `v`
+
+
+withTsSolve ::
+  TS ->
+  TsExactFinalTimeOption_ ->
+  (TS -> IO a) ->
+  (TS -> IO b) ->
+  IO b
+withTsSolve ts fto before after = do
+  before ts
+  tsSetExactFinalTime ts fto   -- required as of PETSc 3.7
+  tsSolve ts
+  after ts
 
 
 

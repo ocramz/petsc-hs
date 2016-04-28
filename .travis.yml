@@ -49,8 +49,6 @@ before_install:
   - export SLEPC_INCLUDE2="$SLEPC_DIR"/"$SLEPC_ARCH"/include/
   - export SLEPC_LIB="$SLEPC_DIR"/"$SLEPC_ARCH"/lib/
 
-  #- export PETSC_VERSION=3.6.2   ### moved to `env` section at top
-  #- export SLEPC_VERSION=3.6.1
 
   # # # stack args e.g. Stackage LTS version
   # - export STACK_ARGS=""

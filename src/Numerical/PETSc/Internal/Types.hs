@@ -573,6 +573,11 @@ snesConvergedIntToReason x =
     0 -> SnesConvergedIterating
     n -> SnesOtherReason n
 
+
+
+
+
+
 -- * TS
 
 data TsProblemType = TsLinear | TsNonlinear deriving (Eq, Show, Enum)
@@ -617,6 +622,19 @@ tsConvergedIntToReason c = case fi c of
   (-1) -> TsDivergedNonlinSolve
   (-2) -> TsDivergedStepRejected
   _ -> TsUndefinedConvergenceCase
+
+-- typedef enum {TS_EXACTFINALTIME_STEPOVER=0,TS_EXACTFINALTIME_INTERPOLATE=1,TS_EXACTFINALTIME_MATCHSTEP=2} TSExactFinalTimeOption;
+ -- TS_EXACTFINALTIME_STEPOVER    - Don't do anything if final time is exceeded
+ -- TS_EXACTFINALTIME_INTERPOLATE - Interpolate back to final time
+ -- TS_EXACTFINALTIME_MATCHSTEP - Adapt final time step to match the final time
+data TsExactFinalTimeOption_ =
+  TsEftStepover | TsEftInterpolate | TsEftMatchStep deriving (Eq, Enum, Show)
+
+tsExactFinalTimeOptionToCInt :: TsExactFinalTimeOption_ -> CInt
+tsExactFinalTimeOptionToCInt o = toCInt $ fromEnum (o :: TsExactFinalTimeOption_)
+
+
+
 
 
 
@@ -665,6 +683,12 @@ taoConvergedIntToReason x =
 
 
 
+
+
+
+
+
+
 -- * Viewer
 
 data PetscViewerType_ = ViewerSock | ViewerAscii | ViewerBinary | ViewerString
@@ -707,6 +731,11 @@ petscViewerFormatToCInt x = toCInt $ fromEnum (x :: PetscViewerFormat_)
 
 
 
+
+
+
+
+
 -- * FileMode
 data PetscFileMode_ = FileModeRead | FileModeWrite | FileModeAppend
                     | FileModeUpdate | FileModeAppendUpdate
@@ -719,6 +748,8 @@ fileModeToInt x = fromEnum (x :: PetscFileMode_)
 -- FILE_MODE_APPEND - open a file at end for writing
 -- FILE_MODE_UPDATE - open a file for updating, meaning for reading and writing
 -- FILE_MODE_APPEND_UPDATE - open a file for updating, meaning for reading and writing, at the end
+
+
 
 
 

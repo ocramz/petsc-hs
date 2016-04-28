@@ -3012,6 +3012,15 @@ tsStep' ts = [C.exp|int{TSStep($(TS ts))}|]
 tsGetConvergedReason' :: TS -> IO (CInt, CInt)
 tsGetConvergedReason' ts = withPtr (\p -> [C.exp|int{TSGetConvergedReason($(TS ts),$(int* p))}|])
 
+
+-- PetscErrorCode  TSSetExactFinalTime(TS ts,TSExactFinalTimeOption eftopt)
+-- Logically Collective on TS
+-- Input Parameter :
+-- ts	- the time-step context
+-- eftopt	- exact final time option
+tsSetExactFinalTime' ts ft  = [C.exp|int{TSSetExactFinalTime($(TS ts),$(int o))}|] where o = tsExactFinalTimeOptionToCInt ft
+
+
 --    TSGetTimeStepNumber(ts,&steps);
 
 --    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

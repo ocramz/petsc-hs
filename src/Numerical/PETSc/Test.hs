@@ -508,27 +508,27 @@ t14 = withPetsc0 $ withSlepc0 t13a'
 
 -- | SNES
 
-t18' =
-  -- withVecMPIPipeline (VecInfo commWorld n n)
-  withVec (vecCreateMPIFromVectorDecideLocalSize cw w) $ \x ->
-  withVecClone x $ \xtemp ->
-  withMatCreateSetup cw n n MatAij $ \jac ->
-  withSnesCreateSetupAD cw xtemp jac jac f $ \snes -> do
-    -- -- vecViewStdout x
-    -- matAssembly jac
-    -- snesViewStdout snes
-    -- matViewStdout jac
-    snesSolve0 snes x
-    xsol <- snesGetSolution snes
-    vecViewStdout xsol
-    -- vecDot xtemp xtemp
-  where
-    cw = commWorld
-    n = 5
-    w = V.replicate n 0.3
-    f = V.map (**2)
+-- t18' =
+--   -- withVecMPIPipeline (VecInfo commWorld n n)
+--   withVec (vecCreateMPIFromVectorDecideLocalSize cw w) $ \x ->
+--   withVecClone x $ \xtemp ->
+--   withMatCreateSetup cw n n MatAij $ \jac ->
+--   withSnesCreateSetupAD cw xtemp jac jac f $ \snes -> do
+--     -- -- vecViewStdout x
+--     -- matAssembly jac
+--     -- snesViewStdout snes
+--     -- matViewStdout jac
+--     snesSolve0 snes x
+--     xsol <- snesGetSolution snes
+--     vecViewStdout xsol
+--     -- vecDot xtemp xtemp
+--   where
+--     cw = commWorld
+--     n = 5
+--     w = V.replicate n 0.3
+--     f = V.map (**2)
 
-t18 = withPetsc0 t18'
+-- t18 = withPetsc0 t18'
 
 
 -- | t18debug : why does t18 segfault?
