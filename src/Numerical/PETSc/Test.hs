@@ -541,7 +541,8 @@ t18_1' = withMatNew c n n MatAij vcsr InsertValues $ \mat -> do
   where
    c = commWorld
    n = 3
-   fun v = V.fromList [exp x, exp y, exp z] where [x,y,z] = V.toList v
+   fun v = V.fromList [exp (x*y), exp y, exp z]
+     where [x,y,z] = V.toList v
    xv = V.replicate n (1.0 :: PetscScalar_)
    jac = AD.jacobian fun xv -- (V.map realToFrac . fun . V.map realToFrac) xv
    vcsr = PSparse.vvToCSRsparse jac
