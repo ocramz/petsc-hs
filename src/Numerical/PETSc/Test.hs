@@ -541,13 +541,16 @@ t18_1' = withMatNew c n n MatAij vcsr InsertValues $ \mat -> do
   where
    c = commWorld
    n = 3
-   fun v = V.fromList [exp (x*y), exp y, exp z]
+   fun v = V.fromList [exp (x*y), exp y, exp z] -- this works
      where [x,y,z] = V.toList v
+   -- fun y = V.map exp y
    xv = V.replicate n (1.0 :: PetscScalar_)
    jac = AD.jacobian fun xv -- (V.map realToFrac . fun . V.map realToFrac) xv
    vcsr = PSparse.vvToCSRsparse jac
 
 t18_1 = withPetsc0 t18_1'
+
+-- -- 2 : ", passing in a function to be differentiated as a parameter
 
 
 
