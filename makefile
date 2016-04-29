@@ -37,6 +37,9 @@ step_test:
 tests:
 	make step_test
 
+specs:
+	make step3
+
 
 reload:
 	make step3

@@ -508,27 +508,27 @@ t14 = withPetsc0 $ withSlepc0 t13a'
 
 -- | SNES
 
--- t18' =
---   -- withVecMPIPipeline (VecInfo commWorld n n)
---   withVec (vecCreateMPIFromVectorDecideLocalSize cw w) $ \x ->
---   withVecClone x $ \xtemp ->
---   withMatCreateSetup cw n n MatAij $ \jac ->
---   withSnesCreateSetupAD cw xtemp jac jac f $ \snes -> do
---     -- -- vecViewStdout x
---     -- matAssembly jac
---     -- snesViewStdout snes
---     -- matViewStdout jac
---     snesSolve0 snes x
---     xsol <- snesGetSolution snes
---     vecViewStdout xsol
---     -- vecDot xtemp xtemp
---   where
---     cw = commWorld
---     n = 5
---     w = V.replicate n 0.3
---     f = V.map (**2)
+t18' =
+  -- withVecMPIPipeline (VecInfo commWorld n n)
+  withVec (vecCreateMPIFromVectorDecideLocalSize cw w) $ \x ->
+  withVecClone x $ \xtemp ->
+  withMatCreateSetup cw n n MatAij $ \jac ->
+  withSnesCreateSetupAD cw xtemp jac jac f $ \snes -> do
+    -- -- vecViewStdout x
+    -- matAssembly jac
+    -- snesViewStdout snes
+    -- matViewStdout jac
+    snesSolve0 snes x
+    xsol <- snesGetSolution snes
+    vecViewStdout xsol
+    -- vecDot xtemp xtemp
+  where
+    cw = commWorld
+    n = 5
+    w = V.replicate n 0.3
+    f = V.map (**2)
 
--- t18 = withPetsc0 t18'
+t18 = withPetsc0 t18'
 
 
 -- | t18debug : why does t18 segfault?
@@ -551,6 +551,32 @@ t18_1' = withMatNew c n n MatAij vcsr InsertValues $ \mat -> do
 t18_1 = withPetsc0 t18_1'
 
 -- -- 2 : ", passing in a function to be differentiated as a parameter
+
+-- -- 3 : compute SNES function
+t18_3' =
+  -- withVecMPIPipeline (VecInfo commWorld n n)
+  withVec (vecCreateMPIFromVectorDecideLocalSize cw w) $ \x ->
+  withVecClone x $ \xtemp ->
+  withMatCreateSetup cw n n MatAij $ \jac ->
+  withSnesCreateSetup cw (\snes -> do
+                             snesSetFunction snes xtemp f
+                             snesSetJacobian0 snes jac jac (vvDiag n jd) n n 
+                         ) $ \snes -> -- do -- return ()
+    snesViewStdout snes
+    snesComputeFunction snes x xtemp
+    -- vecViewStdout xtemp
+  where
+    -- preSNS s = snesSetFunction s xtemp f
+    cw = commWorld
+    n = 5
+    w = V.replicate n 0.3
+    f = V.map (**2)       -- f  
+    jd = V.replicate n 2  -- diagonal of Jacobian of f
+
+-- matSetDiagonalVectorSafe 
+
+
+t18_3 = withPetsc0 t18_3'
 
 
 

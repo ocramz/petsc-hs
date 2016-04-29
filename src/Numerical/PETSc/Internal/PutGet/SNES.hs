@@ -106,7 +106,29 @@ withSnes cf = bracket cf snesDestroy
 withSnesCreate :: Comm -> (SNES -> IO a) -> IO a
 withSnesCreate c = withSnes (snesCreate c)
 
+withSnesCreateSetup ::
+  Comm ->
+  (SNES -> IO a1) -> -- before SNESSetUp
+  (SNES -> IO a) ->  -- after "
+  IO a
+withSnesCreateSetup c pre post = withSnesCreate c $ \sn -> do
+  pre sn
+  snesSetUp sn
+  post sn
 
+withSnesCreateSetupAD0 ::
+  (SNES -> IO a1) ->    -- before setting functions etc.
+  Comm ->
+  Vec ->
+  Mat ->
+  Mat ->
+  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+  (SNES -> IO a) ->     -- after setup
+  IO a
+withSnesCreateSetupAD0 pre c v amat pmat f = withSnesCreateSetup c $ \sn -> do
+  pre sn
+  snesSetFunction sn v f
+  snesSetJacobianAD sn amat pmat f
 
 withSnesCreateSetupAD ::
   Comm ->
@@ -114,13 +136,23 @@ withSnesCreateSetupAD ::
   Mat ->
   Mat ->
   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
-  (SNES -> IO a) ->
+  (SNES -> IO a) ->  -- after SNESSetUp (i.e. solve, view solution ...)
   IO a
-withSnesCreateSetupAD c v amat pmat f post = withSnesCreate c $ \s -> do 
-  snesSetFunction s v f
-  snesSetJacobianAD s amat pmat f
-  snesSetUp s
-  post s
+withSnesCreateSetupAD = withSnesCreateSetupAD0 return
+
+-- withSnesCreateSetupAD ::
+--   Comm ->
+--   Vec ->
+--   Mat ->
+--   Mat ->
+--   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+--   (SNES -> IO a) ->
+--   IO a
+-- withSnesCreateSetupAD c v amat pmat f post = withSnesCreate c $ \s -> do 
+--   snesSetFunction s v f
+--   snesSetJacobianAD s amat pmat f
+--   snesSetUp s
+--   post s
 
 
 
@@ -210,6 +242,20 @@ snesSetJacobianAD snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat gj
           vvJac = vvToCSR jjxv
       withMatSetValueVectorSafe jac m n vvJac InsertValues return
       return (0 :: CInt)
+
+snesSetJacobian0 ::
+  SNES ->
+  Mat ->
+  Mat ->
+  V.Vector (IdxRow, IdxCol, PetscScalar_) ->
+  NumRows ->
+  NumCols ->
+  IO ()
+snesSetJacobian0 snes amat pmat vvJac m n =
+  chk0 $ snesSetJacobian_' snes amat pmat gj where
+   gj _snes _x jj _jacp = do
+     withMatSetValueVectorSafe jj m n vvJac InsertValues return
+     return (0 :: CInt)
 
 
 

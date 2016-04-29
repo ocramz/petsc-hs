@@ -360,13 +360,22 @@ withMatSetValueVectorSafe ::
   NumCols ->
   V.Vector (IdxRow, IdxCol, PetscScalar_) ->
   InsertMode_ ->
-  (Mat -> IO a) ->
+  (Mat -> IO a) ->                            -- after assembly
   IO a
 withMatSetValueVectorSafe mat m n v_ imode after = do
   matSetValueVectorSafe mat (m, n) v_ imode
   matAssembly mat
   after mat 
 
+
+matSetDiagonalVectorSafe ::
+  Mat ->
+  NumRows ->
+  V.Vector PetscScalar_ ->   -- diagonal values
+  InsertMode_ ->
+  (Mat -> IO a) ->
+  IO a
+matSetDiagonalVectorSafe mat m v = withMatSetValueVectorSafe mat m m (vvDiag m v)
 
 
 
@@ -434,6 +443,10 @@ matSetValueVectorSafe ::
   IO ()
 matSetValueVectorSafe m (mx, my) v_ mode =
   V.mapM_ (\(ix,iy,val) -> matSetValueSafe m (mx, my) ix iy val mode) v_
+
+
+
+
 
 
 
@@ -980,3 +993,14 @@ matMultHermitianTranspose m v vresult = chk0 (matMultHermitianTranspose' m v vre
 -- | v3 = m' * v1 + v2
 matMultHermitianTransposeAdd :: Mat -> Vec -> Vec -> Vec -> IO ()
 matMultHermitianTransposeAdd m v1 v2 v3 = chk0 (matMultHermitianTransposeAdd' m v1 v2 v3)
+
+
+
+
+
+-- | helpers
+
+vvDiag m = V.zip3 ii ii where
+  ii = V.fromList [0..m-1]
+
+  
