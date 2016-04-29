@@ -561,7 +561,7 @@ t18_3' =
   withSnesCreateSetup cw (\snes -> do
                              snesSetFunction snes xtemp f
                              snesSetJacobian0 snes jac jac (vvDiag n jd) n n 
-                         ) $ \snes -> -- do -- return ()
+                         ) $ \snes -> do -- return ()
     snesViewStdout snes
     snesComputeFunction snes x xtemp
     -- vecViewStdout xtemp
