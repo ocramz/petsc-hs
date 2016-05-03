@@ -17,6 +17,7 @@ import Numerical.PETSc.Internal.PutGet.Vec as X
 import Numerical.PETSc.Internal.PutGet.Mat as X
 import Numerical.PETSc.Internal.PutGet.DM as X
 import Numerical.PETSc.Internal.PutGet.KSP as X
+import Numerical.PETSc.Internal.PutGet.PC as X
 import Numerical.PETSc.Internal.PutGet.SNES as X
 import Numerical.PETSc.Internal.PutGet.TS as X
 import Numerical.PETSc.Internal.PutGet.TAO as X

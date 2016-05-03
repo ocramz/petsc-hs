@@ -408,6 +408,16 @@ snesVISetVariableBounds snes xl xu = chk0 $ snesVISetVariableBounds' snes xl xu
 
 
 
+-- | misc
+
+snesGetKsp :: SNES -> IO KSP
+snesGetKsp s = chk1 $ snesGetKsp' s
+
+
+
+
+
+
 
 -- | view
 

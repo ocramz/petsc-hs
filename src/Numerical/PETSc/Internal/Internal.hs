@@ -53,6 +53,7 @@ petscTypesTable = Map.fromList
                   , (typeNameId "DM", [t| DM |] )
                   , (typeNameId "DMDALocalInfo", [t| DMDALocalInfo |])
                   , (typeNameId "KSP", [t| KSP |])
+                  , (typeNameId "PC", [t| PC|])  
 
                   , (typeNameId "SNES", [t| SNES |])
                   , (typeNameId "SNESLineSearch", [t| SNESLineSearch|])  

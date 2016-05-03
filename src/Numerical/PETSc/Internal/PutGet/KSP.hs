@@ -1,5 +1,3 @@
-{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
-{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.PutGet.KSP
@@ -151,4 +149,5 @@ kspGetIterationNumber ksp = chk1 (kspGetIterationNumber' ksp)
 
 
 
-
+kspGetPc :: KSP -> IO PC
+kspGetPc k = chk1 (kspGetPc' k)

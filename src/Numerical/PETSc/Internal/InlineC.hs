@@ -55,6 +55,7 @@ C.include "<petscts.h>"
 C.include "<petscviewer.h>"
 C.include "<petscviewerhdf5.h>"
 C.include "<petscsys.h>"
+C.include "<petscpctypes.h>"
 
 -- | SLEPc headers
 C.include "<slepceps.h>"
@@ -2217,7 +2218,18 @@ kspSetComputeRHS__' ksp f = kspSetComputeRHS_' ksp g where
 
 
 
+kspGetPc' k = withPtr $ \pc -> [C.exp|int{KSPGetPC($(KSP k),$(PC* pc))}|]
 
+
+
+
+
+
+-- * PC
+
+pcSetType' pc pct = withCString t $ \tp -> [C.exp|int{PCSetType($(PC pc),$(char* tp))}|] where
+  t = pcTypeToString pct
+  
 
 
 
@@ -2719,6 +2731,10 @@ snesView' m v = [C.exp|int{SNESView($(SNES m),$(PetscViewer v))}|]
 
 
 
+
+
+
+snesGetKsp' s = withPtr $ \k -> [C.exp|int{SNESGetKSP($(SNES s),$(KSP* k))}|] 
 
 
 

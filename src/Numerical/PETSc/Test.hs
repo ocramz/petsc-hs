@@ -587,8 +587,9 @@ t18_4' = withSnesCreate cw $ \snes ->  -- line 49
   withVecCreate vi $ \x -> do
     vecSetSizes x n
     withVecClone x $ \r -> 
-      withMatCreateSetup cw n n MatAij $ \jac -> do -- line 68
-        undefined
+      withMatCreateSetup cw n n MatAij $ \jac ->  -- line 68
+        -- snesSetFunction snes r
+      untitled
   where
     cw = commWorld
     vi = VecInfo cw n n

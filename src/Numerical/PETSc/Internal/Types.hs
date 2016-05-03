@@ -15,6 +15,8 @@ module Numerical.PETSc.Internal.Types where
 import Numerical.PETSc.Internal.Utils
 import Numerical.PETSc.Internal.Storable.StorableContainer
 
+import Data.Char
+
 import Data.Complex
 import Foreign.Storable.Complex
 
@@ -108,6 +110,8 @@ newtype DM = DM (Ptr DM) deriving Storable
 newtype DMDALocalInfo = DMDALocalInfo (Ptr DMDALocalInfo) deriving Storable
 
 newtype KSP = KSP (Ptr KSP) deriving Storable
+
+newtype PC = PC (Ptr PC) deriving Storable
 
 newtype KSPConvergedReason = KSPConvergedReason (Ptr KSPConvergedReason)
                            deriving (Eq, Storable)
@@ -476,6 +480,33 @@ kspConvergedIntToReason r =
 
 
 
+
+
+-- * PC
+
+data PCType_ = PcNone | PcJacobi | PcSOR | PcLU | PcShell | PcBJacobi | PcMG
+             | PcEisenstat | PcILU | PcICC | PcASM | PcGASM | PcKSP | PcComposite
+             | PcSPAI | PcNN | PcCholesky | PcPBJacobi | PcMat | PcHypre | PcParms
+             | PcFieldSplit | PcTFS | PcML | PcGalerkin | PcExotic | PcCP | PcBFBT
+             | PcLSC | PcPython | PcPFMG | PcSysPFMG | PcRedistribute | PcSVD
+             | PcGAMG  -- plus the CUDA ones, see petscpctypes.h
+             deriving (Eq, Show, Enum)
+
+pcTypeToString :: PCType_ -> String
+pcTypeToString t = drop 2 $ map toLower $ show t
+
+  
+
+
+
+
+
+
+
+
+
+
+
 -- * PF
 
 data PFType_ = PfConstant | PfMat | PfString | PfQuick | PfIdentity | PfMatlab deriving (Eq, Show)
@@ -486,6 +517,10 @@ pfTypeToStr PfString = "string"
 pfTypeToStr PfQuick = "quick"
 pfTypeToStr PfIdentity = "identity"
 pfTypeToStr PfMatlab = "matlab"
+
+
+
+
 
 
 
