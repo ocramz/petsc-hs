@@ -563,7 +563,8 @@ t18_3' =
                              snesSetJacobian0 snes jac jac (vvDiag n jd) n n 
                          ) $ \snes -> do -- return ()
     snesViewStdout snes
-    snesComputeFunction snes x xtemp
+    -- snesComputeFunction snes xtemp x
+    -- snesSolve0 snes x
     -- vecViewStdout xtemp
   where
     -- preSNS s = snesSetFunction s xtemp f
@@ -576,7 +577,23 @@ t18_3' =
 -- matSetDiagonalVectorSafe 
 
 
-t18_3 = withPetsc0 t18_3'
+t18_3 = withPetsc a "" "" t18_3' where
+  a = ["-start_in_debugger"]
+
+
+-- -- 4 : snes ex.1 
+
+t18_4' = withSnesCreate cw $ \snes ->  -- line 49
+  withVecCreate vi $ \x -> do
+    vecSetSizes x n
+    withVecClone x $ \r -> 
+      withMatCreateSetup cw n n MatAij $ \jac -> do -- line 68
+        undefined
+  where
+    cw = commWorld
+    vi = VecInfo cw n n
+    n = 2
+
 
 
 

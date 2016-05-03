@@ -17,7 +17,7 @@ import           Numerical.PETSc.Internal.Types
 import           Numerical.PETSc.Internal.Exception
 import           Numerical.PETSc.Internal.Utils
 import qualified Numerical.PETSc.Internal.PutGet.PetscMisc as P
-import qualified Numerical.PETSc.Internal.PutGet.Viewer as V
+import qualified Numerical.PETSc.Internal.PutGet.Viewer as View
 
 import           Numerical.PETSc.Internal.Storable.Vector
 import           Numerical.PETSc.Internal.Storable.StorableContainer
@@ -480,6 +480,8 @@ vecSetValuesUnsafe0 v ni ix y im = chk0 (vecSetValues' v ni ix y im)
 
 -- | setting Vec values, Data.Vector interface
 
+
+
 vecSetValuesUnsafeVector ::
   Vec ->
   V.Vector Int ->
@@ -566,6 +568,11 @@ vecSetValuesUnsafeVector1 v ixy =
 --       VS.unsafeWith yc $ \ycp -> m vv lvv ixcp lix ycp lyy im
 
 
+vecSetValuesRangeVector :: Vec -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
+vecSetValuesRangeVector v =
+  vecSetValuesUnsafeVector v ix_ where
+    ix_ = V.fromList [0 .. m-1]
+    m = vecSize v
 
 
 -- vecSetValuesRange :: Vec -> V.Vector PetscScalar_ -> InsertMode_ -> IO ()
@@ -691,7 +698,7 @@ vecView0 m v = chk0 (vecView' m v)
 
 vecView :: Vec -> IO ()
 vecView v =
-  V.withPetscViewerTypeFmt P.commWorld ViewerAscii ViewFmtAsciiInfoDetail (vecView0 v)
+  View.withPetscViewerTypeFmt P.commWorld ViewerAscii ViewFmtAsciiInfoDetail (vecView0 v)
 
 vecViewStdout :: Vec -> IO ()
 vecViewStdout = vecView

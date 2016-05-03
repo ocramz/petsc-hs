@@ -166,6 +166,10 @@ withSnesCreateSetupAD = withSnesCreateSetupAD0 return
 --      f'(x) x = -f(x)
 --   where f'(x) denotes the Jacobian matrix and f(x) is the function.
 
+-- | snesSetFunction : Input Parameters : 
+-- snes	- the SNES context
+-- r	- vector to store function value
+-- f	- function evaluation routine; see SNESFunction for calling sequence details
 
 
 snesSetFunction :: (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
@@ -177,8 +181,11 @@ snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g
   where
    g _snes x y _p = do
      withVecVector x $ \xv -> do
-       _ <- vecGetVector y
-       vecRestoreVector y (V.convert $ f xv)   -- `y` is overwritten, as per spec
+       vecSetValuesRangeVector y (V.convert $ f xv) InsertValues
+       vecAssembly y
+       -- do
+       -- _ <- vecGetVector y
+       -- vecRestoreVector y (V.convert $ f xv)   -- `y` is overwritten with result
      return (0 :: CInt)
 
 
@@ -254,7 +261,8 @@ snesSetJacobian0 ::
 snesSetJacobian0 snes amat pmat vvJac m n =
   chk0 $ snesSetJacobian_' snes amat pmat gj where
    gj _snes _x jj _jacp = do
-     withMatSetValueVectorSafe jj m n vvJac InsertValues return
+     matSetValueVectorSafe jj (m, n) vvJac InsertValues
+     matAssembly jj
      return (0 :: CInt)
 
 
