@@ -480,6 +480,10 @@ kspConvergedIntToReason r =
 
 
 
+-- showDropN n = drop n . map toLower . show
+
+
+
 
 
 -- * PC

@@ -122,9 +122,10 @@ kspSolve, kspSolveTranspose ::
 kspSolve ksp rhsv solnv =  chk0 (kspSolve' ksp rhsv solnv)
 kspSolveTranspose ksp rhsv solnv = chk0 (kspSolve' ksp rhsv solnv)
 
--- kspSetReusePreconditioner ::
---   KSP -> PetscBool -> IO ()
+kspSetReusePreconditioner :: KSP -> PetscBool -> IO ()
 kspSetReusePreconditioner ksp b = chk0 (kspSetReusePreconditioner' ksp b)
+
+kspSetTolerances ksp rtol abstol dtol maxits = chk0 $ kspSetTolerances' ksp rtol abstol dtol maxits
 
 kspGetRhs :: KSP -> IO Vec
 kspGetRhs ksp = chk1 (kspGetRhs' ksp)

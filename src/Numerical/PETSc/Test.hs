@@ -581,19 +581,35 @@ t18_3 = withPetsc a "" "" t18_3' where
   a = ["-start_in_debugger"]
 
 
+
+
 -- -- 4 : snes ex.1 
 
 t18_4' = withSnesCreate cw $ \snes ->  -- line 49
-  withVecCreate vi $ \x -> do
-    vecSetSizes x n
+  withVecNew cw v0 $ \x -> do
+    vecAssembly x 
     withVecClone x $ \r -> 
-      withMatCreateSetup cw n n MatAij $ \jac ->  -- line 68
-        -- snesSetFunction snes r
-      untitled
+      withMatCreateSetup cw n n MatAij $ \jac -> do -- line 68
+        snesSetFunction snes r fun
+        snesSetJacobian0 snes jac jac vvJac n n
+
+        snesGetKsp snes >>= kspGetPc >>= (`pcSetType` PcJacobi) -- eh
+        
+        snesSolve0 snes x
+        snesViewStdout snes
+
   where
     cw = commWorld
     vi = VecInfo cw n n
     n = 2
+    v0 = V.replicate n 0.5
+    fun = V.map (** 2)
+    vvJac = vvDiag n (V.replicate n 2)
+
+t18_4 = withPetsc0 t18_4'
+
+
+
 
 
 

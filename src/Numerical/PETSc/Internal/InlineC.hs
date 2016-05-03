@@ -66,6 +66,8 @@ C.include "<slepcsvd.h>"
 
 -- petscDecide = -1
 
+-- petscDefault = [C.exp|int{PETSC_DEFAULT}|]
+
 -- * IS
 
 isCreateStride_ :: CInt -> PetscInt_ -> PetscInt_ -> PetscInt_ -> Ptr IS -> IO CInt
@@ -2139,7 +2141,7 @@ kspSetReusePreconditioner' ksp b = [C.exp|int{KSPSetReusePreconditioner($(KSP ks
 -- PETSC_EXTERN PetscErrorCode KSPGetTolerances(KSP,PetscReal*,PetscReal*,PetscReal*,PetscInt*);
 
 -- PETSC_EXTERN PetscErrorCode KSPSetTolerances(KSP,PetscReal,PetscReal,PetscReal,PetscInt);
--- kspSetTolerances ksp 
+kspSetTolerances' ksp rtol abstol dtol maxits = [C.exp|int{KSPSetTolerances($(KSP ksp),$(PetscReal rtol),$(PetscReal abstol),$(PetscReal dtol),$(PetscInt maxits))}|]
 
 -- PETSC_EXTERN PetscErrorCode KSPSetInitialGuessNonzero(KSP,PetscBool );
 kspSetInitialGuessNonzero' :: KSP -> PetscBool -> IO CInt
