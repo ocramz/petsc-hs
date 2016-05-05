@@ -21,7 +21,7 @@ main:
 	make step3
 
 step1:
-	ghc ${SRCDIR}/Internal/InlineC.hs -isrc/
+	ghc -v ${SRCDIR}/Internal/InlineC.hs -isrc/
 
 step2:
 	cc -w -c ${SRCDIR}/Internal/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include -I${SLEPC_DIR_ARCH}/include -I${SLEPC_DIR}/include

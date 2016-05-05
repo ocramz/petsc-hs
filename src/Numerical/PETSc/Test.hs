@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts, TypeFamilies, MultiParamTypeClasses #-}
-{-# language ParallelListComp #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Test
@@ -13,8 +11,8 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Test where
 
-import Data.Functor
-import Control.Applicative
+-- import Data.Functor
+-- import Control.Applicative
 
 import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.PutGet
@@ -508,34 +506,34 @@ t14 = withPetsc0 $ withSlepc0 t13a'
 
 -- | SNES
 
-t18' =
-  -- withVecMPIPipeline (VecInfo commWorld n n)
-  withVec (vecCreateMPIFromVectorDecideLocalSize cw w) $ \x ->
-  withVecClone x $ \xtemp ->
-  withMatCreateSetup cw n n MatAij $ \jac ->
-  withSnesCreateSetupAD cw xtemp jac jac f $ \snes -> do
-    -- -- vecViewStdout x
-    -- matAssembly jac
-    -- snesViewStdout snes
-    -- matViewStdout jac
-    snesSolve0 snes x
-    xsol <- snesGetSolution snes
-    vecViewStdout xsol
-    -- vecDot xtemp xtemp
-  where
-    cw = commWorld
-    n = 5
-    w = V.replicate n 0.3
-    f = V.map (**2)
+-- t18' =
+--   -- withVecMPIPipeline (VecInfo commWorld n n)
+--   withVec (vecCreateMPIFromVectorDecideLocalSize cw w) $ \x ->
+--   withVecClone x $ \xtemp ->
+--   withMatCreateSetup cw n n MatAij $ \jac ->
+--   withSnesCreateSetupAD cw xtemp jac jac f $ \snes -> do
+--     -- -- vecViewStdout x
+--     -- matAssembly jac
+--     -- snesViewStdout snes
+--     -- matViewStdout jac
+--     snesSolve0 snes x
+--     xsol <- snesGetSolution snes
+--     vecViewStdout xsol
+--     -- vecDot xtemp xtemp
+--   where
+--     cw = commSelf
+--     n = 5
+--     w = V.replicate n 0.3
+--     f = V.map (**2)
 
-t18 = withPetsc0 t18'
+-- t18 = withPetsc0 t18'
 
 
 -- | t18debug : why does t18 segfault?
 
 -- -- 1 : initialize, fill Jacobian matrix using AD and visualize it
 
-t18_1' = withMatNew c n n MatAij vcsr InsertValues $ \mat -> do
+t18d1' = withMatNew c n n MatAij vcsr InsertValues $ \mat -> do
   print jac
   matViewStdout mat
   where
@@ -548,12 +546,12 @@ t18_1' = withMatNew c n n MatAij vcsr InsertValues $ \mat -> do
    jac = AD.jacobian fun xv -- (V.map realToFrac . fun . V.map realToFrac) xv
    vcsr = PSparse.vvToCSRsparse jac
 
-t18_1 = withPetsc0 t18_1'
+t18d1 = withPetsc0 t18d1'
 
 -- -- 2 : ", passing in a function to be differentiated as a parameter
 
 -- -- 3 : compute SNES function
-t18_3' =
+t18d3' =
   -- withVecMPIPipeline (VecInfo commWorld n n)
   withVec (vecCreateMPIFromVectorDecideLocalSize cw w) $ \x ->
   withVecClone x $ \xtemp ->
@@ -561,7 +559,7 @@ t18_3' =
   withSnesCreateSetup cw (\snes -> do
                              snesSetFunction snes xtemp f
                              snesSetJacobian0 snes jac jac (vvDiag n jd) n n 
-                         ) $ \snes -> do -- return ()
+                         ) $ \snes -> -- return ()
     snesViewStdout snes
     -- snesComputeFunction snes xtemp x
     -- snesSolve0 snes x
@@ -577,7 +575,7 @@ t18_3' =
 -- matSetDiagonalVectorSafe 
 
 
-t18_3 = withPetsc a "" "" t18_3' where
+t18d3 = withPetsc a "" "" t18d3' where
   a = ["-start_in_debugger"]
 
 
@@ -585,28 +583,32 @@ t18_3 = withPetsc a "" "" t18_3' where
 
 -- -- 4 : snes ex.1 
 
-t18_4' = withSnesCreate cw $ \snes ->  -- line 49
-  withVecNew cw v0 $ \x -> do
+t18d4' = withSnesCreate cw $ \snes ->  -- line 49
+  withVecNew cw vx0 $ \x -> do
     vecAssembly x 
     withVecClone x $ \r -> 
       withMatCreateSetup cw n n MatAij $ \jac -> do -- line 68
         snesSetFunction snes r fun
         snesSetJacobian0 snes jac jac vvJac n n
 
-        snesGetKsp snes >>= kspGetPc >>= (`pcSetType` PcJacobi) -- eh
+        matAssembly jac
+        vecAssembly r
+        matViewStdout jac
+        vecViewStdout r
+        -- snesGetKsp snes >>= kspGetPc >>= (`pcSetType` PcJacobi) -- eh
         
-        snesSolve0 snes x
-        snesViewStdout snes
+        -- snesSolve0 snes x
+        -- snesViewStdout snes
 
   where
     cw = commWorld
     vi = VecInfo cw n n
     n = 2
-    v0 = V.replicate n 0.5
+    vx0 = V.replicate n 0.5  -- starting guess
     fun = V.map (** 2)
     vvJac = vvDiag n (V.replicate n 2)
 
-t18_4 = withPetsc0 t18_4'
+t18d4 = withPetsc0 t18d4'
 
 
 
