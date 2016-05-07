@@ -25,7 +25,7 @@ import Control.Applicative
 import Control.Exception 
 import Control.Monad
 -- import qualified GHC.ForeignPtr as FPR
-import qualified Foreign.ForeignPtr.Safe as FPR
+import qualified Foreign.ForeignPtr as FPR
 
 import Foreign.Ptr
 import Foreign.Storable

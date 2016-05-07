@@ -23,7 +23,7 @@ import Control.Monad
 
 import Control.Exception 
 
-import qualified Foreign.ForeignPtr.Safe as FPR
+import qualified Foreign.ForeignPtr as FPR
 
 import Foreign.Ptr
 import Foreign.Storable
