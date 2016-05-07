@@ -97,14 +97,14 @@ before_install:
 
   - export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
 
-  - stack setup
+
 
 # # This line does all of the work: installs GHC if necessary, build the library,
 # # executables, and test suites, and runs the test suites. --no-terminal works
 # # around some quirks in Travis's terminal implementation.
 
 script: 
-
+  # - stack setup
   # - stack build $STACK_ARGS --no-terminal --install-ghc --extra-include-dirs=$PETSC_INCLUDE1 --extra-include-dirs=$PETSC_INCLUDE2 --extra-include-dirs=$SLEPC_INCLUDE1 --extra-include-dirs=$SLEPC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB --extra-lib-dirs=$SLEPC_LIB
   - ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
 
