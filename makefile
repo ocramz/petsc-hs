@@ -31,7 +31,7 @@ step3:
 
 
 step_test:
-	ghci ${SRCDIR}/Test.hs ${SRCDIR}/Internal/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal.o -isrc/ -L${PETSC_DIR_ARCH}/lib -L${SLEPC_DIR_ARCH}/lib -lpetsc -lmpich -lslepc
+	stack exec ghci ${SRCDIR}/Test.hs ${SRCDIR}/Internal/InlineC.hs  ${LIBDIR}/InlineC_c.o  ${LIBDIR}/Internal.o -- -isrc/ -L${PETSC_DIR_ARCH}/lib -L${SLEPC_DIR_ARCH}/lib -lpetsc -lmpich -lslepc
 
 
 tests:
