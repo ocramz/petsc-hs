@@ -88,10 +88,10 @@ Clone the repository and enter its root directory:
 
 ### 3 
 
-    ./stack-build.sh $STACK_ARGS $PETSC_DIR $PETSC_ARCH $SLEPC_DIR $SLEPC_ARCH
+    ./stack-build.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
 
-This compiles the whole project, library and examples, part of which into object code. 
-It is just a synonym for `stack build` that uses the PETSc/SLEPc root directory and architecture variables, as specified above, to look for the include files and dynamic libraries.
+This compiles the whole project, library and examples. 
+It is just a synonym for `stack setup && stack build` that uses the PETSc/SLEPc root directory and architecture variables, as specified above, to generate the include and object code directories.
 
 The `STACK_ARGS` variable can be used to build against specific Stackage repositories, or can be left as the empty string.
 
