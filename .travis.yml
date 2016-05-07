@@ -97,7 +97,7 @@ before_install:
 
   - export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
 
-
+  - stack setup
 
 # # This line does all of the work: installs GHC if necessary, build the library,
 # # executables, and test suites, and runs the test suites. --no-terminal works
