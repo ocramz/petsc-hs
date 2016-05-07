@@ -812,7 +812,7 @@ vecRestoreVectorReadN v = vectorCopyToForeignPtr (vecGetArrayReadPtr v) (vecRest
 vecRestoreVectorRead :: Vec -> VS.Vector PetscScalar_ -> IO ()
 vecRestoreVectorRead v = vecRestoreVectorReadN v (vecSize v)
 
-withVecReadVector :: Vec -> (VS.Vector PetscScalar_ -> IO a) -> IO a
+-- withVecReadVector :: Vec -> (VS.Vector PetscScalar_ -> IO a) -> IO a
 withVecReadVector v = bracket (vecGetVectorRead v) (vecRestoreVectorRead v)
 
 
