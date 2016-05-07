@@ -829,6 +829,12 @@ vecCopyVector v = do
   vecRestoreVector v vc
   return (V.convert vc)
 
+withVecCopyVector ::
+  VG.Vector w PetscScalar_ =>
+  Vec ->
+  (w PetscScalar_ -> IO a) ->
+  IO a
+withVecCopyVector v f = withVecReadVector v (f . VG.convert)
 
 
 
