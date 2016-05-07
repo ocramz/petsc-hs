@@ -116,11 +116,11 @@ The library is being developed with/on :
 
 * OS : OSX 10.9.5, Ubuntu 12.04 LTS Server Edition 64 bit on Travis CI
 
-* Haskell compiler : `ghc` 7.8.3, 7.10.2 
+* Haskell compiler : `ghc` 7.8.3, 7.10.2, 7.10.3 
 
 * Cabal 1.22
 
-* `stack` 0.1.4.0
+* `stack` 1.0.4, 1.1.0
 
 
 
