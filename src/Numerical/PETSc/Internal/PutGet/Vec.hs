@@ -750,6 +750,8 @@ vecRestoreArrayPtr :: Vec -> Ptr PetscScalar_ -> IO ()
 vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
 
 
+-- | ",  read only
+
 vecGetArrayReadPtr :: Vec -> IO (Ptr PetscScalar_)
 vecGetArrayReadPtr v = chk1 (vecGetArrayRead' v)
 
@@ -785,6 +787,9 @@ vecGetVector :: Vec -> IO (VS.Vector PetscScalar_)
 vecGetVector v =
    vecGetVectorN v (vecSize v)
 
+
+   
+
 vecRestoreVectorN :: Vec -> Int -> VS.Vector PetscScalar_ -> IO ()
 vecRestoreVectorN v =
   vectorCopyToForeignPtr (vecGetArrayPtr v) (vecRestoreArrayPtr v)
@@ -793,6 +798,23 @@ vecRestoreVectorN v =
 vecRestoreVector :: Vec -> VS.Vector PetscScalar_ -> IO ()
 vecRestoreVector v =
    vecRestoreVectorN v (vecSize v)
+
+
+-- | ", read only
+vecGetVectorReadN :: Vec -> Int -> IO (VS.Vector PetscScalar_)
+vecGetVectorReadN v = vectorFreezeFromStorablePtr (vecGetArrayReadPtr v) (vecRestoreArrayReadPtr v)
+
+vecGetVectorRead :: Vec -> IO (VS.Vector PetscScalar_)
+vecGetVectorRead v = vecGetVectorReadN v (vecSize v)
+
+vecRestoreVectorReadN v = vectorCopyToForeignPtr (vecGetArrayReadPtr v) (vecRestoreArrayReadPtr v)
+
+vecRestoreVectorRead :: Vec -> VS.Vector PetscScalar_ -> IO ()
+vecRestoreVectorRead v = vecRestoreVectorReadN v (vecSize v)
+
+withVecReadVector :: Vec -> (VS.Vector PetscScalar_ -> IO a) -> IO a
+withVecReadVector v = bracket (vecGetVectorRead v) (vecRestoreVectorRead v)
+
 
 
 
