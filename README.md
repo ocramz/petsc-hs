@@ -95,6 +95,8 @@ It is just a synonym for `stack setup && stack build` that uses the PETSc/SLEPc 
 
 The `STACK_ARGS` variable can be used to build against specific Stackage repositories, or can be left as the empty string.
 
+Example : `./stack-build.sh "" "$HOME/petsc" "arch-linux2-c-debug" "$HOME/slepc" "arch-linux2-c-debug"`
+
 
 ### 4 
 
