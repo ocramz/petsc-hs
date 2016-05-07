@@ -597,7 +597,7 @@ t18d4' = withSnesCreate cw $ \snes ->  -- line 49
         vecViewStdout r
         -- snesGetKsp snes >>= kspGetPc >>= (`pcSetType` PcJacobi) -- eh
         
-        -- snesSolve0 snes x
+        snesSolve0 snes x
         -- snesViewStdout snes
 
   where

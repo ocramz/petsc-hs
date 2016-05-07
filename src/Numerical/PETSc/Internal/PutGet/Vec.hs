@@ -750,6 +750,11 @@ vecRestoreArrayPtr :: Vec -> Ptr PetscScalar_ -> IO ()
 vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
 
 
+vecGetArrayReadPtr :: Vec -> IO (Ptr PetscScalar_)
+vecGetArrayReadPtr v = chk1 (vecGetArrayRead' v)
+
+vecRestoreArrayReadPtr :: Vec -> Ptr PetscScalar_ -> IO ()
+vecRestoreArrayReadPtr v ar = chk0 (vecRestoreArrayRead' v ar)
 
 
 

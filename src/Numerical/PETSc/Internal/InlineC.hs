@@ -378,8 +378,10 @@ vecGetArray1' v = withPtr $ \p -> vecGetArray0' v p
 --   vga v p = [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]
 
 
+-- PetscErrorCode VecGetArrayRead(Vec x,const PetscScalar **a)
+vecGetArrayRead0' v p = [C.exp|int{VecGetArrayRead($(Vec v), $(PetscScalar** p))}|]
 
-
+vecGetArrayRead' v = withPtr $ \p -> vecGetArrayRead0' v p
 
 
 
@@ -422,8 +424,12 @@ vecRestoreArray' v c = withArray c $ \cp ->
 
 
 
+-- PetscErrorCode VecRestoreArrayRead(Vec x,const PetscScalar **a)
+vecRestoreArrayRead0' v p = [C.exp|int{VecRestoreArrayRead($(Vec v), $(PetscScalar** p))}|]
 
--- PETSC_EXTERN PetscErrorCode VecRestoreArrayRead(Vec,const PetscScalar**);
+
+vecRestoreArrayRead' v p = with p $ \pc -> vecRestoreArrayRead0' v pc
+
 
 
 
