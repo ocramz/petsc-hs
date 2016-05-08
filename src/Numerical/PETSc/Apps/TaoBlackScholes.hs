@@ -7,7 +7,7 @@
 -- Stability   :  experimental
 --
 -- | Black-Scholes solver for American options with Tao
--- (see src/tao/complementarity/examples/tutorials/blackscholes.c in the PETSc source folder )
+-- ( see src/tao/complementarity/examples/tutorials/blackscholes.c in the PETSc source folder )
 --
 {-  Notes :  
     American Put Options Pricing using the Black-Scholes Equation

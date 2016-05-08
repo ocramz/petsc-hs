@@ -632,6 +632,10 @@ vecSetValuesUnsafeVector1A v ixy im = do
 
 -- | creating Vec reference and setting its content from Data.Vector
 
+-- | TODO
+-- * abstract out:
+-- -- given Vector w and Comm c: create Vec v (decide creation routine from input data), fill it from w, assemble v, return v :
+
 vecCreateMPIFromVector :: Comm -> Int -> V.Vector PetscScalar_ -> IO Vec
 vecCreateMPIFromVector comm nloc w = do
   let dimv = V.length w
