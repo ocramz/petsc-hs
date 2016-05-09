@@ -26,7 +26,8 @@ fi
 # compile
 make PETSC_DIR=$PETSC_DIR PETSC_ARCH=$PETSC_ARCH all
 
-# make all test
+# test
+make all test
 
 # exit install dir
 cd ..

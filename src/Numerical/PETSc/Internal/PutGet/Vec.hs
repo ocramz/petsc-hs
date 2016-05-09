@@ -721,7 +721,7 @@ vecGetOwnershipRange v =
   chk1 (vecGetOwnershipRange1 v) 
 
 vecGetSize :: Vec -> IO Int
-vecGetSize v = fmap fi $ chk1 ( vecGetSize' v) 
+vecGetSize v = fi <$> chk1 ( vecGetSize' v) 
 
 vecGetSizeUnsafe :: Vec -> Int
 vecGetSizeUnsafe = unsafePerformIO . vecGetSize

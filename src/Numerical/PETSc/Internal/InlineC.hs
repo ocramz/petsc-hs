@@ -700,7 +700,7 @@ matCreateSeqAIJ1 comm m' n' nnz' =
         (m, n, nnz) = (toCInt m', toCInt n', map toCInt nnz')
 
 matCreateSeqAIJconstNZperRow1 :: Comm -> Int -> Int -> Int -> IO (Mat, CInt)
-matCreateSeqAIJconstNZperRow1 comm m' n' nz' =
+matCreateSeqAIJconstNZperRow1 cc m' n' nz' =
   withPtr (\mat ->
             [C.exp|int{MatCreateSeqAIJ($(int c),
                                        $(PetscInt m),
@@ -708,7 +708,7 @@ matCreateSeqAIJconstNZperRow1 comm m' n' nz' =
                                        $(PetscInt nz),
                                        NULL ,
                                        $(Mat *mat))}|]) 
-  where c = unComm comm
+  where c = unComm cc
         (m, n, nz) = (toCInt m', toCInt n', toCInt nz')
 
 
@@ -750,18 +750,18 @@ matCreateAIJ' :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> PetscInt_
                         -> PetscInt_
                         -> [PetscInt_]
                         -> IO (Mat, CInt)
-matCreateAIJ' comm m n mm nn dnz dnnz onz onnz = 
+matCreateAIJ' cc m n mm nn dnz dnnz onz onnz = 
     withArray dnnz ( \dnnzp ->
-    withArray onnz ( \onnzp -> matCreateAIJ0' comm m n mm nn dnz dnnzp onz onnzp ))
+    withArray onnz ( \onnzp -> matCreateAIJ0' cc m n mm nn dnz dnnzp onz onnzp ))
 
 
-matCreateAIJ0' comm m n mm nn dnz dnnzp onz onnzp = withPtr ( \mat ->
+matCreateAIJ0' cc m n mm nn dnz dnnzp onz onnzp = withPtr ( \mat ->
   [C.exp|int{MatCreateAIJ($(int c),
                           $(PetscInt m), $(PetscInt n),
                           $(PetscInt mm), $(PetscInt nn),
                           $(PetscInt dnz), $(PetscInt* dnnzp),
                           $(PetscInt onz), $(PetscInt* onnzp),
-                          $(Mat* mat))}|] ) where c = unComm comm
+                          $(Mat* mat))}|] ) where c = unComm cc
  
 -- | matCreateAIJDecide' : matCreateAIJ inferring the local sizes :
 
