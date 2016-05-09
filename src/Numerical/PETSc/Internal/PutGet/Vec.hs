@@ -32,7 +32,7 @@ import           Foreign.C.Types
 import           System.IO.Unsafe                   (unsafePerformIO)
 
 import           Control.Monad
--- import           Control.Applicative
+import           Control.Applicative
 -- import           Control.Arrow
 -- import           Control.Concurrent
 import           Control.Exception
@@ -645,7 +645,7 @@ vecCreateMPIFromVector comm nloc w = do
   vecAssembly v
   return v
 
-vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
+-- vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
 vecCreateMPIFromVectorDecideLocalSize comm w = do
   let dimv = V.length w
       ix = V.fromList $ range0 (dimv - 1)
@@ -721,7 +721,7 @@ vecGetOwnershipRange v =
   chk1 (vecGetOwnershipRange1 v) 
 
 vecGetSize :: Vec -> IO Int
-vecGetSize v = liftM fi $ chk1 ( vecGetSize' v) 
+vecGetSize v = fmap fi $ chk1 ( vecGetSize' v) 
 
 vecGetSizeUnsafe :: Vec -> Int
 vecGetSizeUnsafe = unsafePerformIO . vecGetSize
@@ -816,7 +816,7 @@ vecRestoreVectorReadN v = vectorCopyToForeignPtr (vecGetArrayReadPtr v) (vecRest
 vecRestoreVectorRead :: Vec -> VS.Vector PetscScalar_ -> IO ()
 vecRestoreVectorRead v = vecRestoreVectorReadN v (vecSize v)
 
--- withVecReadVector :: Vec -> (VS.Vector PetscScalar_ -> IO a) -> IO a
+withVecReadVector :: Vec -> (VS.Vector PetscScalar_ -> IO a) -> IO a
 withVecReadVector v = bracket (vecGetVectorRead v) (vecRestoreVectorRead v)
 
 
@@ -1107,18 +1107,18 @@ vecSum v = chk1 $ vecSum1 v
 
 
 vecLog_, vecExp_, vecAbs_ :: Vec -> IO ()
-vecLog, vecExp, vecAbs :: Vec -> IO Vec
+-- vecLog, vecExp, vecAbs :: Vec -> IO Vec
 vecLog_ v = chk0 $ vecLog' v
-vecLog v = do {vecLog_ v; return v}
+-- vecLog v = do {vecLog_ v; return v}
 vecExp_ v = chk0 $ vecExp' v
-vecExp v = do {vecExp_ v; return v}
+-- vecExp v = do {vecExp_ v; return v}
 vecAbs_ v = chk0 $ vecAbs' v
-vecAbs v = do {vecAbs_ v ; return v}
+-- vecAbs v = do {vecAbs_ v ; return v}
 
 vecScale_ :: Vec -> PetscScalar_ -> IO ()
 vecScale_ v a = chk0 $ vecScale' v a
-vecScale :: Vec -> PetscScalar_ -> IO Vec
-vecScale v a = do {vecScale_ v a; return v}
+-- vecScale :: Vec -> PetscScalar_ -> IO Vec
+-- vecScale v a = do {vecScale_ v a; return v}
 
 -- | AXPY : y = a x + y
 -- -- NB : x and y must be different vectors (i.e. distinct pointers)
@@ -1129,8 +1129,9 @@ vecAxpy a y x = do
 
 -- | WAXPY : w = a x + y
 -- -- NB : w cannot be either x or y, but x and y can be the same
+vecWaxpy_ :: Vec -> PetscScalar_ -> Vec -> Vec -> IO ()
 vecWaxpy_ w a x y = chk0 $ vecWaxpy' w a x y
-vecWaxpy w a x y = do {vecWaxpy_ w a x y; return w}
+-- vecWaxpy w a x y = do {vecWaxpy_ w a x y; return w} -- not sure about this one
 
 -- vecWaxpySafe a vx vy = withVecCreate vi $ \w ->
 --   vecWaxpy w a x y  -- NB: w is created on same Comm as x

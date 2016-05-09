@@ -116,11 +116,11 @@ isCreateGeneral_ c n idxp mo isp  =
 
 isCreateGeneral' ::
   Comm -> PetscInt_ -> [PetscInt_] -> PetscCopyMode_ -> IO (IS, CInt)
-isCreateGeneral' comm n idx mode =
+isCreateGeneral' com n idx mode =
    withArray idx $ \idxp ->
     withPtr $ \isp -> isCreateGeneral_ c n idxp mo isp 
      where mo = fromIntegral $ petscCopyModeToInt mode
-           c = unComm comm
+           c = unComm com
 
 isDestroy' :: IS -> IO CInt
 isDestroy' iis = with iis isd where
@@ -195,8 +195,8 @@ vecCreate' c = withPtr (vc0 c) where
 vecCreateMPI' :: Comm -> Int -> Int -> IO (Vec, CInt)
 vecCreateMPI' c nlocal nglobal = withPtr (vcm0 c nlocal nglobal)
   where
-    vcm0 comm m1' m2' p = [C.exp|int{VecCreateMPI($(int c), $(int m1), $(int m2), $(Vec *p))}|] 
-      where c = unComm comm
+    vcm0 cc m1' m2' p = [C.exp|int{VecCreateMPI($(int c), $(int m1), $(int m2), $(Vec *p))}|] 
+      where c = unComm cc
             m1 = toCInt m1'
             m2 = toCInt m2'
 
@@ -208,13 +208,13 @@ vecCreateMPI' c nlocal nglobal = withPtr (vcm0 c nlocal nglobal)
 
 -- PetscErrorCode VecCreateMPI(MPI_Comm comm, int m, int M, Vec* x)
 vecCreateMPIdecideLoc0' :: Comm -> Int -> Ptr Vec -> IO CInt
-vecCreateMPIdecideLoc0' comm nglob p =
+vecCreateMPIdecideLoc0' cc nglob p =
   [C.exp|int{VecCreateMPI($(int c), PETSC_DECIDE, $(int m1), $(Vec *p))}|] 
-    where c = unComm comm
+    where c = unComm cc
           m1 = toCInt nglob
 
 vecCreateMPIdecideLoc' :: Comm -> Int -> IO (Vec, CInt)
-vecCreateMPIdecideLoc' comm nglob = withPtr (vecCreateMPIdecideLoc0' comm nglob)
+vecCreateMPIdecideLoc' cc nglob = withPtr (vecCreateMPIdecideLoc0' cc nglob)
 
 
 
@@ -329,7 +329,7 @@ vecSetSizes1 v n = [C.exp|int{VecSetSizes( $(Vec v), PETSC_DECIDE, $(int n))}|]
 
 vecGetSize' :: Vec -> IO (CInt, CInt)
 vecGetSize' v = withPtr $ \p -> vgs0 v p where
-  vgs0 v p =  [C.exp|int{VecGetSize($(Vec v), $(int *p))}|]
+  vgs0 vv pp =  [C.exp|int{VecGetSize($(Vec vv), $(int *pp))}|]
 
 vecGetSizeUnsafe' :: Vec -> (CInt, CInt)
 vecGetSizeUnsafe' = unsafePerformIO . vecGetSize'
@@ -381,6 +381,7 @@ vecGetArray1' v = withPtr $ \p -> vecGetArray0' v p
 -- PetscErrorCode VecGetArrayRead(Vec x,const PetscScalar **a)
 vecGetArrayRead0' v p = [C.exp|int{VecGetArrayRead($(Vec v), $(PetscScalar** p))}|]
 
+vecGetArrayRead' :: Vec -> IO (Ptr PetscScalar_, CInt)
 vecGetArrayRead' v = withPtr $ \p -> vecGetArrayRead0' v p
 
 
@@ -428,6 +429,7 @@ vecRestoreArray' v c = withArray c $ \cp ->
 vecRestoreArrayRead0' v p = [C.exp|int{VecRestoreArrayRead($(Vec v), $(PetscScalar** p))}|]
 
 
+vecRestoreArrayRead' :: Vec -> Ptr PetscScalar_ -> IO CInt
 vecRestoreArrayRead' v p = with p $ \pc -> vecRestoreArrayRead0' v pc
 
 
@@ -503,7 +505,7 @@ vecGetOwnershipRange1 v = do
 
 vecDot1 :: Vec -> Vec -> IO (PetscScalar_, CInt)
 vecDot1 v1 v2 = withPtr (vdot v1 v2) where
-  vdot v1 v2 v = [C.exp|int{VecDot( $(Vec v1), $(Vec v2), $(PetscScalar * v))}|] 
+  vdot vv1 vv2 v = [C.exp|int{VecDot( $(Vec vv1), $(Vec vv2), $(PetscScalar * v))}|] 
 
 
 
@@ -511,8 +513,8 @@ vecDot1 v1 v2 = withPtr (vdot v1 v2) where
 
 vecNorm1 :: VecNorm_ -> Vec -> IO (PetscReal_, CInt)
 vecNorm1 nt v = withPtr (vnorm nt v) where
-  vnorm nt v p = [C.exp|int{VecNorm($(Vec v),$(int nti),$(PetscReal* p))}|] where
-    nti = fromIntegral $ vecNormToInt nt
+  vnorm nnt vv p = [C.exp|int{VecNorm($(Vec vv),$(int nti),$(PetscReal* p))}|] where
+    nti = fromIntegral $ vecNormToInt nnt
 -- vecNorm v nt = unsafePerformIO $ withPtrHandleErr2 vecNorm' nt v
 
 
@@ -523,7 +525,7 @@ vecNorm1 nt v = withPtr (vnorm nt v) where
 
 vecSum1 :: Vec -> IO (PetscScalar_, CInt)
 vecSum1 v = withPtr (vs v) where
-  vs v p = [C.exp|int{VecSum($(Vec v), $(PetscScalar* p))}|]
+  vs vv p = [C.exp|int{VecSum($(Vec vv), $(PetscScalar* p))}|]
 -- vecSum v = unsafePerformIO $ withPtrHandleErr1 vecSum' v
 
 -- PETSC_EXTERN PetscErrorCode VecMax(Vec,PetscInt*,PetscReal *);
@@ -636,12 +638,12 @@ matSetType' m mt = withCString cs $ \c -> [C.exp|int{MatSetType($(Mat m), $(char
 -- matCreate' c p = [C.exp| int{MatCreate($(int c), $(Mat *p))} |]
 matCreate' :: Comm -> IO (Mat, CInt)
 matCreate' = matCreate0' where
-  matCreate0' comm = withPtr $ \p -> [C.exp| int{MatCreate($(int c), $(Mat *p))} |] 
-    where c = unComm comm
+  matCreate0' cc = withPtr $ \p -> [C.exp| int{MatCreate($(int c), $(Mat *p))} |] 
+    where c = unComm cc
 
 matDestroy' :: Mat -> IO CInt
 matDestroy' m = with m matDestroy0' where
-  matDestroy0' m = [C.exp|int{MatDestroy($(Mat *m))}|]
+  matDestroy0' mm = [C.exp|int{MatDestroy($(Mat *mm))}|]
 
 
 matSetSizes0' :: Mat -> Int -> Int -> Int -> Int -> IO CInt
@@ -663,7 +665,7 @@ matSetSizes' mat m n = [C.exp|int{MatSetSizes($(Mat mat), PETSC_DECIDE, PETSC_DE
 -- PetscErrorCode  MatCreateSeqAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt nz,const PetscInt nnz[],Mat *A)
 matCreateSeqAIJ' ::
   Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> [PetscInt_] -> IO (Mat, CInt)
-matCreateSeqAIJ' comm m n nz nnz =
+matCreateSeqAIJ' cc m n nz nnz =
   withPtr (\mat ->
    withArray nnz $ \nnzp ->
             [C.exp|int{MatCreateSeqAIJ($(int c),
@@ -672,7 +674,7 @@ matCreateSeqAIJ' comm m n nz nnz =
                                        $(PetscInt nz),
                                        $(PetscInt* nnzp),
                                        $(Mat *mat))}|]) 
-  where c = unComm comm
+  where c = unComm cc
 
 -- PetscErrorCode  MatCreateSeqAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt nz,const PetscInt nnz[],Mat *A)  -- Collective on MPI_Comm
 -- Input Parameters :
