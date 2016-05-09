@@ -889,7 +889,7 @@ matView' m v = [C.exp|int{MatView($(Mat m),$(PetscViewer v))}|]
 matGetSize' :: Mat -> IO ((CInt, CInt), CInt)
 matGetSize' v = withPtr ( \px ->
   withPtr $ \py -> matGetSize0' v px py ) >>= fst2M where
-   matGetSize0' v sx sy =  [C.exp|int{MatGetSize($(Mat v), $(int *sx), $(int *sy))}|]
+   matGetSize0' vv sx sy =  [C.exp|int{MatGetSize($(Mat vv), $(int *sx), $(int *sy))}|]
    
 matGetSizeUnsafeCInt' :: Mat -> ((CInt, CInt), CInt)
 matGetSizeUnsafeCInt' = unsafePerformIO . matGetSize'

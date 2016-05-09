@@ -31,7 +31,7 @@ import Test.Hspec
 -- | utils
 
 
-
+tests :: IO ()
 tests = withPetsc0 $ hspec $ do
   t7
   -- t7
