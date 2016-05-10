@@ -48,8 +48,7 @@ import           Control.Exception
 -- import           Data.STRef
 
 -- import           Control.Monad.ST
--- import           Control.Monad.ST.Unsafe            (unsafeIOToST)    -- for HMatrix b
-                 its
+-- import           Control.Monad.ST.Unsafe            (unsafeIOToST)    -- for HMatrix bits
 
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable               as VS 
