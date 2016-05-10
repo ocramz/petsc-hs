@@ -37,18 +37,19 @@ import           Control.Applicative
 -- import           Control.Concurrent
 import           Control.Exception
 
-import           Control.Monad.Trans.Reader
+-- import           Control.Monad.Trans.Reader
 -- import           Control.Monad.Trans.State
 -- import           Control.Monad.Trans.Resource
-import           Control.Monad.Trans.Class
+-- import           Control.Monad.Trans.Class
 
-import Control.Monad.IO.Class
+-- import Control.Monad.IO.Class
 -- import Control.Monad.State.Strict -- for execStateT
 
-import           Data.STRef
+-- import           Data.STRef
 
-import           Control.Monad.ST
-import           Control.Monad.ST.Unsafe            (unsafeIOToST)    -- for HMatrix bits
+-- import           Control.Monad.ST
+-- import           Control.Monad.ST.Unsafe            (unsafeIOToST)    -- for HMatrix b
+                 its
 
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable               as VS 
