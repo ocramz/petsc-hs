@@ -41,6 +41,7 @@ import Foreign.C.String
 
 import System.IO.Unsafe (unsafePerformIO)
 
+import Control.Applicative ((<$>))
 import Control.Monad
 -- import Control.Concurrent
 import Control.Exception
@@ -83,8 +84,8 @@ commSelfC = mkMPIComm commSelf
 -- -- interface : mkMPIComm , getMPICommRank, getMPICommSize
 
 mpiCommSize, mpiCommRank :: Comm -> Int
-mpiCommSize c = unsafePerformIO $ liftM fi $ chk1 (mpiCommSize' c)
-mpiCommRank c = unsafePerformIO $ liftM fi $ chk1 (mpiCommRank' c)
+mpiCommSize c = unsafePerformIO $ fi <$> chk1 (mpiCommSize' c)
+mpiCommRank c = unsafePerformIO $ fi <$> chk1 (mpiCommRank' c)
 
 
 mkMpiCommSize :: Comm -> MpiCommSize
