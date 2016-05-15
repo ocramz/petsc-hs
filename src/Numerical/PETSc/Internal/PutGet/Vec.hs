@@ -821,6 +821,12 @@ withVecReadVector v = bracket (vecGetVectorRead v) (vecRestoreVectorRead v)
 
 
 
+-- | ", mutable
+-- vecGetVM v
+
+
+
+
 
 -- | Vec -> Vector.Generic
 
@@ -838,6 +844,8 @@ withVecCopyVector ::
   (w PetscScalar_ -> IO a) ->
   IO a
 withVecCopyVector v f = withVecReadVector v (f . VG.convert)
+
+
 
 
 
@@ -897,10 +905,7 @@ vecRestoreIOVector v iov = do
 
 
 
-withVecIOVector v io = do
-  vv <- vecGetIOVector v
-  y <- io vv
-  vecRestoreIOVector v y
+
 
 
 

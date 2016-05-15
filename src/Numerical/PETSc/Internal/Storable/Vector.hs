@@ -208,8 +208,13 @@ getVM n p = do
 
 putVM :: Storable a => VM.IOVector a -> Int -> Ptr a -> IO ()
 putVM v n p = do 
-  pf <- FPR.newForeignPtr_ p
-  VM.copy (VM.unsafeFromForeignPtr0 pf n) v
+  fp <- FPR.newForeignPtr_ p
+  VM.copy (VM.unsafeFromForeignPtr0 fp n) v
+
+
+vectorFromVM get set v = bracket get set (getVM v)
+
+
 
 
 
