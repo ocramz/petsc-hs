@@ -559,10 +559,10 @@ t18d3' =
   withSnesCreateSetup cw (\snes -> do
                              snesSetFunction snes xtemp f
                              snesSetJacobian0 snes jac jac (vvDiag n jd) n n 
-                         ) $ \snes -> -- return ()
+                         ) $ \snes -> do -- return ()
     snesViewStdout snes
     -- snesComputeFunction snes xtemp x
-    -- snesSolve0 snes x
+    snesSolve0 snes x
     -- vecViewStdout xtemp
   where
     -- preSNS s = snesSetFunction s xtemp f
@@ -576,7 +576,7 @@ t18d3' =
 
 
 t18d3 = withPetsc a "" "" t18d3' where
-  a = ["-start_in_debugger"]
+  a = ["-start-in-debugger"]
 
 
 

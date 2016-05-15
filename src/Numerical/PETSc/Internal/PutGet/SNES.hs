@@ -172,11 +172,11 @@ withSnesCreateSetupAD = withSnesCreateSetupAD0 return
 -- f	- function evaluation routine; see SNESFunction for calling sequence details
 
 
-snesSetFunction :: (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
-     SNES ->
-     Vec ->
-     (w PetscScalar_ -> v PetscScalar_) ->
-     IO ()
+-- snesSetFunction :: (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
+--      SNES ->
+--      Vec ->
+--      (w PetscScalar_ -> v PetscScalar_) ->
+--      IO ()
 snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g
   where
    g _snes x y _p = do

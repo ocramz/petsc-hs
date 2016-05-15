@@ -394,9 +394,8 @@ withVecVector v io = do
 
 
 
--- withVecIOVector v f = do
---   vv <- vecGetIOVector v
---   vecRestoreIOVector v (f vv)
+
+
 
 
 
@@ -897,6 +896,11 @@ vecRestoreIOVector v iov = do
   vecRestoreVector v x
 
 
+
+withVecIOVector v io = do
+  vv <- vecGetIOVector v
+  y <- io vv
+  vecRestoreIOVector v y
 
 
 

@@ -116,7 +116,7 @@ createVector n = do
     return $ VS.unsafeFromForeignPtr0 fp n
 
 createGVector :: (VG.Vector v a, Storable a) => Int -> IO (v a)
-createGVector n = return . VG.convert =<< createVector n
+createGVector n = fmap VG.convert (createVector n)
 
  -- copyArray : Copy the given number of elements from the second array (source) into the first array (destination); the copied areas may not overlap
 
@@ -198,6 +198,22 @@ putVS v n p = do
 
 
 
+-- | Ptr a <-> VM.IOVector a
+-- -- NB : type IOVector = MVector RealWorld
+
+getVM :: Storable a => Int -> Ptr a -> IO (VM.IOVector a)
+getVM n p = do
+  fp <- FPR.newForeignPtr_ p
+  return $ VM.unsafeFromForeignPtr0 fp n
+
+putVM :: Storable a => VM.IOVector a -> Int -> Ptr a -> IO ()
+putVM v n p = do 
+  pf <- FPR.newForeignPtr_ p
+  VM.copy (VM.unsafeFromForeignPtr0 pf n) v
+
+
+
+
 -- | LOW LEVEL : Ptr <-> Vector.Generic
 
 getVG :: (VG.Vector v a, Storable a) => Int -> Ptr a -> IO (v a)
@@ -220,6 +236,7 @@ getIVG n p = do
 
 putIVG :: (VG.Vector v CInt, VG.Vector v Int) => v Int -> Int -> Ptr CInt -> IO ()
 putIVG w = putVG (VG.map toCInt w)
+
 
 
 
