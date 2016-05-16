@@ -588,8 +588,11 @@ t18d4' = withSnesCreate cw $ \snes ->  -- line 49
     vecAssembly x 
     withVecClone x $ \r -> 
       withMatCreateSetup cw n n MatAij $ \jac -> do -- line 68
+        snesSetFromOptions snes
         snesSetFunction snes r fun
         snesSetJacobian0 snes jac jac vvJac n n
+       
+        -- 
 
         -- matAssembly jac
         -- vecAssembly r
@@ -597,8 +600,8 @@ t18d4' = withSnesCreate cw $ \snes ->  -- line 49
         -- vecViewStdout r
         -- snesGetKsp snes >>= kspGetPc >>= (`pcSetType` PcJacobi) -- eh
         
-        -- snesSolve0 snes x
-        snesViewStdout snes
+        snesSolve0 snes x
+        -- snesViewStdout snes
 
   where
     cw = commWorld
@@ -609,6 +612,34 @@ t18d4' = withSnesCreate cw $ \snes ->  -- line 49
 
 t18d4 = withPetsc0 t18d4'
 
+
+
+-- snes ex 1test template
+snesEx1 :: Floating b =>
+  (SNES -> Vec -> Vec -> Mat -> (V.Vector b -> V.Vector b) -> IO a) ->
+  IO a
+snesEx1 io = withSnesCreate cw $ \snes ->  -- line 49
+  withVecNew cw vx0 $ \x ->
+  withVecClone x $ \r -> 
+  withMatCreateSetup cw n n MatAij $ \jac ->  -- line 68
+   io snes x r jac fun
+    where
+    cw = commWorld
+    n = 2
+    vx0 = V.replicate n 0.5  -- starting guess
+    fun = V.map (** 2)
+    -- vvJac = vvDiag n (V.replicate n 2)
+
+ -- = withPetsc0 t18d4'
+
+snesEx1_t1 sfun vvsj = snesEx1 $ \snes x r jac f -> do
+  snesSetFunction0 snes r sfun
+  snesSetJacobian0 snes jac jac vvsj n n
+  snesSetFromOptions snes
+  
+  snesSolve snes x
+  where
+    n = 2
 
 
 

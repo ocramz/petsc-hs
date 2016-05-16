@@ -33,6 +33,7 @@ import Data.Functor
 
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
+
 -- import Control.Applicative
 -- import Control.Arrow
 -- import Control.Concurrent
@@ -77,20 +78,8 @@ snesSetType snes st = chk0 $ snesSetType' snes st
 
 -- a SNES function (either f or grad f) modifies one of its arguments (same for KSP, TS, Tao, .. functions)
 
--- snesFunctionAdapter vIn vOut fv = do --- | what type for this contraption?
---   let ix = V.fromList [0 .. n-1]
---       n = vecSize vIn
---   x <- vecGetVector vIn
---   let y = fv x
---       ixy = V.zip ix y
---   vecSetValuesUnsafeVector1A vOut ixy InsertValues
 
--- snesFunctionAdapt ::
---   Vec ->
---   Vec ->                 -- SECOND Vec WILL BE MODIFIED
---   (VM.IOVector PetscScalar_ -> VM.IOVector PetscScalar_) ->
---   IO CInt
--- snesFunctionAdapt = petscVecVecFunctionAdapt
+
 
 
 
@@ -169,7 +158,25 @@ withSnesCreateSetupAD = withSnesCreateSetupAD0 return
 -- | snesSetFunction : Input Parameters : 
 -- snes	- the SNES context
 -- r	- vector to store function value
--- f	- function evaluation routine; see SNESFunction for calling sequence details
+-- f	- function evaluation routine;
+-- SNESFunction(SNES snes,Vec x,Vec y,void *ctx)
+-- Input Parameters :
+-- snes	- the SNES context
+-- x	- state at which to evaluate residual
+-- ctx	- optional user-defined function context, passed in with SNESSetFunction()
+-- Output Parameter :
+-- y    - vector for residual (function value) 
+
+-- minimal interface, `y` is not overwritten
+snesSetFunction0 ::
+  SNES ->
+  Vec ->
+  (Vec -> V.Vector PetscScalar_ -> IO t) ->
+  IO ()
+snesSetFunction0 snes r io = chk0 $ snesSetFunction_' snes r g where
+  g _snes x y _p = withVecVector x $ \xv -> do
+    _ <- io y xv
+    return (0 :: CInt)
 
 
 snesSetFunction :: -- (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
@@ -181,7 +188,7 @@ snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g
   where
    g _snes x y _p = 
      withVecVector x $ \xv -> do
-       vecOverwriteIOVector_ y (f xv)
+       _ <- vecOverwriteIOVector_ y (f xv)
        -- do
        -- vecSetValuesRangeVector y (V.convert $ f xv) InsertValues
        -- vecAssembly y
@@ -191,6 +198,8 @@ snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g
        return (0 :: CInt)
 
 
+-- asdfs :: Storable a => VS.Vector a -> IO (VM.IOVector a)
+-- asdfs = VS.thaw
 
 -- fIO :: CDouble -> C.Nag_Integer -> Ptr CDouble -> Ptr CDouble -> Ptr C.Nag_Comm -> IO ()
 --     fIO t n y _yp  _comm = do
@@ -337,26 +346,7 @@ snesLineSearchSetLambda ls lambda = chk0 (snesLineSearchSetLambda' ls lambda)
 
 
 
--- snesSetFunctionVector ::
---   SNES ->
---   Vec ->        -- r : storage for function value
---     (V.Vector PetscScalar_ ->       -- NB pure function, SNES not used 
---      V.Vector PetscScalar_ ) ->
---   IO ()
--- snesSetFunctionVector s r f = chk0 $ snesSetFunction' s r f'
---   where f' = liftVectorF f
 
-
-
-
-
-
--- -- liftVectorF ::
--- --   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> s -> Vec -> IO CInt
--- modifyVectorWithF f vec = do
---   v <- f <$> vecGetVector vec
---   vecRestoreVector vec v
---   -- return (0 :: CInt)
 
 
 
