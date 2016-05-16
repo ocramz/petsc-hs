@@ -179,14 +179,16 @@ withSnesCreateSetupAD = withSnesCreateSetupAD0 return
 --      IO ()
 snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g
   where
-   g _snes x y _p = do
+   g _snes x y _p = 
      withVecVector x $ \xv -> do
-       vecSetValuesRangeVector y (V.convert $ f xv) InsertValues
-       vecAssembly y
+       vecOverwriteIOVector_ y (f xv)
+       -- do
+       -- vecSetValuesRangeVector y (V.convert $ f xv) InsertValues
+       -- vecAssembly y
        -- do
        -- _ <- vecGetVector y
        -- vecRestoreVector y (V.convert $ f xv)   -- `y` is overwritten with result
-     return (0 :: CInt)
+       return (0 :: CInt)
 
 
 

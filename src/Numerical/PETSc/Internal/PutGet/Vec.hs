@@ -833,9 +833,30 @@ vecModifyIOVectorN v n io =
   withVecArrayPtr v $ \p ->
   withVM p n io
 
-vecModifyIOVector ::
-  Vec -> (VM.IOVector PetscScalar_ -> IO a) -> IO a
-vecModifyIOVector v = vecModifyIOVectorN v (vecSize v)
+-- vecModifyIOVector ::
+--   Vec -> (VM.IOVector PetscScalar_ -> IO a) -> IO a
+-- vecModifyIOVector v = vecModifyIOVectorN v (vecSize v)
+
+
+-- overwrite first argument with contents of second argument; unsafe (no bound check)
+unsafeVecOverwriteIOVectorN_ ::
+  VG.Vector v PetscScalar_ => Vec -> Int -> v PetscScalar_ -> IO ()
+unsafeVecOverwriteIOVectorN_ v n w1 =
+  vecModifyIOVectorN v n (modIOV w1)
+
+-- overwrite first argument with contents of second argument
+vecOverwriteIOVector_ :: Vec -> V.Vector PetscScalar_ -> IO ()
+vecOverwriteIOVector_ v w1
+  | nv == nw1 = unsafeVecOverwriteIOVectorN_ v nv w1
+  | otherwise = error "vecOverWriteIOVector_ : incompatible source/dest dimensions"
+  where (nv, nw1) = (vecSize v, V.length w1)
+
+
+-- helper; do not use directly
+modIOV :: (Storable a, VG.Vector v a) => v a -> VM.IOVector a -> IO ()
+modIOV vin vm = VG.imapM_ (VM.write vm) vin
+
+
 
 
 
