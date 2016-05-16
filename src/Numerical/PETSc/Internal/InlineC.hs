@@ -2464,7 +2464,11 @@ snesDestroy' p = with p $ \pp -> [C.exp| int{SNESDestroy($(SNES *pp))}  |]
 
 -- PETSC_EXTERN PetscErrorCode SNESSetUp(SNES);
 snesSetUp' :: SNES -> IO CInt
-snesSetUp' s = [C.exp|int{SNESSetUp($(SNES s))}|] 
+snesSetUp' s = [C.exp|int{SNESSetUp($(SNES s))}|]
+
+-- PetscErrorCode  SNESSetFromOptions(SNES snes)
+snesSetFromOptions' :: SNES -> IO CInt
+snesSetFromOptions' s = [C.exp|int{SNESSetFromOptions($(SNES s))}|]
 
 -- PETSC_EXTERN PetscErrorCode SNESSolve(SNES,Vec,Vec);
 snesSolve' :: SNES -> Vec -> Vec -> IO CInt

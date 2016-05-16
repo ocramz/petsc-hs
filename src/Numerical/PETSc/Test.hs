@@ -597,12 +597,11 @@ t18d4' = withSnesCreate cw $ \snes ->  -- line 49
         -- vecViewStdout r
         -- snesGetKsp snes >>= kspGetPc >>= (`pcSetType` PcJacobi) -- eh
         
-        snesSolve0 snes x
-        -- snesViewStdout snes
+        -- snesSolve0 snes x
+        snesViewStdout snes
 
   where
     cw = commWorld
-    vi = VecInfo cw n n
     n = 2
     vx0 = V.replicate n 0.5  -- starting guess
     fun = V.map (** 2)

@@ -375,6 +375,9 @@ snesLineSearchSetLambda ls lambda = chk0 (snesLineSearchSetLambda' ls lambda)
 snesSetUp :: SNES -> IO ()
 snesSetUp snes = chk0 $ snesSetUp' snes
 
+snesSetFromOptions :: SNES -> IO ()
+snesSetFromOptions snes = chk0 $ snesSetFromOptions' snes
+
 snesSolve ::  -- solve F(x) = b
   SNES ->
   Vec ->   -- r.h.s
