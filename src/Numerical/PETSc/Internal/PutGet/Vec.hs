@@ -752,6 +752,10 @@ vecGetArrayPtr v = chk1 (vecGetArray1' v)
 vecRestoreArrayPtr :: Vec -> Ptr PetscScalar_ -> IO ()
 vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
 
+withVecArrayPtr :: Vec -> (Ptr PetscScalar_ -> IO a) -> IO a
+withVecArrayPtr v = bracket (vecGetArrayPtr v) (vecRestoreArrayPtr v)
+
+
 
 -- | ",  read only
 
@@ -822,8 +826,16 @@ withVecReadVector v = bracket (vecGetVectorRead v) (vecRestoreVectorRead v)
 
 
 -- | ", mutable
--- vecGetVM v
 
+vecModifyIOVectorN ::
+  Vec -> Int -> (VM.IOVector PetscScalar_ -> IO a) -> IO a
+vecModifyIOVectorN v n io =
+  withVecArrayPtr v $ \p ->
+  withVM p n io
+
+vecModifyIOVector ::
+  Vec -> (VM.IOVector PetscScalar_ -> IO a) -> IO a
+vecModifyIOVector v = vecModifyIOVectorN v (vecSize v)
 
 
 

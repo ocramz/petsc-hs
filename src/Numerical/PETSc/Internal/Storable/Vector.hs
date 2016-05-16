@@ -212,7 +212,11 @@ putVM v n p = do
   VM.copy (VM.unsafeFromForeignPtr0 fp n) v
 
 
-vectorFromVM get set v = bracket get set (getVM v)
+withVM :: Storable a => Ptr a -> Int -> (VM.IOVector a -> IO b) -> IO b
+withVM p n = bracket (getVM n p) (\v -> putVM v n p)
+
+
+
 
 
 
