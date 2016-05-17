@@ -2734,18 +2734,47 @@ snesVISetVariableBounds' snes xl xu =
 
 
 
+-- | SNES blocks
+
+-- snesSetFunctionBlock cc snes x y fun =
+--   [C.block|
+--    int{
+--      const PetscScalar *xx;
+--      PetscScalar       *yy; 
+--      VecGetArrayRead($(Vec x), &xx);
+--      VecGetArray($(Vec y), &yy);
+  
+--      VecRestoreArrayRead(x,&xx);
+--      VecRestoreArray(y,&yy);
+--      return 0;
+--                                     }|] where c = unComm cc
 
 
 
 
+
+
+
+snesView' :: SNES -> PetscViewer -> IO CInt
 snesView' m v = [C.exp|int{SNESView($(SNES m),$(PetscViewer v))}|]
 
 
 
 
 
-
+snesGetKsp' :: SNES -> IO (KSP, CInt)
 snesGetKsp' s = withPtr $ \k -> [C.exp|int{SNESGetKSP($(SNES s),$(KSP* k))}|] 
+
+
+
+
+
+
+
+
+
+
+
 
 
 

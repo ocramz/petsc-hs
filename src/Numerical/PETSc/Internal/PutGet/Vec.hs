@@ -852,11 +852,15 @@ vecOverwriteIOVector_ v w1
   where (nv, nw1) = (vecSize v, V.length w1)
 
 
-vecOverwriteFunIO_ ::
-  Vec -> (VS.Vector PetscScalar_ -> VS.Vector PetscScalar_) -> IO ()
-vecOverwriteFunIO vec f = withVecArrayPtr vec $ \vp ->
-  funIO vp (vecSize vec) f
+-- vecOverwriteFunIO_ ::
+--   Vec -> (VS.Vector PetscScalar_ -> VS.Vector PetscScalar_) -> IO ()
+-- vecOverwriteFunIO_ vec f = withVecArrayPtr vec $ \vp ->
+--   funIO vp (vecSize vec) f
 
+asdff :: (Storable a, VG.Vector v a) => v a -> IO (VM.IOVector a)
+asdff = VS.thaw . VG.convert
+
+-- asdfm = VM.unsafeWith
 
 
 
