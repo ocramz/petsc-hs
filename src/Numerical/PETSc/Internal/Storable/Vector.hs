@@ -223,7 +223,7 @@ withVM p n io =
   (\(_, vm) -> io vm)
 
 
-
+-- unsafe overwrite (no bounds checking), do not use directly
 overwriteIOV_ :: (Storable a, VG.Vector v a) => VM.IOVector a -> v a -> IO ()
 overwriteIOV_ vm = VG.imapM_ (VM.write vm)
 

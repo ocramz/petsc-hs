@@ -2387,8 +2387,8 @@ pfSetVec' pf applyvec =
 
 
 snesCreate' :: Comm -> IO (SNES, CInt)
-snesCreate' comm = withPtr $ \p -> [C.exp| int{SNESCreate($(int c), $(SNES *p))}|] where
-  c = unComm comm 
+snesCreate' cc = withPtr $ \p -> [C.exp| int{SNESCreate($(int c), $(SNES *p))}|] where
+  c = unComm cc
 
 snesSetType' :: SNES -> SnesType_ -> IO CInt
 snesSetType' s t = withCString strk $ \strp -> [C.exp|int{SNESSetType($(SNES s), $(char* strp))}|] where
@@ -2410,26 +2410,26 @@ where f'(x) denotes the Jacobian matrix and f(x) is the function.
 -}
 
 {-
-PetscErrorCode SNESFunction(SNES snes,Vec x,Vec f,void *ctx);
+PetscErrorCode SNESFunction(SNES snes,Vec x,Vec y,void *ctx);
 Input Parameters :
 
 snes	- the SNES context
-x	- state at which to evaluate residual
+x	- point at which to evaluate residual
 ctx	- optional user-defined function context, passed in with SNESSetFunction()
 Output Parameter
 
-f -vector to put residual (function value) 
+y       - vector for residual (function value) 
 -}
 
-snesSetFunction0' :: SNES
-                     -> Vec
-                     -> (SNES -> Vec -> Vec -> Ptr () -> IO CInt)
-                     -> Ptr ()
-                     -> IO CInt
-snesSetFunction0' snes r f ctx =
-  [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
-                             $fun:(int (*f)(SNES, Vec, Vec, void*) ),
-                             $(void* ctx))}|]
+-- snesSetFunction0' :: SNES
+--                      -> Vec
+--                      -> (SNES -> Vec -> Vec -> Ptr () -> IO CInt)
+--                      -> Ptr ()
+--                      -> IO CInt
+-- snesSetFunction0' snes r f ctx =
+--   [C.exp|int{SNESSetFunction($(SNES snes), $(Vec r),
+--                              $fun:(int (*f)(SNES, Vec, Vec, void*) ),
+--                              $(void* ctx))}|]
   
 snesSetFunction_' ::
   SNES -> Vec -> (SNES -> Vec -> Vec -> Ptr () -> IO CInt) -> IO CInt
@@ -2438,10 +2438,7 @@ snesSetFunction_' snes r f =
                              $fun:(int (*f)(SNES, Vec, Vec, void*) ),
                              NULL )}|]
 
--- snesSetFunction' :: SNES -> Vec -> (SNES -> Vec -> IO CInt) -> IO CInt
--- snesSetFunction' snes v f =
---   snesSetFunction_' snes v f' where
---     f' s a _ = f s a
+
 
 
 -- PetscErrorCode  SNESComputeFunction(SNES snes,Vec x,Vec y)
