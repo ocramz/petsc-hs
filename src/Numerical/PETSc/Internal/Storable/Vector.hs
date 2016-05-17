@@ -213,11 +213,19 @@ putVM v n p = do
 
 
 withVM :: Storable a => Ptr a -> Int -> (VM.IOVector a -> IO b) -> IO b
-withVM p n = bracket (getVM n p) (\v -> putVM v n p)
+-- withVM p n = bracket (getVM n p) (\v -> putVM v n p)
+withVM p n io =
+  bracket
+  (do
+    fp <- FPR.newForeignPtr_ p
+    return (fp, VM.unsafeFromForeignPtr0 fp n))
+  (\(fp, vm) -> VM.copy (VM.unsafeFromForeignPtr0 fp n) vm)
+  (\(_, vm) -> io vm)
 
 
 
-
+overwriteIOV_ :: (Storable a, VG.Vector v a) => VM.IOVector a -> v a -> IO ()
+overwriteIOV_ vm = VG.imapM_ (VM.write vm)
 
 
 

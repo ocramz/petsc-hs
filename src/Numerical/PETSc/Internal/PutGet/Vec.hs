@@ -842,8 +842,8 @@ vecModifyIOVectorN v n io =
 unsafeVecOverwriteIOVectorN_ ::
   VG.Vector v PetscScalar_ => Vec -> Int -> v PetscScalar_ -> IO ()
 unsafeVecOverwriteIOVectorN_ v n w1 =
-  vecModifyIOVectorN v n (_modIOV w1)
-
+  vecModifyIOVectorN v n (`overwriteIOV_` w1)
+  
 -- overwrite first argument with contents of second argument
 vecOverwriteIOVector_ :: Vec -> V.Vector PetscScalar_ -> IO ()
 vecOverwriteIOVector_ v w1
@@ -852,9 +852,10 @@ vecOverwriteIOVector_ v w1
   where (nv, nw1) = (vecSize v, V.length w1)
 
 
--- helper; do not use directly
-_modIOV :: (Storable a, VG.Vector v a) => v a -> VM.IOVector a -> IO ()
-_modIOV vin vm = VG.imapM_ (VM.write vm) vin
+
+
+
+-- vowIOV v w1 = vecModifyIOVectorN v (vecSize v) (_modIOV w1)
 
 
 
