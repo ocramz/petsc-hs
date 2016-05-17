@@ -231,6 +231,31 @@ overwriteIOV_ vm = VG.imapM_ (VM.write vm)
 
 
 
+
+-- | `funIO` , inspired by inline-c-nag
+funIO :: Storable a =>
+  Ptr a -> 
+  Int ->
+  (VS.Vector a -> VS.Vector a) ->
+  IO ()
+funIO xp len f = do
+  xfp <- FPR.newForeignPtr_ xp
+  xv <- VS.freeze $ VM.unsafeFromForeignPtr0 xfp len
+  let yv = f xv
+  VS.copy (VM.unsafeFromForeignPtr0 xfp len) yv
+
+-- ", map between generic Vectors
+funIOG :: (Storable a, VG.Vector v a, VG.Vector w a) =>
+  Ptr a -> 
+  Int ->
+  (v a -> w a) ->
+  IO ()
+funIOG p l f = funIO p l (VG.convert . f . VG.convert)
+
+
+
+
+
 -- | LOW LEVEL : Ptr <-> Vector.Generic
 
 getVG :: (VG.Vector v a, Storable a) => Int -> Ptr a -> IO (v a)

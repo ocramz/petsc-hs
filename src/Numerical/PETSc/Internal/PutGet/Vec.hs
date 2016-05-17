@@ -852,10 +852,14 @@ vecOverwriteIOVector_ v w1
   where (nv, nw1) = (vecSize v, V.length w1)
 
 
+vecOverwriteFunIO_ ::
+  Vec -> (VS.Vector PetscScalar_ -> VS.Vector PetscScalar_) -> IO ()
+vecOverwriteFunIO vec f = withVecArrayPtr vec $ \vp ->
+  funIO vp (vecSize vec) f
 
 
 
--- vowIOV v w1 = vecModifyIOVectorN v (vecSize v) (_modIOV w1)
+
 
 
 
