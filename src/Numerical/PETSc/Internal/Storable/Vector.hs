@@ -24,7 +24,6 @@ import Control.Applicative
 
 import Control.Exception 
 import Control.Monad
--- import qualified GHC.ForeignPtr as FPR
 import qualified Foreign.ForeignPtr as FPR
 
 import Foreign.Ptr
@@ -241,13 +240,7 @@ putVM1 :: Storable a => Int -> (VM.IOVector a, FPR.ForeignPtr a) -> IO ()
 putVM1 n (v, fp) = 
   VM.copy (VM.unsafeFromForeignPtr0 fp n) v
 
-withVM1 ::
-  Storable a => Int -> Ptr a -> ((VM.IOVector a, FPR.ForeignPtr a) -> IO b) -> IO b
-withVM1 n p = bracket (getVM1 n p) (putVM1 n)
 
--- ", don't use ForeignPtr
-withVM1_ :: Storable a => Int -> Ptr a -> (VM.IOVector a -> IO b) -> IO b
-withVM1_ n p act = withVM1 n p (\(vm, _) -> act vm)
 
 
 

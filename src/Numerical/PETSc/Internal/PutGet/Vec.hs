@@ -26,6 +26,7 @@ import           Numerical.PETSc.Internal.Storable.StorableContainer
 import qualified Data.Ix as Ix (range, inRange)
 
 import           Foreign
+import qualified Foreign.ForeignPtr as FPR
 -- import           Foreign.ForeignPtr.Unsafe
 import           Foreign.C.Types
 
@@ -826,10 +827,6 @@ vecModifyIOVectorN v n io =
   withVecArrayPtr v $ \p ->
   withVM p n io
 
--- vecModifyIOVector ::
---   Vec -> (VM.IOVector PetscScalar_ -> IO a) -> IO a
--- vecModifyIOVector v = vecModifyIOVectorN v (vecSize v)
-
 
 -- overwrite first argument with contents of second argument; unsafe (no bound check)
 unsafeVecOverwriteIOVectorN_ ::
@@ -845,22 +842,21 @@ vecOverwriteIOVector_ v w1
   where (nv, nw1) = (vecSize v, V.length w1)
 
 
--- vecOverwriteFunIO_ ::
---   Vec -> (VS.Vector PetscScalar_ -> VS.Vector PetscScalar_) -> IO ()
--- vecOverwriteFunIO_ vec f = withVecArrayPtr vec $ \vp ->
---   funIO vp (vecSize vec) f
 
--- asdff :: (Storable a, VG.Vector v a) => v a -> IO (VM.IOVector a)
--- asdff = VS.thaw . VG.convert
+-- explicitly passing ForeignPtr
+getIOVector :: Storable a => Int -> Ptr a -> IO (VM.IOVector a, FPR.ForeignPtr a)
+getIOVector = getVM1
 
-asdfm v io = do
-  vm <- VS.thaw $ VG.convert v
-  VM.unsafeWith vm io
+putIOVector :: Storable a => Int -> (VM.IOVector a, FPR.ForeignPtr a) -> IO ()
+putIOVector = putVM1
 
-
-
+withIOVector :: Storable a => Int -> Ptr a -> V.Vector a -> IO ()
+withIOVector n p v =
+  bracket (getIOVector n p) (putIOVector n) $ \(vm, _) -> 
+   V.imapM_ (VM.write vm) v
 
 
+  
 
 
 
