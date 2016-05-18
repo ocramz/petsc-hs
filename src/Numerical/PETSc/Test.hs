@@ -591,15 +591,11 @@ t18d4' = withSnesCreate cw $ \snes ->  -- line 49
         snesSetFromOptions snes
         snesSetFunction snes r fun
         snesSetJacobian0 snes jac jac vvJac n n
-       
-        -- 
-
         -- matAssembly jac
         -- vecAssembly r
         -- matViewStdout jac
         -- vecViewStdout r
         -- snesGetKsp snes >>= kspGetPc >>= (`pcSetType` PcJacobi) -- eh
-        
         snesSolve0 snes x
         -- snesViewStdout snes
 

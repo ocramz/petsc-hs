@@ -180,7 +180,7 @@ snesSetFunction0 snes r io = chk0 $ snesSetFunction_' snes r g where
     _ <- io xv y 
     return (0 :: CInt)
 
-snesSetFunction01 snes r f =
+snesSetFunction snes r f =
   snesSetFunction0 snes r $ \xv y ->
    withVecArrayPtr y $ \yp ->
     withIOVector n yp (f xv)
