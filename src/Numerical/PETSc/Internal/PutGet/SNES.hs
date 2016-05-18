@@ -43,6 +43,8 @@ import Control.Exception
 -- import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
 
+import qualified Foreign.ForeignPtr as FPR
+
 -- Vector
 import qualified Data.Vector as V
 import qualified Data.Vector.Storable as VS 
@@ -105,29 +107,29 @@ withSnesCreateSetup c pre post = withSnesCreate c $ \sn -> do
   snesSetUp sn
   post sn
 
-withSnesCreateSetupAD0 ::
-  (SNES -> IO a1) ->    -- before setting functions etc.
-  Comm ->
-  Vec ->
-  Mat ->
-  Mat ->
-  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
-  (SNES -> IO a) ->     -- after setup
-  IO a
-withSnesCreateSetupAD0 pre c v amat pmat f = withSnesCreateSetup c $ \sn -> do
-  pre sn
-  snesSetFunction sn v f
-  snesSetJacobianAD sn amat pmat f
+-- withSnesCreateSetupAD0 ::
+--   (SNES -> IO a1) ->    -- before setting functions etc.
+-- Comm ->
+--   Vec ->
+--   Mat ->
+--   Mat ->
+--   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+--   (SNES -> IO a) ->     -- after setup
+--   IO a
+-- withSnesCreateSetupAD0 pre c v amat pmat f = withSnesCreateSetup c $ \sn -> do
+--   pre sn
+--   snesSetFunction sn v f
+--   snesSetJacobianAD sn amat pmat f
 
-withSnesCreateSetupAD ::
-  Comm ->
-  Vec ->
-  Mat ->
-  Mat ->
-  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
-  (SNES -> IO a) ->  -- after SNESSetUp (i.e. solve, view solution ...)
-  IO a
-withSnesCreateSetupAD = withSnesCreateSetupAD0 return
+-- withSnesCreateSetupAD ::
+--   Comm ->
+--   Vec ->
+--   Mat ->
+--   Mat ->
+--   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+--   (SNES -> IO a) ->  -- after SNESSetUp (i.e. solve, view solution ...)
+--   IO a
+-- withSnesCreateSetupAD = withSnesCreateSetupAD0 return
 
 -- withSnesCreateSetupAD ::
 --   Comm ->
@@ -168,34 +170,37 @@ withSnesCreateSetupAD = withSnesCreateSetupAD0 return
 -- y    - vector for residual (function value) 
 
 -- minimal interface, `y` is not overwritten
-snesSetFunction0 ::
-  SNES ->
-  Vec ->
-  (Vec -> V.Vector PetscScalar_ -> IO t) ->
-  IO ()
+-- snesSetFunction0 ::
+--   SNES ->
+--   Vec ->
+--   (Vec -> V.Vector PetscScalar_ -> IO t) ->
+--   IO ()
 snesSetFunction0 snes r io = chk0 $ snesSetFunction_' snes r g where
   g _snes x y _p = withVecVector x $ \xv -> do
     _ <- io y xv
     return (0 :: CInt)
 
+snesSetFunction1 snes r io = chk0 $ snesSetFunction_' snes r g where
+  g _snes x y _p = withVecVector x $ \xv -> do
+    getVM1 (vecSize r)
+    return (0 :: CInt)
 
-snesSetFunction :: -- (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
-     SNES ->
-     Vec ->
-     (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
-     IO ()
-snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g
-  where
-   g _snes x y _p = 
-     withVecVector x $ \xv -> do
-       _ <- vecOverwriteIOVector_ y (f xv)
-       -- do
-       -- vecSetValuesRangeVector y (V.convert $ f xv) InsertValues
-       -- vecAssembly y
-       -- do
-       -- _ <- vecGetVector y
-       -- vecRestoreVector y (V.convert $ f xv)   -- `y` is overwritten with result
-       return (0 :: CInt)
+
+-- -- snesSetFunction :: -- (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
+-- --      SNES ->
+-- --      Vec ->
+-- --      (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+-- --      IO ()
+-- snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g
+--   where
+--    g _snes x y _p = 
+--      withVecVector x $ \xv -> do
+--        withVecArrayPtr y $ \yp -> undefined
+--        -- _ <- vecOverwriteIOVector_ y (f xv)
+--        -- do
+--        -- vecSetValuesRangeVector y (V.convert $ f xv) InsertValues
+--        -- vecAssembly y
+--        return (0 :: CInt)
 
 
 -- asdfs :: Storable a => VS.Vector a -> IO (VM.IOVector a)

@@ -2734,20 +2734,45 @@ snesVISetVariableBounds' snes xl xu =
 
 
 
+
 -- | SNES blocks
 
--- snesSetFunctionBlock cc snes x y fun =
---   [C.block|
---    int{
---      const PetscScalar *xx;
---      PetscScalar       *yy; 
---      VecGetArrayRead($(Vec x), &xx);
---      VecGetArray($(Vec y), &yy);
-  
---      VecRestoreArrayRead(x,&xx);
---      VecRestoreArray(y,&yy);
---      return 0;
---                                     }|] where c = unComm cc
+
+snesSetFunctionBlock1 snes r f =
+  [C.block|
+   int{
+      SNESSetFunction($(SNES snes),$(Vec r),$fun:(int (* funIO) (SNES s, Vec x, Vec y, void* p)), NULL);
+      return 0;
+      }
+          |] where
+        funIO _s xin yout _p = do
+          f xin yout
+          return (0 :: CInt)
+
+-- PetscErrorCode Wrapper(SNES snes,Vec x,Vec y,void *dummy)
+
+-- snesFunctionWrap _snes x y f =
+--   [C.block|int{
+--       const PetscScalar *xx;
+--       PetscScalar *yy;
+--       VecGetArrayRead($(Vec x), &xx);
+--       VecGetArray($(Vec y), &yy);
+
+--       VecRestoreArrayRead($(Vec x), &xx);
+--       VecRestoreArray($(Vec y), &yy);
+--       return 0;
+--               }
+--    |]
+
+
+
+
+
+
+
+
+
+
 
 
 

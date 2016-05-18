@@ -644,7 +644,7 @@ vecCreateMPIFromVector comm nloc w = do
   vecAssembly v
   return v
 
--- vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
+vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
 vecCreateMPIFromVectorDecideLocalSize comm w = do
   let dimv = V.length w
       ix = V.fromList $ range0 (dimv - 1)
@@ -688,13 +688,6 @@ modifyVecVector v f = do
 
 
 -- | view Vec contents 
-
--- vecView :: Vec -> PetscViewer -> IO ()
--- vecView v vi = chk0 $ vecView' v vi
-
--- vecViewStdout :: Vec -> IO ()
--- vecViewStdout v = chk0 $ vecViewStdout1 v
-
 
 vecView0 :: Vec -> PetscViewer -> IO ()
 vecView0 m v = chk0 (vecView' m v)
@@ -857,10 +850,14 @@ vecOverwriteIOVector_ v w1
 -- vecOverwriteFunIO_ vec f = withVecArrayPtr vec $ \vp ->
 --   funIO vp (vecSize vec) f
 
-asdff :: (Storable a, VG.Vector v a) => v a -> IO (VM.IOVector a)
-asdff = VS.thaw . VG.convert
+-- asdff :: (Storable a, VG.Vector v a) => v a -> IO (VM.IOVector a)
+-- asdff = VS.thaw . VG.convert
 
--- asdfm = VM.unsafeWith
+asdfm v io = do
+  vm <- VS.thaw $ VG.convert v
+  VM.unsafeWith vm io
+
+
 
 
 

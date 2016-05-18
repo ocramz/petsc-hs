@@ -231,26 +231,45 @@ overwriteIOV_ vm = VG.imapM_ (VM.write vm)
 
 
 
+-- | ", explicitly passing the ForeignPtr
+getVM1 :: Storable a => Int -> Ptr a -> IO (VM.IOVector a, FPR.ForeignPtr a)
+getVM1 n p = do
+  fp <- FPR.newForeignPtr_ p
+  return (VM.unsafeFromForeignPtr0 fp n, fp)
 
--- | `funIO` , inspired by inline-c-nag
-funIO :: Storable a =>
-  Ptr a -> 
-  Int ->
-  (VS.Vector a -> VS.Vector a) ->
-  IO ()
-funIO xp len f = do
-  xfp <- FPR.newForeignPtr_ xp
-  xv <- VS.freeze $ VM.unsafeFromForeignPtr0 xfp len
-  let yv = f xv
-  VS.copy (VM.unsafeFromForeignPtr0 xfp len) yv
+putVM1 :: Storable a => Int -> (VM.IOVector a, FPR.ForeignPtr a) -> IO ()
+putVM1 n (v, fp) = 
+  VM.copy (VM.unsafeFromForeignPtr0 fp n) v
 
--- ", map between generic Vectors
-funIOG :: (Storable a, VG.Vector v a, VG.Vector w a) =>
-  Ptr a -> 
-  Int ->
-  (v a -> w a) ->
-  IO ()
-funIOG p l f = funIO p l (VG.convert . f . VG.convert)
+withVM1 ::
+  Storable a => Int -> Ptr a -> ((VM.IOVector a, FPR.ForeignPtr a) -> IO b) -> IO b
+withVM1 n p = bracket (getVM1 n p) (putVM1 n)
+
+-- ", don't use ForeignPtr
+withVM1_ :: Storable a => Int -> Ptr a -> (VM.IOVector a -> IO b) -> IO b
+withVM1_ n p act = withVM1 n p (\(vm, _) -> act vm)
+
+
+
+-- -- | `vectorFunIO` , inspired by inline-c-nag
+-- withVectorFunIO_ :: Storable a =>
+--   Ptr a -> 
+--   Int ->
+--   (VS.Vector a -> VS.Vector a) ->
+--   IO ()
+-- withVectorFunIO_ xp len f = do
+--   xfp <- FPR.newForeignPtr_ xp
+--   xv <- VS.freeze $ VM.unsafeFromForeignPtr0 xfp len
+--   let yv = f xv
+--   VS.copy (VM.unsafeFromForeignPtr0 xfp len) yv
+
+-- -- ", map between generic Vectors
+-- funIOG :: (Storable a, VG.Vector v a, VG.Vector w a) =>
+--   Ptr a -> 
+--   Int ->
+--   (v a -> w a) ->
+--   IO ()
+-- funIOG p l f = funIO p l (VG.convert . f . VG.convert)
 
 
 
