@@ -97,7 +97,7 @@ before_install:
 
 script: 
   - stack setup
-  # - stack build $STACK_ARGS --no-terminal --install-ghc --extra-include-dirs=$PETSC_INCLUDE1 --extra-include-dirs=$PETSC_INCLUDE2 --extra-include-dirs=$SLEPC_INCLUDE1 --extra-include-dirs=$SLEPC_INCLUDE2 --extra-lib-dirs=$PETSC_LIB --extra-lib-dirs=$SLEPC_LIB
+
   - ./stack-build.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
 
 
@@ -107,8 +107,6 @@ script:
   # # where is the petsc-example binary? 
   - stack path
   - find . -name petsc-example
-
-
 
   # # stack directories
   - export DIST_DIR="$(stack path --dist-dir)/build"

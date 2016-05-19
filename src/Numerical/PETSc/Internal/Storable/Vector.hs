@@ -222,11 +222,33 @@ withVM p n io =
   (\(_, vm) -> io vm)
 
 
+withVM1_ ::
+  (Storable a, VG.Vector v a) =>
+  Ptr a ->
+  Int ->
+  v a ->
+  IO ()
+withVM1_ p n y = do
+  (xm ,vp) <- getVM1 n p
+  -- x <- VS.freeze xm
+  -- let xc = V.convert x
+  overwriteIOV_ xm y 
+  putVM1 n (xm, vp) 
+
+
 -- unsafe overwrite (no bounds checking), do not use directly
 overwriteIOV_ :: (Storable a, VG.Vector v a) => VM.IOVector a -> v a -> IO ()
 overwriteIOV_ vm = VG.imapM_ (VM.write vm)
 
 
+-- | withVM2_ : no inlined definitions
+
+withVM2_ ::
+  (Storable a, VG.Vector v a) => Int -> v a -> Ptr a -> IO ()
+withVM2_ n y p  = do
+  fp <- FPR.newForeignPtr_ p
+  let xm = VM.unsafeFromForeignPtr0 fp n  -- mutable vec from `p` 
+  VG.imapM_ (VM.write xm) y               -- overwrite mutable vec with `y`
 
 
 

@@ -180,28 +180,33 @@ snesSetFunction0 snes r io = chk0 $ snesSetFunction_' snes r g where
     _ <- io xv y 
     return (0 :: CInt)
 
-snesSetFunction snes r f =
+snesSetFunction' snes r f =
   snesSetFunction0 snes r $ \xv y ->
    withVecArrayPtr y $ \yp ->
     withIOVector n yp (f xv)
      where n = vecSize r
 
+snesSetFunction ::
+  SNES -> Vec -> (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> IO ()
+snesSetFunction snes r f =
+  snesSetFunction0 snes r $ \x y -> vecOverwriteIOVectorN2_ y (f x)
 
--- -- snesSetFunction :: -- (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
--- --      SNES ->
--- --      Vec ->
--- --      (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
--- --      IO ()
+
+-- snesSetFunction :: (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
+--      SNES ->
+--      Vec ->
+--      (v PetscScalar_ -> w PetscScalar_) ->
+--      IO ()
 -- snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g
 --   where
 --    g _snes x y _p = 
 --      withVecVector x $ \xv -> do
---        withVecArrayPtr y $ \yp -> undefined
---        -- _ <- vecOverwriteIOVector_ y (f xv)
---        -- do
---        -- vecSetValuesRangeVector y (V.convert $ f xv) InsertValues
---        -- vecAssembly y
---        return (0 :: CInt)
+--        -- withVecArrayPtr y $ \yp -> do
+--         _ <- vecOverwriteIOVector_ y (V.convert $ f xv)
+--         -- do
+--         -- vecSetValuesRangeVector y (V.convert $ f xv) InsertValues
+--         -- vecAssembly y
+--         return (0 :: CInt)
 
 
 -- asdfs :: Storable a => VS.Vector a -> IO (VM.IOVector a)

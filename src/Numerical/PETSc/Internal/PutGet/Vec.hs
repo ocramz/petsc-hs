@@ -821,25 +821,40 @@ withVecReadVector v = bracket (vecGetVectorRead v) (vecRestoreVectorRead v)
 
 -- | ", mutable
 
-vecModifyIOVectorN ::
-  Vec -> Int -> (VM.IOVector PetscScalar_ -> IO a) -> IO a
-vecModifyIOVectorN v n io =
-  withVecArrayPtr v $ \p ->
-  withVM p n io
-
-
--- overwrite first argument with contents of second argument; unsafe (no bound check)
-unsafeVecOverwriteIOVectorN_ ::
+-- vecModifyIOVectorN ::
+--   Vec -> Int -> (VM.IOVector PetscScalar_ -> IO a) -> IO a
+-- vecModifyIOVectorN :: (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
+--      Vec -> Int -> (v PetscScalar_ -> w PetscScalar_) -> IO ()
+vecModifyIOVectorN_ ::
   VG.Vector v PetscScalar_ => Vec -> Int -> v PetscScalar_ -> IO ()
-unsafeVecOverwriteIOVectorN_ v n w1 =
-  vecModifyIOVectorN v n (`overwriteIOV_` w1)
+vecModifyIOVectorN_ v n vnew =
+  withVecArrayPtr v $ \vp ->
+  withVM1_ vp n vnew
+
+
+
+vecOverwriteIOVectorN2_ :: Vec -> V.Vector PetscScalar_ -> IO ()
+vecOverwriteIOVectorN2_ v vnew
+  | lv == lvnew = withVecArrayPtr v (withVM2_ lv vnew)
+  | otherwise = error "incompatible sizes"
+    where (lv, lvnew) = (vecSize v, V.length vnew)
+
+
+            
+
+
+-- -- overwrite first argument with contents of second argument; unsafe (no bound check)
+-- unsafeVecOverwriteIOVectorN_ ::
+--   VG.Vector v PetscScalar_ => Vec -> Int -> v PetscScalar_ -> IO ()
+-- unsafeVecOverwriteIOVectorN_ v n w1 =
+--   vecModifyIOVectorN v n (`overwriteIOV_` w1)
   
--- overwrite first argument with contents of second argument
-vecOverwriteIOVector_ :: Vec -> V.Vector PetscScalar_ -> IO ()
-vecOverwriteIOVector_ v w1
-  | nv == nw1 = unsafeVecOverwriteIOVectorN_ v nv w1
-  | otherwise = error "vecOverWriteIOVector_ : incompatible source/dest dimensions"
-  where (nv, nw1) = (vecSize v, V.length w1)
+-- -- overwrite first argument with contents of second argument
+-- vecOverwriteIOVector_ :: Vec -> V.Vector PetscScalar_ -> IO ()
+-- vecOverwriteIOVector_ v w1
+--   | nv == nw1 = unsafeVecOverwriteIOVectorN_ v nv w1
+--   | otherwise = error "vecOverWriteIOVector_ : incompatible source/dest dimensions"
+--   where (nv, nw1) = (vecSize v, V.length w1)
 
 
 
