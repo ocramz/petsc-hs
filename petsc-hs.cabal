@@ -78,11 +78,20 @@ executable petsc-example
   default-language:    Haskell2010
   main-is:             Main.hs
   hs-source-dirs:      test
-  ghc-options:         -j2 -O2 -Wall -optc -g
+  ghc-options:         -j2 -O2 -Wall
   c-sources:           src/Numerical/PETSc/Internal/InlineC.c
   extra-libraries:     petsc, mpich, slepc
 
 
+executable petsc-valgrind
+  build-depends:       base >=4.7,
+                       petsc-hs
+  default-language:    Haskell2010
+  main-is:             Grind.hs
+  hs-source-dirs:      test
+  ghc-options:         -j2 -O0 -Wall -optc -g -optc -O0
+  c-sources:           src/Numerical/PETSc/Internal/InlineC.c
+  extra-libraries:     petsc, mpich, slepc
 
 -- executable foo
 --   main-is:             Main.hs, Foo.hs, Bar.hs
