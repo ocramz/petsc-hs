@@ -33,6 +33,21 @@ library
                        Numerical.PETSc.Internal.InlineC                         
                        Numerical.PETSc.Internal.Internal
                        Numerical.PETSc.Internal.PutGet
+                       Numerical.PETSc.Internal.PutGet.IS
+                       Numerical.PETSc.Internal.PutGet.Vec
+                       Numerical.PETSc.Internal.PutGet.Mat
+                       Numerical.PETSc.Internal.PutGet.DM
+                       Numerical.PETSc.Internal.PutGet.PC
+                       Numerical.PETSc.Internal.PutGet.KSP
+                       Numerical.PETSc.Internal.PutGet.SNES
+                       Numerical.PETSc.Internal.PutGet.TS
+                       Numerical.PETSc.Internal.PutGet.TAO
+                       Numerical.PETSc.Internal.PutGet.Viewer
+                       Numerical.PETSc.Internal.PutGet.PetscMisc
+                       Numerical.PETSc.Internal.PutGet.SlepcMisc
+                       Numerical.PETSc.Internal.PutGet.EPS
+                       Numerical.PETSc.Internal.PutGet.SVD
+                       Numerical.PETSc.Internal.PutGet
                        Numerical.PETSc.Internal.Storable.Common
                        Numerical.PETSc.Internal.Storable.Vector
                        Numerical.PETSc.Internal.Types
