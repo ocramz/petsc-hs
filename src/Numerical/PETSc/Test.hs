@@ -611,9 +611,9 @@ t18d4 = withPetsc0 t18d4'
 
 
 -- snes ex 1test template
-snesEx1 :: Floating b =>
-  (SNES -> Vec -> Vec -> Mat -> (V.Vector b -> V.Vector b) -> IO a) ->
-  IO a
+-- snesEx1 :: Floating b =>
+--   (SNES -> Vec -> Vec -> Mat -> (V.Vector b -> V.Vector b) -> IO a) ->
+--   IO a
 snesEx1 io = withSnesCreate cw $ \snes ->  -- line 49
   withVecNew cw vx0 $ \x ->
   withVecClone x $ \r -> 

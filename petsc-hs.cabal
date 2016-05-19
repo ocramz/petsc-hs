@@ -29,6 +29,7 @@ source-repository head
 library
   exposed-modules:     Numerical.PETSc, 
                        Numerical.PETSc.Spec
+                       Numerical.PETSc.Test
   other-modules:       Numerical.PETSc.Internal.Exception
                        Numerical.PETSc.Internal.InlineC                         
                        Numerical.PETSc.Internal.Internal
