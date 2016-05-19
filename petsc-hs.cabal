@@ -49,6 +49,7 @@ library
                        Numerical.PETSc.Internal.PutGet.EPS
                        Numerical.PETSc.Internal.PutGet.SVD
                        Numerical.PETSc.Internal.PutGet
+                       Numerical.PETSc.Internal.Sparse
                        Numerical.PETSc.Internal.Storable.Common
                        Numerical.PETSc.Internal.Storable.Vector
                        Numerical.PETSc.Internal.Types
