@@ -1,4 +1,4 @@
-module Grind where
+module Main where
 
 import Numerical.PETSc.Test
 
