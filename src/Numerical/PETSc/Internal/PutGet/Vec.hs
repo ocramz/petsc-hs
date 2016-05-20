@@ -652,10 +652,6 @@ vecCreateMPIFromVectorDecideLocalSize comm w = do
 
 
 
--- --
-
-
-
 
 
 
@@ -771,7 +767,6 @@ vecGetVSRead v = withVecSizedReadPtr v getVS
 
 
 -- | ", mutable
-
 
 
 -- | overwrite first argument with contents of second argument;
