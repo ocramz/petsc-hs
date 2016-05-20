@@ -21,8 +21,8 @@ import Numerical.PETSc.Internal.Utils
 import Numerical.PETSc.Internal.PutGet.Vec
 import Numerical.PETSc.Internal.PutGet.Mat
 
-import Numerical.PETSc.Internal.Storable.Vector (vectorFreezeFromStorablePtr,
-                                                 vectorCopyToForeignPtr)
+import Numerical.PETSc.Internal.Storable.Vector (getVS,
+                                                 putVS)
 
 import Foreign
 import Foreign.C.Types
@@ -201,8 +201,10 @@ dmG2L :: DM -> Vec -> InsertMode_ -> Vec -> IO ()
 dmG2L dm g mode l =
   dmGlobalToLocalBegin dm g mode l >> dmGlobalToLocalEnd dm g mode l
 
-
+dmLocalToGlobalBegin :: DM -> Vec -> InsertMode_ -> Vec -> IO ()
 dmLocalToGlobalBegin dm l imode g = chk0 (dmLocalToGlobalBegin' dm l imode g)
+
+dmLocalToGlobalEnd :: DM -> Vec -> InsertMode_ -> Vec -> IO ()
 dmLocalToGlobalEnd dm l imode g = chk0 (dmLocalToGlobalEnd' dm l imode g)
 
 dmL2G :: DM -> Vec -> InsertMode_ -> Vec -> IO ()
@@ -256,14 +258,14 @@ withDmGetGlobalVector dm =
 
 -- | get/restore a V.Vector rather than a Vec
 
-withDmdaVecGetVector ::
-  DM ->
-  Vec ->
-  Int ->                              -- length of vector to be copied
-  (V.Vector PetscScalar_ -> IO a) ->
-  IO a
-withDmdaVecGetVector dm v len =
-  bracket (dmdaVecGetVector dm v len) (dmdaVecRestoreVector dm v len) 
+-- withDmdaVecGetVector ::
+--   DM ->
+--   Vec ->
+--   Int ->                              -- length of vector to be copied
+--   (V.Vector PetscScalar_ -> IO a) ->
+--   IO a
+-- withDmdaVecGetVector dm v len =
+--   bracket (dmdaVecGetVector dm v len) (dmdaVecRestoreVector dm v len) 
 
 
 
@@ -280,27 +282,8 @@ withDmCreateMatrix dm = withMat (dmCreateMatrix dm)
 
 -- | overwrite local vector of values taken from Vec bound to DM
 
-dmdaVecReplaceWVectorF ::
-  DM ->
-  Vec ->
-  Int ->
-  (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
-  IO ()
-dmdaVecReplaceWVectorF dm v len f = do
-  x <- dmdaVecGetVector dm v len
-  y <- f x
-  dmdaVecRestoreVector dm v len y
 
--- withDmdaCornersVecGetVector ::
---   DM -> 
---   Vec -> 
---   (V.Vector PetscScalar_ -> IO (V.Vector PetscScalar_)) ->
---   IO ()
--- withDmdaCornersVecGetVector dm v f = do
---   (x0, len) <- dmdaGetCorners1d dm
---   x <- dmdaVecGetVector dm v len
---   y <- f x
---   dmdaVecRestoreVector dm v len y
+
 
 
 
@@ -311,14 +294,14 @@ dmdaVecReplaceWVectorF dm v len f = do
 
 -- | composite DM -> Vec -> V.Vector brackets
 
-withDmdaLocalVector ::
-  DM ->
-  Int ->
-  (V.Vector PetscScalar_ -> IO a) ->
-  IO a
-withDmdaLocalVector dm len body =
-  withDmGetLocalVector dm $ \v ->
-   withDmdaVecGetVector dm v len body
+-- withDmdaLocalVector ::
+--   DM ->
+--   Int ->
+--   (V.Vector PetscScalar_ -> IO a) ->
+--   IO a
+-- withDmdaLocalVector dm len body =
+--   withDmGetLocalVector dm $ \v ->
+--    withDmdaVecGetVector dm v len body
 
 -- withDmdaGlobalVector ::
 --   DM ->
@@ -342,7 +325,7 @@ withDmdaLocalVector dm len body =
 -- | create DMDA 
 
 dmdaCreate :: Comm -> IO DM
-dmdaCreate comm = chk1 (dmdaCreate' comm)
+dmdaCreate cc = chk1 (dmdaCreate' cc)
 
 dmdaCreate1d ::
   Comm ->             
@@ -352,8 +335,8 @@ dmdaCreate1d ::
   Int ->        -- sw : stencil width 
   [Int] ->           -- # nodes in X dir / processor
   IO DM
-dmdaCreate1d comm b mm dof sw lx =
-  chk1 (dmdaCreate1d' comm b mm' dof' sw' lx') where
+dmdaCreate1d cc b mm dof sw lx =
+  chk1 (dmdaCreate1d' cc b mm' dof' sw' lx') where
     (mm', dof', sw', lx') = (toCInt mm, toCInt dof, toCInt sw, map toCInt lx)
 
 dmdaCreate1d0 ::  -- lx = NULL
@@ -393,33 +376,27 @@ dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
 
 -- | get/set arrays from DMDA Vec's (NB : in gen. > 1 DOF/node !)
 
-dmdaVecGetArrayPtr :: DM -> Vec -> IO (Ptr PetscScalar_)
-dmdaVecGetArrayPtr dm v = chk1 (dmdaVecGetArray' dm v)
+withDmdaVecArrayPtr :: DM -> Vec -> (Ptr PetscScalar_ -> IO c) -> IO c
+withDmdaVecArrayPtr dm v = bracket (dmvga dm v) (dmvra dm v) where
+  dmvga dw u = chk1 (dmdaVecGetArray' dw u)
+  dmvra dw u vvp = chk0 (dmdaVecRestoreArray' dw u vvp)
 
-dmdaVecRestoreArrayPtr :: DM -> Vec -> Ptr PetscScalar_ -> IO ()
-dmdaVecRestoreArrayPtr dm v vvp = chk0 (dmdaVecRestoreArray' dm v vvp)
 
+-- dmdaVecGetVector dm v = withDmdaVecArrayPtr dm v getVS
 
-dmdaVecGetVector :: DM -> Vec -> Int -> IO (V.Vector PetscScalar_)
-dmdaVecGetVector dm v =
-  vectorFreezeFromStorablePtr (dmdaVecGetArrayPtr dm v) (dmdaVecRestoreArrayPtr dm v)
+-- dmdaVecRestoreVector dm v vu = withDmdaVecArrayPtr dm v (putVS vu)
 
 -- dmdaVecGetVector :: DM -> Vec -> Int -> IO (V.Vector PetscScalar_)
--- dmdaVecGetVector dm v len = do
---   p <- dmdaVecGetArrayPtr dm v
---   pf <- newForeignPtr_ p
---   V.freeze (VM.unsafeFromForeignPtr0 pf len)
+-- dmdaVecGetVector dm v =
+--   vectorFreezeFromStorablePtr (dmdaVecGetArrayPtr dm v) (dmdaVecRestoreArrayPtr dm v)
 
-dmdaVecRestoreVector :: DM -> Vec -> Int -> V.Vector PetscScalar_ -> IO ()
-dmdaVecRestoreVector dm v =
-  vectorCopyToForeignPtr (dmdaVecGetArrayPtr dm v) (dmdaVecRestoreArrayPtr dm v)
+
 
 -- dmdaVecRestoreVector :: DM -> Vec -> Int -> V.Vector PetscScalar_ -> IO ()
--- dmdaVecRestoreVector dm v len w = do
---   p <- dmdaVecGetArrayPtr dm v
---   pf <- newForeignPtr_ p
---   V.copy (VM.unsafeFromForeignPtr0 pf len) w
---   dmdaVecRestoreArrayPtr dm v p
+-- dmdaVecRestoreVector dm v =
+--   vectorCopyToForeignPtr (dmdaVecGetArrayPtr dm v) (dmdaVecRestoreArrayPtr dm v)
+
+
 
 
 

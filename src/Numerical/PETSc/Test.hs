@@ -72,9 +72,9 @@ t1' = do
   -- v <- vecCreateMPIFromVector comm lv v0
   v <- vecCreateMPIFromVectorDecideLocalSize comm v0
   vecViewStdout v
-  vx <- vecGetVector v
+  vx <- vecGetVS v
   print vx
-  vecRestoreVector v vx
+  vecPutVS v vx
   vecDestroy v
    where
      comm = commWorld
@@ -643,12 +643,12 @@ snesEx1_t1 sfun vvsj = snesEx1 $ \snes x r jac f -> do
 
 t19 = withPetsc0 $ 
   withVecNew cw v0 $ \xvec -> do
-    xv <- vecGetVector xvec
+    xv <- vecGetVS xvec
     print xv
     let yv = VG.map (/ 2) xv
-    vecRestoreVector xvec $ V.convert yv
+    vecPutVS xvec $ V.convert yv
     vecViewStdout xvec
-    xv1 <- vecGetVector xvec
+    xv1 <- vecGetVS xvec
     print xv1
     where
       cw = commWorld

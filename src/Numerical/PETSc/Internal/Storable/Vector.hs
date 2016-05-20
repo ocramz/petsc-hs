@@ -157,28 +157,9 @@ joinVectors as = do
 
 -- | Ptr a <-> VS.Vector (bracket'ed)
 
-vectorFreezeFromStorablePtr ::
-  Storable a =>
-  IO (Ptr a) -> (Ptr a -> IO b) -> Int -> IO (VS.Vector a)
-vectorFreezeFromStorablePtr get restore n =
-  bracket get restore (getVS n)
-
-vectorCopyToForeignPtr ::
-  Storable a =>
-  IO (Ptr a) -> (Ptr a -> IO b) -> Int -> VS.Vector a -> IO ()
-vectorCopyToForeignPtr get restore n w = bracket get restore (putVS w n) 
-
-
-
 -- | Ptr a <-> VG.Vector v a  (bracket'ed)
 
-vgFreeze :: (VG.Vector v a, Storable a) =>
-            IO (Ptr a) -> (Ptr a -> IO b) -> Int -> IO (v a)
-vgFreeze get restore n = bracket get restore (getVG n)
 
-vgCopy :: (VG.Vector v a, Storable a) =>
-          IO (Ptr a) -> (Ptr a -> IO b) -> Int -> v a -> IO ()
-vgCopy get restore n w = bracket get restore (putVG w n)
 
 
 

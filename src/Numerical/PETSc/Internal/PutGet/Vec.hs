@@ -67,7 +67,7 @@ import qualified Data.Vector.Generic.Mutable       as VGM
 -- -- Show
 
 instance Show Vec where        
-  show v = show (unsafePerformIO $ vecGetVector v)
+  show v = show (unsafePerformIO $ vecGetVS v)
 
 
 
@@ -384,9 +384,9 @@ withVecNew c v =
 withVecVector :: VG.Vector w PetscScalar_ =>
      Vec -> (w PetscScalar_ -> IO a) -> IO a
 withVecVector v io = do
-  vv <- vecGetVector v
+  vv <- vecGetVS v
   y <- io (V.convert vv)
-  vecRestoreVector v vv
+  vecPutVS v vv
   return y -- (y :: V.Vector PetscScalar_)
 
 
@@ -699,13 +699,19 @@ vecSize :: Vec -> Int
 vecSize = vecGetSizeUnsafe
 
 
-withVecSize :: Vec -> (Vec -> Int -> t) -> t
-withVecSize v f = f v (vecSize v)
+withVecSize :: Vec -> (Int -> Vec -> t) -> t
+withVecSize v f = f (vecSize v) v
 
 
+-- | accessing size and pointer
 
+withVecSizedPtr :: Vec -> (Int -> Ptr PetscScalar_ -> IO a) -> IO a
+withVecSizedPtr w io = withVecSize w (\n v -> withVecArrayPtr v (io n))
 
+-- |", read only
 
+withVecSizedReadPtr :: Vec -> (Int -> Ptr PetscScalar_ -> IO a) -> IO a
+withVecSizedReadPtr w io = withVecSize w (\n v -> withVecArrayReadPtr v (io n))
 
 
 
@@ -715,27 +721,23 @@ withVecSize v f = f v (vecSize v)
 
 -- | getting/restoring a contiguous array from/to a Vec 
 
-
-vecGetArrayPtr :: Vec -> IO (Ptr PetscScalar_)
-vecGetArrayPtr v = chk1 (vecGetArray1' v)
-
-vecRestoreArrayPtr :: Vec -> Ptr PetscScalar_ -> IO ()
-vecRestoreArrayPtr v ar = chk0 (vecRestoreArrayPtr' v ar)
-
 withVecArrayPtr :: Vec -> (Ptr PetscScalar_ -> IO a) -> IO a
-withVecArrayPtr v = bracket (vecGetArrayPtr v) (vecRestoreArrayPtr v)
+withVecArrayPtr v =
+  bracket (vecGetArrayPtr v) (vecRestoreArrayPtr v)
+  where
+    vecGetArrayPtr u = chk1 (vecGetArray1' u)
+    vecRestoreArrayPtr u ar = chk0 (vecRestoreArrayPtr' u ar)
 
 
 
 -- | ",  read only
 
-vecGetArrayReadPtr :: Vec -> IO (Ptr PetscScalar_)
-vecGetArrayReadPtr v = chk1 (vecGetArrayRead' v)
-
-vecRestoreArrayReadPtr :: Vec -> Ptr PetscScalar_ -> IO ()
-vecRestoreArrayReadPtr v ar = chk0 (vecRestoreArrayRead' v ar)
-
-
+withVecArrayReadPtr :: Vec -> (Ptr PetscScalar_ -> IO a) -> IO a
+withVecArrayReadPtr v =
+  bracket (vecGetArrayReadPtr v) (vecRestoreArrayReadPtr v)
+  where
+    vecGetArrayReadPtr u = chk1 (vecGetArrayRead' u)
+    vecRestoreArrayReadPtr u ar = chk0 (vecRestoreArrayRead' u ar)
 
 
 
@@ -746,27 +748,23 @@ vecRestoreArrayReadPtr v ar = chk0 (vecRestoreArrayRead' v ar)
 
 
 -- | Vec get/set interface with Data.Vector
--- -- using ".Storable and ".Storable.Mutable
+-- -- using ".Storable 
+-- NB : `vecPutVS` overwrites its Vec argument with contents of second argument
 
-  
+vecGetVS :: Vec -> IO (VS.Vector PetscScalar_)
+vecGetVS v = withVecSizedPtr v getVS
 
-vecGetVector :: Vec -> IO (VS.Vector PetscScalar_)
-vecGetVector v =
-   vgetN v (vecSize v) where
-     vgetN w = vectorFreezeFromStorablePtr (vecGetArrayPtr w) (vecRestoreArrayPtr w)
+vecPutVS :: Vec -> VS.Vector PetscScalar_ -> IO ()
+vecPutVS v vu = withVecSizedPtr v (putVS vu)  
 
-vecRestoreVector :: Vec -> VS.Vector PetscScalar_ -> IO ()
-vecRestoreVector v =
-   vputN v (vecSize v) where
-     vputN w = vectorCopyToForeignPtr (vecGetArrayPtr w) (vecRestoreArrayPtr w)
+
 
 
 -- | ", read only
 
-vecGetVectorRead :: Vec -> IO (VS.Vector PetscScalar_)
-vecGetVectorRead v = vgetReadN v (vecSize v) where
-  vgetReadN w =
-    vectorFreezeFromStorablePtr (vecGetArrayReadPtr w) (vecRestoreArrayReadPtr w)
+vecGetVSRead :: Vec -> IO (VS.Vector PetscScalar_)
+vecGetVSRead v = withVecSizedReadPtr v getVS
+
 
 
 
@@ -851,13 +849,13 @@ toMutableV = VS.thaw . VG.convert
 
 vecGetIOVector :: Vec -> IO ( VM.IOVector PetscScalar_ )
 vecGetIOVector v = do
-  x <- vecGetVector v
+  x <- vecGetVS v
   toMutableV x
 
 vecRestoreIOVector :: Vec -> VM.IOVector PetscScalar_  -> IO ()
 vecRestoreIOVector v iov = do
   x <- fromMutableV iov
-  vecRestoreVector v x
+  vecPutVS v x
 
 
 
@@ -879,7 +877,7 @@ vecRestoreIOVector v iov = do
 
 vecGetVectorNSafe :: Vec -> Int -> IO (VS.Vector PetscScalar_)
 vecGetVectorNSafe v n
-  | n > 0 && n <= len = vecGetVector v
+  | n > 0 && n <= len = vecGetVS v
   | otherwise = error "vecGetVectorN :" where
      len = vecSize v
 
