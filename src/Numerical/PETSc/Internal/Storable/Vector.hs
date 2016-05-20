@@ -211,29 +211,7 @@ putVM v n p = do
   VM.copy (VM.unsafeFromForeignPtr0 fp n) v
 
 
-withVM :: Storable a => Ptr a -> Int -> (VM.IOVector a -> IO b) -> IO b
--- withVM p n = bracket (getVM n p) (\v -> putVM v n p)
-withVM p n io =
-  bracket
-  (do
-    fp <- FPR.newForeignPtr_ p
-    return (fp, VM.unsafeFromForeignPtr0 fp n))
-  (\(fp, vm) -> VM.copy (VM.unsafeFromForeignPtr0 fp n) vm)
-  (\(_, vm) -> io vm)
 
-
-withVM1_ ::
-  (Storable a, VG.Vector v a) =>
-  Ptr a ->
-  Int ->
-  v a ->
-  IO ()
-withVM1_ p n y = do
-  (xm ,vp) <- getVM1 n p
-  -- x <- VS.freeze xm
-  -- let xc = V.convert x
-  overwriteIOV_ xm y 
-  putVM1 n (xm, vp) 
 
 
 -- unsafe overwrite (no bounds checking), do not use directly
@@ -241,7 +219,10 @@ overwriteIOV_ :: (Storable a, VG.Vector v a) => VM.IOVector a -> v a -> IO ()
 overwriteIOV_ vm = VG.imapM_ (VM.write vm)
 
 
--- | withVM2_ : no inlined definitions
+
+
+-- | withVM2_ :
+-- dereference pointer `p` and overwrite contents using contents of vector `y`
 
 withVM2_ ::
   (Storable a, VG.Vector v a) => Int -> v a -> Ptr a -> IO ()
@@ -249,6 +230,8 @@ withVM2_ n y p  = do
   fp <- FPR.newForeignPtr_ p
   let xm = VM.unsafeFromForeignPtr0 fp n  -- mutable vec from `p` 
   VG.imapM_ (VM.write xm) y               -- overwrite mutable vec with `y`
+
+
 
 
 
@@ -266,25 +249,7 @@ putVM1 n (v, fp) =
 
 
 
--- -- | `vectorFunIO` , inspired by inline-c-nag
--- withVectorFunIO_ :: Storable a =>
---   Ptr a -> 
---   Int ->
---   (VS.Vector a -> VS.Vector a) ->
---   IO ()
--- withVectorFunIO_ xp len f = do
---   xfp <- FPR.newForeignPtr_ xp
---   xv <- VS.freeze $ VM.unsafeFromForeignPtr0 xfp len
---   let yv = f xv
---   VS.copy (VM.unsafeFromForeignPtr0 xfp len) yv
 
--- -- ", map between generic Vectors
--- funIOG :: (Storable a, VG.Vector v a, VG.Vector w a) =>
---   Ptr a -> 
---   Int ->
---   (v a -> w a) ->
---   IO ()
--- funIOG p l f = funIO p l (VG.convert . f . VG.convert)
 
 
 
@@ -542,24 +507,6 @@ asComplex v = VS.unsafeFromForeignPtr (FPR.castForeignPtr fp) (i `div` 2) (n `di
 
 -- | mutable <-> generic
 
--- type VMS a = VM.IOVector a 
-
--- -- fromMutableV :: (VG.Vector v a, Storable a) => VM.IOVector a -> IO (v a)
--- fromMutableV :: (Storable a, VG.Vector v a) => VMS a -> IO (v a)
--- fromMutableV mv = do
---   v <- VS.freeze mv
---   return (VG.convert v)
-
--- toMutableV :: (VG.Vector v a, Storable a) => v a -> IO (VM.IOVector a)
--- toMutableV = VS.thaw . VG.convert
-
--- withVG :: (VG.Vector v a, Storable a) =>
---               v a ->
---               (VM.IOVector a -> VM.IOVector a) ->
---               IO (v a)
--- withVG v f = do
---   x <- toMutableV v
---   fromMutableV (f x)
 
 -- asdf v f = VM.unsafeWith v (f . castPtr)
 

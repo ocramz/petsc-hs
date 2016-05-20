@@ -170,26 +170,19 @@ withSnesCreateSetup c pre post = withSnesCreate c $ \sn -> do
 -- y    - vector for residual (function value) 
 
 -- | minimal interface, `y` is not overwritten
-snesSetFunction0 ::
+snesSetFunction ::
   SNES ->
   Vec ->
-  (V.Vector PetscScalar_ -> Vec -> IO t) ->
+  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
   IO ()
-snesSetFunction0 snes r io = chk0 $ snesSetFunction_' snes r g where
+snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g where
   g _snes x y _p = withVecVector x $ \xv -> do
-    _ <- io xv y 
+    vecOverwriteIOVectorN2_ y (f xv)
     return (0 :: CInt)
 
-snesSetFunction' snes r f =
-  snesSetFunction0 snes r $ \xv y ->
-   withVecArrayPtr y $ \yp ->
-    withIOVector n yp (f xv)
-     where n = vecSize r
 
-snesSetFunction ::
-  SNES -> Vec -> (V.Vector PetscScalar_ -> V.Vector PetscScalar_) -> IO ()
-snesSetFunction snes r f =
-  snesSetFunction0 snes r $ \x y -> vecOverwriteIOVectorN2_ y (f x)
+
+
 
 
 -- snesSetFunction :: (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>

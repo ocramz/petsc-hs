@@ -446,18 +446,6 @@ vecSetValuesUnsafe0 ::
   Vec -> CInt -> Ptr CInt -> Ptr PetscScalar_ -> InsertMode_ -> IO ()
 vecSetValuesUnsafe0 v ni ix y im = chk0 (vecSetValues' v ni ix y im)
 
--- vecSetValuesUnsafe :: Vec -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO ()
--- vecSetValuesUnsafe v ix y im =
---   withArray ix $ \ixx ->
---    withArray y $ \yy -> chk0 $ vecSetValues' v ni ixx yy im 
---   where
---   ni = toCInt $ length ix
-
--- vecSetValuesSafe :: Vec -> [Int] -> [PetscScalar_] -> InsertMode_ -> IO ()
--- vecSetValuesSafe = safeInsertIndicesVec vsvu
---   where vsvu v ix = vecSetValuesUnsafe v (map toCInt ix)
-
-
 
 -- safeFlag ix_ y_ sv_ = c1 && c2 where
 --   c1 = length ix_ == length y_
@@ -780,6 +768,14 @@ vecRestoreArrayReadPtr v ar = chk0 (vecRestoreArrayRead' v ar)
 --    where
 --      len = vecSize v
 
+vecGetVector' v = do
+  p <- vecGetArrayPtr v
+  pf <- FPR.newForeignPtr_ p
+  vImm <- VS.freeze (VM.unsafeFromForeignPtr0 pf (vecSize v))
+  return (vImm, pf)
+
+
+
 vecGetVectorN :: Vec -> Int -> IO (VS.Vector PetscScalar_)
 vecGetVectorN v =
   vectorFreezeFromStorablePtr (vecGetArrayPtr v) (vecRestoreArrayPtr v)
@@ -821,17 +817,9 @@ withVecReadVector v = bracket (vecGetVectorRead v) (vecRestoreVectorRead v)
 
 -- | ", mutable
 
--- vecModifyIOVectorN ::
---   Vec -> Int -> (VM.IOVector PetscScalar_ -> IO a) -> IO a
--- vecModifyIOVectorN :: (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
---      Vec -> Int -> (v PetscScalar_ -> w PetscScalar_) -> IO ()
-vecModifyIOVectorN_ ::
-  VG.Vector v PetscScalar_ => Vec -> Int -> v PetscScalar_ -> IO ()
-vecModifyIOVectorN_ v n vnew =
-  withVecArrayPtr v $ \vp ->
-  withVM1_ vp n vnew
 
 
+-- | overwrite first argument with contents of second argument;
 
 vecOverwriteIOVectorN2_ :: Vec -> V.Vector PetscScalar_ -> IO ()
 vecOverwriteIOVectorN2_ v vnew
@@ -843,19 +831,7 @@ vecOverwriteIOVectorN2_ v vnew
             
 
 
--- -- overwrite first argument with contents of second argument; unsafe (no bound check)
--- unsafeVecOverwriteIOVectorN_ ::
---   VG.Vector v PetscScalar_ => Vec -> Int -> v PetscScalar_ -> IO ()
--- unsafeVecOverwriteIOVectorN_ v n w1 =
---   vecModifyIOVectorN v n (`overwriteIOV_` w1)
-  
--- -- overwrite first argument with contents of second argument
--- vecOverwriteIOVector_ :: Vec -> V.Vector PetscScalar_ -> IO ()
--- vecOverwriteIOVector_ v w1
---   | nv == nw1 = unsafeVecOverwriteIOVectorN_ v nv w1
---   | otherwise = error "vecOverWriteIOVector_ : incompatible source/dest dimensions"
---   where (nv, nw1) = (vecSize v, V.length w1)
-
+ 
 
 
 -- explicitly passing ForeignPtr
@@ -916,27 +892,11 @@ toMutableV = VS.thaw . VG.convert
 
 
 
-withVG :: (VG.Vector v a, Storable a) =>
-              v a ->
-              (VM.IOVector a -> VM.IOVector a) ->
-              IO (v a)
-withVG v f = do
-  x <- toMutableV v
-  fromMutableV (f x)
 
 
 
 
-modifyVec ::
-  (VG.Vector v PetscScalar_) =>
-  Vec ->
-  (VM.IOVector PetscScalar_ -> VM.IOVector PetscScalar_) ->
-  IO (v PetscScalar_)
-modifyVec v f = do
-  x <- vecGetIOVector v
-  let ym = f x
-  vecRestoreIOVector v ym
-  fromMutableV ym
+
 
 
 
@@ -1021,28 +981,7 @@ vecGetVectorNSafe v n
 
 
 
--- -- | mutating operators, use at own risk
 
-
-vecVecFunctionAdapt ::
-  Vec ->
-  Vec ->                 -- SECOND Vec WILL BE MODIFIED
-  (VM.IOVector PetscScalar_ -> VM.IOVector PetscScalar_) ->
-  IO Vec
-vecVecFunctionAdapt vIn vOut fv = 
-  withVecSize vIn $ \v vsz -> do
-    let ix = V.fromList [0 .. vsz-1] -- hmm
-    y <- modifyVec v fv
-    let ixy = V.zip ix y
-    vecSetValuesUnsafeVector1A vOut ixy InsertValues
-
-petscVecVecFunctionAdapt ::
-  Vec ->
-  Vec ->                 -- SECOND Vec WILL BE MODIFIED
-  (VM.IOVector PetscScalar_ -> VM.IOVector PetscScalar_) ->
-  IO CInt
-petscVecVecFunctionAdapt v1 v2 fv =
-  return0 $ vecVecFunctionAdapt v1 v2 fv
 
 
 
