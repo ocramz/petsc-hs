@@ -629,7 +629,7 @@ snesEx1 io = withSnesCreate cw $ \snes ->  -- line 49
 
 
 snesEx1_t1 sfun vvsj = snesEx1 $ \snes x r jac f -> do
-  snesSetFunction0 snes r sfun
+  snesSetFunction snes r sfun
   -- snesSetJacobian0 snes jac jac vvsj n n
   -- snesSetFromOptions snes
   
