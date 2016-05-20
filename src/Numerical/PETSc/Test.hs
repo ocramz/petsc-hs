@@ -639,6 +639,20 @@ snesEx1_t1 sfun vvsj = snesEx1 $ \snes x r jac f -> do
 
 
 
+-- | Vec destructive update in IO : fill Vec, get Vector from Vec, store modified contents in original Vec
+
+t19 = withPetsc0 $ 
+  withVecNew cw v0 $ \xvec -> do
+    xv <- vecGetVector xvec
+    print xv
+    let yv = VG.map (/ 2) xv
+    vecRestoreVector xvec $ V.convert yv
+    vecViewStdout xvec
+    xv1 <- vecGetVector xvec
+    print xv1
+    where
+      cw = commWorld
+
 
 
 

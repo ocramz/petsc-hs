@@ -27,15 +27,12 @@ import qualified Data.Ix as Ix (range, inRange)
 
 import           Foreign
 import qualified Foreign.ForeignPtr as FPR
--- import           Foreign.ForeignPtr.Unsafe
 import           Foreign.C.Types
 
 import           System.IO.Unsafe                   (unsafePerformIO)
 
 import           Control.Monad
 import           Control.Applicative
--- import           Control.Arrow
--- import           Control.Concurrent
 import           Control.Exception
 
 -- import           Control.Monad.Trans.Reader
@@ -651,16 +648,7 @@ vecCreateMPIFromVectorDecideLocalSize comm w = do
 
 
 
-modifyVecVector :: 
-  (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) => 
-  Vec ->
-  (v PetscScalar_ -> w PetscScalar_) ->
-  IO (w PetscScalar_)
-modifyVecVector v f = do
-  u <- vecGetVector v
-  let y = f (V.convert u)
-  vecRestoreVector v (V.convert y)
-  return y
+
 
 
 
@@ -760,57 +748,26 @@ vecRestoreArrayReadPtr v ar = chk0 (vecRestoreArrayRead' v ar)
 -- | Vec get/set interface with Data.Vector
 -- -- using ".Storable and ".Storable.Mutable
 
--- vecGetVector :: Vec -> IO (VS.Vector PetscScalar_)
--- vecGetVector v = do
---   p <- vecGetArrayPtr v
---   pf <- newForeignPtr_ p
---   VS.freeze (VM.unsafeFromForeignPtr0 pf len)
---    where
---      len = vecSize v
-
-vecGetVector' v = do
-  p <- vecGetArrayPtr v
-  pf <- FPR.newForeignPtr_ p
-  vImm <- VS.freeze (VM.unsafeFromForeignPtr0 pf (vecSize v))
-  return (vImm, pf)
-
-
-
-vecGetVectorN :: Vec -> Int -> IO (VS.Vector PetscScalar_)
-vecGetVectorN v =
-  vectorFreezeFromStorablePtr (vecGetArrayPtr v) (vecRestoreArrayPtr v)
+  
 
 vecGetVector :: Vec -> IO (VS.Vector PetscScalar_)
 vecGetVector v =
-   vecGetVectorN v (vecSize v)
-
-
-   
-
-vecRestoreVectorN :: Vec -> Int -> VS.Vector PetscScalar_ -> IO ()
-vecRestoreVectorN v =
-  vectorCopyToForeignPtr (vecGetArrayPtr v) (vecRestoreArrayPtr v)
-  
+   vgetN v (vecSize v) where
+     vgetN w = vectorFreezeFromStorablePtr (vecGetArrayPtr w) (vecRestoreArrayPtr w)
 
 vecRestoreVector :: Vec -> VS.Vector PetscScalar_ -> IO ()
 vecRestoreVector v =
-   vecRestoreVectorN v (vecSize v)
+   vputN v (vecSize v) where
+     vputN w = vectorCopyToForeignPtr (vecGetArrayPtr w) (vecRestoreArrayPtr w)
 
 
 -- | ", read only
-vecGetVectorReadN :: Vec -> Int -> IO (VS.Vector PetscScalar_)
-vecGetVectorReadN v = vectorFreezeFromStorablePtr (vecGetArrayReadPtr v) (vecRestoreArrayReadPtr v)
 
 vecGetVectorRead :: Vec -> IO (VS.Vector PetscScalar_)
-vecGetVectorRead v = vecGetVectorReadN v (vecSize v)
+vecGetVectorRead v = vgetReadN v (vecSize v) where
+  vgetReadN w =
+    vectorFreezeFromStorablePtr (vecGetArrayReadPtr w) (vecRestoreArrayReadPtr w)
 
-vecRestoreVectorReadN v = vectorCopyToForeignPtr (vecGetArrayReadPtr v) (vecRestoreArrayReadPtr v)
-
-vecRestoreVectorRead :: Vec -> VS.Vector PetscScalar_ -> IO ()
-vecRestoreVectorRead v = vecRestoreVectorReadN v (vecSize v)
-
-withVecReadVector :: Vec -> (VS.Vector PetscScalar_ -> IO a) -> IO a
-withVecReadVector v = bracket (vecGetVectorRead v) (vecRestoreVectorRead v)
 
 
 
@@ -834,7 +791,7 @@ vecOverwriteIOVectorN2_ v vnew
  
 
 
--- explicitly passing ForeignPtr
+-- | explicitly passing around the ForeignPtr associated with the Ptr 
 getIOVector :: Storable a => Int -> Ptr a -> IO (VM.IOVector a, FPR.ForeignPtr a)
 getIOVector = getVM1
 
@@ -858,20 +815,7 @@ withIOVector n p v =
 
 -- | Vec -> Vector.Generic
 
-vecCopyVector ::
-  VG.Vector w PetscScalar_ =>
-  Vec -> IO (w PetscScalar_)
-vecCopyVector v = do
-  vc <- vecGetVector v
-  vecRestoreVector v vc
-  return (V.convert vc)
 
-withVecCopyVector ::
-  VG.Vector w PetscScalar_ =>
-  Vec ->
-  (w PetscScalar_ -> IO a) ->
-  IO a
-withVecCopyVector v f = withVecReadVector v (f . VG.convert)
 
 
 
@@ -935,7 +879,7 @@ vecRestoreIOVector v iov = do
 
 vecGetVectorNSafe :: Vec -> Int -> IO (VS.Vector PetscScalar_)
 vecGetVectorNSafe v n
-  | n > 0 && n <= len = vecGetVectorN v n
+  | n > 0 && n <= len = vecGetVector v
   | otherwise = error "vecGetVectorN :" where
      len = vecSize v
 
