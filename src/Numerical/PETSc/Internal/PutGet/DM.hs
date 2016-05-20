@@ -143,7 +143,7 @@ instance DmdaInfoClass Dmda3dI where
 -- | create DM
 
 dmCreate :: Comm -> IO DM
-dmCreate comm = chk1 (dmCreate' comm)
+dmCreate cc = chk1 (dmCreate' cc)
 
 
 
@@ -154,19 +154,23 @@ dmCreate comm = chk1 (dmCreate' comm)
 
 
 
--- | global and local vectors from/to DM
+-- | crate global and local vectors assoc. w. DM
 
-dmCreateGlobalVector, dmCreateLocalVector, dmGetGlobalVector, dmGetLocalVector :: 
-  DM -> IO Vec
-dmRestoreGlobalVector, dmRestoreLocalVector :: DM -> Vec -> IO ()
-
+dmCreateGlobalVector, dmCreateLocalVector :: DM -> IO Vec
 dmCreateGlobalVector dm = chk1 (dmCreateGlobalVector' dm)
 dmCreateLocalVector dm = chk1 (dmCreateLocalVector' dm)
 
-dmGetGlobalVector dm = chk1 (dmGetGlobalVector' dm)
-dmRestoreGlobalVector dm v = chk0 (dmRestoreGlobalVector' dm v)
 
+
+
+-- | get/restore global and local vectors from DM
+
+dmGetGlobalVector, dmGetLocalVector :: DM -> IO Vec
+dmGetGlobalVector dm = chk1 (dmGetGlobalVector' dm)
 dmGetLocalVector dm = chk1 (dmGetLocalVector' dm)
+
+dmRestoreGlobalVector, dmRestoreLocalVector :: DM -> Vec -> IO ()
+dmRestoreGlobalVector dm v = chk0 (dmRestoreGlobalVector' dm v)
 dmRestoreLocalVector dm v = chk0 (dmRestoreLocalVector' dm v)
 
 
@@ -190,7 +194,10 @@ dmCreateMatrix dm = chk1 (dmCreateMatrix' dm)
 
 -- | fill DM local vector with global vector
 
+dmGlobalToLocalBegin :: DM -> Vec -> InsertMode_ -> Vec -> IO ()
 dmGlobalToLocalBegin dm g mode l = chk0 (dmGlobalToLocalBegin' dm g mode l)
+
+dmGlobalToLocalEnd :: DM -> Vec -> InsertMode_ -> Vec -> IO ()
 dmGlobalToLocalEnd dm g mode l = chk0 (dmGlobalToLocalEnd' dm g mode l)
 
 withDmGlobalToLocal :: DM -> Vec -> InsertMode_ -> Vec -> IO a -> IO a
