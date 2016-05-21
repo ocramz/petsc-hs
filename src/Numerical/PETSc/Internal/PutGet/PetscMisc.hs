@@ -171,8 +171,7 @@ isMpiRoot c = getMPICommRank c == 0
 
 -- | git commit hash (for debugging)
 -- Hp: `git` command is available
-gitHash = unsafePerformIO $ readProcess gs [] [] where
-  gs = "git rev-parse --verify HEAD"
+gitHash = unsafePerformIO $ readProcess "git" ["rev-parse","--verify","HEAD"] []
 
 
 
@@ -184,7 +183,7 @@ sep = "======"
 
 petscHeader =
   sep ++ "\npetsc-hs : Haskell bindings for PETSc" ++
-  "\nGit revision : " ++ gitHash ++ 
+  "\nversion " ++ gitHash ++ 
   "\nPETSc " ++ petscVersionString ++ ": initialized"
 
 
