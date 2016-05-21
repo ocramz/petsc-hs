@@ -6,4 +6,4 @@ extra-deps:
 # # resolver: lts-1.0 # corresponds to ghc-7.8.4
 resolver: lts-5.15 # corresponds to ghc-7.10.3
 ghc-options:
-	"*": -fno-warn-missing-signatures -fno-warn-unused-do-bind 
+  "*": -fno-warn-missing-signatures -fno-warn-unused-do-bind 
