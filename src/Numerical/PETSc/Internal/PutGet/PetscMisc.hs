@@ -52,6 +52,9 @@ import Control.Monad.Trans.Reader
 
 import Control.Arrow ((***), (&&&))
 
+import System.Process (readProcess)
+
+
 
 
 -- a `reader` bracket for reading MPI environmemt information
@@ -166,6 +169,10 @@ isMpiRoot c = getMPICommRank c == 0
 
 
 
+-- | git commit hash (for debugging)
+-- Hp: `git` command is available
+gitHash = unsafePerformIO $ readProcess gs [] [] where
+  gs = "git rev-parse --verify HEAD"
 
 
 
@@ -177,6 +184,7 @@ sep = "======"
 
 petscHeader =
   sep ++ "\npetsc-hs : Haskell bindings for PETSc" ++
+  "\nGit revision : " ++ gitHash ++ 
   "\nPETSc " ++ petscVersionString ++ ": initialized"
 
 
