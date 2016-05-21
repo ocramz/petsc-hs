@@ -183,7 +183,7 @@ sep = "======"
 
 petscHeader =
   sep ++ "\npetsc-hs : Haskell bindings for PETSc" ++
-  "\nversion " ++ gitHash ++ 
+  "\ncommit " ++ gitHash ++ 
   "\nPETSc " ++ petscVersionString ++ ": initialized"
 
 
