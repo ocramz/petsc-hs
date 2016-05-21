@@ -119,21 +119,8 @@ t1 = withPetsc0 t1'
 --    where
 --      cs = commSelf
 
--- --
 
 
--- | modify Vec via Vector via vecGetVector/vecRestoreVector
-
--- t3' = do
---   v <- vecCreateMPIFromVectorDecideLocalSize cs v0
---   vecViewStdout v
---   let x = modifyVS v (VS.map (+1))
---   print x       -- NB : `print x` cannot occur after `vecDestroy`
---   vecViewStdout v
---   vecDestroy v
---     where cs = commSelf
-          
--- t3 = withPetsc0 t3'
 
 -- --
 
@@ -164,25 +151,7 @@ t1 = withPetsc0 t1'
 
 
 
--- --
 
--- | BROKEN : matSetValuesVector passes junk data to C side 
-
--- t5''' =
---   withMatSetupSetValuesAssembly
---     (matCreateSeqAIJConstNZPR commWorld 3 3 3) 3 3 vix viy va InsertValues $ \m ->
---        matViewStdout m
-
--- t5 = withPetsc0 t5'''
-
--- t5'' =
---   withMat (matCreateMPIAIJWithVectors commWorld (3,3) (3,3)  vix viy va) $ \m -> do
---     matAssembly m
---     matViewStdout m
-
--- t5' =
---   withMatSetupSetValuesAssembly (matCreate commWorld) 3 3 vix viy va InsertValues $ \m -> do
---    matViewStdout m
 
 
 
