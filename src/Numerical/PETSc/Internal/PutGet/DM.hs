@@ -163,15 +163,10 @@ dmCreateLocalVector dm = chk1 (dmCreateLocalVector' dm)
 
 
 
--- | get/restore global and local vectors from DM
 
-dmGetGlobalVector, dmGetLocalVector :: DM -> IO Vec
-dmGetGlobalVector dm = chk1 (dmGetGlobalVector' dm)
-dmGetLocalVector dm = chk1 (dmGetLocalVector' dm)
 
-dmRestoreGlobalVector, dmRestoreLocalVector :: DM -> Vec -> IO ()
-dmRestoreGlobalVector dm v = chk0 (dmRestoreGlobalVector' dm v)
-dmRestoreLocalVector dm v = chk0 (dmRestoreLocalVector' dm v)
+
+
 
 
 
@@ -233,6 +228,9 @@ withDmL2G dm l mode g =
 
 
 
+
+
+
 -- | destroy DM
 
 dmDestroy :: DM -> IO ()
@@ -246,21 +244,37 @@ dmDestroy dm = chk0 (dmDestroy' dm)
 
 
 
--- | with DM brackets
+-- | `with` DM brackets
 
 withDm :: IO DM -> (DM -> IO a) -> IO a
 withDm dc = bracket dc dmDestroy
 
+-- -- | create DM-bound GLOBAL vector
 withDmCreateGlobalVector :: DM -> (Vec -> IO a) -> IO a
 withDmCreateGlobalVector dm = withVec (dmCreateGlobalVector dm)
 
-withDmGetLocalVector :: DM -> (Vec -> IO a) -> IO a
-withDmGetLocalVector dm =
-  bracket (dmGetLocalVector dm) (dmRestoreLocalVector dm)
+-- -- | create DM-bound matrix
+withDmCreateMatrix :: DM -> (Mat -> IO a) -> IO a
+withDmCreateMatrix dm = withMat (dmCreateMatrix dm)
 
-withDmGetGlobalVector :: DM -> (Vec -> IO a) -> IO a    
-withDmGetGlobalVector dm =
-  bracket (dmGetGlobalVector dm) (dmRestoreGlobalVector dm)
+
+
+
+-- | get/restore DM-bound vectors
+
+withDmGlobalVec :: DM -> (Vec -> IO a) -> IO a
+withDmGlobalVec dm = bracket (dmggv dm) (dmrgv dm) where
+  dmggv d = chk1 (dmGetGlobalVector' d)
+  dmrgv d u = chk0 (dmRestoreGlobalVector' d u)
+
+withDmLocalVec :: DM -> (Vec -> IO a) -> IO a
+withDmLocalVec dm = bracket (dmglv dm) (dmrlv dm) where
+  dmglv d = chk1 (dmGetLocalVector' d)
+  dmrlv d u = chk0 (dmRestoreLocalVector' d u)
+
+
+
+
 
 
 -- | get/restore a V.Vector rather than a Vec
@@ -276,8 +290,7 @@ withDmGetGlobalVector dm =
 
 
 
-withDmCreateMatrix :: DM -> (Mat -> IO a) -> IO a
-withDmCreateMatrix dm = withMat (dmCreateMatrix dm)
+
 
 
 
@@ -353,8 +366,8 @@ dmdaCreate1d0 ::  -- lx = NULL
   Int ->        -- dof : # DOF / node
   Int ->        -- sw : stencil width 
   IO DM
-dmdaCreate1d0 comm b mm dof sw =
-  chk1 (dmdaCreate1d0' comm b mm' dof' sw') where
+dmdaCreate1d0 cc b mm dof sw =
+  chk1 (dmdaCreate1d0' cc b mm' dof' sw') where
     (mm', dof', sw') = (toCInt mm, toCInt dof, toCInt sw)
 
 dmdaCreate2d ::
@@ -365,8 +378,8 @@ dmdaCreate2d ::
   Int ->                          -- dof : # DOF / node
   Int ->                          -- stencil width
   IO DM
-dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
-  chk1 (dmdaCreate2d' comm bx by sten mm' nn' dof' s') where
+dmdaCreate2d cc (bx, by) sten (mm, nn) dof s =
+  chk1 (dmdaCreate2d' cc bx by sten mm' nn' dof' s') where
     (mm', nn', dof', s') = (toCInt mm, toCInt nn, toCInt dof, toCInt s)
 
 
@@ -381,7 +394,7 @@ dmdaCreate2d comm (bx, by) sten (mm, nn) dof s =
 
 
 
--- | get/set arrays from DMDA Vec's (NB : in gen. > 1 DOF/node !)
+-- | get/set arrays from DMDA Vec (NB : in gen. > 1 DOF/node !)
 
 withDmdaVecArrayPtr :: DM -> Vec -> (Ptr PetscScalar_ -> IO c) -> IO c
 withDmdaVecArrayPtr dm v = bracket (dmvga dm v) (dmvra dm v) where
@@ -389,21 +402,8 @@ withDmdaVecArrayPtr dm v = bracket (dmvga dm v) (dmvra dm v) where
   dmvra dw u vvp = chk0 (dmdaVecRestoreArray' dw u vvp)
 
 
--- dmdaVecGetVector dm v = withDmdaVecArrayPtr dm v getVS
-
--- dmdaVecRestoreVector dm v vu = withDmdaVecArrayPtr dm v (putVS vu)
-
--- dmdaVecGetVector :: DM -> Vec -> Int -> IO (V.Vector PetscScalar_)
--- dmdaVecGetVector dm v =
---   vectorFreezeFromStorablePtr (dmdaVecGetArrayPtr dm v) (dmdaVecRestoreArrayPtr dm v)
-
-
-
--- dmdaVecRestoreVector :: DM -> Vec -> Int -> V.Vector PetscScalar_ -> IO ()
--- dmdaVecRestoreVector dm v =
---   vectorCopyToForeignPtr (dmdaVecGetArrayPtr dm v) (dmdaVecRestoreArrayPtr dm v)
-
-
+-- | get/set VS.Vector from DMDA Vec
+-- (use `vecGetVS` and `vecPutVS` and usage example at www.mcs.anl.gov/petsc/petsc-current/src/dm/examples/tutorials/ex10.c.html )
 
 
 
@@ -468,8 +468,8 @@ withDmda1d ::
   [Int] ->           -- # nodes in X dir / processor
   (DM -> IO a) ->
   IO a
-withDmda1d comm b m dof sw lx =
-  withDm (dmdaCreate1d comm b m dof sw lx)
+withDmda1d cc b m dof sw lx =
+  withDm (dmdaCreate1d cc b m dof sw lx)
 
 withDmda1d0 ::
   Comm ->
@@ -479,8 +479,8 @@ withDmda1d0 ::
   Int ->        -- sw : stencil width 
   (DM -> IO a) ->
   IO a
-withDmda1d0 comm b m dof sw =
-  withDm (dmdaCreate1d0 comm b m dof sw)
+withDmda1d0 cc b m dof sw =
+  withDm (dmdaCreate1d0 cc b m dof sw)
 
 withDmda2d0 ::
   Comm ->
@@ -491,8 +491,8 @@ withDmda2d0 ::
   Int ->
   (DM -> IO a) ->
   IO a
-withDmda2d0 comm (bx, by) sten (m, n) dof s =
-  withDm (dmdaCreate2d comm (bx, by) sten (m, n) dof s) 
+withDmda2d0 cc (bx, by) sten (m, n) dof s =
+  withDm (dmdaCreate2d cc (bx, by) sten (m, n) dof s) 
 
 -- withDmda2d1 ::
 --   Dmda2dInfo ->
@@ -521,8 +521,8 @@ withDmdaUniform1d ::
   (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
   (DM -> IO a) ->
   IO a
-withDmdaUniform1d comm b m dof sw lx (x1,x2) f=
-  withDmda1d comm b m dof sw lx $ \dm -> do
+withDmdaUniform1d cc b m dof sw lx (x1,x2) f=
+  withDmda1d cc b m dof sw lx $ \dm -> do
    dmdaSetUniformCoordinates1d dm (x1,x2)
    f dm 
 
@@ -546,8 +546,8 @@ withDmdaUniform2d0 ::
   (PetscReal_, PetscReal_) ->  -- (ymin, ymax)
   (DM -> IO a) ->
   IO a
-withDmdaUniform2d0 comm (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
-  withDmda2d0 comm (bx,by) sten (m,n) dof sw $ \dm -> do
+withDmdaUniform2d0 cc (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
+  withDmda2d0 cc (bx,by) sten (m,n) dof sw $ \dm -> do
     dmdaSetUniformCoordinates2d dm (x1,x2) (y1,y2)
     f dm
 
