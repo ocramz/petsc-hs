@@ -301,13 +301,9 @@ withMat :: IO Mat -> (Mat -> IO a) -> IO a
 withMat mc = bracket mc matDestroy 
 
 withMatCreate :: Comm -> (Mat -> IO a) -> IO a
-withMatCreate comm = withMat (matCreate comm)
+withMatCreate cc = withMat (matCreate cc)
 
--- withMatAIJDecideConstNZPRCreate c mm nn dnz onz after =
---   withMat (matCreateAIJDecideConstNZPR c mm nn dnz onz)
---   (\mat -> do
---       matSetup mat
---       after mat)
+
 
 -- -- | withMatCreateSetup : (create, setSizes, setup, <body>, cleanup) bracket
 withMatCreateSetup ::

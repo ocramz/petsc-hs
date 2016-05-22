@@ -31,10 +31,11 @@ import Test.Hspec
 -- | utils
 
 
-tests :: IO ()
-tests = withPetsc0 $ hspec $ do
+specs :: IO ()
+specs = withPetsc0 $ hspec $ do
   t_vecDot_r2_1
   t_linSys_r3_1
+  t_linSys_3x4_1
 
 
 
@@ -68,7 +69,21 @@ t_linSys_r3_1 = describe "t_linSys_r3_1" $
         vd = V.fromList [3, 7, 18]
         ixd = listToCSR m n [1,2,0,0,3,4,5,6,7]
         nz = ConstNZPR (3,3)
-        
+
+t_linSys_3x4_1 = describe "t_linSys_3x4_1" $
+  it "solves a 3x4 linear system" $
+   withPetscMatrix com m n ixd nz InsertValues $ \mat ->
+    withVecNew com vd $ \rhs -> do
+     let (_, _, _, mu) = fromPetscMatrix mat
+     withKspSetupSolveAlloc com KspGmres mu mu rhs $ \ksp soln -> do
+       x <- vecGetVS soln
+       let xl = V.toList $ V.convert x
+       xl `shouldBe` ([1,1,1,1] :: [PetscScalar_]) 
+      where
+        (m, n) = (3, 4)
+        vd = V.fromList [7, 14, 16]
+        ixd = listToCSR m n [3,4,0,1,2,0,5,7,9,3,1,3]
+        nz = ConstNZPR (m, n)
 
 
 
