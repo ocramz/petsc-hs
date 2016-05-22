@@ -2072,16 +2072,12 @@ dmView' dm vi = [C.exp|int{DMView($(DM dm),$(PetscViewer vi))}|]
 
 kspGetConvergedReason' :: KSP -> IO (CInt, CInt)
 kspGetConvergedReason' ksp =
-  withPtr ( \r ->
-             [C.exp| int{ KSPGetConvergedReason( $(KSP ksp),
-                                              $(int* r) ) } |]
-          ) 
+  withPtr ( \r -> [C.exp| int{ KSPGetConvergedReason( $(KSP ksp), $(int* r) ) } |]) 
 
 
 kspCreate' :: Comm -> IO (KSP, CInt)
-kspCreate' c = withPtr (kspCreate0' c) where
-  kspCreate0' comm p = [C.exp| int{KSPCreate($(int c), $(KSP *p))}|] where
-    c = unComm comm
+kspCreate' cc = withPtr $ \p -> [C.exp| int{KSPCreate($(int c), $(KSP *p))}|] where
+    c = unComm cc
 
 kspSetType' :: KSP -> KspType_ -> IO CInt
 kspSetType' ksp kt = withCString strk $ \strp -> [C.exp|int{KSPSetType($(KSP ksp), $(char* strp))}|] where
@@ -2096,8 +2092,7 @@ kspSetType' ksp kt = withCString strk $ \strp -> [C.exp|int{KSPSetType($(KSP ksp
 --                            peekString strp) 
 
 kspDestroy' :: KSP -> IO CInt
-kspDestroy' p = with p kspDestroy0'  where
-  kspDestroy0' p = [C.exp| int{KSPDestroy($(KSP *p))}  |]
+kspDestroy' k = with k $ \pp -> [C.exp| int{KSPDestroy($(KSP *pp))}  |]
 
 -- withKspSetupSolve c mat1 mat2 ignz kt x v post = withKsp c $ \ksp -> do
 --   kspSetOperators ksp mat1 mat2
@@ -2155,6 +2150,8 @@ kspSetReusePreconditioner' ksp b = [C.exp|int{KSPSetReusePreconditioner($(KSP ks
 -- PETSC_EXTERN PetscErrorCode KSPGetTolerances(KSP,PetscReal*,PetscReal*,PetscReal*,PetscInt*);
 
 -- PETSC_EXTERN PetscErrorCode KSPSetTolerances(KSP,PetscReal,PetscReal,PetscReal,PetscInt);
+kspSetTolerances' ::
+  KSP -> PetscReal_ -> PetscReal_ -> PetscReal_ -> PetscInt_ -> IO CInt
 kspSetTolerances' ksp rtol abstol dtol maxits = [C.exp|int{KSPSetTolerances($(KSP ksp),$(PetscReal rtol),$(PetscReal abstol),$(PetscReal dtol),$(PetscInt maxits))}|]
 
 -- PETSC_EXTERN PetscErrorCode KSPSetInitialGuessNonzero(KSP,PetscBool );
@@ -2226,8 +2223,8 @@ ctx	- optional user-provided context
 kspSetComputeRHS__' :: KSP -> (KSP -> Vec -> IO CInt) -> IO CInt
 kspSetComputeRHS__' ksp f = kspSetComputeRHS_' ksp g where
   g k v _ = f k v
-  kspSetComputeRHS_' ksp f =
-    [C.exp|int{KSPSetComputeRHS($(KSP ksp),$fun:(int (* f)(KSP, Vec, void*)), NULL  )}|]
+  kspSetComputeRHS_' ks ff =
+    [C.exp|int{KSPSetComputeRHS($(KSP ks),$fun:(int (* ff)(KSP, Vec, void*)), NULL  )}|]
 
 
 -- PetscErrorCode  KSPReasonView(KSP ksp,PetscViewer viewer)
@@ -2235,7 +2232,7 @@ kspSetComputeRHS__' ksp f = kspSetComputeRHS_' ksp g where
 
 
 
-
+kspGetPc' :: KSP -> IO (PC, CInt)
 kspGetPc' k = withPtr $ \pc -> [C.exp|int{KSPGetPC($(KSP k),$(PC* pc))}|]
 
 
@@ -2244,7 +2241,7 @@ kspGetPc' k = withPtr $ \pc -> [C.exp|int{KSPGetPC($(KSP k),$(PC* pc))}|]
 
 
 -- * PC
-
+pcSetType' :: PC -> PCType_ -> IO CInt
 pcSetType' pc pct = withCString t $ \tp -> [C.exp|int{PCSetType($(PC pc),$(char* tp))}|] where
   t = pcTypeToString pct
   
@@ -2266,9 +2263,9 @@ pcSetType' pc pct = withCString t $ \tp -> [C.exp|int{PCSetType($(PC pc),$(char*
 -- dimin	- dimension of the space you are mapping from
 -- dimout	- dimension of the space you are mapping to
 pfCreate' :: Comm -> Int -> Int -> IO (PF, CInt)
-pfCreate' comm dimin dimout = withPtr ( \pf ->[C.exp|int{PFCreate($(int c),$(int diminc),$(int dimoutc),$(PF*pf) )}|] ) 
+pfCreate' cc dimin dimout = withPtr ( \pf ->[C.exp|int{PFCreate($(int c),$(int diminc),$(int dimoutc),$(PF*pf) )}|] ) 
   where
-    c = unComm comm
+    c = unComm cc
     diminc = toCInt dimin
     dimoutc = toCInt dimout
 
@@ -2534,8 +2531,8 @@ snesSetJacobian' :: SNES
 snesSetJacobian' snes amat pmat f =
   snesSetJacobian0' snes amat pmat f' where
     f' s v a p _ = f s v a p
-    snesSetJacobian0' snes amat pmat f ctx =
-      [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
+    snesSetJacobian0' snes_ amat_ pmat_ f ctx =
+      [C.exp|int{SNESSetJacobian($(SNES snes_),$(Mat amat_),$(Mat pmat_),
                              $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)),$(void* ctx))}|]
 
 
@@ -2545,8 +2542,8 @@ snesSetJacobian_' ::
 snesSetJacobian_' snes amat pmat f =
   snesSetJacobian0_' snes amat pmat f' where
     f' s v a p _ = f s v a p
-    snesSetJacobian0_' snes amat pmat f =
-      [C.exp|int{SNESSetJacobian($(SNES snes),$(Mat amat),$(Mat pmat),
+    snesSetJacobian0_' snes_ amat_ pmat_ f =
+      [C.exp|int{SNESSetJacobian($(SNES snes_),$(Mat amat_),$(Mat pmat_),
                              $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)), NULL)}|]
 
 
@@ -2822,14 +2819,13 @@ snesGetKsp' s = withPtr $ \k -> [C.exp|int{SNESGetKSP($(SNES s),$(KSP* k))}|]
 
 -- PetscErrorCode  TSCreate(MPI_Comm comm, TS *ts)
 tsCreate' :: Comm -> IO (TS, CInt)
-tsCreate' comm =
+tsCreate' cc =
   withPtr (\ts -> [C.exp|int{TSCreate($(int c), $(TS* ts))}|]) 
   where
-   c = unComm comm
+   c = unComm cc
 
 tsDestroy' :: TS -> IO CInt
-tsDestroy' ts = with ts tsDestroy0' where
-  tsDestroy0' ts = [C.exp| int{TSDestroy($(TS* ts))} |] 
+tsDestroy' ts = with ts $ \tsp -> [C.exp| int{TSDestroy($(TS* tsp))} |] 
 
 
 -- PetscErrorCode  TSSetProblemType(TS ts, TSProblemType type)
@@ -3107,6 +3103,7 @@ tsGetConvergedReason' ts = withPtr (\p -> [C.exp|int{TSGetConvergedReason($(TS t
 -- Input Parameter :
 -- ts	- the time-step context
 -- eftopt	- exact final time option
+tsSetExactFinalTime' :: TS -> TsExactFinalTimeOption_ -> IO CInt
 tsSetExactFinalTime' ts ft  = [C.exp|int{TSSetExactFinalTime($(TS ts),$(int o))}|] where o = tsExactFinalTimeOptionToCInt ft
 
 
@@ -3255,9 +3252,9 @@ tsSetSaveTrajectory' ts = [C.exp|int{TSSetSaveTrajectory($(TS ts))}|]
 
 -- PETSC_EXTERN PetscErrorCode TSTrajectoryCreate(MPI_Comm,TSTrajectory*);
 tsTrajectoryCreate' :: Comm -> IO (TSTrajectory, CInt)
-tsTrajectoryCreate' comm = withPtr $ \tst ->
+tsTrajectoryCreate' cc = withPtr $ \tst ->
   [C.exp|int{TSTrajectoryCreate($(int c),$(TSTrajectory* tst))}|] where
-    c = unComm comm
+    c = unComm cc
   
 -- PETSC_EXTERN PetscErrorCode TSTrajectoryDestroy(TSTrajectory*);
 tsTrajectoryDestroy' :: TSTrajectory -> IO CInt
@@ -3306,9 +3303,9 @@ tsTrajectoryDestroy' tst =
 
 -- withTaoInit0 = withTaoInit [] [] [] 
 taoCreate' :: Comm -> IO (Tao, CInt)
-taoCreate' comm = withPtr (\p -> [C.exp| int{TaoCreate($(int c), $(Tao *p))} |] )
+taoCreate' cc = withPtr (\p -> [C.exp| int{TaoCreate($(int c), $(Tao *p))} |] )
   where
-  c = unComm comm
+  c = unComm cc
 
 taoDestroy' :: Tao -> IO CInt
 taoDestroy' p = with p ( \pp -> [C.exp| int{TaoDestroy($(Tao *pp))}  |] ) 
@@ -3350,9 +3347,9 @@ taoSetObjectiveRoutine ::
   IO CInt  
 taoSetObjectiveRoutine t f = taoSetObjectiveRoutine' t f' where
   f' ta v r _ = f ta v r
-  taoSetObjectiveRoutine' tao f =
+  taoSetObjectiveRoutine' tao ff =
     [C.exp|int{TaoSetObjectiveRoutine($(Tao tao),
-                                      $fun:(int (*f)(Tao, Vec, PetscReal*, void*)),
+                                      $fun:(int (*ff)(Tao, Vec, PetscReal*, void*)),
                                       NULL)}|]
 
 
@@ -3361,9 +3358,9 @@ taoSetObjectiveRoutine t f = taoSetObjectiveRoutine' t f' where
 taoSetGradientRoutine :: Tao -> (Tao -> Vec -> Vec -> IO CInt) -> IO CInt
 taoSetGradientRoutine t f = taoSetGradientRoutine' t f' where
   f' ta v r _ = f ta v r
-  taoSetGradientRoutine' tao f =
+  taoSetGradientRoutine' tao fc =
     [C.exp|int{TaoSetGradientRoutine($(Tao tao),
-                                     $fun:(int (*f)(Tao, Vec, Vec, void*)),
+                                     $fun:(int (*fc)(Tao, Vec, Vec, void*)),
                                      NULL)}|]
   
 -- PETSC_EXTERN PetscErrorCode TaoSetObjectiveAndGradientRoutine(Tao, PetscErrorCode(*)(Tao, Vec, PetscReal*, Vec, void*), void*);
@@ -3375,10 +3372,10 @@ taoSetObjectiveAndGradientRoutine ::
 taoSetObjectiveAndGradientRoutine t f =
   taoSetObjectiveAndGradientRoutine' t f' where
     f' ta v r v2 _ = f ta v r v2
-    taoSetObjectiveAndGradientRoutine' tao f =
+    taoSetObjectiveAndGradientRoutine' tao fc =
       [C.exp|int{TaoSetObjectiveAndGradientRoutine(
                     $(Tao tao),
-                    $fun:(int (*f)(Tao, Vec, PetscReal*, Vec, void*)),
+                    $fun:(int (*fc)(Tao, Vec, PetscReal*, Vec, void*)),
                     NULL)}|] 
   
 -- PETSC_EXTERN PetscErrorCode TaoSetHessianRoutine(Tao,Mat,Mat,PetscErrorCode(*)(Tao,Vec, Mat, Mat, void*), void*);
@@ -3389,9 +3386,9 @@ taoSetHessianRoutine ::
   IO CInt
 taoSetHessianRoutine t m1 m2 f = taoSetHessianRoutine' t m1 m2 f' where
   f' ta v n1 n2 _ = f ta v n1 n2
-  taoSetHessianRoutine' tao m1 m2 f =
-    [C.exp|int{TaoSetHessianRoutine($(Tao tao), $(Mat m1), $(Mat m2),
-                                    $fun:(int (*f)(Tao, Vec, Mat, Mat, void*)),
+  taoSetHessianRoutine' tao m1_ m2_ fc =
+    [C.exp|int{TaoSetHessianRoutine($(Tao tao), $(Mat m1_), $(Mat m2_),
+                                    $fun:(int (*fc)(Tao, Vec, Mat, Mat, void*)),
                                     NULL)}|]
 
 
