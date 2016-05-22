@@ -530,9 +530,11 @@ t18d3' =
                              snesSetJacobian0 snes jac jac (vvDiag n jd) n n 
                          ) $ \snes -> do -- return ()
     snesViewStdout snes
+    withPetscViewerTypeFmt cw ViewerAscii ViewFmtAsciiCommon petscOptionsView
     -- snesComputeFunction snes xtemp x
     snesSolve0 snes x
     -- vecViewStdout xtemp
+    
   where
     -- preSNS s = snesSetFunction s xtemp f
     cw = commWorld
@@ -544,10 +546,12 @@ t18d3' =
 -- matSetDiagonalVectorSafe 
 
 
-t18d3 = withPetsc a "" "" t18d3' where
-  a = ["-start-in-debugger"]
+t18d3 = withPetsc a o "" t18d3' where
+  a = []
+  o = "" -- name of options file 
 
 
+asdfg = withPetsc
 
 
 -- -- 4 : snes ex.1 
@@ -565,8 +569,9 @@ t18d4' = withSnesCreate cw $ \snes ->  -- line 49
         -- matViewStdout jac
         -- vecViewStdout r
         -- snesGetKsp snes >>= kspGetPc >>= (`pcSetType` PcJacobi) -- eh
-        snesSolve0 snes x
+        -- snesSolve0 snes x
         -- snesViewStdout snes
+
 
   where
     cw = commWorld

@@ -37,23 +37,23 @@ import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, un
 
 
 
-petscViewerCreate comm = chk1 (petscViewerCreate' comm)
+petscViewerCreate cc = chk1 (petscViewerCreate' cc)
 
 petscViewerDestroy v = chk0 (petscViewerDestroy' v)
 
 withPetscViewer :: Comm -> (PetscViewer -> IO a) -> IO a
-withPetscViewer comm =
-  bracket (petscViewerCreate comm) petscViewerDestroy
+withPetscViewer cc =
+  bracket (petscViewerCreate cc) petscViewerDestroy
 
 withPetscViewerTypeFmt ::
   Comm -> PetscViewerType_ -> PetscViewerFormat_ -> (PetscViewer -> IO a) -> IO a
-withPetscViewerTypeFmt comm ty fmt f = withPetscViewer comm $ \v -> do
+withPetscViewerTypeFmt cc ty fmt f = withPetscViewer cc $ \v -> do
   petscViewerSetType v ty
   petscViewerSetFormat v fmt
   f v
 
 
-withPetscViewerSetup comm ty mode name f = withPetscViewer comm $ \v -> do
+withPetscViewerSetup cc ty mode name f = withPetscViewer cc $ \v -> do
   petscViewerSetType v ty
   chk0 $ petscViewerFileSetName' v name
   chk0 $ petscViewerFileSetMode' v mode

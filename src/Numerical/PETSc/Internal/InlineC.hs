@@ -80,9 +80,9 @@ isCreateStride_ c n first step is = [C.exp|
             $(IS* is)) }|]
 
 isCreateStride' :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> IO (IS, CInt)
-isCreateStride' comm n first step =
+isCreateStride' cc n first step =
   withPtr $ \is -> isCreateStride_ c n first step is
-   where c = unComm comm
+   where c = unComm cc
 
 
 
@@ -142,12 +142,12 @@ isColoringCreate' :: Comm
                            -> [CInt]
                            -> PetscCopyMode_
                            -> IO (ISColoring, CInt)
-isColoringCreate' comm ncolors n cols copymode =
+isColoringCreate' cc ncolors n cols copymode =
    withPtr $ \iscoloring ->
     withArray cols $ \colv -> 
   [C.exp|int{ISColoringCreate($(int c),$(int ncolors),$(int n),$(int* colv),$(int mo),$(ISColoring* iscoloring))}|]
      where
-       c = unComm comm
+       c = unComm cc
        mo = toCInt $ petscCopyModeToInt copymode
 
 
@@ -183,9 +183,8 @@ vecSetName1 v name = withCString name $ \n ->
 
 
 vecCreate' :: Comm -> IO (Vec, CInt)
-vecCreate' c = withPtr (vc0 c) where
-  vc0 comm p = [C.exp|int{VecCreate($(int c), $(Vec *p))} |]
-   where c = unComm comm
+vecCreate' cc = withPtr $ \p -> [C.exp|int{VecCreate($(int c), $(Vec *p))} |]
+   where c = unComm cc
   
 
 -- PetscErrorCode VecCreateMPI(MPI_Comm comm, int m, int M, Vec* x)
@@ -193,12 +192,10 @@ vecCreate' c = withPtr (vc0 c) where
 
 
 vecCreateMPI' :: Comm -> Int -> Int -> IO (Vec, CInt)
-vecCreateMPI' c nlocal nglobal = withPtr (vcm0 c nlocal nglobal)
-  where
-    vcm0 cc m1' m2' p = [C.exp|int{VecCreateMPI($(int c), $(int m1), $(int m2), $(Vec *p))}|] 
-      where c = unComm cc
-            m1 = toCInt m1'
-            m2 = toCInt m2'
+vecCreateMPI' co nlocal nglobal = withPtr $ \p -> [C.exp|int{VecCreateMPI($(int c), $(int m1), $(int m2), $(Vec *p))}|] 
+      where c = unComm co
+            m1 = toCInt nlocal
+            m2 = toCInt nglobal
 
 -- vecCreateMPILocal c m = vecCreateMPI' c m m
 
@@ -379,10 +376,9 @@ vecGetArray1' v = withPtr $ \p -> vecGetArray0' v p
 
 
 -- PetscErrorCode VecGetArrayRead(Vec x,const PetscScalar **a)
-vecGetArrayRead0' v p = [C.exp|int{VecGetArrayRead($(Vec v), $(PetscScalar** p))}|]
-
 vecGetArrayRead' :: Vec -> IO (Ptr PetscScalar_, CInt)
-vecGetArrayRead' v = withPtr $ \p -> vecGetArrayRead0' v p
+vecGetArrayRead' v = withPtr $ \p ->
+  [C.exp|int{VecGetArrayRead($(Vec v), $(const PetscScalar** p))}|]
 
 
 
@@ -426,11 +422,9 @@ vecRestoreArray' v c = withArray c $ \cp ->
 
 
 -- PetscErrorCode VecRestoreArrayRead(Vec x,const PetscScalar **a)
-vecRestoreArrayRead0' v p = [C.exp|int{VecRestoreArrayRead($(Vec v), $(PetscScalar** p))}|]
-
-
 vecRestoreArrayRead' :: Vec -> Ptr PetscScalar_ -> IO CInt
-vecRestoreArrayRead' v p = with p $ \pc -> vecRestoreArrayRead0' v pc
+vecRestoreArrayRead' v p = with p $ \pc ->
+  [C.exp|int{VecRestoreArrayRead($(Vec v), $(const PetscScalar** pc))}|]
 
 
 
@@ -687,7 +681,7 @@ matCreateSeqAIJ' cc m n nz nnz =
 -- A -the matrix 
 
 matCreateSeqAIJ1 :: Comm -> Int -> Int -> [Int] -> IO (Mat, CInt)
-matCreateSeqAIJ1 comm m' n' nnz' =
+matCreateSeqAIJ1 cc m' n' nnz' =
   withPtr (\mat ->
    withArray nnz $ \nnzp ->
             [C.exp|int{MatCreateSeqAIJ($(int c),
@@ -696,7 +690,7 @@ matCreateSeqAIJ1 comm m' n' nnz' =
                                        0 ,
                                        $(PetscInt* nnzp),
                                        $(Mat *mat))}|]) 
-  where c = unComm comm
+  where c = unComm cc
         (m, n, nnz) = (toCInt m', toCInt n', map toCInt nnz')
 
 matCreateSeqAIJconstNZperRow1 :: Comm -> Int -> Int -> Int -> IO (Mat, CInt)
@@ -744,17 +738,14 @@ matCreateTranspose' mat = withPtr $ \mp -> [C.exp|int{MatCreateTranspose($(Mat m
 -- Output Parameter
 -- A -the matrix 
 -- It is recommended that one use the MatCreate(), MatSetType() and/or MatSetFromOptions(), MatXXXXSetPreallocation() paradgm instead of this routine directly
-matCreateAIJ' :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> PetscInt_
+
+
+matCreateAIJ0' :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> PetscInt_
                         -> PetscInt_
-                        -> [PetscInt_]
+                        -> Ptr PetscInt_
                         -> PetscInt_
-                        -> [PetscInt_]
+                        -> Ptr PetscInt_
                         -> IO (Mat, CInt)
-matCreateAIJ' cc m n mm nn dnz dnnz onz onnz = 
-    withArray dnnz ( \dnnzp ->
-    withArray onnz ( \onnzp -> matCreateAIJ0' cc m n mm nn dnz dnnzp onz onnzp ))
-
-
 matCreateAIJ0' cc m n mm nn dnz dnnzp onz onnzp = withPtr ( \mat ->
   [C.exp|int{MatCreateAIJ($(int c),
                           $(PetscInt m), $(PetscInt n),
@@ -765,34 +756,54 @@ matCreateAIJ0' cc m n mm nn dnz dnnzp onz onnzp = withPtr ( \mat ->
  
 -- | matCreateAIJDecide' : matCreateAIJ inferring the local sizes :
 
-matCreateAIJ0Decide' comm mm nn dnz dnnzp onz onnzp = withPtr ( \mat ->
+matCreateAIJ0Decide' :: Comm -> PetscInt_ -> PetscInt_
+                        -> PetscInt_
+                        -> Ptr PetscInt_
+                        -> PetscInt_
+                        -> Ptr PetscInt_
+                        -> IO (Mat, CInt)
+matCreateAIJ0Decide' cc mm nn dnz dnnzp onz onnzp = withPtr ( \mat ->
   [C.exp|int{MatCreateAIJ($(int c),
                           PETSC_DECIDE, PETSC_DECIDE,
                           $(PetscInt mm), $(PetscInt nn),
                           $(PetscInt dnz), $(PetscInt* dnnzp),
                           $(PetscInt onz), $(PetscInt* onnzp),
-                          $(Mat* mat))}|] ) where c = unComm comm 
+                          $(Mat* mat))}|] ) where c = unComm cc
 
 -- | matCreateAIJDecideVS' : matCreateAIJ0Decide using VS.Vector rather than arrays :
 
-matCreateAIJDecideVS' comm mm nn dnz dnnz onz onnz =
+matCreateAIJDecideVS' :: Comm -> PetscInt_ -> PetscInt_
+                        -> PetscInt_
+                        -> VS.Vector PetscInt_
+                        -> PetscInt_
+                        -> VS.Vector PetscInt_
+                        -> IO (Mat, CInt)
+matCreateAIJDecideVS' cc mm nn dnz dnnz onz onnz =
   VS.unsafeWith dnnz $ \dnnzp ->
   VS.unsafeWith onnz $ \onnzp ->
-  matCreateAIJ0Decide' comm mm nn dnz dnnzp onz onnzp
+  matCreateAIJ0Decide' cc mm nn dnz dnnzp onz onnzp
 
 -- | matCreateAIJDecideConstNZPR' : matCreateAIJ inferring the local sizes, assuming a constant # of nonzeros per row, both on- and off- diagonal :
 
-matCreateAIJ0DecideConstNZPR' comm mm nn dnz onz = withPtr ( \mat ->
+matCreateAIJ0DecideConstNZPR' :: Comm -> PetscInt_ -> PetscInt_
+                        -> PetscInt_
+                        -> PetscInt_
+                        -> IO (Mat, CInt)
+matCreateAIJ0DecideConstNZPR' cc mm nn dnz onz = withPtr ( \mat ->
   [C.exp|int{MatCreateAIJ($(int c),
                           PETSC_DECIDE, PETSC_DECIDE,
                           $(PetscInt mm), $(PetscInt nn),
                           $(PetscInt dnz), NULL,
                           $(PetscInt onz), NULL,
-                          $(Mat* mat))}|] ) where c = unComm comm
+                          $(Mat* mat))}|] ) where c = unComm cc
 
 -- | matCreateAIJDecideConstNZPR' : matCreateAIJ inferring the local sizes, assuming a _variable_ # of nonzeros per row, both on- and off- diagonal :
 
-matCreateAIJ0DecideVarNZPR' comm mm nn dnnz onnz = withPtr ( \mat ->
+matCreateAIJ0DecideVarNZPR' :: Comm -> PetscInt_ -> PetscInt_
+                        -> VS.Vector PetscInt_
+                        -> VS.Vector PetscInt_
+                        -> IO (Mat, CInt)
+matCreateAIJ0DecideVarNZPR' cc mm nn dnnz onnz = withPtr ( \mat ->
     VS.unsafeWith dnnz $ \dnnzp ->
     VS.unsafeWith onnz $ \onnzp ->
          [C.exp|int{MatCreateAIJ($(int c),
@@ -800,7 +811,7 @@ matCreateAIJ0DecideVarNZPR' comm mm nn dnnz onnz = withPtr ( \mat ->
                           $(PetscInt mm), $(PetscInt nn),
                           NULL, $(PetscInt* dnnzp),
                           NULL, $(PetscInt* onnzp),
-                          $(Mat* mat))}|] ) where c = unComm comm 
+                          $(Mat* mat))}|] ) where c = unComm cc
                                                   
 --     PetscErrorCode  MatCreateMPIAIJWithArrays(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt M,PetscInt N,const PetscInt i[],const PetscInt j[],const PetscScalar a[],Mat *mat)    -- Collective on MPI_Comm
 -- Input Parameters :
@@ -824,7 +835,7 @@ matCreateMPIAIJWithArrays0' :: Comm
                                      -> Ptr PetscInt_
                                      -> Ptr PetscScalar_
                                      -> IO (Mat, CInt)
-matCreateMPIAIJWithArrays0' comm m n mm nn ip jp aap =
+matCreateMPIAIJWithArrays0' cc m n mm nn ip jp aap =
   withPtr ( \mat -> [C.exp|int{MatCreateMPIAIJWithArrays($(PetscInt c),
                                     $(PetscInt m),
                                     $(PetscInt n),
@@ -832,29 +843,10 @@ matCreateMPIAIJWithArrays0' comm m n mm nn ip jp aap =
                                     $(PetscInt* ip), $(PetscInt* jp),
                                     $(PetscScalar* aap), 
                                     $(Mat* mat))}|] )
-    where c = unComm comm 
+    where c = unComm cc 
 
 
-matCreateMPIAIJWithArrays' :: Comm
-                                    -> [PetscInt_]
-                                    -> [PetscInt_]
-                                    -> [PetscScalar_]
-                                    -> IO (Mat, CInt)
-matCreateMPIAIJWithArrays' comm i j a =
-  withArray i $ \ip ->
-   withArray j $ \jp ->
-    withArray a $ \aap -> 
-  withPtr ( \mat -> [C.exp|int{MatCreateMPIAIJWithArrays($(PetscInt c),
-                                    $(PetscInt m),
-                                    $(PetscInt n),
-                                    PETSC_DETERMINE, PETSC_DETERMINE,
-                                    $(PetscInt* ip), $(PetscInt* jp),
-                                    $(PetscScalar* aap), 
-                                    $(Mat* mat))}|] )
-  where c = unComm comm 
-        m = fromIntegral $ length i -- # local rows
-        n = fromIntegral $ length j -- # local rows
-
+matView' :: Mat -> PetscViewer -> IO CInt
 matView' m v = [C.exp|int{MatView($(Mat m),$(PetscViewer v))}|]
 
 -- matViewStdoutSelf' :: Mat -> IO CInt
@@ -1171,7 +1163,9 @@ matGetInfo' mat t = withPtr $ \info -> [C.exp|int{MatGetInfo($(Mat mat),$(int in
 
 
 -- PetscErrorCode MatGetRow(Mat mat,PetscInt row,PetscInt *ncols,const PetscInt *cols[],const PetscScalar *vals[])
-matGetRow0' mat row ncols cols vals = [C.exp|int{MatGetRow($(Mat mat),$(int row),$(int* ncols),$(int** cols),$(PetscScalar** vals))}|]
+matGetRow0' :: Mat -> CInt -> Ptr CInt -> Ptr (Ptr CInt) -> Ptr (Ptr PetscScalar_) -> IO CInt
+matGetRow0' mat row ncols cols vals =
+  [C.exp|int{MatGetRow($(Mat mat),$(int row),$(int* ncols),$(const int** cols),$(const PetscScalar** vals))}|]
 -- Input Parameters :
 -- mat	- the matrix
 -- row	- the row to get
@@ -1478,8 +1472,8 @@ matFDColoringDestroy' color = with color $ \cp -> [C.exp|int{MatFDColoringDestro
 
 -- PETSC_EXTERN PetscErrorCode DMCreate(MPI_Comm,DM*);
 dmCreate' :: Comm -> IO (DM, CInt)
-dmCreate' comm = withPtr ( \dm -> [C.exp|int{DMCreate($(int c), $(DM* dm))} |] ) 
-  where c = unComm comm
+dmCreate' cc = withPtr ( \dm -> [C.exp|int{DMCreate($(int c), $(DM* dm))} |] ) 
+  where c = unComm cc
 
 dmDestroy' :: DM -> IO CInt
 dmDestroy' dm = with dm ( \dmp -> [C.exp|int{DMDestroy($(DM* dmp))}|] ) 
@@ -1520,8 +1514,8 @@ dmRestoreGlobalVector' dm vv = with vv ( \v -> [C.exp|int{DMRestoreGlobalVector(
 
 
 dmCreateMatrix' :: DM -> IO (Mat, CInt)
-dmCreateMatrix' dm = withPtr (dmCreateMatrix0' dm) where
-  dmCreateMatrix0' dm mat = [C.exp|int{DMCreateMatrix($(DM dm),$(Mat* mat))}|]
+dmCreateMatrix' dm = withPtr $ \mat ->
+  [C.exp|int{DMCreateMatrix($(DM dm),$(Mat* mat))}|]
 
 
 
@@ -1573,8 +1567,8 @@ dmCreateColoring' d c = withPtr $ \col -> [C.exp|int{DMCreateColoring($(DM d),$(
 -- dmdaDirectionToInt x = fromEnum (x :: DMDADirection)
 
 dmdaCreate' :: Comm -> IO (DM, CInt)
-dmdaCreate' comm = withPtr ( \p -> [C.exp|int{DMDACreate($(int c), $(DM* p))}|] ) where
-  c = unComm comm
+dmdaCreate' cc = withPtr ( \p -> [C.exp|int{DMDACreate($(int c), $(DM* p))}|] ) where
+  c = unComm cc
 
 
 
@@ -1602,7 +1596,7 @@ dmdaSetSizes' dm x y z = [C.exp|int{DMDASetSizes($(DM dm), $(PetscInt x), $(Pets
 
 dmdaCreate1d0' ::
   Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> IO (DM, CInt)
-dmdaCreate1d0' comm bx m dof s =
+dmdaCreate1d0' cc bx m dof s =
    withPtr ( \ dm -> [C.exp|int{DMDACreate1d($(int c),
                                               $(int bxe),
                                               $(PetscInt m),
@@ -1610,12 +1604,12 @@ dmdaCreate1d0' comm bx m dof s =
                                               $(PetscInt s),
                                               NULL,
                                               $(DM* dm))}|]  )
-  where c = unComm comm
+  where c = unComm cc
         bxe = toEnum $ dmBoundaryTypeToInt bx
 
 dmdaCreate1d' ::
   Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> [CInt] -> IO (DM, CInt)
-dmdaCreate1d' comm bx m dof s lx_ =
+dmdaCreate1d' cc bx m dof s lx_ =
   withArray lx_ ( \ lx ->
    withPtr ( \ dm -> [C.exp|int{DMDACreate1d($(int c),
                                               $(int bxe),
@@ -1624,7 +1618,7 @@ dmdaCreate1d' comm bx m dof s lx_ =
                                               $(PetscInt s),
                                               $(int* lx),
                                               $(DM* dm))}|]  )) 
-  where c = unComm comm
+  where c = unComm cc
         bxe = toEnum $ dmBoundaryTypeToInt bx
 
 
@@ -1666,7 +1660,7 @@ dmdaCreate2d0' :: Comm
                         -> [CInt]
                         -> [CInt]
                         -> IO (DM, CInt)
-dmdaCreate2d0' comm bx by sten mm nn m n dof s lx_ ly_ =
+dmdaCreate2d0' cc bx by sten mm nn m n dof s lx_ ly_ =
   withArray lx_ $ \lx ->
    withArray ly_ $ \ly -> 
     withPtr ( \dm -> [C.exp|int{DMDACreate2d($(int c),
@@ -1682,7 +1676,7 @@ dmdaCreate2d0' comm bx by sten mm nn m n dof s lx_ ly_ =
                           $(int* lx),
                           $(int* ly),
                           $(DM* dm))}|] ) 
-  where c = unComm comm
+  where c = unComm cc
         bxe = toEnum $ dmBoundaryTypeToInt bx
         bye = toEnum $ dmBoundaryTypeToInt by
         stene = toEnum $ dmdaStencilTypeToInt sten
@@ -1699,7 +1693,7 @@ dmdaCreate2d' :: Comm
                        -> PetscInt_
                        -> PetscInt_
                        -> IO (DM, CInt)
-dmdaCreate2d' comm bx by sten mm nn dof s  =
+dmdaCreate2d' cc bx by sten mm nn dof s  =
     withPtr ( \dm -> [C.exp|int{DMDACreate2d($(int c),
                           $(int bxe),
                           $(int bye),
@@ -1713,7 +1707,7 @@ dmdaCreate2d' comm bx by sten mm nn dof s  =
                           NULL,
                           NULL,
                           $(DM* dm))}|] ) 
-  where c = unComm comm
+  where c = unComm cc
         bxe = toEnum $ dmBoundaryTypeToInt bx
         bye = toEnum $ dmBoundaryTypeToInt by
         stene = toEnum $ dmdaStencilTypeToInt sten
@@ -2042,9 +2036,9 @@ dmdaGetInfo__' da = withPtr ( \dim ->
 -- Output Parameter :
 -- packer -the packer object
 dmCompositeCreate :: Comm -> IO (DM, CInt)
-dmCompositeCreate comm =
+dmCompositeCreate cc =
   withPtr ( \p -> [C.exp|int{DMCompositeCreate($(int c), $(DM* p))}|] )
-  where c = unComm comm
+  where c = unComm cc
 
 
 -- | viewing DM
