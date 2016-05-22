@@ -194,12 +194,14 @@ data InsertMode_ = NotSetValues | InsertValues | AddValues | MaxValues
                  | InsertAllValues | AddAllValues | InsertBCValues | AddBCValues
                  deriving (Eq, Enum, Show)
 
+insertModeToInt :: InsertMode_ -> Int
 insertModeToInt x = fromEnum (x :: InsertMode_) 
 
 
 
 data PetscCopyMode_ =
   PetscCopyVals | PetscOwn | PetscUsePointer deriving (Eq, Show, Enum)
+petscCopyModeToInt :: PetscCopyMode_ -> Int
 petscCopyModeToInt x = fromEnum (x :: PetscCopyMode_ )
 
 
@@ -232,6 +234,7 @@ data VecNorm_ = VecNorm1 | VecNorm2 | VecNormFrobenius | VecNormInfty
               | VecNorm1and2
               deriving (Eq, Enum, Show)
 
+vecNormToInt :: VecNorm_ -> Int
 vecNormToInt x = fromEnum (x :: VecNorm_ )
 
 
@@ -264,18 +267,20 @@ matTypeToStr MatIs = "is"
 matTypeToStr MatAij = "aij"
 matTypeToStr MatMPIAij = "mpiaij"
 matTypeToStr MatMPIBaij = "mpibaij"
-matTypeToStr _ = "mpiaij" -- default
+matTypeToStr _ = matTypeToStr MatAij -- default
 
 
 
 -- typedef enum {NORM_1=0,NORM_2=1,NORM_FROBENIUS=2,NORM_INFINITY=3,NORM_1_AND_2=4} NormType;
 data MatNorm_ = MatNorm1 | MatNorm2 | MatNormF | MatNormInfty | MatNorm1and2 deriving (Eq, Show, Enum)
+matNormToInt :: MatNorm_ -> Int
 matNormToInt x = fromEnum (x :: MatNorm_)
 
 
 -- typedef enum {MAT_INITIAL_MATRIX,MAT_REUSE_MATRIX,MAT_IGNORE_MATRIX} MatReuse;
 data MatReuse_ = MatInitialMtx | MatReuseMtx | MatIgnoreMtx deriving (Eq, Show, Enum)
 
+matReuseToInt :: MatReuse_ -> Int
 matReuseToInt x = fromEnum (x :: MatReuse_ )
 
 
