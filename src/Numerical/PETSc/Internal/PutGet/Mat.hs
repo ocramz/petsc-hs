@@ -93,6 +93,19 @@ data MatrixDataZ a =
 
 
 
+-- | PETSc matrix usage :
+{-
+* create
+* configure
+* setup  (preallocation : required unless one uses DMCreateMatrix )
+* fill
+* assemble
+* _use_
+* destroy
+
+-}
+
+
 
 
 petscMatrixCreate
@@ -131,6 +144,7 @@ withPetscMatrix cc m n ixd nz imode =
     
 
 
+-- | adapter for matrix creation w constant/variable row sparsity pattern
 
 matNZadapt :: Comm -> NumRows -> NumCols -> NZPR -> IO Mat
 matNZadapt cc m n (ConstNZPR (dnz, onz)) =
@@ -186,20 +200,7 @@ getMatCols = matCols . getMatrixInfoBase
 
 
 
--- | PETSc matrix usage :
-{-
 
-* create
-* configure
-* setup  (preallocation : required unless one uses DMCreateMatrix )
-* fill
-* assemble
-* _use_
-* destroy
-
-
-
--}
 
 
 
