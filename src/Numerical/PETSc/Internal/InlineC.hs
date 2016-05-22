@@ -3727,6 +3727,21 @@ petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|]
 
 -- -- * options
 
+type OptionName = String
+
+-- PetscErrorCode  PetscOptionsView(PetscViewer viewer)
+petscOptionsView' :: PetscViewer -> IO CInt
+petscOptionsView' vi = [C.exp|int{PetscOptionsView($(PetscViewer vi))}|]
+
+-- PetscErrorCode  PetscOptionsSetValue(const char iname[],const char value[])
+petscOptionsSetValue' :: OptionName -> String -> IO CInt
+petscOptionsSetValue' iname val =
+  withCString iname $ \inamep ->
+  withCString val $ \valp ->
+  [C.exp|int{PetscOptionsSetValue($(const char* inamep), $(const char* valp))}|]
+-- petscOptionsSetValue iname val = [C.exp|int{PetscOptionsSetValue($bs-ptr:iname, $bs-ptr:val)}|]
+
+
 -- #include "petscsys.h"   
 -- PetscErrorCode  PetscOptionsGetInt(const char pre[],const char name[],PetscInt *ivalue,PetscBool  *set)    -- Not Collective
 -- Input Parameters :
@@ -3884,18 +3899,18 @@ petscErrorMessage' nn mp =
 
 -- mpiCommSize c = withPtr $ \p -> [C.exp|int{ MPI_Comm_Size($(int c), $(PetscMPIInt_ *p)) }|] 
 mpiCommSize' :: Comm -> IO (CInt, CInt)
-mpiCommSize' comm = withPtr (\p -> [C.exp| int{ MPI_Comm_size($(int c), $(int *p))}|] )
+mpiCommSize' cc = withPtr (\p -> [C.exp| int{ MPI_Comm_size($(int c), $(int *p))}|] )
   where
-   c = unComm comm
+   c = unComm cc
 -- mpiCommSize c =  unsafePerformIO $ mpiCommSize' c 
 
 mpiCommRank' :: Comm -> IO (CInt, CInt)
-mpiCommRank' comm =
+mpiCommRank' cc =
   withPtr
    (\p ->
      [C.exp| int{ MPI_Comm_rank($(int c), $(int *p))}|] )
   where
-   c = unComm comm
+   c = unComm cc
    
 -- mpiCommRank c =
 --    MkRank $ unsafePerformIO $ mpiCommRank' c   -- FIXME surface it in PutGet
@@ -3919,17 +3934,17 @@ petscPrintf comm s =
     c = unComm comm
 
 petscSynchronizedPrintf' :: Comm -> String -> IO CInt
-petscSynchronizedPrintf' comm s = withCString s ( \s_ ->
+petscSynchronizedPrintf' cc s = withCString s ( \s_ ->
   [C.exp|int{PetscSynchronizedPrintf($(int c), $(char* s_))}|] )
-    where c = unComm comm
+    where c = unComm cc
 
 -- petscSynchronizedFlushStdout comm =
 --   [C.exp|int{PetscSynchronizedFlush($(int c),PETSC_STDOUT )}|]
 --     where c = unComm comm
 petscSynchronizedFlushStdout :: Comm -> IO CInt
-petscSynchronizedFlushStdout comm =
+petscSynchronizedFlushStdout cc =
   [C.exp|int{PetscSynchronizedFlush($(int c), 0 )}|]
-    where c = unComm comm
+    where c = unComm cc
 
 
 -- syncPrintf c s =

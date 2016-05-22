@@ -17,6 +17,7 @@ module Numerical.PETSc.Internal.PutGet.PetscMisc
          commWorldC, commSelfC,
          mkMPIComm, getMPICommSize, getMPICommRank,
          -- withMPIEnv,
+         petscOptionsView, petscOptionsSetValue,
          petscInit0, petscInit, petscFin,
          withPetsc0, withPetsc,
          withPetsc0MpiComm, withPetscMpiComm,
@@ -113,6 +114,15 @@ getMPICommRank c = fromEnum (commRank c)
 
 -- * misc PETSc
 
+
+-- options handling
+
+petscOptionsView :: PetscViewer -> IO ()
+petscOptionsView vi = chk0 $ petscOptionsView' vi
+
+petscOptionsSetValue :: OptionName -> String -> IO ()
+petscOptionsSetValue opt val = chk0 $ petscOptionsSetValue' opt val
+
 -- -- NB : all PETSc functions must appear within a withPetsc* bracket
 
 petscInit0 :: IO ()
@@ -171,6 +181,7 @@ isMpiRoot c = getMPICommRank c == 0
 
 -- | git commit hash (for debugging)
 -- Hp: `git` command is available
+gitHash :: String
 gitHash = unsafePerformIO $ readProcess "git" ["rev-parse","--verify","HEAD"] []
 
 
