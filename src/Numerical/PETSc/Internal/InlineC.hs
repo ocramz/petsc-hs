@@ -3400,10 +3400,10 @@ taoSetConstraintsRoutine' ::
   (Tao -> Vec -> Vec -> IO CInt) -> IO CInt
 taoSetConstraintsRoutine' t v f = taoSetConstraintsRoutine0' t v f' where
   f' ta v1 v2  _ = f ta v1 v2
-  taoSetConstraintsRoutine0' tao vec f =
+  taoSetConstraintsRoutine0' tao vec fc =
     [C.exp|int{TaoSetConstraintsRoutine(
                   $(Tao tao), $(Vec vec),
-                  $fun:(int (*f)(Tao, Vec, Vec, void*)),
+                  $fun:(int (*fc)(Tao, Vec, Vec, void*)),
                   NULL)}|]
   
 -- PETSC_EXTERN PetscErrorCode TaoSetInequalityConstraintsRoutine(Tao, Vec, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
@@ -3414,10 +3414,10 @@ taoSetInequalityConstraintsRoutine' ::
 taoSetInequalityConstraintsRoutine' t v f =
   taoSetInequalityConstraintsRoutine0' t v f' where
     f' ta v1 v2  _ = f ta v1 v2
-    taoSetInequalityConstraintsRoutine0' tao vec f =
+    taoSetInequalityConstraintsRoutine0' tao vec fc =
       [C.exp|int{TaoSetInequalityConstraintsRoutine(
                     $(Tao tao), $(Vec vec),
-                    $fun:(int (*f)(Tao, Vec, Vec, void*)),
+                    $fun:(int (*fc)(Tao, Vec, Vec, void*)),
                     NULL)}|] 
   
 -- PETSC_EXTERN PetscErrorCode TaoSetEqualityConstraintsRoutine(Tao, Vec, PetscErrorCode(*)(Tao, Vec, Vec, void*), void*);
@@ -3428,10 +3428,10 @@ taoSetEqualityConstraintsRoutine' ::
 taoSetEqualityConstraintsRoutine' t v f =
   taoSetEqualityConstraintsRoutine0' t v f' where
      f' ta v1 v2  _ = f ta v1 v2
-     taoSetEqualityConstraintsRoutine0' tao vec f =
+     taoSetEqualityConstraintsRoutine0' tao vec fc =
        [C.exp|int{TaoSetEqualityConstraintsRoutine(
                      $(Tao tao), $(Vec vec),
-                     $fun:(int (*f)(Tao, Vec, Vec, void*)),
+                     $fun:(int (*fc)(Tao, Vec, Vec, void*)),
                      NULL)}|]
   
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianRoutine(Tao,Mat,Mat, PetscErrorCode(*)(Tao,Vec, Mat, Mat, void*), void*);
@@ -3443,10 +3443,10 @@ taoSetJacobianRoutine' ::
 taoSetJacobianRoutine' t m1 m2 f =
   taoSetJacobianRoutine0' t m1 m2 f' where
      f' ta v v1 v2  _ = f ta v v1 v2
-     taoSetJacobianRoutine0' tao m1 m2 f =
+     taoSetJacobianRoutine0' tao m1_ m2_ fc =
        [C.exp|int{TaoSetJacobianRoutine(
-                     $(Tao tao), $(Mat m1), $(Mat m2),
-                     $fun:(int (*f)(Tao, Vec, Mat, Mat, void*)),
+                     $(Tao tao), $(Mat m1_), $(Mat m2_),
+                     $fun:(int (*fc)(Tao, Vec, Mat, Mat, void*)),
                      NULL)}|]
      
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianStateRoutine(Tao,Mat,Mat,Mat, PetscErrorCode(*)(Tao,Vec, Mat, Mat, Mat, void*), void*);
@@ -3461,10 +3461,10 @@ taoSetJacobianStateRoutine' ::
 taoSetJacobianStateRoutine' t m1 m2 m3 f =
   taoSetJacobianStateRoutine0' t m1 m2 m3 f' where
      f' ta v v1 v2 v3  _ = f ta v v1 v2 v3
-     taoSetJacobianStateRoutine0' tao m1 m2 m3 f =
+     taoSetJacobianStateRoutine0' tao m1_ m2_ m3_ fc =
        [C.exp|int{TaoSetJacobianStateRoutine(
-                     $(Tao tao), $(Mat m1), $(Mat m2), $(Mat m3),
-                     $fun:(int (*f)(Tao, Vec, Mat, Mat, Mat, void*)),
+                     $(Tao tao), $(Mat m1_), $(Mat m2_), $(Mat m3_),
+                     $fun:(int (*fc)(Tao, Vec, Mat, Mat, Mat, void*)),
                      NULL)}|] 
 
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianDesignRoutine(Tao,Mat,PetscErrorCode(*)(Tao,Vec, Mat, void*), void*);
@@ -3477,10 +3477,10 @@ taoSetJacobianDesignRoutine' ::
 taoSetJacobianDesignRoutine' t m f =
   taoSetJacobianDesignRoutine0' t m f' where
      f' ta v v1  _ = f ta v v1
-     taoSetJacobianDesignRoutine0' tao m f =
+     taoSetJacobianDesignRoutine0' tao m_ fc =
        [C.exp|int{TaoSetJacobianDesignRoutine(
-                     $(Tao tao), $(Mat m),
-                     $fun:(int (*f)(Tao, Vec, Mat, void*)),
+                     $(Tao tao), $(Mat m_),
+                     $fun:(int (*fc)(Tao, Vec, Mat, void*)),
                      NULL)}|] 
      
 -- PETSC_EXTERN PetscErrorCode TaoSetJacobianInequalityRoutine(Tao,Mat,Mat,PetscErrorCode(*)(Tao,Vec, Mat, Mat, void*), void*);
@@ -3570,9 +3570,9 @@ taoSetVariableBoundsRoutine' ::
 taoSetVariableBoundsRoutine' tao f =
   taoSetVariableBoundsRoutine0' tao f' where
     f' t v1 v2 _ = f t v1 v2
-    taoSetVariableBoundsRoutine0' tao f =
-      [C.exp|int{TaoSetVariableBoundsRoutine($(Tao tao),
-                                             $fun:(int (*f)(Tao, Vec, Vec, void*)),
+    taoSetVariableBoundsRoutine0' tao_ fc =
+      [C.exp|int{TaoSetVariableBoundsRoutine($(Tao tao_),
+                                             $fun:(int (*fc)(Tao, Vec, Vec, void*)),
                                              NULL)}|]
 
   
@@ -3610,13 +3610,13 @@ taoSetVariableBoundsRoutine' tao f =
 
 -- * Viewer
 
-petscViewerStdoutCreate' comm = withPtr $ \v ->
-  [C.exp|int{PETSC_VIEWER_STDOUT_($(int c))}|] where c = unComm comm
+-- petscViewerStdoutCreate' comm = withPtr $ \v ->
+--   [C.exp|int{PETSC_VIEWER_STDOUT_($(int c))}|] where c = unComm comm
 
     
 petscViewerCreate' :: Comm -> IO (PetscViewer, CInt)
-petscViewerCreate' comm = withPtr $ \h -> 
-  [C.exp|int{PetscViewerCreate($(int c),$(PetscViewer* h))}|] where c = unComm comm
+petscViewerCreate' cc = withPtr $ \h -> 
+  [C.exp|int{PetscViewerCreate($(int c),$(PetscViewer* h))}|] where c = unComm cc
 
 -- PetscErrorCode  PetscViewerSetType(PetscViewer viewer,PetscViewerType type)
 petscViewerSetType' :: PetscViewer -> PetscViewerType_ -> IO CInt
@@ -3813,8 +3813,8 @@ petscFin1 = [C.block| int{ PetscFinalize(); }|]
 
 withPetsc01 :: IO a -> IO CInt
 withPetsc01 f = do -- returns IO ()
-  petscInit01
-  f
+  _ <- petscInit01
+  _ <- f
   petscFin1
 
 withPetsc01', withPetsc0'' :: IO a -> IO a
@@ -3918,11 +3918,11 @@ commSelf1 = Comm $ unsafePerformIO [C.exp| int{ MPI_COMM_SELF }  |]
     -- PetscPrintf - Prints to standard out, only from the first
     -- processor in the communicator. Calls from other processes are ignored.
 petscPrintf :: Comm -> String -> IO CInt
-petscPrintf comm s =
+petscPrintf cc s =
   withCString s
    ( \s_ -> [C.exp|int{PetscPrintf($(int c), $(char* s_))}|] ) -- >>= handleErr
   where
-    c = unComm comm
+    c = unComm cc
 
 petscSynchronizedPrintf' :: Comm -> String -> IO CInt
 petscSynchronizedPrintf' cc s = withCString s ( \s_ ->
@@ -3964,8 +3964,8 @@ petscSynchronizedFlushStdout cc =
 
 -- EPSCreate(MPI_Comm comm,EPS *eps);
 epsCreate' :: Comm -> IO (EPS, CInt)
-epsCreate' comm = withPtr $ \e -> [C.exp|int{EPSCreate($(int c), $(EPS* e))}|] where
-  c = unComm comm
+epsCreate' cc = withPtr $ \e -> [C.exp|int{EPSCreate($(int c), $(EPS* e))}|] where
+  c = unComm cc
 
 -- EPSSetOperators(EPS eps,Mat A,Mat B);
 epsSetOperators' :: EPS -> Mat -> Mat -> IO CInt
@@ -4102,8 +4102,8 @@ epsVectorsView' eps vi = [C.exp|int{EPSVectorsView($(EPS eps),$(PetscViewer vi))
 -- * ST -- spectral transformations
 
 stCreate' :: Comm -> IO (ST, CInt)
-stCreate' comm = withPtr $ \s -> [C.exp|int{STCreate($(int c),$(ST* s))}|]
-  where c = unComm comm
+stCreate' cc = withPtr $ \s -> [C.exp|int{STCreate($(int c),$(ST* s))}|]
+  where c = unComm cc
 
 stSetType' :: ST -> StType_ -> IO CInt
 stSetType' st t =
@@ -4129,8 +4129,8 @@ stDestroy' st = with st $ \stp -> [C.exp|int{STDestroy($(ST* stp))}|]
 
 -- SVDCreate(MPI_Comm comm,SVD *svd);
 svdCreate' :: Comm -> IO (SVD, CInt)
-svdCreate' comm = withPtr $ \s -> [C.exp|int{SVDCreate($(int c),$(SVD* s))}|] where
-  c = unComm comm
+svdCreate' cc = withPtr $ \s -> [C.exp|int{SVDCreate($(int c),$(SVD* s))}|] where
+  c = unComm cc
   
 -- SVDSetOperator(SVD svd,Mat A);
 svdSetOperator' :: SVD -> Mat -> IO CInt
