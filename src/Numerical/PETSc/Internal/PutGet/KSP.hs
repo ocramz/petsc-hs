@@ -16,6 +16,8 @@ import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
+import Numerical.PETSc.Internal.PutGet.Vec
+
 import Foreign
 import Foreign.C.Types
 
@@ -37,7 +39,7 @@ import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, un
 -- | create KSP
 
 kspCreate :: Comm -> IO KSP
-kspCreate comm = chk1 (kspCreate' comm)
+kspCreate cc = chk1 (kspCreate' cc)
 
 
 -- | with KSP brackets
@@ -50,17 +52,17 @@ withKsp_ :: IO KSP -> (KSP -> IO a) -> IO a
 withKsp_ kc = bracket kc kspDestroy
 
 withKsp :: Comm -> (KSP -> IO a) -> IO a
-withKsp comm = withKsp_ (kspCreate comm)
+withKsp cc = withKsp_ (kspCreate cc)
 
 withKspSetup ::
   Comm ->
   KspType_ ->
   Mat ->            -- linear operator
   Mat ->            -- preconditioner
-  PetscBool ->           -- set initial solution guess to nonzero vector
+  Bool ->           -- set initial solution guess to nonzero vector
   (KSP -> IO a) ->  -- post-setup actions, i.e. solve with a r.h.s , etc.
   IO a
-withKspSetup comm kt amat pmat ignz f = withKsp comm $ \ksp -> do
+withKspSetup cc kt amat pmat ignz f = withKsp cc $ \ksp -> do
   kspSetOperators ksp amat pmat
   kspSetType ksp kt
   kspSetInitialGuessNonzero ksp ignz
@@ -72,15 +74,24 @@ withKspSetupSolve ::
   KspType_ ->
   Mat ->            -- linear operator
   Mat ->            -- preconditioner
-  PetscBool ->           -- set initial solution guess to nonzero vector
+  Bool ->           -- set initial solution guess to nonzero vector
   Vec ->            -- r.h.s
   Vec ->            -- solution (WILL BE OVERWRITTEN)
   (KSP -> IO a) ->  -- post-solve actions
   IO a
-withKspSetupSolve comm kt amat pmat ignz rhsv solnv post =
-  withKspSetup comm kt amat pmat ignz $ \ksp -> do
+withKspSetupSolve cc kt amat pmat ignz rhsv solnv post =
+  -- withVecDuplicate rhsv $ \solnv -> 
+  withKspSetup cc kt amat pmat ignz $ \ksp -> do
     kspSolve ksp rhsv solnv
     post ksp
+
+-- | allocate space for solution internally
+withKspSetupSolveAlloc ::
+  Comm -> KspType_ -> Mat -> Mat -> Vec -> (KSP -> Vec -> IO a ) -> IO a
+withKspSetupSolveAlloc cc kt amat pmat rhsv post =
+  withVecDuplicate rhsv $ \soln ->
+  withKspSetupSolve cc kt amat pmat True rhsv soln $ \ksp ->
+  post ksp soln
 
 
 

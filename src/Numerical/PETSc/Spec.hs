@@ -33,24 +33,42 @@ import Test.Hspec
 
 tests :: IO ()
 tests = withPetsc0 $ hspec $ do
-  t7
-  -- t7
+  t_vecDot_r2_1
+  t_linSys_r3_1
 
 
 
 -- | tests
 
-t7 = 
-  describe "t7'" $ 
-    it "computes the inner product of two orthogonal vectors in R2" t7'
+com = commWorld
 
-t7' = withVecNew commWorld vd1 $ \e1 ->
-  withVecNew commWorld vd2 $ \e2 -> do
+t_vecDot_r2_1 = 
+  describe "t_vecDot_r2_1" $ 
+    it "computes the inner product of two orthogonal vectors in R2" $
+ withVecNew com vd1 $ \e1 ->
+  withVecNew com vd2 $ \e2 -> do
     x <- vecDot e1 e2
     x `shouldBe` (0 :: PetscScalar_)
       where
         vd1 = V.convert $ V.fromList [0 , 1]
         vd2 = V.convert $ V.fromList [1 , 0]
+
+
+t_linSys_r3_1 = describe "t_linSys_r3_1" $
+  it "solves a 3x3 linear system" $
+   withPetscMatrix com m n ixd nz InsertValues $ \mat ->
+    withVecNew com vd $ \rhs -> do
+     let (_, _, _, mu) = fromPetscMatrix mat
+     withKspSetupSolveAlloc com KspGmres mu mu rhs $ \ksp soln -> do
+       x <- vecGetVS soln
+       let xl = V.toList $ V.convert x
+       xl `shouldBe` ([1,1,1] :: [PetscScalar_]) 
+      where
+        (m, n) = (3, 3)
+        vd = V.fromList [3, 7, 18]
+        ixd = listToCSR m n [1,2,0,0,3,4,5,6,7]
+        nz = ConstNZPR (3,3)
+        
 
 
 

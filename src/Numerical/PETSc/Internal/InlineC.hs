@@ -771,7 +771,7 @@ matCreateAIJ0Decide' comm mm nn dnz dnnzp onz onnzp = withPtr ( \mat ->
                           $(PetscInt mm), $(PetscInt nn),
                           $(PetscInt dnz), $(PetscInt* dnnzp),
                           $(PetscInt onz), $(PetscInt* onnzp),
-                          $(Mat* mat))}|] ) where c = unComm comm
+                          $(Mat* mat))}|] ) where c = unComm comm 
 
 -- | matCreateAIJDecideVS' : matCreateAIJ0Decide using VS.Vector rather than arrays :
 
@@ -789,6 +789,18 @@ matCreateAIJ0DecideConstNZPR' comm mm nn dnz onz = withPtr ( \mat ->
                           $(PetscInt dnz), NULL,
                           $(PetscInt onz), NULL,
                           $(Mat* mat))}|] ) where c = unComm comm
+
+-- | matCreateAIJDecideConstNZPR' : matCreateAIJ inferring the local sizes, assuming a _variable_ # of nonzeros per row, both on- and off- diagonal :
+
+matCreateAIJ0DecideVarNZPR' comm mm nn dnnz onnz = withPtr ( \mat ->
+    VS.unsafeWith dnnz $ \dnnzp ->
+    VS.unsafeWith onnz $ \onnzp ->
+         [C.exp|int{MatCreateAIJ($(int c),
+                          PETSC_DECIDE, PETSC_DECIDE,
+                          $(PetscInt mm), $(PetscInt nn),
+                          NULL, $(PetscInt* dnnzp),
+                          NULL, $(PetscInt* onnzp),
+                          $(Mat* mat))}|] ) where c = unComm comm 
                                                   
 --     PetscErrorCode  MatCreateMPIAIJWithArrays(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt M,PetscInt N,const PetscInt i[],const PetscInt j[],const PetscScalar a[],Mat *mat)    -- Collective on MPI_Comm
 -- Input Parameters :
@@ -2152,8 +2164,10 @@ kspSetReusePreconditioner' ksp b = [C.exp|int{KSPSetReusePreconditioner($(KSP ks
 kspSetTolerances' ksp rtol abstol dtol maxits = [C.exp|int{KSPSetTolerances($(KSP ksp),$(PetscReal rtol),$(PetscReal abstol),$(PetscReal dtol),$(PetscInt maxits))}|]
 
 -- PETSC_EXTERN PetscErrorCode KSPSetInitialGuessNonzero(KSP,PetscBool );
-kspSetInitialGuessNonzero' :: KSP -> PetscBool -> IO CInt
-kspSetInitialGuessNonzero' ksp b = [C.exp|int{KSPSetInitialGuessNonzero($(KSP ksp), $(PetscBool b))}|]
+kspSetInitialGuessNonzero' :: KSP -> Bool -> IO CInt
+kspSetInitialGuessNonzero' ksp b
+  | b = [C.exp|int{KSPSetInitialGuessNonzero($(KSP ksp), PETSC_TRUE)}|]
+  | otherwise = [C.exp|int{KSPSetInitialGuessNonzero($(KSP ksp), PETSC_FALSE)}|]
 
 -- PETSC_EXTERN PetscErrorCode KSPGetInitialGuessNonzero(KSP,PetscBool  *);
 -- PETSC_EXTERN PetscErrorCode KSPSetInitialGuessKnoll(KSP,PetscBool );

@@ -24,6 +24,7 @@ import Numerical.PETSc.Internal.Utils -- (both, fi, toCInt, in0m, allIn0mV)
 import Numerical.PETSc.Internal.Storable.Vector
 import Numerical.PETSc.Internal.Storable.Matrix
 import Numerical.PETSc.Internal.Storable.Common (unsafeWithVS)
+import Numerical.PETSc.Internal.Sparse
 
 import Foreign.Ptr
 import Foreign.Storable
@@ -61,7 +62,10 @@ import qualified Data.Vector.Generic as VG
 
 data PetscMatrix a = PetscMatrix MatrixInfoBase NZPR (MatrixDataZ a) Mat
 
+toPetscMatrix :: MatrixInfoBase -> NZPR -> MatrixDataZ a -> Mat -> PetscMatrix a
 toPetscMatrix = PetscMatrix
+
+fromPetscMatrix :: PetscMatrix t -> (MatrixInfoBase, NZPR, MatrixDataZ t, Mat)
 fromPetscMatrix (PetscMatrix mib nz md m) = (mib, nz, md, m)
 
 
@@ -98,37 +102,41 @@ petscMatrixCreate
      -> V.Vector (IdxRow, IdxCol, PetscScalar_)
      -> NZPR
      -> InsertMode_
-     -> (Comm -> NumRows -> NumCols -> NZPR -> IO Mat)  -- Mat creation routine
+--      -> (Comm -> NumRows -> NumCols -> NZPR -> IO Mat)  -- Mat creation routine
      -> IO (PetscMatrix PetscScalar_)
-petscMatrixCreate c m n ixd nz imode matc = do
+petscMatrixCreate c m n ixd nz imode = do
   let mib = MatrixInfoBase c m n
       mixd = MatrixDataZ ixd
-  mat <- matc c m n nz
+  mat <- matNZadapt c m n nz
   matSetValueVectorSafe mat (m, n) ixd imode
   matAssembly mat
   let pm = PetscMatrix mib nz mixd mat
   return pm
 
+petscMatrixDestroy :: PetscMatrix t -> IO ()
 petscMatrixDestroy (PetscMatrix _ _ _ mat) = matDestroy mat
 
--- withPetscMatrix
---   :: Comm
---      -> NumRows
---      -> NumCols
---      -> V.Vector (IdxRow, IdxCol, PetscScalar_)
---      -> NZPR
---      -> InsertMode_
---      -> (Comm -> NumRows -> NumCols -> NZPR -> IO Mat) 
---      -> (PetscMatrix PetscScalar_ -> IO c)
---      -> IO c
-withPetscMatrix comm m n ixd nz imode matc =
-  bracket (petscMatrixCreate comm m n ixd nz imode matc) petscMatrixDestroy
+withPetscMatrix
+  :: Comm
+     -> NumRows
+     -> NumCols
+     -> V.Vector (IdxRow, IdxCol, PetscScalar_)
+     -> NZPR
+     -> InsertMode_
+     -- -> (Comm -> NumRows -> NumCols -> NZPR -> IO Mat) -- matCreate...
+     -> (PetscMatrix PetscScalar_ -> IO c)
+     -> IO c
+withPetscMatrix cc m n ixd nz imode =
+  bracket (petscMatrixCreate cc m n ixd nz imode) petscMatrixDestroy
     
 
 
 
-
-
+matNZadapt :: Comm -> NumRows -> NumCols -> NZPR -> IO Mat
+matNZadapt cc m n (ConstNZPR (dnz, onz)) =
+  matCreateAIJDecideConstNZPR cc m n dnz onz
+matNZadapt cc m n (VarNZPR (dnnz, onnz)) =
+  matCreateAIJDecideVarNZPR cc m n dnnz onnz
 
 
 
@@ -156,6 +164,10 @@ inMatrixBounds m (ii, jj) = inMatRowRange m ii && inMatColRange m jj
 
 
 
+
+
+
+
 -- | PetscMatrix getters
 
 getMatrixInfoBase :: PetscMatrix a -> MatrixInfoBase
@@ -167,6 +179,9 @@ getMatComm = matComm . getMatrixInfoBase
 getMatRows, getMatCols :: PetscMatrix a -> Int
 getMatRows = matRows . getMatrixInfoBase
 getMatCols = matCols . getMatrixInfoBase
+
+
+
 
 
 
@@ -207,25 +222,10 @@ matCreateSeqAIJConstNZPR ::
 matCreateSeqAIJConstNZPR c m n nz =
   chk1 (matCreateSeqAIJconstNZperRow1 c m n nz)
 
-matCreateAIJ :: Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> PetscInt_ ->
-      PetscInt_ -> [PetscInt_] ->
-      PetscInt_ -> [PetscInt_] ->
-      IO Mat
-matCreateAIJ c m n mm nn dnz dnnz onz onnz =
-  chk1 ( matCreateAIJ' c m n mm nn dnz dnnz onz onnz)
 
-matCreateAIJDecideV ::
-  Comm -> Int -> Int -> Int -> V.Vector Int -> Int -> V.Vector Int -> IO Mat
-matCreateAIJDecideV c mm nn dnz dnnz onz onnz =
-  chk1 (matCreateAIJDecideVS' c mmc nnc dnzc dnnz_ onzc onnz_) where
-    dnnz_ = V.convert (V.map toCInt dnnz)
-    onnz_ = V.convert (V.map toCInt onnz)
-    mmc = toCInt mm
-    nnc = toCInt nn
-    dnzc = toCInt dnz
-    onzc = toCInt onz
 
-matCreateAIJDecideConstNZPR :: Comm -> Int -> Int -> Int -> Int -> IO Mat
+
+matCreateAIJDecideConstNZPR :: Comm -> NumRows -> NumCols -> Int -> Int -> IO Mat
 matCreateAIJDecideConstNZPR c mm nn dnz onz =
   chk1 (matCreateAIJ0DecideConstNZPR' c mmc nnc dnzc onzc) where
     mmc = toCInt mm
@@ -233,13 +233,17 @@ matCreateAIJDecideConstNZPR c mm nn dnz onz =
     dnzc = toCInt dnz
     onzc = toCInt onz
 
+matCreateAIJDecideVarNZPR ::
+  Comm -> Int -> Int -> V.Vector Int -> V.Vector Int -> IO Mat
+matCreateAIJDecideVarNZPR cc mm nn dnnz onnz =
+    chk1 (matCreateAIJ0DecideVarNZPR' cc mmc nnc dnnzc onnzc) where
+    dnnzc = V.convert $ V.map toCInt dnnz
+    onnzc = V.convert $ V.map toCInt onnz
+    mmc = toCInt mm
+    nnc = toCInt nn
 
--- | matCreateMPIAIJWithArrays
 
--- matCreateMPIAIJWithArrays ::
---   Comm -> [PetscInt_] -> [PetscInt_] -> [PetscScalar_] -> IO Mat
--- matCreateMPIAIJWithArrays c idxx idxy vals =
---   chk1 (matCreateMPIAIJWithArrays' c idxx idxy vals)
+
 
 
 matCreateMPIAIJWithVectors ::
@@ -838,8 +842,8 @@ matViewStdout = matView
 
 
 -- identityMatrix :: Comm -> Int -> Mat -> PetscMatrix
-identityMatrix comm n =
-  PetscMatrix (MatrixInfoBase comm n n) (ConstNZPR (1, 0))
+identityMatrix cc n =
+  PetscMatrix (MatrixInfoBase cc n n) (ConstNZPR (1, 0))
 
 
 
@@ -1000,7 +1004,16 @@ matMultHermitianTransposeAdd m v1 v2 v3 = chk0 (matMultHermitianTransposeAdd' m 
 
 -- | helpers
 
+vvDiag :: Int -> V.Vector a -> V.Vector (Int, Int, a)
 vvDiag m = V.zip3 ii ii where
   ii = V.fromList [0..m-1]
 
-  
+
+
+listToCSR :: Int -> Int -> [a] -> V.Vector (Int, Int, a)
+listToCSR m n ll
+  | length ll >= (m*n) = V.zip3 ii jj (V.fromList ll)
+  | otherwise = error "listToCSR : list too short"
+  where
+      ii = V.fromList $ concat $ map (replicate n) [0 .. m-1]
+      jj = V.fromList $ concat $ replicate m [0 .. n-1]

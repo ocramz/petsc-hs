@@ -243,7 +243,7 @@ vvToCSR vv = V.fromList (llToCSR (V.toList (V.map V.toList vv)))
 
 
 
--- sparse versions : explicit nonzero filtering (!)
+-- | sparsity-inducing versions of " : explicit nonzero filtering (pretty sure it's a bad idea !)
 
 llToCSRsparse u = go 0 u where
   m = length (head u)
