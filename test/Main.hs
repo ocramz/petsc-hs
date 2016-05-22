@@ -5,7 +5,7 @@ import Numerical.PETSc.Spec
 
 main :: IO ()
 main = 
-  tests
+  specs
 
 
 
