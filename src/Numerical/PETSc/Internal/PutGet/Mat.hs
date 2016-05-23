@@ -213,17 +213,6 @@ matCreate ::
   Comm -> IO Mat
 matCreate c = chk1 (matCreate' c)
 
-matCreateSeqAIJVarNZPR ::
-  Comm -> Int -> Int -> [Int] -> IO Mat
-matCreateSeqAIJVarNZPR c m n nnz =
-  chk1 (matCreateSeqAIJ1 c m n nnz)
-
-matCreateSeqAIJConstNZPR ::
-  Comm -> Int -> Int -> Int -> IO Mat
-matCreateSeqAIJConstNZPR c m n nz =
-  chk1 (matCreateSeqAIJconstNZperRow1 c m n nz)
-
-
 
 
 matCreateAIJDecideConstNZPR :: Comm -> NumRows -> NumCols -> Int -> Int -> IO Mat

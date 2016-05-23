@@ -145,7 +145,7 @@ isColoringCreate' :: Comm
 isColoringCreate' cc ncolors n cols copymode =
    withPtr $ \iscoloring ->
     withArray cols $ \colv -> 
-  [C.exp|int{ISColoringCreate($(int c),$(int ncolors),$(int n),$(int* colv),$(int mo),$(ISColoring* iscoloring))}|]
+  [C.exp|int{ISColoringCreate($(int c),$(int ncolors),$(int n),$(const int* colv),$(int mo),$(ISColoring* iscoloring))}|]
      where
        c = unComm cc
        mo = toCInt $ petscCopyModeToInt copymode
@@ -177,7 +177,7 @@ vecView' ve viewer =
 -- PetscErrorCode  PetscObjectSetName(PetscObject obj,const char name[])
 vecSetName1 :: Vec -> String -> IO CInt
 vecSetName1 v name = withCString name $ \n ->
-  [C.exp|int{PetscObjectSetName($(Vec v),$(char* n))}|]
+  [C.exp|int{PetscObjectSetName($(Vec v),$(const char* n))}|]
 
 
 
@@ -249,20 +249,15 @@ vecSetBlockSize1 v bs =
 
 vecSetValues' ::
   Vec -> CInt -> Ptr CInt -> Ptr PetscScalar_ -> InsertMode_ -> IO CInt
-vecSetValues' x ni ixx y imm = [C.exp|int{VecSetValues($(Vec x), $(int ni), $(int* ixx), $(PetscScalar* y), $(int im))}|] where im = fromIntegral $ insertModeToInt imm
+vecSetValues' x ni ixx y imm =
+  [C.exp|int{VecSetValues($(Vec x),
+                          $(int ni),
+                          $(const int* ixx),
+                          $(const PetscScalar* y),
+                          $(int im))}|]
+  where im = fromIntegral $ insertModeToInt imm
 
--- vecSetValues'' x ni ixx y imm =
---   [C.exp|int{VecSetValues($(Vec x), $(int ni), $(int* ixx), $(PetscScalar* y), $(int im))}|] where im = fromIntegral $ insertModeToInt imm
 
-vecSetValues :: Vec -> [CInt] -> [PetscScalar_] -> InsertMode_ -> IO CInt
-vecSetValues x ix y im =
-  withArray ix $ \ixx ->
-   withArray y $ \yy -> vecSetValues' x ni ixx yy im
-  where
-  ni = fromIntegral (length ix)
--- neeeds :
---  consistency (ordered, max belonging to index set of Vec) check
---
 
 -- vecSetValuesSafe v ix y
 --   | c1 && c2 = vecSetValues v ix y
@@ -657,19 +652,6 @@ matSetSizes' mat m n = [C.exp|int{MatSetSizes($(Mat mat), PETSC_DECIDE, PETSC_DE
 
 
 -- PetscErrorCode  MatCreateSeqAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt nz,const PetscInt nnz[],Mat *A)
-matCreateSeqAIJ' ::
-  Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> [PetscInt_] -> IO (Mat, CInt)
-matCreateSeqAIJ' cc m n nz nnz =
-  withPtr (\mat ->
-   withArray nnz $ \nnzp ->
-            [C.exp|int{MatCreateSeqAIJ($(int c),
-                                       $(PetscInt m),
-                                       $(PetscInt n),
-                                       $(PetscInt nz),
-                                       $(PetscInt* nnzp),
-                                       $(Mat *mat))}|]) 
-  where c = unComm cc
-
 -- PetscErrorCode  MatCreateSeqAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt nz,const PetscInt nnz[],Mat *A)  -- Collective on MPI_Comm
 -- Input Parameters :
 -- comm	- MPI communicator, set to PETSC_COMM_SELF
@@ -679,19 +661,18 @@ matCreateSeqAIJ' cc m n nz nnz =
 -- nnz	- array containing the number of nonzeros in the various rows (possibly different for each row) or NULL
 -- Output Parameter :
 -- A -the matrix 
-
-matCreateSeqAIJ1 :: Comm -> Int -> Int -> [Int] -> IO (Mat, CInt)
-matCreateSeqAIJ1 cc m' n' nnz' =
+matCreateSeqAIJ0' ::
+  Comm -> PetscInt_ -> PetscInt_ -> PetscInt_ -> Ptr PetscInt_ -> IO (Mat, CInt)
+matCreateSeqAIJ0' cc m n nz nnzp =
   withPtr (\mat ->
-   withArray nnz $ \nnzp ->
             [C.exp|int{MatCreateSeqAIJ($(int c),
                                        $(PetscInt m),
                                        $(PetscInt n),
-                                       0 ,
-                                       $(PetscInt* nnzp),
-                                       $(Mat *mat))}|]) 
-  where c = unComm cc
-        (m, n, nnz) = (toCInt m', toCInt n', map toCInt nnz')
+                                       $(PetscInt nz),
+                                       $(const PetscInt* nnzp),
+                                       $(Mat *mat))}|])  where c = unComm cc
+
+-- ", specialized for a constant # nonzeros / row
 
 matCreateSeqAIJconstNZperRow1 :: Comm -> Int -> Int -> Int -> IO (Mat, CInt)
 matCreateSeqAIJconstNZperRow1 cc m' n' nz' =
@@ -750,8 +731,8 @@ matCreateAIJ0' cc m n mm nn dnz dnnzp onz onnzp = withPtr ( \mat ->
   [C.exp|int{MatCreateAIJ($(int c),
                           $(PetscInt m), $(PetscInt n),
                           $(PetscInt mm), $(PetscInt nn),
-                          $(PetscInt dnz), $(PetscInt* dnnzp),
-                          $(PetscInt onz), $(PetscInt* onnzp),
+                          $(PetscInt dnz), $(const PetscInt* dnnzp),
+                          $(PetscInt onz), $(const PetscInt* onnzp),
                           $(Mat* mat))}|] ) where c = unComm cc
  
 -- | matCreateAIJDecide' : matCreateAIJ inferring the local sizes :
@@ -766,22 +747,9 @@ matCreateAIJ0Decide' cc mm nn dnz dnnzp onz onnzp = withPtr ( \mat ->
   [C.exp|int{MatCreateAIJ($(int c),
                           PETSC_DECIDE, PETSC_DECIDE,
                           $(PetscInt mm), $(PetscInt nn),
-                          $(PetscInt dnz), $(PetscInt* dnnzp),
-                          $(PetscInt onz), $(PetscInt* onnzp),
+                          $(PetscInt dnz), $(const PetscInt* dnnzp),
+                          $(PetscInt onz), $(const PetscInt* onnzp),
                           $(Mat* mat))}|] ) where c = unComm cc
-
--- | matCreateAIJDecideVS' : matCreateAIJ0Decide using VS.Vector rather than arrays :
-
-matCreateAIJDecideVS' :: Comm -> PetscInt_ -> PetscInt_
-                        -> PetscInt_
-                        -> VS.Vector PetscInt_
-                        -> PetscInt_
-                        -> VS.Vector PetscInt_
-                        -> IO (Mat, CInt)
-matCreateAIJDecideVS' cc mm nn dnz dnnz onz onnz =
-  VS.unsafeWith dnnz $ \dnnzp ->
-  VS.unsafeWith onnz $ \onnzp ->
-  matCreateAIJ0Decide' cc mm nn dnz dnnzp onz onnzp
 
 -- | matCreateAIJDecideConstNZPR' : matCreateAIJ inferring the local sizes, assuming a constant # of nonzeros per row, both on- and off- diagonal :
 
@@ -809,8 +777,8 @@ matCreateAIJ0DecideVarNZPR' cc mm nn dnnz onnz = withPtr ( \mat ->
          [C.exp|int{MatCreateAIJ($(int c),
                           PETSC_DECIDE, PETSC_DECIDE,
                           $(PetscInt mm), $(PetscInt nn),
-                          NULL, $(PetscInt* dnnzp),
-                          NULL, $(PetscInt* onnzp),
+                          NULL, $(const PetscInt* dnnzp),
+                          NULL, $(const PetscInt* onnzp),
                           $(Mat* mat))}|] ) where c = unComm cc
                                                   
 --     PetscErrorCode  MatCreateMPIAIJWithArrays(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt M,PetscInt N,const PetscInt i[],const PetscInt j[],const PetscScalar a[],Mat *mat)    -- Collective on MPI_Comm
@@ -840,8 +808,8 @@ matCreateMPIAIJWithArrays0' cc m n mm nn ip jp aap =
                                     $(PetscInt m),
                                     $(PetscInt n),
                                     $(PetscInt mm), $(PetscInt nn),
-                                    $(PetscInt* ip), $(PetscInt* jp),
-                                    $(PetscScalar* aap), 
+                                    $(const PetscInt* ip), $(const PetscInt* jp),
+                                    $(const PetscScalar* aap), 
                                     $(Mat* mat))}|] )
     where c = unComm cc 
 
@@ -912,8 +880,6 @@ matSetFromOptions p = [C.exp| int{MatSetFromOptions($(Mat p))} |]
 
 
 
--- PetscErrorCode  MatCreateSeqAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt nz,const PetscInt nnz[],Mat *A)
-
 
 -- PetscErrorCode  MatSeqAIJSetPreallocation(Mat B,PetscInt nz,const PetscInt nnz[])
 -- -- Collective on MPI_Comm, CSR format
@@ -962,9 +928,9 @@ matMPIAIJSetPreallocationVarNZPR' ::
   Mat -> VS.Vector CInt -> VS.Vector CInt -> IO CInt
 matMPIAIJSetPreallocationVarNZPR' b dnnz onnz = [C.exp|int{MatMPIAIJSetPreallocation($(Mat b),
                                        NULL,
-                                       $vec-ptr:(int* dnnz),
+                                       $vec-ptr:(const int* dnnz),
                                        NULL,
-                                       $vec-ptr:(int* onnz))}|]
+                                       $vec-ptr:(const int* onnz))}|]
 
 
 
@@ -1020,10 +986,10 @@ matSetValues0' ::
 matSetValues0' mat nbx idxx_ nby idxy_ b_ im =
            [C.exp|int { MatSetValues($(Mat mat),
                                      $(int nbx),
-                                     $(int* idxx_),
+                                     $(const int* idxx_),
                                      $(int nby),
-                                     $(int* idxy_),
-                                     $(PetscScalar* b_), $(int imm))} |] where
+                                     $(const int* idxy_),
+                                     $(const PetscScalar* b_), $(int imm))} |] where
               imm = fromIntegral $ insertModeToInt im
 
 matSetValues0vc' ::
@@ -1067,10 +1033,10 @@ matSetValuesBlocked0' ::
 matSetValuesBlocked0' mat m idxm n idxn v imode =
   [C.exp|int{MatSetValuesBlocked($(Mat mat),
                                  $(int m),
-                                 $(int* idxm),
+                                 $(const int* idxm),
                                  $(int n),
-                                 $(int* idxn),
-                                 $(PetscScalar* v),
+                                 $(const int* idxn),
+                                 $(const PetscScalar* v),
                                  $(int imm))}|]
   where imm = fromIntegral $ insertModeToInt imode
         
