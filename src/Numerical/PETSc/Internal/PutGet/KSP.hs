@@ -98,6 +98,20 @@ withKspSetupSolveAlloc cc kt amat pmat rhsv post =
 
 
 
+-- withKsp cs $ \ksp -> do
+     --   kspSetOperators ksp mat mat
+     --   kspSetType ksp km 
+     --   kspSetInitialGuessNonzero ksp True
+     --   kspSetUp ksp
+     --   kspSolve ksp x v
+     --   soln <- kspGetSolution ksp
+     --   -- vecViewStdout soln
+     --   showKspStats ksp km
+     --   -- kspReasonView ksp
+     --   -- return soln
+
+
+
     
 
 -- | destroy KSP

@@ -1142,6 +1142,7 @@ matGetRow0' mat row ncols cols vals =
 -- For better efficiency, set cols and/or vals to NULL if you do not wish to extract these quantities.
 -- The user can only examine the values extracted with MatGetRow(); the values cannot be altered. To change the matrix entries, one must use MatSetValues().
 -- You can only have one call to MatGetRow() outstanding for a particular matrix at a time, per processor. MatGetRow() can only obtain rows associated with the given processor, it cannot get rows from the other processors; for that we suggest using MatGetSubMatrices(), then MatGetRow() on the submatrix. The row index passed to MatGetRows() is in the global number of rows.
+matGetRow' :: Mat -> CInt -> IO ((CInt, Ptr CInt, Ptr PetscScalar_), CInt)
 matGetRow' mat row = withPtr ( \ncols -> withPtr $ \cols -> withPtr $ \vals -> matGetRow0' mat row ncols cols vals) >>= snoc3
 
 
@@ -2049,8 +2050,7 @@ kspSetType' :: KSP -> KspType_ -> IO CInt
 kspSetType' ksp kt = withCString strk $ \strp -> [C.exp|int{KSPSetType($(KSP ksp), $(char* strp))}|] where
   strk = kspTypeToStr kt
 
--- kspSetType :: KSP -> KspType_ -> IO ()
--- kspSetType = kspSetType'  
+
 
 -- PETSC_EXTERN PetscErrorCode KSPGetType(KSP,KSPType *);
 -- kspGetType ksp = alloca ( \strp -> do
