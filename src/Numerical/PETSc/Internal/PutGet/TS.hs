@@ -39,7 +39,7 @@ import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, un
 
 
 tsCreate :: Comm -> IO TS
-tsCreate comm = chk1 $ tsCreate' comm
+tsCreate cc = chk1 $ tsCreate' cc
 
 tsDestroy :: TS -> IO ()
 tsDestroy ts = chk0 $ tsDestroy' ts
@@ -215,7 +215,7 @@ tsSetSaveTrajectory :: TS -> IO ()
 tsSetSaveTrajectory ts = chk0 $ tsSetSaveTrajectory' ts
 
 tsTrajectoryCreate :: Comm -> IO TSTrajectory
-tsTrajectoryCreate comm = chk1 (tsTrajectoryCreate' comm)
+tsTrajectoryCreate cc = chk1 (tsTrajectoryCreate' cc)
 
 tsTrajectoryDestroy :: TSTrajectory -> IO ()
 tsTrajectoryDestroy ts = chk0 (tsTrajectoryDestroy' ts)
