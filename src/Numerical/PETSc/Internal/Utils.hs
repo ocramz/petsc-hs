@@ -103,7 +103,12 @@ filterMapV p f vv
 
 
 
+-- * traversal
 
+traverseFilter_ :: Monad m => (a -> Bool) -> (a -> m ()) -> V.Vector a -> m ()
+traverseFilter_ p mf = V.mapM_ mg where
+  mg x | p x = mf x
+       | otherwise = return ()
 
 
 
@@ -135,6 +140,11 @@ safeIndicesV w = V.all (inRange0 (V.length w))
 filterMapSafeIndicesV ::
   Int -> Int -> ((Int, Int, a) -> b) -> V.Vector (Int, Int, a) -> V.Vector b
 filterMapSafeIndicesV m n = filterMapV (\(i,j,_) -> in0m m i && in0m n j)
+
+
+
+
+
 
 
 

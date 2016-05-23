@@ -391,10 +391,10 @@ matSetValueVectorSafe mat (mx, my) v_ mode =
       | in0m mx ix && in0m my iy = matSetValue mat ix iy val mode
       | otherwise = return ()
 
-
--- traverseFilter pred mf = V.mapM_ mg where
---   mg x | pred x = mf x
---        | otherwise = return ()
+traverseFilter_ :: Monad m => (a -> Bool) -> (a -> m ()) -> V.Vector a -> m ()
+traverseFilter_ p mf = V.mapM_ mg where
+  mg x | p x = mf x
+       | otherwise = return ()
 
 
 -- iyv = filterMapSafeIndicesV nrows ncols (\(i,j,v) -> (toCInt i,toCInt j,v)) iyvu
