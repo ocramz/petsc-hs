@@ -4061,7 +4061,7 @@ stCreate' cc = withPtr $ \s -> [C.exp|int{STCreate($(int c),$(ST* s))}|]
 stSetType' :: ST -> StType_ -> IO CInt
 stSetType' st t =
   withCString ts $ \tp -> [C.exp|int{STSetType($(ST st),$(char* tp))}|]
-    where ts = stTypeToString t
+    where ts = stTypeToStr t
 
 stDestroy' :: ST -> IO CInt
 stDestroy' st = with st $ \stp -> [C.exp|int{STDestroy($(ST* stp))}|]

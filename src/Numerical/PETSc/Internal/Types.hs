@@ -30,6 +30,13 @@ import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Generic as VG
 
 
+-- | helper for marshalling method strings
+
+showDropN :: Show a => Int -> a -> String
+showDropN n = drop n . map toLower . show
+
+
+
 
 -- | elementary type synonyms
 
@@ -173,7 +180,7 @@ newtype RG = RG (Ptr RG) deriving Storable
 
 
 
--- end newtypes
+-- | end newtypes
 
 
 
@@ -262,13 +269,7 @@ data MatType_ = MatSame | MatMaij | MatSeqMaij | MatMPIMaij | MatIs | MatAij
                                                                deriving (Eq, Show)
 
 matTypeToStr :: MatType_ -> String
-matTypeToStr MatSame = "same"
-matTypeToStr MatIs = "is"
-matTypeToStr MatAij = "aij"
-matTypeToStr MatMPIAij = "mpiaij"
-matTypeToStr MatMPIBaij = "mpibaij"
-matTypeToStr _ = matTypeToStr MatAij -- default
-
+matTypeToStr mty = showDropN 3 (mty :: MatType_)
 
 
 -- typedef enum {NORM_1=0,NORM_2=1,NORM_FROBENIUS=2,NORM_INFINITY=3,NORM_1_AND_2=4} NormType;
@@ -422,41 +423,9 @@ data KspType_ = KspRichardson | KspChebyshev | KspCg | KspGroppCg | KspPipeCg
               deriving (Eq, Show)
 
 kspTypeToStr :: KspType_ -> String
-kspTypeToStr x = case x of
-  KspRichardson -> "richardson"
-  KspChebyshev -> "chebyshev"
-  KspCg -> "cg"
-  KspGroppCg -> "groppcg"
-  KspPipeCg -> "pipecg"
-  KspCgne -> "cgne"
-  KspNash -> "nash"
-  KspStcg -> "stcg"
-  KspGltr -> "gltr"
-  KspGmres -> "gmres"
-  KspFgmres -> "fgmres"
-  KspLgmres -> "lgmres"
-  KspDgmres -> "dgmres"
-  KspPgmres -> "pgmres"
-  KspTcqmr -> "tcqmr"
-  KspBcgs -> "bcgs"
-  KspIbcgs -> "ibcgs"
-  KspFbcgs -> "fbcgs"
-  KspFbcgsr -> "fbcgsr"
-  KspBcgsl -> "bcgsl"
-  KspCgs -> "cgs"
-  KspTfqmr -> "tfqmr"
-  KspCr -> "cr"
-  KspPipecr -> "pipecr"
-  KspLsqr -> "lsqr"
-  KspPreonly -> "preonly"
-  KspQcg -> "qcg"
-  KspBicg -> "bicg"
-  KspMinres -> "minres"
-  KspSymmlq -> "symmlq"
-  KspLcd -> "lcd"
-  KspPython -> "python"
-  KspCgr -> "cgr"
-  KspSpecest -> "specest"
+kspTypeToStr kt = showDropN 3 (kt :: KspType_)
+
+
 
 data KspConvergedReason = KspConvergedRtolNormal | KspConvergedAtolNormal
                         | KspConvergedRtol | KspConvergedAtol
@@ -501,7 +470,7 @@ kspConvergedIntToReason r =
 
 
 
--- showDropN n = drop n . map toLower . show
+-- 
 
 
 
@@ -518,7 +487,7 @@ data PCType_ = PcNone | PcJacobi | PcSOR | PcLU | PcShell | PcBJacobi | PcMG
              deriving (Eq, Show, Enum)
 
 pcTypeToString :: PCType_ -> String
-pcTypeToString t = drop 2 $ map toLower $ show t
+pcTypeToString t = showDropN 2 (t :: PCType_)
 
   
 
@@ -536,12 +505,10 @@ pcTypeToString t = drop 2 $ map toLower $ show t
 
 data PFType_ = PfConstant | PfMat | PfString | PfQuick | PfIdentity | PfMatlab deriving (Eq, Show)
 
-pfTypeToStr PfConstant = "constant"
-pfTypeToStr PfMat = "mat"
-pfTypeToStr PfString = "string"
-pfTypeToStr PfQuick = "quick"
-pfTypeToStr PfIdentity = "identity"
-pfTypeToStr PfMatlab = "matlab"
+pfTypeToStr :: PFType_ -> String
+pfTypeToStr pt = showDropN 2 (pt :: PFType_)
+
+
 
 
 
@@ -558,27 +525,10 @@ data SnesType_ = SnesNewtonLs | SnesNewtonTr | SnesPython | SnesTest
                | SnesNcg | SnesFas | SnesMs | SnesNasm | SnesAnderson | SnesAspin
                | SnesComposite deriving (Eq, Show)
 
-snesTypeToStr :: SnesType_ -> String
-snesTypeToStr t = case t of
-  SnesNewtonLs -> "newtonls"
-  SnesNewtonTr -> "newtontr"
-  SnesPython -> "python"
-  SnesTest -> "test"
-  SnesNRichardson -> "nrichardson"
-  SnesKspOnly -> "ksponly"
-  SnesViNewtonRsLs -> "vinewtonrsls"
-  SnesViNewtonSsLs -> "vinewtonssls"
-  SnesNgmres -> "ngmres"
-  SnesQn -> "qn"
-  SnesShell -> "shell"
-  SnesNgs -> "ngs"
-  SnesNcg -> "ncg"
-  SnesFas -> "fas"
-  SnesMs -> "ms"
-  SnesNasm -> "nasm"
-  SnesAnderson -> "anderson"
-  SnesAspin -> "aspin"
-  SnesComposite -> "composite"
+snesTypeToStr :: SnesType_ -> String 
+snesTypeToStr st = showDropN 4 (st :: SnesType_)
+
+
 
 
 
@@ -647,24 +597,13 @@ tsProblemTypeToInt x = fromEnum (x :: TsProblemType)
 
 data TsType_ = TsEuler | TsBEuler | TsPseudo | TsCn | TsSundials | TsRK | TsPython
              | TsTheta | TsAlpha | TsGl | TsSsp | TsArkimex | TsRosw | TsEimex
-             | TsMimex deriving (Eq, Show) 
+             | TsMimex deriving (Eq, Show)
 
 tsTypeToString :: TsType_ -> String
-tsTypeToString t = case t of TsEuler -> "euler"
-                             TsBEuler -> "beuler"
-                             TsPseudo -> "pseudo"
-                             TsCn -> "cn"
-                             TsSundials -> "sundials"
-                             TsRK -> "rk"
-                             TsPython -> "python"
-                             TsTheta -> "theta"
-                             TsAlpha -> "alpha"
-                             TsGl -> "gl"
-                             TsSsp -> "ssp"
-                             TsArkimex -> "arkimex"
-                             TsRosw -> "rosw"
-                             TsEimex -> "eimex"
-                             TsMimex -> "mimex"
+tsTypeToString ts = showDropN 2 (ts :: TsType_)
+
+
+
 
 data TsConvergedReason_ = TsConvergedIterating | TsConvergedTime | TsConvergedIts
                         | TsConvergedUser | TsConvergedEvent | TsDivergedNonlinSolve
@@ -706,14 +645,10 @@ data TaoType_ = TaoLmvm | TaoNls | TaoNtr | TaoNtl | TaoCg | TaoTron | TaoOwlqn
               deriving (Eq, Show)
 
 taoTypeToStr :: TaoType_ -> String
-taoTypeToStr TaoLmvm = "lmvm"
-taoTypeToStr TaoNls = "nls"
-taoTypeToStr TaoNtr = "ntr"
-taoTypeToStr TaoNtl = "ntl"
-taoTypeToStr TaoCg = "cg"
-taoTypeToStr TaoSsils = "ssils"
-taoTypeToStr TaoIpm = "ipm"
-taoTypeToStr _ = "cg" -- default
+taoTypeToStr tt = showDropN 3 (tt :: TaoType_)
+
+
+
 
 data TaoConvergedReason_ = TaoConvFaTol | TaoConvFrTol | TaoConvGaTol
                          | TaoConvGrTol | TaoConvGtTol
@@ -759,19 +694,10 @@ data PetscViewerType_ = ViewerSock | ViewerAscii | ViewerBinary | ViewerString
 viewerTypeToInt x = fromEnum (x :: PetscViewerType_)
 
 viewerTypeToStr :: PetscViewerType_ -> String
-viewerTypeToStr v = case v of
-  ViewerSock -> "socket"
-  ViewerAscii -> "ascii"
-  ViewerBinary -> "binary"
-  ViewerString -> "string"
-  ViewerDraw -> "draw"
-  ViewerVu -> "vu"
-  ViewerMathematica -> "mathematica"
-  ViewerNetCDF -> "netcdf"
-  ViewerHDF5 -> "hdf5"
-  ViewerVtk -> "vtk"
-  ViewerMatlab -> "matlab"
-  ViewerSaws -> "saws"
+viewerTypeToStr vt = showDropN 6 (vt :: PetscViewerType_)
+
+
+
 
 data PetscViewerFormat_ =
     ViewFmtDefault | ViewFmtAsciiMatlab | ViewFmtAsciiMathematica
@@ -850,7 +776,7 @@ data MPIComm = MPIComm { comm :: Comm, commSize :: MpiCommSize, commRank :: MpiC
 
 
 
--- | SLEPc datatypes and enum conversion hacks
+-- | SLEPc datatypes and enum conversion
 
 
 
@@ -862,15 +788,11 @@ data EpsType_ =
   | EpsRqcg | EpsLobpcg | EpsCiss | EpsLapack | EpsArpack | EpsBlzpack | EpsTrlan
   | EpsBlopex | EpsPrimme | EpsFeast deriving (Eq, Show, Enum)
 
-epsTypeToString :: EpsType_ -> String
-epsTypeToString t =
-  case t of EpsPower -> "power"
-            EpsSubspace -> "subspace"
-            EpsArnoldi -> "arnoldi"
-            EpsLanczos -> "lanczos"
-            EpsKrylovSchur -> "krylovschur"
-            EpsGd -> "gd"
-            _ -> epsTypeToString EpsKrylovSchur -- default
+epsTypeToStr :: EpsType_ -> String
+epsTypeToStr et = showDropN 3 (et :: EpsType_)
+
+
+
 
 -- typedef const char* EPSType;
 -- #define EPSPOWER       "power"
@@ -951,11 +873,7 @@ data SvdType_ =
 data StType_ =
   StShell | StShift | StSInvert | StCayley | StPrecond deriving (Eq, Ord, Show)
 
-stTypeToString :: StType_ -> String
-stTypeToString t =
-  case t of StShell -> "shell"
-            StShift -> "shift"
-            StSInvert -> "sinvert"
-            StCayley -> "cayley"
-            StPrecond -> "precond"
+stTypeToStr :: StType_ -> String
+stTypeToStr st = showDropN 2 (st :: StType_)
+
                                              
