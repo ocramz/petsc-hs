@@ -116,7 +116,6 @@ petscMatrixCreate
      -> V.Vector (IdxRow, IdxCol, PetscScalar_)
      -> NZPR
      -> InsertMode_
---      -> (Comm -> NumRows -> NumCols -> NZPR -> IO Mat)  -- Mat creation routine
      -> IO (PetscMatrix PetscScalar_)
 petscMatrixCreate cc m n mty ixd nz imode = do
   let mib = MatrixInfoBase cc m n
@@ -145,16 +144,8 @@ withPetscMatrix cc m n mty ixd nz imode =
     
 
 
--- | adapter for matrix creation w constant/variable row sparsity pattern
+-- | adapter for matrix create/settype/setsizes/preallocation/setup
 
--- matNZadapt :: Comm -> NumRows -> NumCols -> NZPR -> IO Mat
--- matNZadapt cc m n (ConstNZPR (dnz, onz)) =
---   matCreateAIJDecideConstNZPR cc m n dnz onz
--- matNZadapt cc m n (VarNZPR (dnnz, onnz)) =
---   matCreateAIJDecideVarNZPR cc m n dnnz onnz
-
-
--- |
 matCreateAdapter :: Comm -> NumRows -> NumCols -> MatType_ -> NZPR -> IO Mat
 matCreateAdapter cc m n mty nz = do
   mat <- matCreate cc
