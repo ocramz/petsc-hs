@@ -366,18 +366,11 @@ matSetValue ::
   Mat -> IdxRow -> IdxCol -> PetscScalar_ -> InsertMode_ -> IO ()
 matSetValue m irow icol val mode = chk0 (matSetValueUnsafe' m irow icol val mode)
 
--- matSetValueSafe ::
---   Mat ->
---   (NumRows, NumCols) ->
---   IdxRow ->
---   IdxCol ->
---   PetscScalar_ ->
---   InsertMode_ ->
---   IO ()
--- matSetValueSafe m (mm, nn) irow icol val mode
---   | in0m mm irow && in0m nn icol = matSetValue m irow icol val mode
---   | otherwise =
---      error $ "matSetValueSafe : index "++ show (irow,icol) ++" out of bounds"
+
+-- | matSetValueVectorSafe
+-- NB !
+-- * sets one value at a time 
+-- * drops entries that would be written outside of matrix index bounds
 
 matSetValueVectorSafe ::
   Mat ->
@@ -390,24 +383,6 @@ matSetValueVectorSafe mat (mx, my) v_ mode =
     mf (ix,iy,val)
       | in0m mx ix && in0m my iy = matSetValue mat ix iy val mode
       | otherwise = return ()
-
-traverseFilter_ :: Monad m => (a -> Bool) -> (a -> m ()) -> V.Vector a -> m ()
-traverseFilter_ p mf = V.mapM_ mg where
-  mg x | p x = mf x
-       | otherwise = return ()
-
-
--- iyv = filterMapSafeIndicesV nrows ncols (\(i,j,v) -> (toCInt i,toCInt j,v)) iyvu
-
-
-
-
-
-
-
-
-
-
 
 
 
