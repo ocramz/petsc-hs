@@ -44,6 +44,8 @@ import Control.Exception
 
 import qualified Data.IntMap as IM
 
+import Data.Traversable
+
 import qualified Data.Vector as V 
 import qualified Data.Vector.Storable as VS (unsafeWith, Vector)
 import qualified Data.Vector.Generic as VG
@@ -121,7 +123,7 @@ petscMatrixCreate cc m n mty ixd nz imode = do
   let mib = MatrixInfoBase cc m n
       mixd = MatrixDataZ ixd
   mat <- matCreateAdapter cc m n mty nz
-  matSetValuesVectorSafe2 mat (m, n) ixd imode
+  matSetValueVectorSafe mat (m, n) ixd imode
   matAssembly mat
   let pm = PetscMatrix mib nz mixd mat
   return pm
@@ -322,7 +324,7 @@ withMatSetValueVectorSafe ::
   (Mat -> IO a) ->                            -- after assembly
   IO a
 withMatSetValueVectorSafe mat m n v_ imode after = do
-  matSetValuesVectorSafe2 mat (m, n) v_ imode
+  matSetValueVectorSafe mat (m, n) v_ imode
   matAssembly mat
   after mat 
 
@@ -361,21 +363,21 @@ matZeroEntries :: Mat -> IO ()
 matZeroEntries mat = chk0 (matZeroEntries' mat)
 
 matSetValue ::
-  Mat -> Int -> Int -> PetscScalar_ -> InsertMode_ -> IO ()
+  Mat -> IdxRow -> IdxCol -> PetscScalar_ -> InsertMode_ -> IO ()
 matSetValue m irow icol val mode = chk0 (matSetValueUnsafe' m irow icol val mode)
 
-matSetValueSafe ::
-  Mat ->
-  (NumRows, NumCols) ->
-  IdxRow ->
-  IdxCol ->
-  PetscScalar_ ->
-  InsertMode_ ->
-  IO ()
-matSetValueSafe m (mm, nn) irow icol val mode
-  | in0m mm irow && in0m nn icol = matSetValue m irow icol val mode
-  | otherwise =
-     error $ "matSetValueSafe : index "++ show (irow,icol) ++" out of bounds"
+-- matSetValueSafe ::
+--   Mat ->
+--   (NumRows, NumCols) ->
+--   IdxRow ->
+--   IdxCol ->
+--   PetscScalar_ ->
+--   InsertMode_ ->
+--   IO ()
+-- matSetValueSafe m (mm, nn) irow icol val mode
+--   | in0m mm irow && in0m nn icol = matSetValue m irow icol val mode
+--   | otherwise =
+--      error $ "matSetValueSafe : index "++ show (irow,icol) ++" out of bounds"
 
 matSetValueVectorSafe ::
   Mat ->
@@ -383,8 +385,19 @@ matSetValueVectorSafe ::
   V.Vector (IdxRow, IdxCol, PetscScalar_) ->
   InsertMode_ ->
   IO ()
-matSetValueVectorSafe m (mx, my) v_ mode =
-  V.mapM_ (\(ix,iy,val) -> matSetValueSafe m (mx, my) ix iy val mode) v_
+matSetValueVectorSafe mat (mx, my) v_ mode =
+  V.mapM_ mf v_ where
+    mf (ix,iy,val)
+      | in0m mx ix && in0m my iy = matSetValue mat ix iy val mode
+      | otherwise = return ()
+
+
+-- traverseFilter pred mf = V.mapM_ mg where
+--   mg x | pred x = mf x
+--        | otherwise = return ()
+
+
+-- iyv = filterMapSafeIndicesV nrows ncols (\(i,j,v) -> (toCInt i,toCInt j,v)) iyvu
 
 
 
@@ -399,11 +412,6 @@ matSetValueVectorSafe m (mx, my) v_ mode =
 
 
 
-
-
-
-
--- | matSetValues using inline-c vecCtx
 
 -- matSetValuesVectorSafe2 ::
 --   Mat ->
@@ -411,34 +419,28 @@ matSetValueVectorSafe m (mx, my) v_ mode =
 --   V.Vector (IdxRow, IdxCol, PetscScalar_) ->
 --   InsertMode_ ->
 --   IO ()
--- matSetValuesVectorSafe2 m (nrows, ncols) iyvu imode =
---   chk0 (matSetValues0vc' m ix iy iv imode)
---   where
---   iyv = filterMapSafeIndicesV nrows ncols (\(i,j,v) -> (toCInt i,toCInt j,v)) iyvu
---   (ixs_, iys_, ivs_) = V.unzip3 iyv
---   ix = V.convert ixs_
---   iy = V.convert iys_
---   iv = V.convert ivs_
+-- matSetValuesVectorSafe2 mat (nrow, ncol) z_ imode =
+--   VS.unsafeWith (V.convert ix) $ \ixp ->
+--   VS.unsafeWith (V.convert iy) $ \iyp ->
+--   VS.unsafeWith (V.convert iv) $ \ivp ->
+--      chk0 $ matSetValues0' mat nx ixp ny iyp ivp imode where
+--   (nx, ny) = (toCInt $ V.length ix, toCInt $ V.length iy)
+--   (ix, iy, iv) = V.unzip3 zu
+--   zu = filterMapSafeIndicesV nrow ncol (\(i,j,v) -> (toCInt i,toCInt j,v)) z_
 
-matSetValuesVectorSafe2 ::
-  Mat ->
-  (NumRows, NumCols) -> 
-  V.Vector (IdxRow, IdxCol, PetscScalar_) ->
-  InsertMode_ ->
-  IO ()
-matSetValuesVectorSafe2 mat (nrow, ncol) z_ imode =
-  VS.unsafeWith (V.convert ix) $ \ixp ->
-  VS.unsafeWith (V.convert iy) $ \iyp ->
-  VS.unsafeWith (V.convert iv) $ \ivp ->
-     chk0 $ matSetValues0' mat nx ixp ny iyp ivp imode where
-  (nx, ny) = (toCInt $ V.length ix, toCInt $ V.length iy)
-  (ix, iy, iv) = V.unzip3 zu
-  zu = filterMapSafeIndicesV nrow ncol (\(i,j,v) -> (toCInt i,toCInt j,v)) z_
+-- | matSetValues using inline-c vecCtx
 
-
-
-
-
+-- matSetValuesVectorSafe3 ::
+--   Mat ->
+--   (NumRows, NumCols) -> 
+--   V.Vector (IdxRow, IdxCol, PetscScalar_) ->
+--   InsertMode_ ->
+--   IO ()
+-- matSetValuesVectorSafe3 mat (nrow, ncol) z_ imode =
+--   chk0 $ matSetValues0vs' mat nvals (V.convert ix) nvals (V.convert iy) (V.convert iv) imode where
+--    zu = filterMapSafeIndicesV nrow ncol (\(i,j,v) -> (toCInt i,toCInt j,v)) z_
+--    (ix, iy, iv) = V.unzip3 zu
+--    nvals = toCInt $ V.length ix
 
 
 
@@ -528,7 +530,7 @@ matMPIAIJSetPreallocationDiagonal mat =
 
 
 
--- matMPIAIJSetPreallocationVarNZPR :: Mat -> VS.Vector CInt -> VS.Vector CInt -> IO ()
+matMPIAIJSetPreallocationVarNZPR :: Mat -> VS.Vector DNZ -> VS.Vector ONZ -> IO ()
 matMPIAIJSetPreallocationVarNZPR mat dnnz onnz =
   chk0 (matMPIAIJSetPreallocationVarNZPR' mat dnnz' onnz')
   where
@@ -536,9 +538,6 @@ matMPIAIJSetPreallocationVarNZPR mat dnnz onnz =
     onnz' = VG.map toCInt onnz
 
 
-
--- -- example
--- matAsdf mat n = matMPIAIJSetPreallocationVarNZPR mat (onesVG n) (zerosVG n)
 
 
 

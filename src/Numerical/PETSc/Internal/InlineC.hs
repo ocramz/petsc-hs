@@ -979,7 +979,19 @@ matSetValues0' mat nbx idxx_ nby idxy_ b_ im =
                                      $(const PetscScalar* b_), $(int imm))} |] where
               imm = fromIntegral $ insertModeToInt im
 
+-- " , using vecCtx adapters from inline-c
 
+matSetValues0vs' ::
+  Mat -> CInt -> VS.Vector CInt -> CInt -> VS.Vector CInt -> VS.Vector PetscScalar_ -> InsertMode_ -> IO CInt
+matSetValues0vs' mat nbx idxx_ nby idxy_ b_ im =
+           [C.exp|int { MatSetValues($(Mat mat),
+                                     $(int nbx),
+                                     $vec-ptr:(const int* idxx_),
+                                     $(int nby),
+                                     $vec-ptr:(const int* idxy_),
+                                     $vec-ptr:(const PetscScalar* b_),
+                                     $(int imm))} |] where
+              imm = fromIntegral $ insertModeToInt im
               
 
 

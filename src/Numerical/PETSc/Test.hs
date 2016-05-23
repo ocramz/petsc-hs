@@ -636,7 +636,7 @@ t20 = withPetsc0 $
   where
     cw = commWorld
     (m, n) = (3, 3)
-    vv = csrAllNxN_ 3
+    vv = csrSome3
 
 
 
