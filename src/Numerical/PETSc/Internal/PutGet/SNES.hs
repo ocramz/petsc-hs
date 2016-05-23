@@ -58,27 +58,10 @@ import qualified Numeric.AD.Internal.Reverse as AD
 
 
 
-snesCreate :: Comm -> IO SNES
-snesCreate c = chk1 (snesCreate' c)
 
-snesDestroy :: SNES -> IO ()
-snesDestroy snes = chk0 (snesDestroy' snes)
 
 snesSetType :: SNES -> SnesType_ -> IO ()
 snesSetType snes st = chk0 $ snesSetType' snes st
-
-
-
-
-
-
-
-
--- | SNES function adapters:
--- | a callback that dereferences, mutates and copies back data into one of its arguments  
-
-
--- a SNES function (either f or grad f) modifies one of its arguments (same for KSP, TS, Tao, .. functions)
 
 
 
@@ -91,11 +74,10 @@ snesSetType snes st = chk0 $ snesSetType' snes st
 
 
 
-withSnes :: IO SNES -> (SNES -> IO a) -> IO a
-withSnes cf = bracket cf snesDestroy
-
 withSnesCreate :: Comm -> (SNES -> IO a) -> IO a
-withSnesCreate c = withSnes (snesCreate c)
+withSnesCreate c = bracket (snesCreate c) snesDestroy where
+  snesCreate co = chk1 (snesCreate' co)
+  snesDestroy s = chk0 (snesDestroy' s)
 
 withSnesCreateSetup ::
   Comm ->

@@ -39,18 +39,12 @@ import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, un
 
 
 
-taoCreate :: Comm -> IO Tao
-taoCreate cc = chk1 $ taoCreate' cc
 
-
-
-withTao :: IO Tao -> (Tao -> IO a) -> IO a
-withTao mc = bracket mc taoDestroy where
-  taoDestroy :: Tao -> IO ()
-  taoDestroy tao = chk0 $ taoDestroy' tao
 
 withTaoCreate :: Comm -> (Tao -> IO a) -> IO a
-withTaoCreate c = withTao (taoCreate c)
+withTaoCreate c = bracket (taoCreate c) taoDestroy where
+  taoCreate cc = chk1 $ taoCreate' cc
+  taoDestroy t = chk0 $ taoDestroy' t
 
 
 taoSetType :: Tao -> TaoType_ -> IO ()
