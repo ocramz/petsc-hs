@@ -46,25 +46,18 @@ withCStringArrayPtr ss f = withCStringArray ss $ \css -> with css f
 
 
 
+-- * lists
 
--- vFromC l p = do
---   ptr <- newForeignPtr_ p
---   V.freeze $ VM.unsafeFromForeignPtr0 ptr l 
-
--- vectorFromC :: Storable a => Int -> Ptr a -> IO (V.Vector a)
--- vectorFromC len ptr = do
---   ptr' <- newForeignPtr_ ptr
---   V.freeze $ VM.unsafeFromForeignPtr0 ptr' len
-
--- vectorToC :: Storable a => V.Vector a -> Int -> Ptr a -> IO ()
--- vectorToC vec len ptr = do
---   ptr' <- newForeignPtr_ ptr
---   V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
+filterMap :: (a -> Bool) -> (a -> b) -> [a] -> [b]
+filterMap _ _ [] = []
+filterMap p f (x:xs)
+  | p x = f x : filterMap p f xs
+  | otherwise = filterMap p f xs
 
 
 
 
--- * array sorting (hmm..)
+-- * list sorting (hmm..)
 
 qsort :: Ord a => [a] -> [a]
 qsort []     = []
@@ -82,56 +75,46 @@ c ~!~ es = when c (error es)
 
 c ~?~ es = unless c (error es)
 
-assertWithStringM :: Monad m => Bool -> String -> m b -> m b
-assertWithStringM c es f = do
-  c ~?~ es
-  f
 
   
 
 
--- checkNonNegM :: (Show a, Num a, Ord a, Monad m) => a -> m b -> m b
--- checkNonNegM n f = do
---   (n > 0) ~?~ (shn ++ " must be nonnegative")
---   f
---    where
---     shn = show n
-
-
-
--- * conditionals
-
-ifThenElse :: Bool -> a -> a -> a
-ifThenElse q i e
-  | q = i
-  | otherwise = e
-
-ifThenElseE :: Bool -> a -> b -> Either a b
-ifThenElseE q a b
-  | q = Left a
-  | otherwise = Right b
 
 
 
 
--- * generic Vector: int range, `ones`, `zeros`
 
--- ixs :: (VG.Vector v Int) => Int -> v Int
-ixs n = VG.fromList [0 .. n-1]
 
-onesVG n = VG.fromList (replicate n 1)
-zerosVG n = VG.fromList (replicate n 0)
+
+
+-- * Vector
+
+
+-- | filterMapV : if head of vector satisfies a predicate, apply a function to it
+
+filterMapV :: (a -> Bool) -> (a -> b) -> V.Vector a -> V.Vector b
+filterMapV _ _ vv
+  | V.null vv = V.empty
+filterMapV p f vv
+  | p x = V.cons (f x) $ filterMapV p f (V.tail vv) 
+  | otherwise = filterMapV p f (V.tail vv)
+  where
+      x = V.head vv
+
+
+
+
+
+
+
+
 
 
 
 
 -- * indexing and integer ranges, Data.Ix derived
 
-range0, range0Safe :: (Ix.Ix a, Num a) => a -> [a]
-range0 m = Ix.range (0, m)
 
-range0Safe m | m>=0 = range0 m
-             | otherwise = error "range0Safe : m must be >= 0"
 
 
 inRange0 :: Int -> Int -> Bool
@@ -144,21 +127,24 @@ safeIndicesV :: V.Vector a -> V.Vector Int -> Bool
 safeIndicesV w = V.all (inRange0 (V.length w))
 
 
+
+
+
+-- * index-data vector for sparse matrix assembly : V.Vector (Int, Int, a) 
+
+filterMapSafeIndicesV ::
+  Int -> Int -> ((Int, Int, a) -> b) -> V.Vector (Int, Int, a) -> V.Vector b
+filterMapSafeIndicesV m n = filterMapV (\(i,j,_) -> in0m m i && in0m n j)
+
+
+
+
+
 -- * indexing
 
-ifNegE :: (Ord a, Num a) => a -> b -> c -> Either b c 
-ifNegE n = ifThenElseE (n<0)
-
-listTooShortE :: Int -> [a] -> b -> c -> Either b c 
-listTooShortE n l = ifThenElseE (length (take n l) /= n)
 
 
 
-
-
-
-ifNeg :: Int -> a -> a -> a
-ifNeg n = ifThenElse (n < 0)
 
 listLongerThan :: Int -> [a] -> Bool
 listLongerThan n l = length (take n l) == n
@@ -199,9 +185,6 @@ inBoundsOrError n b x es
 
   
 
-
-ifNegError :: Int -> String -> a -> a
-ifNegError n es = ifNeg n (error es)
 
 
 

@@ -622,19 +622,19 @@ vecSetValuesUnsafeVector1A v ixy im = do
 -- -- given Vector w and Comm c: create Vec v (decide creation routine from input data), fill it from w, assemble v, return v :
 
 vecCreateMPIFromVector :: Comm -> Int -> V.Vector PetscScalar_ -> IO Vec
-vecCreateMPIFromVector comm nloc w = do
+vecCreateMPIFromVector cc nloc w = do
   let dimv = V.length w
-      ix = V.fromList $ range0 (dimv - 1)
-  v <- vecCreateMPI comm nloc dimv
+      ix = V.fromList [0 .. (dimv - 1)]
+  v <- vecCreateMPI cc nloc dimv
   vecSetValuesUnsafeVector v ix w InsertValues
   vecAssembly v
   return v
 
 vecCreateMPIFromVectorDecideLocalSize :: Comm -> V.Vector PetscScalar_ -> IO Vec
-vecCreateMPIFromVectorDecideLocalSize comm w = do
+vecCreateMPIFromVectorDecideLocalSize cc w = do
   let dimv = V.length w
-      ix = V.fromList $ range0 (dimv - 1)
-  v <- vecCreateMPIdecideLocalSize comm dimv
+      ix = V.fromList [0 ..(dimv - 1)]
+  v <- vecCreateMPIdecideLocalSize cc dimv
   vecSetValuesUnsafeVector v ix w InsertValues
   vecAssembly v
   return v

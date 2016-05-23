@@ -46,7 +46,7 @@ import qualified Numeric.AD as AD
 
 -- | test battery
 
-ts = [t1', t61', t61a', t7', t13a']
+ts = [t1', t7']
 testLabels = ["1", "61", "61a", "7", "13a"]  --- ugh
 
 
@@ -164,29 +164,29 @@ t1 = withPetsc0 t1'
 v0_ :: V.Vector (Int, Int, PetscScalar_)
 v0_ = V.zip3 vix viy va
 
-t6' n =
-  withMatNew commWorld n n MatAij vi InsertValues $ \m ->
-   matViewStdout m where
-     vi = csrAllNxN_ n    -- test mtx ( NB : dense )
+-- t6' n =
+--   withPetscMatrix commWorld n n MatAij vi InsertValues $ \m ->
+--    matViewStdout m where
+--      vi = csrAllNxN_ n    -- test mtx ( NB : dense )
  
-t6 = withPetsc0 $ t6' 5
+-- t6 = withPetsc0 $ t6' 5
 
 
-t61' = withMatNew commWorld 3 3 MatAij vi InsertValues $ \m -> -- do
-  -- (n, i_, v_) <- matViewRow m 0
-  -- print (n, i_, v_)
-  matViewStdout m where
-    vi = csrSome3
+-- t61' = withPetscMatrix commWorld 3 3 MatAij vi InsertValues $ \m -> -- do
+--   -- (n, i_, v_) <- matViewRow m 0
+--   -- print (n, i_, v_)
+--   matViewStdout m where
+--     vi = csrSome3
 
-t61 = withPetsc0 t61'
+-- t61 = withPetsc0 t61'
 
 
-t61a' = withMatCreateSetup commWorld 3 3 MatAij $ \mat -> do
-  matSeqAIJSetPreallocationConstNZPR mat 3
-  matSetValuesVector2 mat vi InsertValues
-  matAssembly mat
-  matViewStdout mat where
-    vi = csrAllNxN_ 3
+-- t61a' = withMatCreateSetup commWorld 3 3 MatAij $ \mat -> do
+--   matSeqAIJSetPreallocationConstNZPR mat 3
+--   matSetValuesVector2 mat vi InsertValues
+--   matAssembly mat
+--   matViewStdout mat where
+--     vi = csrAllNxN_ 3
 
 
 -- t62' nz = withMatAIJDecideConstNZPRNew commWorld 3 3 nz nz vi InsertValues $ \m -> do
@@ -404,25 +404,25 @@ t11 = withPetsc0  t11'
 -- mca = matCreateMPIAIJWithArrays comm ix iy v
 
 
-t13a' = 
-  withMatNew comm m n MatAij vv InsertValues $ \mat -> 
-    matViewStdout mat
-    where
-      comm = commWorld
-      m = 2
-      n = m
-      vv = V.fromList [(0,1,pi), (1,0, exp 1), (1,1, sqrt 2)]
+-- t13a' = 
+--   withPetscMatrix comm m n MatAij vv InsertValues $ \mat -> 
+--     matViewStdout mat
+--     where
+--       comm = commWorld
+--       m = 2
+--       n = m
+--       vv = V.fromList [(0,1,pi), (1,0, exp 1), (1,1, sqrt 2)]
 
-t13a = withPetsc0 t13a' 
+-- t13a = withPetsc0 t13a' 
 
-t13b = withSlepc0 t13a' 
+-- t13b = withSlepc0 t13a' 
 
 
 
 -- |  nesting PETSc and SLEPc
 
 -- t14 = withSlepc0 $ t6' 5
-t14 = withPetsc0 $ withSlepc0 t13a'
+-- t14 = withPetsc0 $ withSlepc0 t13a'
 
 
 
@@ -502,20 +502,20 @@ t14 = withPetsc0 $ withSlepc0 t13a'
 
 -- -- 1 : initialize, fill Jacobian matrix using AD and visualize it
 
-t18d1' = withMatNew c n n MatAij vcsr InsertValues $ \mat -> do
-  print jac
-  matViewStdout mat
-  where
-   c = commWorld
-   n = 3
-   fun v = V.fromList [exp (x*y), exp y, exp z] -- this works
-     where [x,y,z] = V.toList v
-   -- fun y = V.map exp y
-   xv = V.replicate n (1.0 :: PetscScalar_)
-   jac = AD.jacobian fun xv -- (V.map realToFrac . fun . V.map realToFrac) xv
-   vcsr = PSparse.vvToCSRsparse jac
+-- t18d1' = withMatNew c n n MatAij vcsr InsertValues $ \mat -> do
+--   print jac
+--   matViewStdout mat
+--   where
+--    c = commWorld
+--    n = 3
+--    fun v = V.fromList [exp (x*y), exp y, exp z] -- this works
+--      where [x,y,z] = V.toList v
+--    -- fun y = V.map exp y
+--    xv = V.replicate n (1.0 :: PetscScalar_)
+--    jac = AD.jacobian fun xv -- (V.map realToFrac . fun . V.map realToFrac) xv
+--    vcsr = PSparse.vvToCSRsparse jac
 
-t18d1 = withPetsc0 t18d1'
+-- t18d1 = withPetsc0 t18d1'
 
 -- -- 2 : ", passing in a function to be differentiated as a parameter
 
@@ -629,6 +629,17 @@ t19 = withPetsc0 $
 
 
 
+t20 = withPetsc0 $
+  withPetscMatrix cw m n MatAij vv (ConstNZPR (2,2)) InsertValues $ \mat -> do
+   let (_, _, _, matm) = fromPetscMatrix mat
+   matViewStdout matm
+  where
+    cw = commWorld
+    (m, n) = (3, 3)
+    vv = csrAllNxN_ 3
+
+
+
 
 -- | test data
 
@@ -656,7 +667,7 @@ csrAllNxN_ n = V.zip3 x y a where
   a = V.fromList [0 .. nc^2-1 :: PetscScalar_ ] where
     nc = fromIntegral n
 
--- csrSome3 :: V.Vector (Int, Int, PetscScalar_)
+csrSome3 :: V.Vector (Int, Int, PetscScalar_)
 csrSome3 = V.zip3 x y a where
   x = V.fromList [2, 0, 1]
   y = V.fromList [1, 1, 2]

@@ -121,7 +121,7 @@ petscMatrixCreate cc m n mty ixd nz imode = do
   let mib = MatrixInfoBase cc m n
       mixd = MatrixDataZ ixd
   mat <- matCreateAdapter cc m n mty nz
-  matSetValueVectorSafe mat (m, n) ixd imode
+  matSetValuesVectorSafe2 mat (m, n) ixd imode
   matAssembly mat
   let pm = PetscMatrix mib nz mixd mat
   return pm
@@ -221,22 +221,7 @@ matCreate c = chk1 (matCreate' c)
 
 
 
-matCreateAIJDecideConstNZPR :: Comm -> NumRows -> NumCols -> Int -> Int -> IO Mat
-matCreateAIJDecideConstNZPR c mm nn dnz onz =
-  chk1 (matCreateAIJ0DecideConstNZPR' c mmc nnc dnzc onzc) where
-    mmc = toCInt mm
-    nnc = toCInt nn
-    dnzc = toCInt dnz
-    onzc = toCInt onz
 
-matCreateAIJDecideVarNZPR ::
-  Comm -> Int -> Int -> V.Vector Int -> V.Vector Int -> IO Mat
-matCreateAIJDecideVarNZPR cc mm nn dnnz onnz =
-    chk1 (matCreateAIJ0DecideVarNZPR' cc mmc nnc dnnzc onnzc) where
-    dnnzc = V.convert $ V.map toCInt dnnz
-    onnzc = V.convert $ V.map toCInt onnz
-    mmc = toCInt mm
-    nnc = toCInt nn
 
 
 
@@ -321,32 +306,10 @@ withMatCreateSetup c m n ty after = withMatCreate c $ \mat -> do
   
 -- -- create, setup AND fill
 
--- -- | withMatNew :  creation, setup, fill, use, cleanup ; batteries included
-withMatNew ::
-  Comm ->                               -- MPI communicator
-  NumRows ->                                -- # rows
-  NumCols ->                                -- # cols
-  MatType_ ->
-  V.Vector (Int, Int, PetscScalar_) ->  -- (rowIdx, colIdx, value)
-  InsertMode_ ->                        -- `InsertValues` or `AddValues`
-  (Mat -> IO a) ->                      -- bracket body
-  IO a 
-withMatNew c m n ty v_ imode after =
-  withMatCreateSetup c m n ty $ \mat -> 
-    withMatSetValueVectorSafe mat m n v_ imode after
 
 
--- withMatAIJDecideConstNZPRNew ::
---   Comm ->
---   Int -> Int ->                        -- # rows, columns
---   Int -> Int ->                        -- # nonzeros: on- and off-diagonal
---   V.Vector (Int, Int, PetscScalar_) -> -- (row, col, value)
---   InsertMode_ ->                       -- InsertValues | AddValues
---   (Mat -> IO a) ->                     -- what to do with mat AFTER assembly
---   IO a
--- withMatAIJDecideConstNZPRNew c mm nn dnz onz v_ imode after =
---   withMatAIJDecideConstNZPRCreate c mm nn dnz onz $ \mat ->
---    withMatSetValueVectorSafe mat mm nn v_ imode after
+
+
    
 
 -- -- -- | withMatSetValueVectorSafe :  fill + setup Mat with index bound checks
@@ -359,7 +322,7 @@ withMatSetValueVectorSafe ::
   (Mat -> IO a) ->                            -- after assembly
   IO a
 withMatSetValueVectorSafe mat m n v_ imode after = do
-  matSetValueVectorSafe mat (m, n) v_ imode
+  matSetValuesVectorSafe2 mat (m, n) v_ imode
   matAssembly mat
   after mat 
 
@@ -377,24 +340,7 @@ matSetDiagonalVectorSafe mat m v = withMatSetValueVectorSafe mat m m (vvDiag m v
 
 
 
--- {- -- BROKEN due to matSetValuesVector, see t5 -}
--- withMatSetupSetValuesAssembly ::  
---   IO Mat ->
---   Int -> Int ->              -- Mat sizes
---   V.Vector Int ->            -- i indices
---   V.Vector Int ->            -- j " 
---   V.Vector PetscScalar_ ->   -- mat values
---   InsertMode_ ->             
---   (Mat -> IO a) ->
---   IO a
--- withMatSetupSetValuesAssembly mc m n ix iy vals imode after =
---   withMat mc $ \mat -> do
---    -- matSetSizes mat m n
---    matSetup mat
---    matSetValuesVectorSafe mat ix iy vals imode      
---    matAssembly mat
---    after mat
--- {- -- -}
+
 
 
 
@@ -448,32 +394,9 @@ matSetValueVectorSafe m (mx, my) v_ mode =
 
 
 
-matSetValuesVector1 ::
-  Mat ->
-  V.Vector IdxRow ->
-  V.Vector IdxCol ->
-  V.Vector PetscScalar_ ->
-  InsertMode_ ->
-  Int -> 
-  IO ()
-matSetValuesVector1 ma ix iy iv im len =
-  unsafeWithVS ix' $ \ixp ->
-  unsafeWithVS iy' $ \iyp ->
-  unsafeWithVS iv $ \ivp -> chk0 (matSetValues0' ma nx ixp ny iyp ivp im)
-   where
-     -- (nx, ny) = both (V.length ix, V.length iy) toCInt
-     (nx, ny) = both (len, len) toCInt
-     ix' = V.map toCInt ix
-     iy' = V.map toCInt iy
 
-matSetValuesVector ::
-  Mat ->
-  V.Vector (IdxRow, IdxCol, PetscScalar_) ->
-  InsertMode_ ->
-  IO ()
-matSetValuesVector m iyv im = matSetValuesVector1 m ix iy iv im l where
-  (ix, iy, iv) = V.unzip3 iyv
-  l = V.length iyv
+
+
 
 
 
@@ -482,64 +405,44 @@ matSetValuesVector m iyv im = matSetValuesVector1 m ix iy iv im l where
 
 -- | matSetValues using inline-c vecCtx
 
-matSetValuesVector2 ::
+-- matSetValuesVectorSafe2 ::
+--   Mat ->
+--   (NumRows, NumCols) -> 
+--   V.Vector (IdxRow, IdxCol, PetscScalar_) ->
+--   InsertMode_ ->
+--   IO ()
+-- matSetValuesVectorSafe2 m (nrows, ncols) iyvu imode =
+--   chk0 (matSetValues0vc' m ix iy iv imode)
+--   where
+--   iyv = filterMapSafeIndicesV nrows ncols (\(i,j,v) -> (toCInt i,toCInt j,v)) iyvu
+--   (ixs_, iys_, ivs_) = V.unzip3 iyv
+--   ix = V.convert ixs_
+--   iy = V.convert iys_
+--   iv = V.convert ivs_
+
+matSetValuesVectorSafe2 ::
   Mat ->
-  V.Vector (Int, Int, PetscScalar_) ->
+  (NumRows, NumCols) -> 
+  V.Vector (IdxRow, IdxCol, PetscScalar_) ->
   InsertMode_ ->
   IO ()
-matSetValuesVector2 m iyv imode = chk0 (matSetValues0vc' m nx ix ny iy iv imode) where
-  nx = toCInt l
-  ny = nx
-  l = V.length iyv
-  (ixs, iys, ivs) = V.unzip3 iyv
-  ix = V.convert (VG.map toCInt ixs)
-  iy = V.convert (VG.map toCInt iys)
-  iv = V.convert ivs
+matSetValuesVectorSafe2 mat (nrow, ncol) z_ imode =
+  VS.unsafeWith (V.convert ix) $ \ixp ->
+  VS.unsafeWith (V.convert iy) $ \iyp ->
+  VS.unsafeWith (V.convert iv) $ \ivp ->
+     chk0 $ matSetValues0' mat nx ixp ny iyp ivp imode where
+  (nx, ny) = (toCInt $ V.length ix, toCInt $ V.length iy)
+  (ix, iy, iv) = V.unzip3 zu
+  zu = filterMapSafeIndicesV nrow ncol (\(i,j,v) -> (toCInt i,toCInt j,v)) z_
 
 
 
 
 
-{-| the matSetValues Vector interface is broken (see t5) -}
 
-{-| -- --     DO NOT USE      -- --  -}
 
--- matSetValuesVector ::
---   Mat ->
---   V.Vector Int ->
---   V.Vector Int ->
---   V.Vector PetscScalar_ ->
---   InsertMode_ ->
---   IO ()
--- matSetValuesVector m x y v = msvv0 m nx0 ny0 xc yc vc
---   where
---     xc = V.convert $ V.map toCInt x :: VS.Vector CInt
---     yc = V.convert $ V.map toCInt y :: VS.Vector CInt
---     vc = V.convert v :: VS.Vector PetscScalar_
---     nx0 = toCInt $ V.length x
---     ny0 = toCInt $ V.length y
---     msvv0 ma nx ny idxx idxy vals im =
---       VS.unsafeWith idxx $ \ix ->
---       VS.unsafeWith idxy $ \iy ->
---       VS.unsafeWith vals $ \iv -> chk0 (matSetValues0' ma nx ix ny iy iv im)
 
--- matSetValuesVectorSafe ::
---   Mat ->
---   V.Vector Int ->
---   V.Vector Int ->
---   V.Vector PetscScalar_ ->
---   InsertMode_ ->
---   IO ()
--- matSetValuesVectorSafe m ix iy v
---   | c1 && c2 = matSetValuesVector m ix iy v
---   | otherwise = error "matSetValuesVectorSafe : incompatible indices"
---      where
---        (mx, my) = matSize m
---        (lx, ly) = (V.length ix, V.length iy)
---        c1 = lx == ly
---        c2 = allIn0mV mx ix && allIn0mV my iy
 
-{-| --    UNTIL HERE    -}
 
 
 
