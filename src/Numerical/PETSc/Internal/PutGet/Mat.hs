@@ -440,7 +440,7 @@ modifyMat mm vv imode = do
   matAssembly mat
    where
      (mib, _, _, mat) = fromPetscMatrix mm
-     (m, n) = (matRows &&& matCols) mib
+     (m, n) = (matRows mib, matCols mib) -- (matRows &&& matCols) mib
 
 
 
@@ -665,11 +665,7 @@ matViewRows mat r_ = forM r_ $ \r -> do
   x <- matViewRow mat r
   return (r, x)
 
--- matMkMatCSR :: Mat -> [Int] -> IO MatCSR
--- matMkMatCSR m r_ = liftM (MatCSR . IM.fromList) (matViewRows m r_)
 
-
--- data MatCSR = MatCSR {unMatCSR :: IM.IntMap (Int, VS.Vector CInt, VS.Vector PetscScalar_) } deriving (Eq, Show)
 
 
 
