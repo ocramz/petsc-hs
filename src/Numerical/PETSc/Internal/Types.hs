@@ -464,11 +464,12 @@ data KspConvergedReason = KspConvergedRtolNormal | KspConvergedAtolNormal
                         | KspConvergedCgConstrained | KspConvergedStepLength
                         | KspConvergedHappyBreakdown
                         | KspDivergedNull | KspDivergedIts | KspDivergedDtol
-                        | KspDivergedBreak
-                        | KspDivergedBreakBicg | KspDivergedNonsymm
+                        | KspDivergedBreakdown
+                        | KspDivergedBreakdownBicg | KspDivergedNonsymm
                         | KspDivergedIndefPC
                         | KspDivergedNaNorInf | KspDivergedIndefMat
-                        | KspCConvergedIterating
+                        | KspDivergedPCSetupFailed
+                        | KspConvergedIterating
                         deriving (Eq, Show, Enum)
 
 kspConvergedIntToReason :: Int -> KspConvergedReason
@@ -484,6 +485,17 @@ kspConvergedIntToReason r =
             8    -> KspConvergedHappyBreakdown
             (-2) -> KspDivergedNull
             (-3) -> KspDivergedIts
+            (-4) -> KspDivergedDtol
+            (-5) -> KspDivergedBreakdown
+            (-6) -> KspDivergedBreakdownBicg
+            (-7) -> KspDivergedNonsymm
+            (-8) -> KspDivergedIndefPC
+            (-9) -> KspDivergedNaNorInf
+            (-10)-> KspDivergedIndefMat
+            (-11)-> KspDivergedPCSetupFailed
+            0    -> KspConvergedIterating
+            n    -> error $ "KSP returned an unknown code " ++ show n
+            
 
 
 
@@ -584,7 +596,6 @@ data SnesConvergedReason = SnesConvergedFnormAbs
                            | SnesDivergedInnerSolve  
                            | SnesDivergedLocalMin  
                            | SnesConvergedIterating
-                           | SnesOtherReason Int
                               deriving (Eq, Show)  
 
 snesConvergedIntToReason :: Int -> SnesConvergedReason
@@ -619,7 +630,7 @@ snesConvergedIntToReason x =
     (-8) -> SnesDivergedLocalMin
 --               SNES_CONVERGED_ITERATING          =  0} SNESConvergedReason;
     0 -> SnesConvergedIterating
-    n -> SnesOtherReason n
+    n -> error $ "SNES returned an unknown code " ++ show n
 
 
 
@@ -657,7 +668,7 @@ tsTypeToString t = case t of TsEuler -> "euler"
 
 data TsConvergedReason_ = TsConvergedIterating | TsConvergedTime | TsConvergedIts
                         | TsConvergedUser | TsConvergedEvent | TsDivergedNonlinSolve
-                        | TsDivergedStepRejected | TsUndefinedConvergenceCase
+                        | TsDivergedStepRejected
                         deriving (Eq, Enum, Show)
 
 tsConvergedIntToReason :: CInt -> TsConvergedReason_
@@ -669,7 +680,7 @@ tsConvergedIntToReason c = case fi c of
   4 -> TsConvergedEvent
   (-1) -> TsDivergedNonlinSolve
   (-2) -> TsDivergedStepRejected
-  _ -> TsUndefinedConvergenceCase
+  n -> error $ "TS returned an unknown code " ++ show n
 
 -- typedef enum {TS_EXACTFINALTIME_STEPOVER=0,TS_EXACTFINALTIME_INTERPOLATE=1,TS_EXACTFINALTIME_MATCHSTEP=2} TSExactFinalTimeOption;
  -- TS_EXACTFINALTIME_STEPOVER    - Don't do anything if final time is exceeded
@@ -708,7 +719,8 @@ data TaoConvergedReason_ = TaoConvFaTol | TaoConvFrTol | TaoConvGaTol
                          | TaoConvGrTol | TaoConvGtTol
                          | TaoConvStepTol | TaoConvMinF | TaoConvUser
                          | TaoDivMaxIts | TaoDivNan | TaoDivMaxFcn | TaoDivLsFail
-                         | TaoDivTrReduct | TaoDivUser deriving (Eq,Show,Enum)
+                         | TaoDivTrReduct | TaoDivUser
+                         deriving (Eq,Show,Enum)
 
 taoConvergedIntToReason :: Int -> TaoConvergedReason_
 taoConvergedIntToReason x =
@@ -726,7 +738,7 @@ taoConvergedIntToReason x =
             (-6) -> TaoDivLsFail
             (-7) -> TaoDivTrReduct
             (-8) -> TaoDivUser
-            _ -> TaoDivUser
+            n -> error $ "TAO returned an unknown code " ++ show n
 
 
 
