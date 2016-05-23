@@ -794,24 +794,7 @@ epsTypeToStr et = showDropN 3 (et :: EpsType_)
 
 
 
--- typedef const char* EPSType;
--- #define EPSPOWER       "power"
--- #define EPSSUBSPACE    "subspace"
--- #define EPSARNOLDI     "arnoldi"
--- #define EPSLANCZOS     "lanczos"
--- #define EPSKRYLOVSCHUR "krylovschur"
--- #define EPSGD          "gd"
--- #define EPSJD          "jd"
--- #define EPSRQCG        "rqcg"
--- #define EPSLOBPCG      "lobpcg"
--- #define EPSCISS        "ciss"
--- #define EPSLAPACK      "lapack"
--- #define EPSARPACK      "arpack"
--- #define EPSBLZPACK     "blzpack"
--- #define EPSTRLAN       "trlan"
--- #define EPSBLOPEX      "blopex"
--- #define EPSPRIMME      "primme"
--- #define EPSFEAST       "feast"
+
 
 
 
