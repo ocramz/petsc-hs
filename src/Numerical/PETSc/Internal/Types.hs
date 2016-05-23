@@ -390,7 +390,9 @@ cIntToDmBoundaryType c =
             3 -> DmBPeriodic
             4 -> DmBTwist
             _ -> DmBNone -- default
-  where g = fromIntegral (c :: CInt)
+  where
+    g :: Int
+    g = fromIntegral (c :: CInt)
 
 
 -- -- * DMDA
@@ -403,7 +405,9 @@ cIntToDmdaStencilType c =
   case g of 0 -> DmSStar
             1 -> DmSBox
             _ -> DmSStar -- default
-  where g = fromIntegral (c :: CInt)
+  where
+    g :: Int
+    g = fromIntegral (c :: CInt)
 
 
 

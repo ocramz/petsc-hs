@@ -2498,9 +2498,9 @@ snesSetJacobian_' ::
 snesSetJacobian_' snes amat pmat f =
   snesSetJacobian0_' snes amat pmat f' where
     f' s v a p _ = f s v a p
-    snesSetJacobian0_' snes_ amat_ pmat_ f =
+    snesSetJacobian0_' snes_ amat_ pmat_ fc =
       [C.exp|int{SNESSetJacobian($(SNES snes_),$(Mat amat_),$(Mat pmat_),
-                             $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)), NULL)}|]
+                             $fun:(int (*fc)(SNES,Vec,Mat,Mat,void*)), NULL)}|]
 
 
 -- -- monomorphic SNESSetJacobian : see e.g. www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex5s.c.html
