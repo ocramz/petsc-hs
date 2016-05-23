@@ -427,6 +427,24 @@ matSetValueVectorSafe mat (mx, my) v_ mode =
 
 
 
+
+-- | modify Mat
+
+modifyMat ::
+  PetscMatrix PetscScalar_ ->
+  V.Vector (IdxRow, IdxCol, PetscScalar_) ->
+  InsertMode_ ->
+  IO ()
+modifyMat mm vv imode = do
+  matSetValueVectorSafe mat (m, n) vv imode
+  matAssembly mat
+   where
+     (mib, _, _, mat) = fromPetscMatrix mm
+     (m, n) = (matRows &&& matCols) mib
+
+
+
+
     
 
 
