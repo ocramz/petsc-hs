@@ -2071,17 +2071,7 @@ kspDestroy' k = with k $ \pp -> [C.exp| int{KSPDestroy($(KSP *pp))}  |]
 -- -- nb this is just a reference; it becomes invalid after exiting the withKsp bracket -> we need a `withVecDuplicateCopy` outside withKspSolve to allocate space for the solution 
 
 
--- withKsp cs $ \ksp -> do
-     --   kspSetOperators ksp mat mat
-     --   kspSetType ksp km 
-     --   kspSetInitialGuessNonzero ksp True
-     --   kspSetUp ksp
-     --   kspSolve ksp x v
-     --   soln <- kspGetSolution ksp
-     --   -- vecViewStdout soln
-     --   showKspStats ksp km
-     --   -- kspReasonView ksp
-     --   -- return soln
+
 
 kspSetOperators' :: KSP -> Mat -> Mat -> IO CInt
 kspSetOperators' ksp amat pmat =
@@ -2497,9 +2487,9 @@ snesSetJacobian' :: SNES
 snesSetJacobian' snes amat pmat f =
   snesSetJacobian0' snes amat pmat f' where
     f' s v a p _ = f s v a p
-    snesSetJacobian0' snes_ amat_ pmat_ f ctx =
+    snesSetJacobian0' snes_ amat_ pmat_ fc ctx =
       [C.exp|int{SNESSetJacobian($(SNES snes_),$(Mat amat_),$(Mat pmat_),
-                             $fun:(int (*f)(SNES,Vec,Mat,Mat,void*)),$(void* ctx))}|]
+                         $fun:(int (*fc)(SNES,Vec,Mat,Mat,void*)),$(void* ctx))}|]
 
 
 
@@ -3461,10 +3451,9 @@ taoComputeObjective' tao v =
 -- PETSC_EXTERN PetscErrorCode TaoComputeSeparableObjective(Tao, Vec, Vec);
 
 -- PETSC_EXTERN PetscErrorCode TaoComputeGradient(Tao, Vec, Vec);
-taoComputeGradient' :: Tao -> Vec -> IO (Vec, CInt)
-taoComputeGradient' tao v =
- -- -- -- -- DIRTY HACK WARNING: will it work?
-  withPtr (\p -> [C.exp|int{TaoComputeGradient($(Tao tao),$(Vec v),$(Vec* p))}|] ) 
+taoComputeGradient0' :: Tao -> Vec -> Vec -> IO CInt
+taoComputeGradient0' tao v g=
+  [C.exp|int{TaoComputeGradient($(Tao tao),$(Vec v),$(Vec g))}|] 
   
 -- PETSC_EXTERN PetscErrorCode TaoComputeObjectiveAndGradient(Tao, Vec, PetscReal*, Vec);
 -- PETSC_EXTERN PetscErrorCode TaoComputeConstraints(Tao, Vec, Vec);
@@ -3821,7 +3810,7 @@ petscGetVersion0' version szt =
 -- -- PETSC_EXTERN PetscErrorCode PetscErrorMessage(int,const char*[],char **);
 petscErrorMessage' :: CInt -> Ptr (Ptr CChar) -> IO CInt
 petscErrorMessage' nn mp =
-  [C.exp|int{PetscErrorMessage($(int nn), $(char** mp), NULL)} |]
+  [C.exp|int{PetscErrorMessage($(int nn), $(const char** mp), NULL)} |]
 
 
 
@@ -3895,12 +3884,10 @@ petscSynchronizedPrintf' cc s = withCString s ( \s_ ->
   [C.exp|int{PetscSynchronizedPrintf($(int c), $(char* s_))}|] )
     where c = unComm cc
 
--- petscSynchronizedFlushStdout comm =
---   [C.exp|int{PetscSynchronizedFlush($(int c),PETSC_STDOUT )}|]
---     where c = unComm comm
-petscSynchronizedFlushStdout :: Comm -> IO CInt
-petscSynchronizedFlushStdout cc =
-  [C.exp|int{PetscSynchronizedFlush($(int c), 0 )}|]
+
+petscSynchronizedFlushStdout' :: Comm -> IO CInt
+petscSynchronizedFlushStdout' cc =
+  [C.exp|int{PetscSynchronizedFlush($(int c), 0 )}|] -- 0 == PETSC_STDOUT
     where c = unComm cc
 
 

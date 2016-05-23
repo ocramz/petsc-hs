@@ -18,6 +18,8 @@ import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
+import Numerical.PETSc.Internal.PutGet.Vec
+
 import Foreign
 import Foreign.C.Types
 
@@ -38,13 +40,14 @@ import qualified Data.Vector.Storable as V (unsafeWith, unsafeFromForeignPtr, un
 
 
 taoCreate :: Comm -> IO Tao
-taoCreate comm = chk1 $ taoCreate' comm
+taoCreate cc = chk1 $ taoCreate' cc
 
-taoDestroy :: Tao -> IO ()
-taoDestroy tao = chk0 $ taoDestroy' tao
+
 
 withTao :: IO Tao -> (Tao -> IO a) -> IO a
-withTao mc = bracket mc taoDestroy
+withTao mc = bracket mc taoDestroy where
+  taoDestroy :: Tao -> IO ()
+  taoDestroy tao = chk0 $ taoDestroy' tao
 
 withTaoCreate :: Comm -> (Tao -> IO a) -> IO a
 withTaoCreate c = withTao (taoCreate c)
@@ -108,8 +111,19 @@ taoGetSolutionVector tao = chk1 $ taoGetSolutionVector' tao
 taoComputeObjective :: Tao -> Vec -> IO PetscReal_
 taoComputeObjective tao v = chk1 $ taoComputeObjective' tao v
 
-taoComputeGradient :: Tao -> Vec -> IO Vec
-taoComputeGradient tao v = chk1 $ taoComputeGradient' tao v
+taoComputeGradient0 :: Tao -> Vec -> Vec -> IO ()
+taoComputeGradient0 tao v p = chk0 $ taoComputeGradient0' tao v p
+
+-- | allocation bracket for a gradient vector
+withTaoComputeGradient ::
+  Tao ->
+  Vec ->                         -- point at which to evaluate gradient
+  (Tao -> Vec -> Vec -> IO a) -> -- 
+  IO a
+withTaoComputeGradient tao v act = withVecDuplicate v $ \p -> do
+  taoComputeGradient0 tao v p
+  act tao v p
+
 
 taoIsObjectiveDefined, taoIsGradientDefined :: Tao -> IO PetscBool
 taoIsObjectiveDefined tao = chk1 $ taoIsObjectiveDefined' tao
