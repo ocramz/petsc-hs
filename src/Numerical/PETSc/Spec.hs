@@ -57,7 +57,7 @@ t_vecDot_r2_1 =
 
 t_linSys_r3_1 = describe "t_linSys_r3_1" $
   it "solves a 3x3 linear system" $
-   withPetscMatrix com m n ixd nz InsertValues $ \mat ->
+   withPetscMatrix com m n MatAij ixd nz InsertValues $ \mat ->
     withVecNew com vd $ \rhs -> do
      let (_, _, _, mu) = fromPetscMatrix mat
      withKspSetupSolveAlloc com KspGmres mu mu rhs $ \ksp soln -> do

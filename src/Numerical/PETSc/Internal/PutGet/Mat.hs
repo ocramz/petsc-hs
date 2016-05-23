@@ -73,7 +73,7 @@ fromPetscMatrix (PetscMatrix mib nz md m) = (mib, nz, md, m)
 type DNZ = Int -- diagonal
 type ONZ = Int -- off-diagonal
 data NZPR = ConstNZPR (DNZ, ONZ)
-          | VarNZPR (V.Vector DNZ, V.Vector ONZ) deriving (Eq, Show) 
+          | VarNZPR (VS.Vector DNZ, VS.Vector ONZ) deriving (Eq, Show) 
 
 type NumRows = Int
 type NumCols = Int
@@ -112,15 +112,16 @@ petscMatrixCreate
   :: Comm
      -> NumRows
      -> NumCols
+     -> MatType_
      -> V.Vector (IdxRow, IdxCol, PetscScalar_)
      -> NZPR
      -> InsertMode_
 --      -> (Comm -> NumRows -> NumCols -> NZPR -> IO Mat)  -- Mat creation routine
      -> IO (PetscMatrix PetscScalar_)
-petscMatrixCreate c m n ixd nz imode = do
-  let mib = MatrixInfoBase c m n
+petscMatrixCreate cc m n mty ixd nz imode = do
+  let mib = MatrixInfoBase cc m n
       mixd = MatrixDataZ ixd
-  mat <- matNZadapt c m n nz
+  mat <- matCreateAdapter cc m n mty nz
   matSetValueVectorSafe mat (m, n) ixd imode
   matAssembly mat
   let pm = PetscMatrix mib nz mixd mat
@@ -133,25 +134,39 @@ withPetscMatrix
   :: Comm
      -> NumRows
      -> NumCols
+     -> MatType_
      -> V.Vector (IdxRow, IdxCol, PetscScalar_)
      -> NZPR
      -> InsertMode_
-     -- -> (Comm -> NumRows -> NumCols -> NZPR -> IO Mat) -- matCreate...
      -> (PetscMatrix PetscScalar_ -> IO c)
      -> IO c
-withPetscMatrix cc m n ixd nz imode =
-  bracket (petscMatrixCreate cc m n ixd nz imode) petscMatrixDestroy
+withPetscMatrix cc m n mty ixd nz imode =
+  bracket (petscMatrixCreate cc m n mty ixd nz imode) petscMatrixDestroy
     
 
 
 -- | adapter for matrix creation w constant/variable row sparsity pattern
 
-matNZadapt :: Comm -> NumRows -> NumCols -> NZPR -> IO Mat
-matNZadapt cc m n (ConstNZPR (dnz, onz)) =
-  matCreateAIJDecideConstNZPR cc m n dnz onz
-matNZadapt cc m n (VarNZPR (dnnz, onnz)) =
-  matCreateAIJDecideVarNZPR cc m n dnnz onnz
+-- matNZadapt :: Comm -> NumRows -> NumCols -> NZPR -> IO Mat
+-- matNZadapt cc m n (ConstNZPR (dnz, onz)) =
+--   matCreateAIJDecideConstNZPR cc m n dnz onz
+-- matNZadapt cc m n (VarNZPR (dnnz, onnz)) =
+--   matCreateAIJDecideVarNZPR cc m n dnnz onnz
 
+
+-- |
+matCreateAdapter :: Comm -> NumRows -> NumCols -> MatType_ -> NZPR -> IO Mat
+matCreateAdapter cc m n mty nz = do
+  mat <- matCreate cc
+  matSetType mat mty
+  matSetSizes mat m n 
+  case mty of
+    MatAij ->
+     case nz of
+      (ConstNZPR (dnz, onz)) -> matMPIAIJSetPreallocationConstNZPR mat dnz onz
+      (VarNZPR (dnnz, onnz)) -> matMPIAIJSetPreallocationVarNZPR mat dnnz onnz
+  matSetup mat
+  return mat
 
 
 
@@ -619,12 +634,12 @@ matMPIAIJSetPreallocationDiagonal mat =
 
 
 
-matMPIAIJSetPreallocationVarNZPR :: Mat -> VS.Vector CInt -> VS.Vector CInt -> IO ()
+-- matMPIAIJSetPreallocationVarNZPR :: Mat -> VS.Vector CInt -> VS.Vector CInt -> IO ()
 matMPIAIJSetPreallocationVarNZPR mat dnnz onnz =
-  chk0 (matMPIAIJSetPreallocationVarNZPR' mat dnnz onnz)
-  -- where
-  --   dnnz' = VG.map toCInt dnnz
-  --   onnz' = VG.map toCInt onnz
+  chk0 (matMPIAIJSetPreallocationVarNZPR' mat dnnz' onnz')
+  where
+    dnnz' = VG.map toCInt dnnz
+    onnz' = VG.map toCInt onnz
 
 
 
@@ -871,7 +886,7 @@ validDims mi (VarNZPR (dnnz, onnz)) =
   validDims' mi &&
   -- V.length dnnz == matRows mi &&
   -- V.length onnz == matCols mi &&
-  V.all withinCols dnnz && V.all withinCols onnz where
+  VG.all withinCols dnnz && VG.all withinCols onnz where
     withinCols x = x >= 0 && x <= matCols mi
     
 
