@@ -117,14 +117,11 @@ petscOutcome :: CInt -> Either PetscErrCode_ PetscSafeErrCode_
 petscOutcome n | n==0 = Right NoError0
                | n==256 = Right NoError256
                | n==8288 = Right NoError8288  
-               | errCodeInBounds n = Left e
+               | n < maxErrCode && n >= minErrCode = Left (petscErrCodeFromInt n)
                | otherwise = error (unforeseenErrCodeStr n)
   where
-    e = petscErrCodeFromInt n
-    errCodeInBounds ec = ec < maxErrCode && ec >= minErrCode
-     where
-       maxErrCode = 90
-       minErrCode = 55
+    maxErrCode = 90
+    minErrCode = 55
 
 
 chk1 :: IO (b, CInt) -> IO b
