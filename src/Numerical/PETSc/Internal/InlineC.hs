@@ -2174,119 +2174,119 @@ pcSetType' pc pct = withCString t $ \tp -> [C.exp|int{PCSetType($(PC pc),$(char*
 
 -- * PF
 
--- PetscErrorCode  PFCreate(MPI_Comm comm,PetscInt dimin,PetscInt dimout,PF *pf)
--- Collective on MPI_Comm
--- Input Parameters :
--- comm	- MPI communicator
--- dimin	- dimension of the space you are mapping from
--- dimout	- dimension of the space you are mapping to
-pfCreate' :: Comm -> Int -> Int -> IO (PF, CInt)
-pfCreate' cc dimin dimout = withPtr ( \pf ->[C.exp|int{PFCreate($(int c),$(int diminc),$(int dimoutc),$(PF*pf) )}|] ) 
-  where
-    c = unComm cc
-    diminc = toCInt dimin
-    dimoutc = toCInt dimout
+-- -- PetscErrorCode  PFCreate(MPI_Comm comm,PetscInt dimin,PetscInt dimout,PF *pf)
+-- -- Collective on MPI_Comm
+-- -- Input Parameters :
+-- -- comm	- MPI communicator
+-- -- dimin	- dimension of the space you are mapping from
+-- -- dimout	- dimension of the space you are mapping to
+-- pfCreate' :: Comm -> Int -> Int -> IO (PF, CInt)
+-- pfCreate' cc dimin dimout = withPtr ( \pf ->[C.exp|int{PFCreate($(int c),$(int diminc),$(int dimoutc),$(PF*pf) )}|] ) 
+--   where
+--     c = unComm cc
+--     diminc = toCInt dimin
+--     dimoutc = toCInt dimout
 
--- PetscErrorCode  PFDestroy(PF *pf)
-pfDestroy' :: PF -> IO CInt
-pfDestroy' pf = with pf $ \pfp -> [C.exp|int{PFDestroy($(PF* pfp))}|]
+-- -- PetscErrorCode  PFDestroy(PF *pf)
+-- pfDestroy' :: PF -> IO CInt
+-- pfDestroy' pf = with pf $ \pfp -> [C.exp|int{PFDestroy($(PF* pfp))}|]
 
--- PETSC_EXTERN PetscErrorCode DMDACreatePF(DM,PF*);
-dmdaCreatePF' :: DM -> IO (PF, CInt)
-dmdaCreatePF' dm = withPtr (\pf -> [C.exp|int{DMDACreatePF($(DM dm),$(PF*pf))}|]) 
+-- -- PETSC_EXTERN PetscErrorCode DMDACreatePF(DM,PF*);
+-- dmdaCreatePF' :: DM -> IO (PF, CInt)
+-- dmdaCreatePF' dm = withPtr (\pf -> [C.exp|int{DMDACreatePF($(DM dm),$(PF*pf))}|]) 
 
--- PETSC_EXTERN PetscErrorCode PFSetType(PF,PFType,void*);
--- pfSetType' :: PF -> PFType_ -> Ptr () -> IO CInt
-pfSetType' pf t o = -- not sure how to represent the pointer to void 
-  withCString tstr (\tp->   [C.exp|int{PFSetType($(PF pf),$(char*tp),$(void*o))}|]
-                   )  where
-  tstr = pfTypeToStr t
-
-
--- PETSC_EXTERN PetscErrorCode PFSet(
--- PF,
--- PetscErrorCode(*)(void*,PetscInt,const PetscScalar*,PetscScalar*),
--- PetscErrorCode(*)(void*,Vec,Vec),PetscErrorCode(*)(void*,PetscViewer),
--- PetscErrorCode(*)(void*),void*);     -- Collective on PF
--- Input Parameters :
--- pf	- the function context
--- apply	- function to apply to an array
--- applyvec	- function to apply to a Vec
--- view	- function that prints information about the PF
--- destroy	- function to free the private function context
--- ctx	- private function context
-pfSet0' pf apply applyvec view destroy ctx =
-  [C.exp|int{PFSet($(PF pf),
-                   $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
-                   $fun:(int(*applyvec)(void*, Vec, Vec)),
-                   $fun:(int(*view)(void*, int )),
-                   $fun:(int(*destroy)(void*)),
-                   $(void*ctx)
-                  )}
-        |]
-
-pfSet0nc' pf apply applyvec view destroy ctx =
-  [C.exp|int{PFSet($(PF pf),
-                   $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
-                   $fun:(int(*applyvec)(void*, Vec, Vec)),
-                   $fun:(int(*view)(void*, int )),
-                   $fun:(int(*destroy)(void*)),
-                   NULL
-                  )}
-        |]
-
-pfSet1' pf apply applyvec viewf destroyf =
-  pfSet0nc' pf f1 f2 f3 f4 where
-    f1 _ = apply
-    f2 _ = applyvec
-    f3 _ = viewf
-    f4 _ = destroyf
-    -- apply' :: PetscInt_ -> [PetscScalar_] -> [PetscScalar_] -> IO CInt
-    -- apply' a arr1 arr2 = withArray arr1 $  \arrp1 ->
-    --   withArray arr2 $ \arrp2 ->
-    --     f1 a a arrp1 arrp2
+-- -- PETSC_EXTERN PetscErrorCode PFSetType(PF,PFType,void*);
+-- -- pfSetType' :: PF -> PFType_ -> Ptr () -> IO CInt
+-- pfSetType' pf t o = -- not sure how to represent the pointer to void 
+--   withCString tstr (\tp->   [C.exp|int{PFSetType($(PF pf),$(char*tp),$(void*o))}|]
+--                    )  where
+--   tstr = pfTypeToStr t
 
 
-pfSetArr0' ::
-  PF ->
-  (Ptr () -> PetscInt_ -> Ptr PetscScalar_ -> Ptr PetscScalar_ -> IO CInt ) ->
-  IO CInt
-pfSetArr0' pf apply =
-  [C.exp|int{PFSet($(PF pf),
-                   $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
-                   NULL,
-                   NULL,
-                   NULL,
-                   NULL   )}  |]
+-- -- PETSC_EXTERN PetscErrorCode PFSet(
+-- -- PF,
+-- -- PetscErrorCode(*)(void*,PetscInt,const PetscScalar*,PetscScalar*),
+-- -- PetscErrorCode(*)(void*,Vec,Vec),PetscErrorCode(*)(void*,PetscViewer),
+-- -- PetscErrorCode(*)(void*),void*);     -- Collective on PF
+-- -- Input Parameters :
+-- -- pf	- the function context
+-- -- apply	- function to apply to an array
+-- -- applyvec	- function to apply to a Vec
+-- -- view	- function that prints information about the PF
+-- -- destroy	- function to free the private function context
+-- -- ctx	- private function context
+-- pfSet0' pf apply applyvec view destroy ctx =
+--   [C.exp|int{PFSet($(PF pf),
+--                    $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
+--                    $fun:(int(*applyvec)(void*, Vec, Vec)),
+--                    $fun:(int(*view)(void*, int )),
+--                    $fun:(int(*destroy)(void*)),
+--                    $(void*ctx)
+--                   )}
+--         |]
 
--- pfsa1 ::
+-- pfSet0nc' pf apply applyvec view destroy ctx =
+--   [C.exp|int{PFSet($(PF pf),
+--                    $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
+--                    $fun:(int(*applyvec)(void*, Vec, Vec)),
+--                    $fun:(int(*view)(void*, int )),
+--                    $fun:(int(*destroy)(void*)),
+--                    NULL
+--                   )}
+--         |]
+
+-- pfSet1' pf apply applyvec viewf destroyf =
+--   pfSet0nc' pf f1 f2 f3 f4 where
+--     f1 _ = apply
+--     f2 _ = applyvec
+--     f3 _ = viewf
+--     f4 _ = destroyf
+--     -- apply' :: PetscInt_ -> [PetscScalar_] -> [PetscScalar_] -> IO CInt
+--     -- apply' a arr1 arr2 = withArray arr1 $  \arrp1 ->
+--     --   withArray arr2 $ \arrp2 ->
+--     --     f1 a a arrp1 arrp2
+
+
+-- pfSetArr0' ::
 --   PF ->
---   (PetscInt_ -> Ptr PetscScalar_ -> Ptr PetscScalar_ -> IO CInt) ->
+--   (Ptr () -> PetscInt_ -> Ptr PetscScalar_ -> Ptr PetscScalar_ -> IO CInt ) ->
 --   IO CInt
-pfsa1 pf f =
-  pfSetArr0' pf fm where
-    fm _ = f
+-- pfSetArr0' pf apply =
+--   [C.exp|int{PFSet($(PF pf),
+--                    $fun:(int(*apply)(void*,PetscInt,PetscScalar*,PetscScalar*)),
+--                    NULL,
+--                    NULL,
+--                    NULL,
+--                    NULL   )}  |]
+
+-- -- pfsa1 ::
+-- --   PF ->
+-- --   (PetscInt_ -> Ptr PetscScalar_ -> Ptr PetscScalar_ -> IO CInt) ->
+-- --   IO CInt
+-- pfsa1 pf f =
+--   pfSetArr0' pf fm where
+--     fm _ = f
 
 
--- pfSetVec' :: PF -> (Ptr () -> Vec -> Vec -> IO CInt) -> IO ()
-pfSetVec0' pf applyvec =
-    [C.exp|int{PFSet($(PF pf),
-                   0,
-                   $fun:(int(*applyvec)( void* , Vec, Vec)),
-                   0, 0, 0)}|] 
+-- -- pfSetVec' :: PF -> (Ptr () -> Vec -> Vec -> IO CInt) -> IO ()
+-- pfSetVec0' pf applyvec =
+--     [C.exp|int{PFSet($(PF pf),
+--                    0,
+--                    $fun:(int(*applyvec)( void* , Vec, Vec)),
+--                    0, 0, 0)}|] 
 
-pfSetVec' pf applyvec =
-  pfSetVec0' pf f where
-    f _ = applyvec 
+-- pfSetVec' pf applyvec =
+--   pfSetVec0' pf f where
+--     f _ = applyvec 
 
--- WARNING : `applyvec` etc. modify last argument
-
-
+-- -- WARNING : `applyvec` etc. modify last argument
 
 
--- PETSC_EXTERN PetscErrorCode PFApply(PF,PetscInt,const PetscScalar*,PetscScalar*);
 
--- PETSC_EXTERN PetscErrorCode PFApplyVec(PF,Vec,Vec);
+
+-- -- PETSC_EXTERN PetscErrorCode PFApply(PF,PetscInt,const PetscScalar*,PetscScalar*);
+
+-- -- PETSC_EXTERN PetscErrorCode PFApplyVec(PF,Vec,Vec);
 
 
 
