@@ -1059,10 +1059,9 @@ vecScale_ v a = chk0 $ vecScale' v a
 
 -- | AXPY : y = a x + y
 -- -- NB : x and y must be different vectors (i.e. distinct pointers)
-vecAxpy :: PetscScalar_ -> Vec -> Vec -> IO Vec
-vecAxpy a y x = do
-  chk0 $ vecAxpy' y a x
-  return y
+vecAxpy :: PetscScalar_ -> Vec -> Vec -> IO ()
+vecAxpy a y x = chk0 $ vecAxpy' y a x
+
 
 -- | WAXPY : w = a x + y
 -- -- NB : w cannot be either x or y, but x and y can be the same
@@ -1070,18 +1069,22 @@ vecWaxpy_ :: Vec -> PetscScalar_ -> Vec -> Vec -> IO ()
 vecWaxpy_ w a x y = chk0 $ vecWaxpy' w a x y
 -- vecWaxpy w a x y = do {vecWaxpy_ w a x y; return w} -- not sure about this one
 
--- vecWaxpySafe a vx vy = withVecCreate vi $ \w ->
---   vecWaxpy w a x y  -- NB: w is created on same Comm as x
---    where
---     vi = vecInfo vx
---     x = vec vx
---     y = vec vy
+-- | withVecWaxpySafe :: bracket with allocated Vec for result
+withVecWaxpySafe :: PetscScalar_ -> Vec -> Vec -> (Vec -> IO a) -> IO a
+withVecWaxpySafe a x y act = withVecClone y $ \w -> do
+  vecWaxpy_ w a x y
+  act w
 
-vecVecSum , (.+) :: Vec -> Vec -> IO Vec
+
+
+vecVecSum , (.+) :: Vec -> Vec -> IO ()
 vecVecSum = vecAxpy 1
 (.+) = vecVecSum
 
--- vecVecSumSafe = vecWaxpySafe 1
+withVecVecSubtract :: Vec -> Vec -> (Vec -> IO a) -> IO a
+withVecVecSubtract = withVecWaxpySafe (-1)
+
+
 
 
 

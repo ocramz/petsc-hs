@@ -47,16 +47,16 @@ type ISI = (IS, IsInfo)
 data PetscIs = PIs (MVar ISI)
 
 
-isCreateGeneral comm n idx mode = chk1 (isCreateGeneral' comm n idx mode)
+isCreateGeneral cc n idx mode = chk1 (isCreateGeneral' cc n idx mode)
 
 isDestroy is = chk0 $ isDestroy' is
 
 
 
--- withIsCreateGeneral :: IsInfo -> PetscCopyMode_ -> (IS -> IO a) -> IO a
+withIsCreateGeneral :: IsInfo -> PetscCopyMode_ -> (IS -> IO a) -> IO a
 withIsCreateGeneral iis mode =
-  bracket (isCreateGeneral comm n idx mode) isDestroy where
-    comm = isInfoMpiComm iis
+  bracket (isCreateGeneral cc n idx mode) isDestroy where
+    cc = isInfoMpiComm iis
     n = toCInt $ length idxi
     idx = map toCInt idxi
     idxi = isIndexSet iis
@@ -68,8 +68,8 @@ isColoringCreate ::
   [CInt] ->
   PetscCopyMode_ ->
   IO ISColoring
-isColoringCreate comm nc n cols cm =
-  chk1 (isColoringCreate' comm nc n cols cm)
+isColoringCreate cc nc n cols cm =
+  chk1 (isColoringCreate' cc nc n cols cm)
 
 isColoringDestroy :: ISColoring -> IO ()
 isColoringDestroy isc = chk0 (isColoringDestroy' isc)
