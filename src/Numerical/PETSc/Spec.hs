@@ -58,21 +58,19 @@ t_vecDot_r2_1 =
 t_linSys_r3_1 = describe "t_linSys_r3_1" $
   it "solves a 3x3 linear system" $
    withPetscMatrix com m n MatAij ixd nz InsertValues $ \mat ->
-    withVecNew com vd $ \rhs -> do
+    withVecNew com vrhs $ \rhs -> do
      let (_, _, _, mu) = fromPetscMatrix mat
      withKspSetupSolveAlloc com KspGmres mu mu rhs $ \ksp soln -> 
        withVecNew com vsolnTrue $ \solnTrue -> 
         withVecVecSubtract soln solnTrue $ \solnDiff -> do
           nd <- vecNorm solnDiff VecNorm2
-          nd `shouldBe` (0 :: PetscScalar_)
-       -- x <- vecGetVS soln
-       -- let xl = V.toList $ V.convert x
-       -- xl `shouldBe` ([1,1,1] :: [PetscScalar_]) 
+          nd < diffNormTol `shouldBe` True 
       where
         (m, n) = (3, 3)
-        vd = V.fromList [3, 7, 18]
+        vrhs = V.fromList [3, 7, 18]
         vsolnTrue = V.fromList [1, 1, 1]
         ixd = listToCSR m n [1,2,0,0,3,4,5,6,7]
+        diffNormTol = 1e-8
         nz = VarNZPR (dnnz, onnz) -- ConstNZPR (3,3)
         dnnz = V.convert $ V.fromList [1,1,1]
         onnz = V.convert $ V.fromList [1,1,2]
