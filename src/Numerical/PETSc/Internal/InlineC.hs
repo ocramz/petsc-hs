@@ -339,17 +339,7 @@ vecViewStdout1 :: Vec -> IO CInt
 vecViewStdout1 v = [C.exp|int{VecView($(Vec v), PETSC_VIEWER_STDOUT_SELF)}|] 
 
 
--- withVecGetArray' v f =
---   [C.block|
---    int{
---      PetscScalar* temp;
---      int szv = VecGetSize(v);
---      int e1 = VecGetArray($(Vec v), &temp);
 
---      int e2 = VecRestoreArray($(Vec v), &temp);
---      return e2;
---       }
---    |]
 
 
 -- PETSC_EXTERN PetscErrorCode VecGetArray(Vec,PetscScalar**);
@@ -479,14 +469,8 @@ vecRestoreArray1d' x m mstart arr =
 
 -- TODO row (block) indexing : these should not be interpreted as mere Ints but as indices, e.g. FEM mesh nodes -- see repa 
 
-vecGetOwnershipRange1 :: Vec -> IO ((Int, Int), CInt)
-vecGetOwnershipRange1 v = do
-  (r1, (r2, e)) <- vgor v
-  let (r1', r2') = (fi r1, fi r2)
-  return ((r1', r2'), e)  where
-    vgor a =
-      withPtr $ \rmin -> 
-      withPtr $ \rmax ->
+vecGetOwnershipRange1 :: Vec -> IO ((CInt, CInt), CInt)
+vecGetOwnershipRange1 a = withPtr2 $ \rmin rmax -> 
        [C.exp|int{VecGetOwnershipRange($(Vec a), $(PetscInt *rmin), $(PetscInt * rmax) )}|] 
     
 
@@ -861,9 +845,8 @@ matView' m v = [C.exp|int{MatView($(Mat m),$(PetscViewer v))}|]
 
 
 matGetSize' :: Mat -> IO ((CInt, CInt), CInt)
-matGetSize' v = withPtr ( \px ->
-  withPtr $ \py -> matGetSize0' v px py ) >>= fst2M where
-   matGetSize0' vv sx sy =  [C.exp|int{MatGetSize($(Mat vv), $(int *sx), $(int *sy))}|]
+matGetSize' m = withPtr2 $ \sx sy ->
+  [C.exp|int{MatGetSize($(Mat m), $(int *sx), $(int *sy))}|]
    
 matGetSizeUnsafeCInt' :: Mat -> ((CInt, CInt), CInt)
 matGetSizeUnsafeCInt' = unsafePerformIO . matGetSize'
@@ -1092,12 +1075,9 @@ matSetup' a = [C.exp|int{MatSetUp($(Mat a))}|]
 
 -- PETSC_EXTERN PetscErrorCode MatGetOwnershipRange(Mat,PetscInt*,PetscInt*);
 
-matGetOwnershipRange' :: Mat -> IO ((Int, Int), CInt)
-matGetOwnershipRange' m = liftM (bothFst2 fi) (mgor m) where
-     mgor a =
-       withPtr $ \rmin -> 
-       withPtr $ \rmax ->
-       [C.exp|int{MatGetOwnershipRange($(Mat a), $(PetscInt *rmin), $(PetscInt *rmax) )}|]
+matGetOwnershipRange' :: Mat -> IO ((PetscInt_, PetscInt_), CInt)
+matGetOwnershipRange' m = withPtr2 ( \rmin rmax -> 
+       [C.exp|int{MatGetOwnershipRange($(Mat m), $(PetscInt *rmin), $(PetscInt *rmax) )}|] ) 
 
 
 -- PetscErrorCode  MatGetInfo(Mat mat,MatInfoType flag,MatInfo *info)
@@ -1129,7 +1109,8 @@ matGetRow0' mat row ncols cols vals =
 -- The user can only examine the values extracted with MatGetRow(); the values cannot be altered. To change the matrix entries, one must use MatSetValues().
 -- You can only have one call to MatGetRow() outstanding for a particular matrix at a time, per processor. MatGetRow() can only obtain rows associated with the given processor, it cannot get rows from the other processors; for that we suggest using MatGetSubMatrices(), then MatGetRow() on the submatrix. The row index passed to MatGetRows() is in the global number of rows.
 matGetRow' :: Mat -> CInt -> IO ((CInt, Ptr CInt, Ptr PetscScalar_), CInt)
-matGetRow' mat row = withPtr ( \ncols -> withPtr $ \cols -> withPtr $ \vals -> matGetRow0' mat row ncols cols vals) >>= snoc3
+matGetRow' mat row =
+  withPtr3 ( \ncols cols vals -> matGetRow0' mat row ncols cols vals)
 
 
 -- PetscErrorCode MatRestoreRow(Mat mat,PetscInt row,PetscInt *ncols,const PetscInt *cols[],const PetscScalar *vals[]) -- Not Collective
@@ -1723,14 +1704,7 @@ dmdaGetCorners3d' dm =
                                $(PetscInt* n),
                                $(PetscInt* p))} |] 
 
-f1d :: (t1, (t2, t)) -> ((t1, t2), t)
-f1d (a, (b, c)) = ((a, b), c)
 
-f2d :: (t1, (t2, (t3, (t4, t)))) -> (((t1, t2), (t3, t4)), t)
-f2d (a,(b,(c,(d,e)))) = (((a,b), (c, d)), e)
-
-f3d :: (t1, (t2, (t3, (t4, (t5, (t6, t)))))) -> (((t1, t2, t3), (t4, t5, t6)), t)
-f3d (a, (b, (c, (d, (e, (f, g)))))) = (((a, b, c), (d, e, f)), g)
 
 
 -- PETSC_EXTERN PetscErrorCode DMDAGetGhostCorners(DM,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
@@ -1774,14 +1748,6 @@ dmdaGetGhostCorners3d' dm =
                                $(PetscInt* n),
                                $(PetscInt* p))} |] 
 
--- dmdaGetGhostCorners1d'' dm = dmdaGetGhostCorners1d' dm >>= \l ->  f1d l
--- dmdaGetGhostCorners2d'' dm = dmdaGetGhostCorners2d' dm >>= \l ->  f2d l
--- dmdaGetGhostCorners3d'' dm = dmdaGetGhostCorners3d' dm >>= \l ->  f3d l
-
-
--- dmdaGetGhostCorners1d dm =  liftM fromIntegralTup $ dmdaGetGhostCorners1d'' dm
--- dmdaGetGhostCorners2d dm =  liftM fromIntegralTup2 $ dmdaGetGhostCorners2d'' dm
--- dmdaGetGhostCorners3d dm =  liftM fromIntegralTup3 $ dmdaGetGhostCorners3d'' dm 
 
 
 
@@ -1969,13 +1935,7 @@ dmdaGetInfo__' da = withPtr ( \dim ->
     \(a,(b,(c,(d,(e,(f,(g,(h,(i,(j,(k,(l,(m_,err))))))))))))) ->
      return ((a,(b,c,d),(e,f,g),h,i,(j,k,l),m_), err )
    
--- dmdaGetInfo' da dim mm nn pp m n p dof s bx by bz st =
---   dmdaGetInfo_' da dim mm nn pp m n p dof s bxp byp bzp stp
---   where
---     bxp = toCInt $ dmBoundaryTypeToInt bx
---     byp = toCInt $ dmBoundaryTypeToInt by
---     bzp = toCInt $ dmBoundaryTypeToInt bz
---     stp = toCInt $ dmdaStencilTypeToInt st
+
 
 
 
@@ -2089,12 +2049,28 @@ kspSetReusePreconditioner' ksp b = [C.exp|int{KSPSetReusePreconditioner($(KSP ks
 
 -- PETSC_EXTERN PetscErrorCode KSPSetPCSide(KSP,PCSide);
 -- PETSC_EXTERN PetscErrorCode KSPGetPCSide(KSP,PCSide*);
--- PETSC_EXTERN PetscErrorCode KSPGetTolerances(KSP,PetscReal*,PetscReal*,PetscReal*,PetscInt*);
+-- PETSC_EXTERN PetscErrorCode KSPGetTolerances(KSP,PetscReal*,PetscReal*,PetscReal*,PetscInt*); -- Not Collective
+-- Input Parameter :
+-- ksp -the Krylov subspace context 
+-- Output Parameters :
+-- rtol	- the relative convergence tolerance
+-- abstol	- the absolute convergence tolerance
+-- dtol	- the divergence tolerance
+-- maxits	- maximum number of iterations
+kspGetTolerances0' ksp =
+  withPtr4 $ \ rtolc abstolc dtolc maxitsc ->
+  [C.exp|int{KSPGetTolerances($(KSP ksp),$(PetscReal* rtolc),$(PetscReal* abstolc),$(PetscReal* dtolc),$(PetscInt* maxitsc))}|]
+
+
 
 -- PETSC_EXTERN PetscErrorCode KSPSetTolerances(KSP,PetscReal,PetscReal,PetscReal,PetscInt);
 kspSetTolerances' ::
-  KSP -> PetscReal_ -> PetscReal_ -> PetscReal_ -> PetscInt_ -> IO CInt
-kspSetTolerances' ksp rtol abstol dtol maxits = [C.exp|int{KSPSetTolerances($(KSP ksp),$(PetscReal rtol),$(PetscReal abstol),$(PetscReal dtol),$(PetscInt maxits))}|]
+  KSP -> Double -> Double -> Double -> Int -> IO CInt
+kspSetTolerances' ksp rtol abstol dtol maxits = [C.exp|int{KSPSetTolerances($(KSP ksp),$(PetscReal rtolc),$(PetscReal abstolc),$(PetscReal dtolc),$(PetscInt maxitsc))}|] where
+  rtolc = CDouble rtol
+  abstolc = CDouble abstol
+  dtolc = CDouble dtol
+  maxitsc = toCInt maxits
 
 -- PETSC_EXTERN PetscErrorCode KSPSetInitialGuessNonzero(KSP,PetscBool );
 kspSetInitialGuessNonzero' :: KSP -> Bool -> IO CInt
@@ -4144,12 +4120,29 @@ slepcGetVersion0' version szt =
 
 
 
+-- * helpers
 
+withPtr2 ::
+  (Storable a, Storable b) =>
+  (Ptr a -> Ptr b -> IO x) ->
+  IO ((a, b), x)
+withPtr2 act = withPtr (withPtr . act) >>= snoc2
 
--- *
+withPtr3 ::
+  (Storable a, Storable b, Storable c) =>
+  (Ptr a -> Ptr b -> Ptr c -> IO x) ->
+  IO ((a, b, c), x)
+withPtr3 act = withPtr (\x -> withPtr (withPtr . (act x))) >>= snoc3
 
-
-
+withPtr4 ::
+  (Storable a, Storable b, Storable c, Storable d) =>
+  (Ptr a -> Ptr b -> Ptr c -> Ptr d -> IO x) ->
+  IO ((a, b, c, d), x)
+withPtr4 act = withPtr ( \x ->
+  withPtr $ \y ->
+  withPtr $ \z ->
+  withPtr $ \w ->
+  act x y z w ) >>= snoc4
 
 
 

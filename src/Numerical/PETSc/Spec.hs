@@ -68,7 +68,9 @@ t_linSys_r3_1 = describe "t_linSys_r3_1" $
         (m, n) = (3, 3)
         vd = V.fromList [3, 7, 18]
         ixd = listToCSR m n [1,2,0,0,3,4,5,6,7]
-        nz = ConstNZPR (3,3)
+        nz = VarNZPR (dnnz, onnz) -- ConstNZPR (3,3)
+        dnnz = V.convert $ V.fromList [1,1,1]
+        onnz = V.convert $ V.fromList [1,1,2]
 
 
 

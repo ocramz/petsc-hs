@@ -94,7 +94,6 @@ data MatrixDataZ a =
 
 
 
-
 -- | PETSc matrix usage :
 {-
 * create
@@ -616,7 +615,7 @@ withMatAssembly m f = do
 -- | get Mat properties
 
 matGetOwnershipRange :: Mat -> IO (Int, Int)
-matGetOwnershipRange m = chk1 (matGetOwnershipRange' m)
+matGetOwnershipRange m = chk1 (matGetOwnershipRange' m) >>= bothMf fi
 
 matGetSizeCInt :: Mat -> IO (CInt, CInt)
 matGetSizeCInt m = chk1 (matGetSize' m)
@@ -672,9 +671,6 @@ matViewRows mat r_ = forM r_ $ \r -> do
 
 
 
-
--- matGetColumnIJ
--- matRestoreColumnIJ
 
 
 matIsStructurallySymmetric :: Mat -> IO PetscBool

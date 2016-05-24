@@ -136,7 +136,7 @@ kspSetType ksp kt = chk0 (kspSetType' ksp kt)
 kspSetOperators :: KSP -> Mat -> Mat -> IO ()
 kspSetOperators ksp amat pmat = chk0 (kspSetOperators' ksp amat pmat)
 
--- kspSetInitialGuessNonzero :: KSP -> PetscBool -> IO ()
+kspSetInitialGuessNonzero :: KSP -> Bool -> IO ()
 kspSetInitialGuessNonzero ksp ig = chk0 (kspSetInitialGuessNonzero' ksp ig)
 
 kspSetUp :: KSP -> IO ()
@@ -150,7 +150,14 @@ kspSolveTranspose ksp rhsv solnv = chk0 (kspSolve' ksp rhsv solnv)
 kspSetReusePreconditioner :: KSP -> PetscBool -> IO ()
 kspSetReusePreconditioner ksp b = chk0 (kspSetReusePreconditioner' ksp b)
 
-kspSetTolerances ksp rtol abstol dtol maxits = chk0 $ kspSetTolerances' ksp rtol abstol dtol maxits
+kspGetTolerances :: KSP -> IO (Double, Double, Double, Int)
+kspGetTolerances ksp = do
+  (rtol, abstol, dtol, maxits) <- chk1 ( kspGetTolerances0' ksp )
+  return (fromCDouble rtol, fromCDouble abstol, fromCDouble dtol, fi maxits)
+
+kspSetTolerances :: KSP -> Double -> Double -> Double -> Int -> IO ()
+kspSetTolerances ksp rtol abstol dtol maxits =
+  chk0 $ kspSetTolerances' ksp rtol abstol dtol maxits
 
 kspGetRhs :: KSP -> IO Vec
 kspGetRhs ksp = chk1 (kspGetRhs' ksp)

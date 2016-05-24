@@ -261,8 +261,7 @@ fstM = liftM fst
 fst2 :: (a, (b, x)) -> ((a, b), x)
 fst2 (y1, (y2, t)) = ((y1, y2), t)
 
-fst2M :: Monad m => (a, (b, c)) -> m ((a, b), c)
-fst2M = return . fst2
+
 
 
 -- tuple reordering
@@ -276,6 +275,24 @@ snoc3 :: Monad m => (t1, (t2, (t3, t))) -> m ((t1, t2, t3), t)
 snoc3 x = do
   let (a, (b, (c, z))) = x
   return ((a, b, c), z)
+
+snoc4 :: Monad m => (t1, (t2, (t3, (t4, t)))) -> m ((t1, t2, t3, t4), t)
+snoc4 x = do
+  let (a, (b, (c, (d, z)))) = x
+  return ((a,b,c,d), z)
+
+
+-- -- used in DMDAGetCornersX and DMDAGetGhostCornersX :
+
+f1d :: (t1, (t2, t)) -> ((t1, t2), t)
+f1d (a, (b, c)) = ((a, b), c)
+
+f2d :: (t1, (t2, (t3, (t4, t)))) -> (((t1, t2), (t3, t4)), t)
+f2d (a,(b,(c,(d,e)))) = (((a,b), (c, d)), e)
+
+f3d :: (t1, (t2, (t3, (t4, (t5, (t6, t)))))) -> (((t1, t2, t3), (t4, t5, t6)), t)
+f3d (a, (b, (c, (d, (e, (f, g)))))) = (((a, b, c), (d, e, f)), g)
+
 
 
 -- projections
@@ -315,6 +332,11 @@ all3 (a,b,c) f = (f a, f b, f c)
 
 bothM :: Monad m => (a, a) -> (a -> b) -> m (b, b)
 bothM t f = return (both t f)
+
+bothMf :: Monad m => (a -> b) -> (a, a) -> m (b, b)
+bothMf = flip bothM
+
+
 
 
 -- withTup'' (a, b) f g = (f a, g b)

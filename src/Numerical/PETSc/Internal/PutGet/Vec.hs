@@ -683,7 +683,7 @@ vecViewStdout = vecView
 
 vecGetOwnershipRange :: Vec -> IO (Int, Int)
 vecGetOwnershipRange v = 
-  chk1 (vecGetOwnershipRange1 v) 
+  chk1 (vecGetOwnershipRange1 v) >>= bothMf fi
 
 vecGetSize :: Vec -> IO Int
 vecGetSize v = fi <$> chk1 ( vecGetSize' v) 
