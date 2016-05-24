@@ -2122,6 +2122,35 @@ kspGetIterationNumber' ksp = withPtr ( \v -> [C.exp|int{KSPGetIterationNumber($(
 -- PETSC_EXTERN PetscErrorCode KSPGetNullSpace(KSP,MatNullSpace*);
 -- PETSC_EXTERN PetscErrorCode KSPGetVecs(KSP,PetscInt,Vec**,PetscInt,Vec**);
 
+-- PetscErrorCode  KSPSetConvergenceTest(KSP ksp,PetscErrorCode (*converge)(KSP,PetscInt,PetscReal,KSPConvergedReason*,void*),void *cctx,PetscErrorCode (*destroy)(void*))
+-- Logically Collective on KSP
+-- Input Parameters :
+-- ksp	- iterative context obtained from KSPCreate()
+-- converge	- pointer to int function
+-- cctx	- context for private data for the convergence routine (may be null)
+-- destroy	- a routine for destroying the context (may be null)
+-- Calling sequence of converge :
+--     converge (KSP ksp, int it, PetscReal rnorm, KSPConvergedReason *reason,void *mctx)
+-- ksp	- iterative context obtained from KSPCreate()
+-- it	- iteration number
+-- rnorm	- (estimated) 2-norm of (preconditioned) residual
+-- reason	- the reason why it has converged or diverged
+-- cctx	- optional convergence context, as set by KSPSetConvergenceTest()
+kspSetConvergenceTest' ::
+  KSP -> (KSP -> PetscInt_ -> PetscReal_ -> Ptr CInt -> IO a) -> IO CInt
+kspSetConvergenceTest' ksp convergef =
+  [C.exp|int{
+      KSPSetConvergenceTest(
+          $(KSP ksp),
+          $fun:(int (* cf) (KSP, PetscInt, PetscReal, int*, void*)),
+          NULL, NULL )} |] where
+  cf ks nit rnorm nreasonp _p = do
+    convergef ks nit rnorm nreasonp
+    return (0 :: CInt)
+    
+
+
+
 
 {-
 PetscErrorCode KSPSetComputeRHS(KSP ksp,PetscErrorCode (*func)(KSP,Vec,void*),void *ctx)    --- Logically Collective :

@@ -66,13 +66,13 @@ t_linSys_r3_1 = describe "t_linSys_r3_1" $
           nd <- vecNorm solnDiff VecNorm2
           nd < diffNormTol `shouldBe` True 
       where
-        (m, n) = (3, 3)
-        vrhs = V.fromList [3, 7, 18]
-        vsolnTrue = V.fromList [1, 1, 1]
-        ixd = listToCSR m n [1,2,0,0,3,4,5,6,7]
-        diffNormTol = 1e-8
-        nz = VarNZPR (dnnz, onnz) -- ConstNZPR (3,3)
-        dnnz = V.convert $ V.fromList [1,1,1]
+        (m, n) = (3, 3)                              -- matrix size
+        vrhs = V.fromList [3, 7, 18]                 -- r.h.s
+        vsolnTrue = V.fromList [1, 1, 1]             -- exact solution  
+        ixd = listToCSR m n [1,2,0,0,3,4,5,6,7]      -- matrix, by rows
+        diffNormTol = 1e-300                         -- lin.solv. convergence tol.
+        nz = VarNZPR (dnnz, onnz) -- ConstNZPR (3,3) -- matrix nonzero pattern
+        dnnz = V.convert $ V.fromList [1,1,1] 
         onnz = V.convert $ V.fromList [1,1,2]
 
 
