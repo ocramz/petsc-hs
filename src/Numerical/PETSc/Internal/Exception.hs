@@ -108,23 +108,23 @@ petscErrCodeFromInt n =
             89 -> ObjTypeNotSet
             _  -> UndefinedException -- WATCH OUT HERE
 
--- type PetscResult a = Either PetscErrCode_ a
 
 type PetscOutcome = Either PetscErrCode_ PetscSafeErrCode_ 
 
-
-petscSafeErrCodeFromInt :: CInt -> PetscSafeErrCode_
-petscSafeErrCodeFromInt n = case n of 0 -> NoError0
-                                      256 -> NoError256
-                                      8288 -> NoError8288
+-- | no exceptions will be raised for these error codes
 
 petscOutcome :: CInt -> Either PetscErrCode_ PetscSafeErrCode_
-petscOutcome n | safeErrCodes n = Right x
+petscOutcome n | n==0 = Right NoError0
+               | n==256 = Right NoError256
+               | n==8288 = Right NoError8288  
                | errCodeInBounds n = Left e
                | otherwise = error (unforeseenErrCodeStr n)
   where
     e = petscErrCodeFromInt n
-    x = petscSafeErrCodeFromInt n
+    errCodeInBounds ec = ec < maxErrCode && ec >= minErrCode
+     where
+       maxErrCode = 90
+       minErrCode = 55
 
 
 chk1 :: IO (b, CInt) -> IO b
@@ -148,14 +148,6 @@ throwLefts_ = throwLefts ()
   
 
 
-errCodeInBounds :: CInt -> Bool
-errCodeInBounds n = n < maxErrCode && n >= minErrCode
-  where
-    maxErrCode = 90
-    minErrCode = 55
-
-knownErrCode :: CInt -> Bool
-knownErrCode n = errCodeInBounds n || safeErrCodes n
 
 
 unforeseenErrCodeStr :: CInt -> String
@@ -163,8 +155,6 @@ unforeseenErrCodeStr e = "Unforeseen error code : " ++
                        show e ++
                        "\nPlease file a bug report"
 
-throwPetscException :: CInt -> IO a
-throwPetscException n = throwIO (petscErrCodeFromInt n)
 
 {- bracket' before after action = 
      mask $ \restore -> do
@@ -176,9 +166,7 @@ throwPetscException n = throwIO (petscErrCodeFromInt n)
 bracketChk :: IO (a, CInt) -> (a -> IO CInt) -> (a -> IO c) -> IO c
 bracketChk a o = bracket (chk1 a) (chk0 . o)  
 
--- | no exceptions will be raised for these error codes
-safeErrCodes :: CInt -> Bool
-safeErrCodes e = e `elem` [0, 256, 8288]
+
 
 
 
