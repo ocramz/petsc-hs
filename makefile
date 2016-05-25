@@ -63,4 +63,4 @@ grind:
 	valgrind --leak-check=yes --track-origins=yes stack exec petsc-valgrind 
 
 c2hs:
-	./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH}
+	./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} $(shell pwd)/src/Numerical/PETSc/Internal
