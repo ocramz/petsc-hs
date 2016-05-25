@@ -13,7 +13,21 @@ import Foreign
 import Foreign.C.Types
 import Foreign.Storable
 
-#include <petscksp.h>
+-- | PETSc headers
+#include <petscsnes.h>
+#include <petsctao.h>
+#include <petscdm.h>
+#include <petscdmda.h>
+#include <petscdmcomposite.h>
+#include <petscts.h>
+#include <petscviewer.h>
+#include <petscviewerhdf5.h>
+#include <petscsys.h>
+#include <petscpctypes.h>
+
+-- | SLEPc headers
+#include <slepceps.h>
+#include <slepcsvd.h>
 
 type PetscInt_ = {# type PetscInt #}
 type PetscScalar_ = {#type PetscScalar #}
@@ -25,73 +39,32 @@ type PetscBool_ = {#type PetscBool#}
 
 -- * IS
 
-
-
-
-
 -- * Vec
-
-
-
 
 -- * Mat
 
-
-
-
-
-
 -- * DM
 
-
+{# enum DMBoundaryType as DmBoundaryType {underscoreToCase} deriving (Eq, Show) #}
 
 
 -- -- * DMDA
 
-
-
-
-
-
 -- * KSP
-
-
-
 
 -- * PF
 
-
-
-
 -- * SNES
-
-
-
 
 -- * TS
 
-
-
-
-
 -- * TAO
-
-
-
 
 -- * Viewer
 
-
-
-
 -- * PETSc misc
 
-
-
-
 -- * MPI misc
-
-
 
 -- CString
 
