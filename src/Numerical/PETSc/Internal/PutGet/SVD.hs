@@ -20,18 +20,21 @@ import Numerical.PETSc.Internal.Utils
 import Numerical.PETSc.Internal.PutGet.Vec
 import Numerical.PETSc.Internal.PutGet.Mat
 
+import Control.Exception
 
 
-withSvd :: Comm -> (SVD -> IO a) -> IO a
-withSvd comm = bracketChk (svdCreate' comm) svdDestroy'
+withSvdCreate :: Comm -> (SVD -> IO a) -> IO a
+withSvdCreate k = bracket (svdCreate k) svdDestroy where
+  svdCreate cc = chk1 $ svdCreate' cc
+  svdDestroy s = chk0 $ svdDestroy' s
 
-withSvdSetup :: Comm -> Mat -> (SVD -> IO a) -> IO a
-withSvdSetup comm oper act = withSvd comm $ \s -> do
+withSvdCreateSetup :: Comm -> Mat -> (SVD -> IO a) -> IO a
+withSvdCreateSetup cc oper act = withSvdCreate cc $ \s -> do
   chk0 $ svdSetOperator' s oper
   act s
 
-withSvdSetupSolve :: Comm -> Mat -> (SVD -> IO a) -> IO a
-withSvdSetupSolve comm oper postsolve = withSvdSetup comm oper $ \s -> do
+withSvdCreateSetupSolve :: Comm -> Mat -> (SVD -> IO a) -> IO a
+withSvdCreateSetupSolve cc oper postsolve = withSvdCreateSetup cc oper $ \s -> do
   chk0 $ svdSolve' s
   postsolve s
   
