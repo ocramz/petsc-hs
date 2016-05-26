@@ -58,6 +58,9 @@ toSparseList ::
 toSparseList imax f = traverse_ (uncurry fm) where
   fm i v | inRange (0, imax-1) i = f i v
 
+asdft f = traverse_ (uncurry f)
+  
+
 toSV = SV
 assembleFromSV (SV imax v) f = toSparseList imax f (V.toList v)
 
@@ -247,6 +250,7 @@ vvToCSR vv = V.fromList (llToCSR (V.toList (V.map V.toList vv)))
 
 llToCSRsparse u = go 0 u where
   m = length (head u)
+  go _ [] = []
   go j (v:vs) = vixnz ++ go (j+1) vs where
     irows = [0 ..m-1]
     jrows = replicate m j

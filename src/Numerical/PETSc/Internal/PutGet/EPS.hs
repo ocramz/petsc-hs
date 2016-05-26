@@ -7,7 +7,7 @@
 -- Maintainer  :  zocca . marco . gmail . com
 -- Stability   :  experimental
 --
--- | EPS Mid-level interface
+-- | EPS Mid-level interface (eigenvalue problem solvers)
 --
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.PutGet.EPS where
@@ -23,13 +23,9 @@ import Numerical.PETSc.Internal.PutGet.Vec
 import Numerical.PETSc.Internal.PutGet.Mat
 
 
--- | init/fin
 
-epsCreate :: Comm -> IO EPS
-epsCreate comm = chk1 $ epsCreate' comm
 
-epsDestroy :: EPS -> IO ()
-epsDestroy eps = chk0 $ epsDestroy' eps
+ 
 
 
 
@@ -58,18 +54,22 @@ epsSolve e = chk0 $ epsSolve' e
 
 -- | `with` brackets
 
-withEps :: Comm -> (EPS -> IO a) -> IO a
-withEps comm = bracket (epsCreate comm) epsDestroy
+withEpsCreate :: Comm -> (EPS -> IO a) -> IO a
+withEpsCreate k = bracket (epsCreate k) epsDestroy where
+  epsCreate cc = chk1 $ epsCreate' cc
+  epsDestroy e = chk0 $ epsDestroy' e
 
-withEpsSetup :: Comm -> Mat -> Mat -> EpsProblemType_ -> (EPS -> IO a) -> IO a
-withEpsSetup comm matA matB ty post = withEps comm $ \e -> do
+withEpsCreateSetup ::
+  Comm -> Mat -> Mat -> EpsProblemType_ -> (EPS -> IO a) -> IO a
+withEpsCreateSetup cc matA matB ty post = withEpsCreate cc $ \e -> do
   epsSetOperators e matA matB
   epsSetProblemType e ty
   epsSetup e
   post e
 
-withEpsSetupSolve :: Comm -> Mat -> Mat -> EpsProblemType_ -> (EPS -> IO a) -> IO a
-withEpsSetupSolve comm a b ty postsolve = withEpsSetup comm a b ty $ \e -> do
+withEpsCreateSetupSolve ::
+  Comm -> Mat -> Mat -> EpsProblemType_ -> (EPS -> IO a) -> IO a
+withEpsCreateSetupSolve cc a b ty postsolve = withEpsCreateSetup cc a b ty $ \e -> do
   epsSolve e 
   postsolve e
 

@@ -109,8 +109,6 @@ petscErrCodeFromInt n =
             _  -> UndefinedException -- WATCH OUT HERE
 
 
-type PetscOutcome = Either PetscErrCode_ PetscSafeErrCode_ 
-
 -- | no exceptions will be raised for these error codes
 
 petscOutcome :: CInt -> Either PetscErrCode_ PetscSafeErrCode_
