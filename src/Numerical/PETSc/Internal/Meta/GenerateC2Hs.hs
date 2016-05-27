@@ -23,21 +23,21 @@ moduleRoot :: String
 moduleRoot = "Numerical.PETSc.Internal."
 
 
-main = emitModule modulename modImports headers types -- writeModuleToFile fname modulename modImports headers types
- where
-  fname = modulename ++ ".chs"
-  modulename = "TypesC2HsGen"
-  modImports = [moduleRoot ++ "Utils",
-                "Control.Monad",
-                "Foreign",
-                "Foreign.C.Types",
-                "Foreign.Storable"]
-  petscHeaders =
-    chImports "petsc" ["snes", "tao", "dm", "dmda", "dmcomposite", "ts", "viewer", "viewerhdf5", "sys", "types"]
-  slepcHeaders =
-    chImports "slepc" ["eps", "svd"]
-  headers = petscHeaders ++ slepcHeaders
-  types = ["DMBoundaryType"]
+-- main = emitModule modulename modImports headers types -- writeModuleToFile fname modulename modImports headers types
+--  where
+--   fname = modulename ++ ".chs"
+--   modulename = "TypesC2HsGen"
+--   modImports = [moduleRoot ++ "Utils",
+--                 "Control.Monad",
+--                 "Foreign",
+--                 "Foreign.C.Types",
+--                 "Foreign.Storable"]
+--   petscHeaders =
+--     chImports "petsc" ["snes", "tao", "dm", "dmda", "dmcomposite", "ts", "viewer", "viewerhdf5", "sys", "types"]
+--   slepcHeaders =
+--     chImports "slepc" ["eps", "svd"]
+--   headers = petscHeaders ++ slepcHeaders
+--   types = ["DMBoundaryType"]
 
 dmTypes :: CTypeSuffix -> CType
 dmTypes = CType "DM"
@@ -46,7 +46,7 @@ dmTypes = CType "DM"
 -- | c2hs stuff
 
 -- | outer brackets, i.e.  `{# ... #}`
-c2hsMacro1 :: C2HsTypes -> [String] -> String
+-- c2hsMacro1 :: C2HsTypes -> [String] -> String
 c2hsMacro1 t body = c2hsMacro [show t, spaces body] where
   c2hsMacro c = concat ["{# ", spaces c, " #}"]
 
@@ -60,8 +60,8 @@ typeOptions to = concat ["{ ", show (to :: TypeOptions) , " }"]
 
 -- | Haskell + c2hs  declarations e.g.
 -- `type Ty = {# type Ty #}`
-typeDecl :: String -> String
-typeDecl t = spaces ["type", t, "=", typeType [t]]
+-- typeDecl :: String -> String
+typeDecl t = spaces ["type", show t, "=", typeType [ show t]]
 
 
 
@@ -69,18 +69,18 @@ typeDecl t = spaces ["type", t, "=", typeType [t]]
 
 -- dmbToC x = toCInt $ fromEnum (x :: Dmb_) :: Dmb
 convertToC ty =
-  concat [lowercaseInitial ty, "ToC", " ", freeVarName] ++
+  concat [funCType ty, "ToC", " ", freeVarName] ++
   " = " ++
-  (inParens [toCTyF, "$", fromHsTyF, " ", freeVarName, " :: ", typeNameHs ty ]) ++ " :: " ++ ty where
+  (inParens [toCTyF, "$", fromHsTyF, " ", freeVarName, " :: ", typeNameHs (show ty) ]) ++ " :: " ++ show ty where
    toCTyF = "toCInt"
    fromHsTyF = "fromEnum"
    freeVarName = "x"
 
 -- dmbFromC c = (toEnum $ fromIntegral (c :: Dmb)) :: Dmb_
 convertFromC ty =
-    concat [lowercaseInitial ty, "FromC", " ", freeVarName] ++
+    concat [funCType ty, "FromC", " ", freeVarName] ++
   " = " ++
-  (inParens [toCTyF, "$", fromHsTyF, " ", freeVarName, " :: ", ty ]) ++ " :: " ++ typeNameHs ty where
+  (inParens [toCTyF, "$", fromHsTyF, " ", freeVarName, " :: ", show ty ]) ++ " :: " ++ typeNameHs (show ty) where
    toCTyF = "toEnum"
    fromHsTyF = "fromIntegral"
    freeVarName = "c"
@@ -89,24 +89,23 @@ convertFromC ty =
 
 -- | C2HS enum declaration
 
-enumType :: [String] -> String
+-- enumType :: [String] -> String
 enumType t = c2hsMacro1 Enum t
 
 -- `{# enum .. as .. {underscoreToCase} deriving (Eq, Show) #}`
 enumTypeDecl ty =
-  enumType ([ty ++" as "++ typeNameHs ty,
+  enumType ([show ty ++" as "++ typeNameHs (show ty),
              typeOptions UnderscoreToCase,
              " deriving (Eq, Show)"])
 
 
 -- | entry for a single type (declarations and conversion functions)
-enumTypeEntry "" = error "enumTypeEntry : type cannot be empty"
-enumTypeEntry ty@(tys:_)
-  | isUpper tys = entry [enumTypeDecl ty,
-                         typeDecl ty,
-                         convertToC ty,
-                         convertFromC ty]
-  | otherwise = error "enumTypeEntry : type name must be uppercase"
+-- enumTypeEntry "" = error "enumTypeEntry : type cannot be empty"
+enumTypeEntry ty@(CType tys o) =
+  entry [enumTypeDecl ty,
+         typeDecl ty,
+         convertToC ty,
+         convertFromC ty]
   where
       entry :: [String] -> String
       entry ll = cr ll ++ "\n"
@@ -170,13 +169,13 @@ chImports hprefix = map (chImportStr hprefix)
 -- | putting it all together
 
 -- | module to stdout
-emitModule :: ModuleName -> [ModuleName] -> [HeaderName] -> [String] -> IO ()
+-- emitModule :: ModuleName -> [ModuleName] -> [HeaderName] -> [String] -> IO ()
 emitModule m ii hh ee = do
   putStrLn $ preamble m ii hh
   putStrLn $ enumEntries ee
 
 -- | module to file
-writeModuleToFile :: FilePath -> ModuleName -> [ModuleName] -> [HeaderName] -> [String] -> IO ()
+-- writeModuleToFile :: FilePath -> ModuleName -> [ModuleName] -> [HeaderName] -> [String] -> IO ()
 writeModuleToFile fp m ii hh ee  =
   writeFile fp (cr ([preamble m ii hh,
                      enumEntries ee]))
@@ -188,6 +187,8 @@ writeModuleToFile fp m ii hh ee  =
 type CTypePrefix = String
 type CTypeSuffix = String
 data CType = CType { ctypePre :: CTypePrefix, ctypeSuff :: CTypeSuffix} deriving (Eq)
+instance Show CType where
+  show = showCType
 
 showCType :: CType -> String
 showCType (CType a o) = (map toUpper a) ++ o
@@ -216,8 +217,8 @@ instance Show TypeOptions where
 
 -- | conversion functions
 
-typeNameHs :: String -> String
-typeNameHs t = t ++ "_"
+-- typeNameHs :: String -> String
+typeNameHs t = (show t) ++ "_"
 
 
 -- | helpers
