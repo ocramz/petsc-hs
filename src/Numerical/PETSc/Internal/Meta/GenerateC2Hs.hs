@@ -14,6 +14,10 @@ module Numerical.PETSc.Internal.Meta.GenerateC2Hs where
 import Data.Char
 import Data.List
 
+-- | constants
+moduleRoot :: String
+moduleRoot = "Numerical.PETSc.Internal."
+
 
 -- | outer brackets
 c2hsMacro1 :: C2HsTypes -> [String] -> String
@@ -43,11 +47,13 @@ instance Show TypeOptions where
   show NoTO = ""
 
 
--- Haskell declarations
+-- | Haskell + c2hs  declarations e.g.
+-- `type Ty = {# type Ty #}`
 typeDecl t = spaces ["type", t, "=", typeType [t]]
 
 
 
+-- | Haskell - C marshalling helpers
 
 -- dmbToC x = toCInt $ fromEnum (x :: Dmb_) :: Dmb
 convertToC ty =
@@ -76,8 +82,10 @@ enumTypeDecl ty =
 
 
 -- | entry for one type (declarations and conversion functions)
-enumTypeEntry ty =
-  entry [enumTypeDecl ty, typeDecl ty, convertToC ty, convertFromC ty]
+enumTypeEntry "" = error "enumTypeEntry : type cannot be empty"
+enumTypeEntry ty@(tys:_)
+  | isUpper tys = entry [enumTypeDecl ty, typeDecl ty, convertToC ty, convertFromC ty]
+  | otherwise = error "enumTypeEntry : type name must be uppercase"
 
 enumEntries tt = cr (map enumTypeEntry tt)
 
@@ -85,7 +93,7 @@ enumEntries tt = cr (map enumTypeEntry tt)
 
 preamble m ii = cr [moduleStr m, concat (map importStr ii)]
 
-moduleRoot = "Numerical.PETSc.Internal."
+
 
 
 -- module
@@ -95,16 +103,24 @@ moduleStr m@(mi:_)
 moduleStr [] = error "moduleStr : module name cannot be empty"
 
 -- import
-importStr i = "import " ++ i ++ "\n"
+importStr i@(ii:_)
+  | isUpper ii = "import " ++ i ++ "\n"
+  | otherwise = error "importStr : module name initial must be uppercase"
+importStr [] = error "importStr : module name cannot be empty"
+    
 
 
 
+type ModuleName = String
 
 
+emitModule :: ModuleName -> [ModuleName] -> [String] -> IO ()
 emitModule m ii ee = do
   putStrLn $ preamble m ii
   putStrLn $ enumEntries ee
 
+writeModuleToFile :: FilePath -> ModuleName -> [ModuleName] -> [String] -> IO ()
+writeModuleToFile fp m ii ee  = writeFile fp (cr ([preamble m ii, enumEntries ee]))
 
 
 
