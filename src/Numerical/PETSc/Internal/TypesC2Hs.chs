@@ -1,14 +1,9 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 module Numerical.PETSc.Internal.TypesC2Hs
---        (
---   PetscInt,
---   PetscScalar,
---   PetscBool,
---   PetscReal,
--- --  ErrCodeA                      
---              )
        where
 
+import Numerical.PETSc.Internal.Utils
+import Control.Monad
 import Foreign
 import Foreign.C.Types
 import Foreign.Storable
@@ -29,13 +24,13 @@ import Foreign.Storable
 #include <slepceps.h>
 #include <slepcsvd.h>
 
-type PetscInt_ = {# type PetscInt #}
-type PetscScalar_ = {#type PetscScalar #}
-type PetscReal_ = {#type PetscReal#}
--- /* typedef enum { PETSC_FALSE,PETSC_TRUE } PetscBool; */
--- {#enum PetscBool as PetscBool {underscoreToCase} deriving (Eq, Show)#}
-type PetscBool_ = {#type PetscBool#}
--- deriving instance Storable PetscBool
+-- type PetscInt_ = {# type PetscInt #}
+-- type PetscScalar_ = {#type PetscScalar #}
+-- type PetscReal_ = {#type PetscReal#}
+-- -- /* typedef enum { PETSC_FALSE,PETSC_TRUE } PetscBool; */
+-- -- {#enum PetscBool as PetscBool {underscoreToCase} deriving (Eq, Show)#}
+-- type PetscBool_ = {#type PetscBool#}
+-- -- deriving instance Storable PetscBool
 
 -- * IS
 
@@ -45,7 +40,19 @@ type PetscBool_ = {#type PetscBool#}
 
 -- * DM
 
-{# enum DMBoundaryType as DmBoundaryType {underscoreToCase} deriving (Eq, Show) #}
+-- Hs-side enum
+{# enum DMBoundaryType as DMBoundaryType_ {underscoreToCase} deriving (Eq, Show) #}
+-- C-side (CInt)
+type DMBoundaryType = {# type DMBoundaryType #}
+
+dmbToC x = toCInt $ fromEnum (x :: DMBoundaryType_)
+dmbFromC c = (toEnum $ fromIntegral (c :: DMBoundaryType)):: DMBoundaryType_
+
+-- instance Storable DMBoundaryType where
+--   sizeOf _ = {# sizeof DMBoundaryType #}
+--   alignment _ = {# alignof DMBoundaryType #}
+--   peek = peek
+--   poke = poke
 
 
 -- -- * DMDA

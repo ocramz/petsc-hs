@@ -12,6 +12,8 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Types where
 
+-- import Numerical.PETSc.Internal.TypesC2Hs
+
 import Numerical.PETSc.Internal.Utils
 import Numerical.PETSc.Internal.Storable.StorableContainer
 
@@ -377,23 +379,25 @@ matCompositeTypeToInt x = fromEnum (x :: MatCompositeType_ )
 
 -- * DM
 
-data DMBoundaryType_ = DmBNone | DmBGhosted | DmBMirror | DmBPeriodic | DmBTwist
-                     deriving (Eq, Show, Enum)
+-- data DMBoundaryType_ = DmBNone | DmBGhosted | DmBMirror | DmBPeriodic | DmBTwist
+--                      deriving (Eq, Show, Enum)
 
-dmBoundaryTypeToInt :: DMBoundaryType_ -> Int
-dmBoundaryTypeToInt x = fromEnum (x :: DMBoundaryType_)
 
-cIntToDmBoundaryType :: CInt -> DMBoundaryType_
-cIntToDmBoundaryType c =
-  case g of 0 -> DmBNone
-            1 -> DmBGhosted
-            2 -> DmBMirror
-            3 -> DmBPeriodic
-            4 -> DmBTwist
-            _ -> DmBNone -- default
-  where
-    g :: Int
-    g = fromIntegral (c :: CInt)
+
+-- dmBoundaryTypeToInt :: DMBoundaryType_ -> Int
+-- dmBoundaryTypeToInt x = fromEnum (x :: DMBoundaryType_)
+
+-- cIntToDmBoundaryType :: CInt -> DMBoundaryType_
+-- cIntToDmBoundaryType c =
+--   case g of 0 -> DmBNone
+--             1 -> DmBGhosted
+--             2 -> DmBMirror
+--             3 -> DmBPeriodic
+--             4 -> DmBTwist
+--             _ -> DmBNone -- default
+--   where
+--     g :: Int
+--     g = fromIntegral (c :: CInt)
 
 
 -- -- * DMDA
