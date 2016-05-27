@@ -60,7 +60,7 @@ typeOptions to = concat ["{ ", show (to :: TypeOptions) , " }"]
 
 -- | Haskell + c2hs  declarations e.g.
 -- `type Ty = {# type Ty #}`
--- typeDecl :: String -> String
+typeDecl :: CType -> String
 typeDecl t = spaces ["type", show t, "=", typeType [ show t]]
 
 
@@ -68,6 +68,7 @@ typeDecl t = spaces ["type", show t, "=", typeType [ show t]]
 -- | Haskell - C marshalling helpers
 
 -- dmbToC x = toCInt $ fromEnum (x :: Dmb_) :: Dmb
+convertToC :: CType -> String
 convertToC ty =
   concat [funCType ty, "ToC", " ", freeVarName] ++
   " = " ++
@@ -101,7 +102,7 @@ enumTypeDecl ty =
 
 -- | entry for a single type (declarations and conversion functions)
 -- enumTypeEntry "" = error "enumTypeEntry : type cannot be empty"
-enumTypeEntry ty@(CType tys o) =
+enumTypeEntry ty =
   entry [enumTypeDecl ty,
          typeDecl ty,
          convertToC ty,
@@ -169,13 +170,13 @@ chImports hprefix = map (chImportStr hprefix)
 -- | putting it all together
 
 -- | module to stdout
--- emitModule :: ModuleName -> [ModuleName] -> [HeaderName] -> [String] -> IO ()
+emitModule :: ModuleName -> [ModuleName] -> [HeaderName] -> [CType] -> IO ()
 emitModule m ii hh ee = do
   putStrLn $ preamble m ii hh
   putStrLn $ enumEntries ee
 
 -- | module to file
--- writeModuleToFile :: FilePath -> ModuleName -> [ModuleName] -> [HeaderName] -> [String] -> IO ()
+writeModuleToFile :: FilePath -> ModuleName -> [ModuleName] -> [HeaderName] -> [CType] -> IO ()
 writeModuleToFile fp m ii hh ee  =
   writeFile fp (cr ([preamble m ii hh,
                      enumEntries ee]))
