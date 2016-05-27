@@ -40,19 +40,6 @@ import Foreign.Storable
 
 -- * DM
 
--- Hs-side enum
-{# enum DMBoundaryType as DMBoundaryType_ {underscoreToCase} deriving (Eq, Show) #}
--- C-side (CInt)
-type DMBoundaryType = {# type DMBoundaryType #}
-
-dmbToC x = toCInt $ fromEnum (x :: DMBoundaryType_)
-dmbFromC c = (toEnum $ fromIntegral (c :: DMBoundaryType)):: DMBoundaryType_
-
--- instance Storable DMBoundaryType where
---   sizeOf _ = {# sizeof DMBoundaryType #}
---   alignment _ = {# alignof DMBoundaryType #}
---   peek = peek
---   poke = poke
 
 
 -- -- * DMDA

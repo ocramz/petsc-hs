@@ -18,6 +18,9 @@ import Data.List
 moduleRoot :: String
 moduleRoot = "Numerical.PETSc.Internal."
 
+petscHImports :: [HeaderName] -> [String]
+petscHImports = chImports "petsc"
+
 
 -- | outer brackets
 c2hsMacro1 :: C2HsTypes -> [String] -> String
@@ -74,7 +77,7 @@ convertFromC ty =
    freeVarName = "c"
 
 
--- `{# enum .. #}`
+-- `{# enum .. as .. {underscoreToCase} deriving (Eq, Show) #}`
 enumTypeDecl ty =
   enumType ([ty ++" as "++ typeNameHs ty,
              typeOptions UnderscoreToCase,
@@ -91,38 +94,62 @@ enumEntries tt = cr (map enumTypeEntry tt)
 
 --
 
-preamble m ii = cr [moduleStr m, concat (map importStr ii)]
+preamble m ii hh = cr [moduleStr m,                 -- module declaration
+                       concat (hsImports ii),       -- Haskell module imports
+                       concat (petscHImports hh)    -- PETSC C header imports
+                      ]       
 
 
 
 
 -- module
+moduleStr :: ModuleName -> String
+moduleStr [] = error "moduleStr : module name cannot be empty"
 moduleStr m@(mi:_)
   | isUpper mi = spaces ["module", moduleRoot ++ m, "where"]
   | otherwise = "moduleStr : module name initial must be uppercase"
-moduleStr [] = error "moduleStr : module name cannot be empty"
 
--- import
+
+-- Haskell module import
+importStr :: ModuleName -> String
+importStr [] = error "importStr : module name cannot be empty"
 importStr i@(ii:_)
   | isUpper ii = "import " ++ i ++ "\n"
   | otherwise = error "importStr : module name initial must be uppercase"
-importStr [] = error "importStr : module name cannot be empty"
-    
+
+hsImports :: [ModuleName] -> [String]
+hsImports = map importStr
+
+
+-- C header import
+
+chImportStr :: String -> HeaderName -> String
+chImportStr _ [] = error "hImportStr : file name cannot be empty"
+chImportStr hprefix m = concat ["#include ", "<", hfname, "> \n"] where
+  hfname = hprefix ++ m ++ ".h"
+
+chImports :: String -> [HeaderName] -> [String]
+chImports hprefix = map (chImportStr hprefix)
 
 
 
+
+-- --
 type ModuleName = String
+type HeaderName = String
 
 
 -- | putting it all together
 
-emitModule :: ModuleName -> [ModuleName] -> [String] -> IO ()
-emitModule m ii ee = do
-  putStrLn $ preamble m ii
+emitModule :: ModuleName -> [ModuleName] -> [HeaderName] -> [String] -> IO ()
+emitModule m ii hh ee = do
+  putStrLn $ preamble m ii hh
   putStrLn $ enumEntries ee
 
-writeModuleToFile :: FilePath -> ModuleName -> [ModuleName] -> [String] -> IO ()
-writeModuleToFile fp m ii ee  = writeFile fp (cr ([preamble m ii, enumEntries ee]))
+writeModuleToFile :: FilePath -> ModuleName -> [ModuleName] -> [HeaderName] -> [String] -> IO ()
+writeModuleToFile fp m ii hh ee  =
+  writeFile fp (cr ([preamble m ii hh,
+                     enumEntries ee]))
 
 
 
