@@ -1,3 +1,14 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Numerical.Petsc.Internal.Meta.GenerateC2Hs
+-- Copyright   :  (c) Marco Zocca 2015
+-- License     :  LGPL3
+-- Maintainer  :  zocca . marco . gmail . com
+-- Stability   :  experimental
+--
+-- | c2hs generation
+--
+-----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Meta.GenerateC2Hs where
 
 import Data.Char
@@ -36,24 +47,20 @@ instance Show TypeOptions where
 typeDecl t = spaces ["type", t, "=", typeType [t]]
 
 
--- | conversion functions
 
-typeNameHs :: String -> String
-typeNameHs t = t ++ "_"
 
--- dmbToC x = toCInt $ fromEnum (x :: DMBoundaryType_) :: DMBoundaryType
+-- dmbToC x = toCInt $ fromEnum (x :: Dmb_) :: Dmb
 convertToC ty =
-  concat [ty, "ToC", " ", freeVarName] ++
+  concat [lowercaseInitial ty, "ToC", " ", freeVarName] ++
   " = " ++
   (inParens [toCTyF, "$", fromHsTyF, " ", freeVarName, " :: ", typeNameHs ty ]) ++ " :: " ++ ty where
    toCTyF = "toCInt"
    fromHsTyF = "fromEnum"
    freeVarName = "x"
 
--- dmbFromC c = (toEnum $ fromIntegral (c :: DMBoundaryType)) :: DMBoundaryType_
-
+-- dmbFromC c = (toEnum $ fromIntegral (c :: Dmb)) :: Dmb_
 convertFromC ty =
-    concat [ty, "FromC", " ", freeVarName] ++
+    concat [lowercaseInitial ty, "FromC", " ", freeVarName] ++
   " = " ++
   (inParens [toCTyF, "$", fromHsTyF, " ", freeVarName, " :: ", ty ]) ++ " :: " ++ typeNameHs ty where
    toCTyF = "toEnum"
@@ -61,7 +68,7 @@ convertFromC ty =
    freeVarName = "c"
 
 
---
+-- `{# enum .. #}`
 enumTypeDecl ty =
   enumType ([ty ++" as "++ typeNameHs ty,
              typeOptions UnderscoreToCase,
@@ -69,11 +76,50 @@ enumTypeDecl ty =
 
 
 -- | entry for one type (declarations and conversion functions)
-enumTypeEntry ty = cr [enumTypeDecl ty, typeDecl ty, convertToC ty, convertFromC ty]
+enumTypeEntry ty =
+  entry [enumTypeDecl ty, typeDecl ty, convertToC ty, convertFromC ty]
 
+enumEntries tt = cr (map enumTypeEntry tt)
+
+--
+
+preamble m ii = cr [moduleStr m, concat (map importStr ii)]
+
+moduleRoot = "Numerical.PETSc.Internal."
+
+
+-- module
+moduleStr m@(mi:_)
+  | isUpper mi = spaces ["module", moduleRoot ++ m, "where"]
+  | otherwise = "moduleStr : module name initial must be uppercase"
+moduleStr [] = error "moduleStr : module name cannot be empty"
+
+-- import
+importStr i = "import " ++ i ++ "\n"
+
+
+
+
+
+emitModule m ii ee = do
+  putStrLn $ preamble m ii
+  putStrLn $ enumEntries ee
+
+
+
+
+
+
+-- | conversion functions
+
+typeNameHs :: String -> String
+typeNameHs t = t ++ "_"
 
 
 -- | helpers
+entry :: [String] -> String
+entry ll = cr ll ++ "\n"
+
 spaces :: [String] -> String
 spaces = intercalate " "
 
@@ -83,20 +129,12 @@ inParens c = "(" ++ spaces c ++ ")"
 cr :: [String] -> String
 cr = intercalate "\n"
 
-lowerCaseInitial :: String -> String 
-lowerCaseInitial (c:cs) = toLower c : cs
-lowerCaseInitial [] = []
+lowercaseInitial :: String -> String 
+lowercaseInitial (c:cs) = toLower c : cs
+lowercaseInitial [] = []
 
 
--- 
-preamble m ii = cr [moduleStr m, concat (map importStr ii)]
--- module
-moduleStr m = spaces ["module", m, "where"]
-
--- import
-importStr i = "import " ++ i
 
 
--- examples
-ex1 t = enumType ([typeAsUnderscore t, typeOptions UnderscoreToCase, " deriving Eq"])
-ex2 = typeDecl 
+
+
