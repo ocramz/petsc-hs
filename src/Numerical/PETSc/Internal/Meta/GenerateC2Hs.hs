@@ -114,6 +114,8 @@ importStr [] = error "importStr : module name cannot be empty"
 type ModuleName = String
 
 
+-- | putting it all together
+
 emitModule :: ModuleName -> [ModuleName] -> [String] -> IO ()
 emitModule m ii ee = do
   putStrLn $ preamble m ii
@@ -124,7 +126,7 @@ writeModuleToFile fp m ii ee  = writeFile fp (cr ([preamble m ii, enumEntries ee
 
 
 
-
+-- |===================
 
 -- | conversion functions
 
