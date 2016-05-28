@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#
-
 
 # PETSc/SLEPc environment variables
 PETSC_DIR="$1"    # install directory (e.g. "$HOME/petsc")
@@ -18,4 +16,10 @@ SLEPC_INCLUDE1="$SLEPC_DIR"/include/
 SLEPC_INCLUDE2="$SLEPC_DIR"/"$SLEPC_ARCH"/include/
 SLEPC_LIB="$SLEPC_DIR"/"$SLEPC_ARCH"/lib/
 
-c2hs -C -I${PETSC_INCLUDE1} -C -I${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/TypesC2Hs.hs ${C2HS_DIR}/TypesC2Hs.chs
+C2HS_GEN_FILE=TypesC2HsGen 
+
+# generate c2hs
+runhaskell ${C2HS_DIR}/Meta/GenerateC2Hs.hs > ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
+
+# interpret c2hs -> render Haskell bindings
+c2hs -C -I${PETSC_INCLUDE1} -C -I${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs

@@ -15,7 +15,7 @@ module Numerical.PETSc.Internal.InlineC where
 import           Numerical.PETSc.Internal.Internal
 import           Numerical.PETSc.Internal.Storable.Common (unsafeWithVS)
 import           Numerical.PETSc.Internal.Types
-import           Numerical.PETSc.Internal.TypesC2Hs
+-- import           Numerical.PETSc.Internal.TypesC2HsGen
 import           Numerical.PETSc.Internal.Utils
 
 import           Language.C.Inline                 as C

@@ -14,33 +14,50 @@ module Numerical.PETSc.Internal.Meta.GenerateC2Hs where
 import Data.Char
 import Data.List
 
+-- | SETTINGS
+
+-- | output destination
+outFormat :: OutputFormat  -- `FileFmt` or `StdoutFmt`
+outFormat = StdoutFmt       
+
+-- | `.chs` file name
+outModuleName = "TypesC2HsGen"
+
+outTypes :: [CType]
+outTypes = [dm "BoundaryType"]
+
+-- | module paths
+-- genFilePath = dottedPath ["Numerical", "PETSc", "Internal", "Meta"]
+
+internalPath = dottedPath ["Numerical", "PETSc", "Internal"]
 
 
-  
+-- | 
 
--- | constants
-moduleRoot :: String
-moduleRoot = "Numerical.PETSc.Internal."
+main :: IO ()
+main | outFormat == StdoutFmt = emitModule modulename modImports headers types
+     | otherwise = writeModuleToFile fname modulename modImports headers types
+ where
+  fname = modulename ++ ".chs"
+  modulename = outModuleName 
+  modImports = [internalPath ++ "Utils",
+                "Foreign",
+                "Foreign.C.Types",
+                "Foreign.Storable"]
+  petscHeaders =
+    chImports "petsc" ["snes",
+                       "tao",
+                       "dm", "dmda", "dmcomposite",
+                       "ts",
+                       "viewer", "viewerhdf5",
+                       "sys"]
+  slepcHeaders =
+    chImports "slepc" ["eps", "svd"]
+  headers = petscHeaders ++ slepcHeaders
+  types = outTypes
 
-
--- main = emitModule modulename modImports headers types -- writeModuleToFile fname modulename modImports headers types
---  where
---   fname = modulename ++ ".chs"
---   modulename = "TypesC2HsGen"
---   modImports = [moduleRoot ++ "Utils",
---                 "Control.Monad",
---                 "Foreign",
---                 "Foreign.C.Types",
---                 "Foreign.Storable"]
---   petscHeaders =
---     chImports "petsc" ["snes", "tao", "dm", "dmda", "dmcomposite", "ts", "viewer", "viewerhdf5", "sys", "types"]
---   slepcHeaders =
---     chImports "slepc" ["eps", "svd"]
---   headers = petscHeaders ++ slepcHeaders
---   types = ["DMBoundaryType"]
-
-dmTypes :: CTypeSuffix -> CType
-dmTypes = CType "DM"
+dm :: CTypeSuffix -> CType
+dm = CType "DM"
 
 
 -- | c2hs stuff
@@ -68,20 +85,21 @@ typeDecl t = spaces ["type", show t, "=", typeType [ show t]]
 -- | Haskell - C marshalling helpers
 
 -- dmbToC x = toCInt $ fromEnum (x :: Dmb_) :: Dmb
-convertToC :: CType -> String
-convertToC ty =
+marshalToC :: CType -> String
+marshalToC ty =
   concat [funCType ty, "ToC", " ", freeVarName] ++
   " = " ++
-  (inParens [toCTyF, "$", fromHsTyF, " ", freeVarName, " :: ", typeNameHs (show ty) ]) ++ " :: " ++ show ty where
+  (inParens [toCTyF, "$", fromHsTyF, " ", freeVarName, " :: ", typeNameHs ty ]) ++ " :: " ++ show ty where
    toCTyF = "toCInt"
    fromHsTyF = "fromEnum"
    freeVarName = "x"
 
 -- dmbFromC c = (toEnum $ fromIntegral (c :: Dmb)) :: Dmb_
-convertFromC ty =
+marshalFromC :: CType -> String
+marshalFromC ty =
     concat [funCType ty, "FromC", " ", freeVarName] ++
   " = " ++
-  (inParens [toCTyF, "$", fromHsTyF, " ", freeVarName, " :: ", show ty ]) ++ " :: " ++ typeNameHs (show ty) where
+  (inParens [toCTyF, "$", fromHsTyF, " ", freeVarName, " :: ", show ty ]) ++ " :: " ++ typeNameHs ty where
    toCTyF = "toEnum"
    fromHsTyF = "fromIntegral"
    freeVarName = "c"
@@ -94,24 +112,26 @@ convertFromC ty =
 enumType t = c2hsMacro1 Enum t
 
 -- `{# enum .. as .. {underscoreToCase} deriving (Eq, Show) #}`
+enumTypeDecl :: CType -> String
 enumTypeDecl ty =
-  enumType ([show ty ++" as "++ typeNameHs (show ty),
+  enumType ([show ty ++" as "++ typeNameHs ty,
              typeOptions UnderscoreToCase,
              " deriving (Eq, Show)"])
 
 
 -- | entry for a single type (declarations and conversion functions)
 -- enumTypeEntry "" = error "enumTypeEntry : type cannot be empty"
+enumTypeEntry :: CType -> String
 enumTypeEntry ty =
   entry [enumTypeDecl ty,
          typeDecl ty,
-         convertToC ty,
-         convertFromC ty]
+         marshalToC ty,
+         marshalFromC ty]
   where
       entry :: [String] -> String
       entry ll = cr ll ++ "\n"
 
-
+enumEntries :: [CType] -> String
 enumEntries tt = cr (map enumTypeEntry tt)
 
 --
@@ -138,7 +158,7 @@ langExt c = "{-# LANGUAGE " ++ c ++ "#-}\n"
 moduleStr :: ModuleName -> String
 moduleStr [] = error "moduleStr : module name cannot be empty"
 moduleStr m@(mi:_)
-  | isUpper mi = spaces ["module", moduleRoot ++ m, "where"]
+  | isUpper mi = spaces ["module", internalPath ++ m, "where"]
   | otherwise = "moduleStr : module name initial must be uppercase"
 
 
@@ -185,6 +205,8 @@ writeModuleToFile fp m ii hh ee  =
 
 -- |===================
 
+data OutputFormat = StdoutFmt | FileFmt deriving (Eq, Show)
+
 type CTypePrefix = String
 type CTypeSuffix = String
 data CType = CType { ctypePre :: CTypePrefix, ctypeSuff :: CTypeSuffix} deriving (Eq)
@@ -218,11 +240,14 @@ instance Show TypeOptions where
 
 -- | conversion functions
 
--- typeNameHs :: String -> String
+typeNameHs :: CType -> String
 typeNameHs t = (show t) ++ "_"
 
 
 -- | helpers
+
+dottedPath :: [String] -> String
+dottedPath pp = concat $ map (\p -> p ++ ".") pp
 
 spaces :: [String] -> String
 spaces = intercalate " "

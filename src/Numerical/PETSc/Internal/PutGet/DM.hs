@@ -15,7 +15,7 @@ module Numerical.PETSc.Internal.PutGet.DM where
 
 import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
-import Numerical.PETSc.Internal.TypesC2Hs
+-- import Numerical.PETSc.Internal.TypesC2HsGen
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
@@ -45,12 +45,6 @@ import qualified Data.Vector.Storable.Mutable as VM
 
 
 
-
-
--- | C-Hs type conversions
-
-dmbToC x = toCInt $ fromEnum (x :: DMBoundaryType_) :: DMBoundaryType
-dmbFromC c = (toEnum $ fromIntegral (c :: DMBoundaryType)) :: DMBoundaryType_
 
 
 

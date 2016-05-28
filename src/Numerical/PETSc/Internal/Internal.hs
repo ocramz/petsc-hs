@@ -16,7 +16,7 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Internal where
 
-import Numerical.PETSc.Internal.TypesC2Hs
+-- import Numerical.PETSc.Internal.TypesC2HsGen
 import Numerical.PETSc.Internal.Types
 
 import qualified Language.C.Inline         as C
@@ -52,7 +52,7 @@ petscTypesTable = Map.fromList
                   , (typeNameId "Mat", [t| Mat |] )
                   , (typeNameId "MatInfo", [t| MatInfo |])
                   , (typeNameId "DM", [t| DM |] )
-                  , (typeNameId "DMBoundaryType", [t| DMBoundaryType |])  
+                  -- , (typeNameId "DMBoundaryType", [t| DMBoundaryType |])  
                   , (typeNameId "DMDALocalInfo", [t| DMDALocalInfo |])
                   , (typeNameId "KSP", [t| KSP |])
                   , (typeNameId "PC", [t| PC|])  
