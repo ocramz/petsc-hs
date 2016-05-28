@@ -43,8 +43,6 @@ import qualified Data.Vector.Storable as V --  (unsafeWith, unsafeFromForeignPtr
 import qualified Data.Vector.Storable.Mutable as VM
 
 
-
-
 -- -- | Dmda 1D + info
 
 -- data PetscDmda1d = PetscDmda1d !Dmda1dInfo DM

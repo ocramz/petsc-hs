@@ -266,3 +266,7 @@ lowercaseInitial [] = []
 
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0bd4bbb7d4fdf92fb75a4ad69c933fdb95bac226
