@@ -24,7 +24,7 @@ main:
 	make step3
 
 step1:
-	stack ghc -- -optc -g -v ${SRCDIR}/Internal/InlineC.hs -isrc/
+	stack ghc -- -optc -g ${SRCDIR}/Internal/InlineC.hs -isrc/
 
 step2:
 	cc -w -c -g ${SRCDIR}/Internal/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include -I${SLEPC_DIR_ARCH}/include -I${SLEPC_DIR}/include
@@ -63,4 +63,4 @@ grind:
 	valgrind --leak-check=yes --track-origins=yes stack exec petsc-valgrind 
 
 c2hs:
-	./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} $(shell pwd)/src/Numerical/PETSc/Internal
+	./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} $(shell pwd)/src/Numerical/PETSc/Internal/C2HsGen

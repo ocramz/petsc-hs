@@ -53,7 +53,7 @@ library
                        Numerical.PETSc.Internal.Storable.Common
                        Numerical.PETSc.Internal.Storable.Vector
                        Numerical.PETSc.Internal.Types
-                       -- Numerical.PETSc.Internal.TypesC2HsGen
+                       Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
                        Numerical.PETSc.Internal.Utils
   build-depends:       base >=4.7,
                        template-haskell,

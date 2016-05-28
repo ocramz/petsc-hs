@@ -15,6 +15,7 @@ module Numerical.PETSc.Internal.InlineC where
 import           Numerical.PETSc.Internal.Internal
 import           Numerical.PETSc.Internal.Storable.Common (unsafeWithVS)
 import           Numerical.PETSc.Internal.Types
+import           Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
 import           Numerical.PETSc.Internal.Utils
 
 import           Language.C.Inline                 as C
@@ -1528,9 +1529,9 @@ dmdaSetSizes' dm x y z = [C.exp|int{DMDASetSizes($(DM dm), $(PetscInt x), $(Pets
 -- s	- stencil width
 -- lx	- array containing number of nodes in the X direction on each processor, or NULL. If non-null, must be of length as the number of processes in the MPI_Comm.
 
-dmdaCreate1d0' ::
-  Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> IO (DM, CInt)
-dmdaCreate1d0' cc bx m dof s =
+-- dmdaCreate1d0' ::
+--   Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> IO (DM, CInt)
+dmdaCreate1d0' cc bxe m dof s =
    withPtr ( \ dm -> [C.exp|int{DMDACreate1d($(int c),
                                               $(int bxe),
                                               $(PetscInt m),
@@ -1539,11 +1540,11 @@ dmdaCreate1d0' cc bx m dof s =
                                               NULL,
                                               $(DM* dm))}|]  )
   where c = unComm cc
-        bxe = toEnum $ dmBoundaryTypeToInt bx
+        -- bxe = dmBoundaryTypeToC bx
 
-dmdaCreate1d' ::
-  Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> [CInt] -> IO (DM, CInt)
-dmdaCreate1d' cc bx m dof s lx_ =
+-- dmdaCreate1d' ::
+--   Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> [CInt] -> IO (DM, CInt)
+dmdaCreate1d' cc bxe m dof s lx_ =
   withArray lx_ ( \ lx ->
    withPtr ( \ dm -> [C.exp|int{DMDACreate1d($(int c),
                                               $(int bxe),
@@ -1553,7 +1554,7 @@ dmdaCreate1d' cc bx m dof s lx_ =
                                               $(int* lx),
                                               $(DM* dm))}|]  )) 
   where c = unComm cc
-        bxe = toEnum $ dmBoundaryTypeToInt bx
+        -- bxe = dmBoundaryTypeToC bx
 
 
 
@@ -1581,20 +1582,20 @@ dmdaCreate1d' cc bx m dof s lx_ =
 --    Output Parameter:
 -- .  da - the resulting distributed array object
 
-dmdaCreate2d0' :: Comm
-                        -> DMBoundaryType_
-                        -> DMBoundaryType_
-                        -> DMDAStencilType
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> [CInt]
-                        -> [CInt]
-                        -> IO (DM, CInt)
-dmdaCreate2d0' cc bx by sten mm nn m n dof s lx_ ly_ =
+-- dmdaCreate2d0' :: Comm
+--                         -> DMBoundaryType_
+--                         -> DMBoundaryType_
+--                         -> DMDAStencilType
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> [CInt]
+--                         -> [CInt]
+--                         -> IO (DM, CInt)
+dmdaCreate2d0' cc bxe bye sten mm nn m n dof s lx_ ly_ =
   withArray lx_ $ \lx ->
    withArray ly_ $ \ly -> 
     withPtr ( \dm -> [C.exp|int{DMDACreate2d($(int c),
@@ -1611,23 +1612,23 @@ dmdaCreate2d0' cc bx by sten mm nn m n dof s lx_ ly_ =
                           $(int* ly),
                           $(DM* dm))}|] ) 
   where c = unComm cc
-        bxe = toEnum $ dmBoundaryTypeToInt bx
-        bye = toEnum $ dmBoundaryTypeToInt by
+        -- bxe = toEnum $ dmBoundaryTypeToInt bx
+        -- bye = toEnum $ dmBoundaryTypeToInt by
         stene = toEnum $ dmdaStencilTypeToInt sten
 
 -- | Hp : lx == ly == NULL
 -- (customary in PETSc examples )
 
-dmdaCreate2d' :: Comm
-                       -> DMBoundaryType_
-                       -> DMBoundaryType_
-                       -> DMDAStencilType
-                       -> PetscInt_
-                       -> PetscInt_
-                       -> PetscInt_
-                       -> PetscInt_
-                       -> IO (DM, CInt)
-dmdaCreate2d' cc bx by sten mm nn dof s  =
+-- dmdaCreate2d' :: Comm
+--                        -> DMBoundaryType_
+--                        -> DMBoundaryType_
+--                        -> DMDAStencilType
+--                        -> PetscInt_
+--                        -> PetscInt_
+--                        -> PetscInt_
+--                        -> PetscInt_
+--                        -> IO (DM, CInt)
+dmdaCreate2d' cc bxe bye sten mm nn dof s  =
     withPtr ( \dm -> [C.exp|int{DMDACreate2d($(int c),
                           $(int bxe),
                           $(int bye),
@@ -1642,8 +1643,8 @@ dmdaCreate2d' cc bx by sten mm nn dof s  =
                           NULL,
                           $(DM* dm))}|] ) 
   where c = unComm cc
-        bxe = toEnum $ dmBoundaryTypeToInt bx
-        bye = toEnum $ dmBoundaryTypeToInt by
+        -- bxe = toEnum $ dmBoundaryTypeToInt bx
+        -- bye = toEnum $ dmBoundaryTypeToInt by
         stene = toEnum $ dmdaStencilTypeToInt sten
         
 -- dmdaCreate2d' c bx by sten mm nn dof s =
