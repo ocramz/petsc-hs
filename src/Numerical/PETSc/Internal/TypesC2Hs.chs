@@ -1,9 +1,14 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 module Numerical.PETSc.Internal.TypesC2Hs
+--        (
+--   PetscInt,
+--   PetscScalar,
+--   PetscBool,
+--   PetscReal,
+-- --  ErrCodeA                      
+--              )
        where
 
-import Numerical.PETSc.Internal.Utils
-import Control.Monad
 import Foreign
 import Foreign.C.Types
 import Foreign.Storable
@@ -24,13 +29,13 @@ import Foreign.Storable
 #include <slepceps.h>
 #include <slepcsvd.h>
 
--- type PetscInt_ = {# type PetscInt #}
--- type PetscScalar_ = {#type PetscScalar #}
--- type PetscReal_ = {#type PetscReal#}
--- -- /* typedef enum { PETSC_FALSE,PETSC_TRUE } PetscBool; */
--- -- {#enum PetscBool as PetscBool {underscoreToCase} deriving (Eq, Show)#}
--- type PetscBool_ = {#type PetscBool#}
--- -- deriving instance Storable PetscBool
+type PetscInt_ = {# type PetscInt #}
+type PetscScalar_ = {#type PetscScalar #}
+type PetscReal_ = {#type PetscReal#}
+-- /* typedef enum { PETSC_FALSE,PETSC_TRUE } PetscBool; */
+-- {#enum PetscBool as PetscBool {underscoreToCase} deriving (Eq, Show)#}
+type PetscBool_ = {#type PetscBool#}
+-- deriving instance Storable PetscBool
 
 -- * IS
 
@@ -40,6 +45,7 @@ import Foreign.Storable
 
 -- * DM
 
+{# enum DMBoundaryType as DmBoundaryType {underscoreToCase} deriving (Eq, Show) #}
 
 
 -- -- * DMDA

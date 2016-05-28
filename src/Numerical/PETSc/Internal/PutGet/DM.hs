@@ -15,7 +15,6 @@ module Numerical.PETSc.Internal.PutGet.DM where
 
 import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
-import Numerical.PETSc.Internal.TypesC2Hs
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
@@ -43,14 +42,6 @@ import Control.Exception
 import qualified Data.Vector.Storable as V --  (unsafeWith, unsafeFromForeignPtr, unsafeToForeignPtr)
 import qualified Data.Vector.Storable.Mutable as VM
 
-
-
-
-
--- | C-Hs type conversions
-
-dmbToC x = toCInt $ fromEnum (x :: DMBoundaryType_) :: DMBoundaryType
-dmbFromC c = (toEnum $ fromIntegral (c :: DMBoundaryType)) :: DMBoundaryType_
 
 
 
@@ -358,7 +349,7 @@ dmdaCreate cc = chk1 (dmdaCreate' cc)
 
 dmdaCreate1d ::
   Comm ->             
-  DMBoundaryType ->  -- b : type of boundary ghost cells
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
   Int ->        -- mm : global array dimension 
   Int ->        -- dof : # DOF / node
   Int ->        -- sw : stencil width 
@@ -370,7 +361,7 @@ dmdaCreate1d cc b mm dof sw lx =
 
 dmdaCreate1d0 ::  -- lx = NULL
   Comm ->             
-  DMBoundaryType ->  -- b : type of boundary ghost cells
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
   Int ->        -- mm : global array dimension 
   Int ->        -- dof : # DOF / node
   Int ->        -- sw : stencil width 
@@ -381,7 +372,7 @@ dmdaCreate1d0 cc b mm dof sw =
 
 dmdaCreate2d ::
   Comm ->
-  (DMBoundaryType, DMBoundaryType) -> -- (bx, by) : type of bdry ghost cells 
+  (DMBoundaryType_, DMBoundaryType_) -> -- (bx, by) : type of bdry ghost cells 
   DMDAStencilType ->                    -- sten : box or star stencil type
   (Int, Int) ->             -- (mm, nn) : global array dimensions
   Int ->                          -- dof : # DOF / node
@@ -470,7 +461,7 @@ dmdaSetUniformCoordinates2d da (xmin, xmax) (ymin, ymax)  =
 
 withDmda1d ::
   Comm ->
-  DMBoundaryType ->  -- b : type of boundary ghost cells
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
   Int ->        -- mm : global array dimension 
   Int ->        -- dof : # DOF / node
   Int ->        -- sw : stencil width 
@@ -482,7 +473,7 @@ withDmda1d cc b m dof sw lx =
 
 withDmda1d0 ::
   Comm ->
-  DMBoundaryType ->  -- b : type of boundary ghost cells
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
   Int ->        -- mm : global array dimension 
   Int ->        -- dof : # DOF / node
   Int ->        -- sw : stencil width 
@@ -493,7 +484,7 @@ withDmda1d0 cc b m dof sw =
 
 withDmda2d0 ::
   Comm ->
-  (DMBoundaryType, DMBoundaryType) ->
+  (DMBoundaryType_, DMBoundaryType_) ->
   DMDAStencilType ->
   (Int, Int) ->
   Int ->
@@ -522,7 +513,7 @@ withDmda2d0 cc (bx, by) sten (m, n) dof s =
 
 withDmdaUniform1d ::
   Comm ->
-  DMBoundaryType ->  -- b : type of boundary ghost cells
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
   Int ->        -- mm : global array dimension 
   Int ->        -- dof : # DOF / node
   Int ->        -- sw : stencil width 
@@ -546,7 +537,7 @@ withDmdaUniform1d cc b m dof sw lx (x1,x2) f=
 
 withDmdaUniform2d0 ::
   Comm ->
-  (DMBoundaryType, DMBoundaryType) ->  -- b : type of boundary ghost cells
+  (DMBoundaryType_, DMBoundaryType_) ->  -- b : type of boundary ghost cells
   DMDAStencilType ->
   (Int, Int) ->    -- (m, n) : global array dimensions 
   Int ->                 -- dof : # DOF / node
@@ -579,40 +570,40 @@ withDmdaUniform2d0 cc (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
 
 dmdaGetInfoCInt da = chk1 (dmdaGetInfo__' da)
 
--- dmdaGetInfo3d ::
---   DM ->
---   IO (Int,
---       (Int,Int, Int),
---       (Int,Int, Int),
---       Int,
---       Int,
---       (DMBoundaryType_, DMBoundaryType_, DMBoundaryType_ ),
---       DMDAStencilType)
--- dmdaGetInfo3d da = do
---   (d,(mm,nn,pp),(m,n,p),dof,s,(bx,by,bz),sten) <- dmdaGetInfoCInt da
---   let
---     dim = fi d
---     dims = (fi mm,fi nn, fi pp)
---     procsPerDim = (fi m, fi n, fi p)
---     (ndof, ss) = (fi dof, fi s)
---     bdries = (cIntToDmBoundaryType bx,
---               cIntToDmBoundaryType by,
---               cIntToDmBoundaryType bz)
---     st = cIntToDmdaStencilType sten
---   return (dim,dims,procsPerDim,ndof,ss,bdries,st)
+dmdaGetInfo3d ::
+  DM ->
+  IO (Int,
+      (Int,Int, Int),
+      (Int,Int, Int),
+      Int,
+      Int,
+      (DMBoundaryType_, DMBoundaryType_, DMBoundaryType_ ),
+      DMDAStencilType)
+dmdaGetInfo3d da = do
+  (d,(mm,nn,pp),(m,n,p),dof,s,(bx,by,bz),sten) <- dmdaGetInfoCInt da
+  let
+    dim = fi d
+    dims = (fi mm,fi nn, fi pp)
+    procsPerDim = (fi m, fi n, fi p)
+    (ndof, ss) = (fi dof, fi s)
+    bdries = (cIntToDmBoundaryType bx,
+              cIntToDmBoundaryType by,
+              cIntToDmBoundaryType bz)
+    st = cIntToDmdaStencilType sten
+  return (dim,dims,procsPerDim,ndof,ss,bdries,st)
 
--- dmdaGetInfo2d ::
---   DM ->
---   IO (Int,
---       (Int,Int),
---       (Int,Int),
---       Int,
---       Int,
---       (DMBoundaryType_, DMBoundaryType_),
---       DMDAStencilType)
--- dmdaGetInfo2d da = do
---   (d,(mm,nn,_),(m,n,_),dof,s,(bx,by,_),st) <- dmdaGetInfo3d da
---   return (d,(mm,nn),(m,n),dof,s,(bx,by),st)
+dmdaGetInfo2d ::
+  DM ->
+  IO (Int,
+      (Int,Int),
+      (Int,Int),
+      Int,
+      Int,
+      (DMBoundaryType_, DMBoundaryType_),
+      DMDAStencilType)
+dmdaGetInfo2d da = do
+  (d,(mm,nn,_),(m,n,_),dof,s,(bx,by,_),st) <- dmdaGetInfo3d da
+  return (d,(mm,nn),(m,n),dof,s,(bx,by),st)
 
 -- dmdaGetInfo1d da = do       -- not sure good idea
 --   (d,(mm,_,_),(m,_,_),dof,s,(bx,_,_),st) <- dmdaGetInfo3d da
