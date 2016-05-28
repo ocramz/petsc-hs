@@ -37,6 +37,6 @@ data DMBoundaryType_ = DmBoundaryNone
 type DMBoundaryType = (C2HSImp.CInt)
 {-# LINE 21 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
 
-dmBoundaryTypeToC x = (toCInt $ fromEnum   x  ::  DMBoundaryType_) :: DMBoundaryType
-dmBoundaryTypeFromC c = (toEnum $ fromIntegral   c  ::  DMBoundaryType) :: DMBoundaryType_
+-- dmBoundaryTypeToC x = (toCInt $ fromEnum   x  ::  DMBoundaryType_) :: DMBoundaryType
+-- dmBoundaryTypeFromC c = (toEnum $ fromIntegral   c  ::  DMBoundaryType) :: DMBoundaryType_
 
