@@ -76,6 +76,14 @@ withEpsCreateSetupSolve cc a b ty postsolve = withEpsCreateSetup cc a b ty $ \e 
 
 
 
+-- | # of converged eigenpairs
+
+epsGetConverged :: EPS -> IO Int
+epsGetConverged eps = fmap fi (chk1 $ epsGetConverged' eps)
+
+
+
+
 -- | check properties of eigensolution
 
 epsComputeError :: EPS -> Int -> EpsErrorType_ -> IO PetscReal_

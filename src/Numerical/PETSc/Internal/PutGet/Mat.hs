@@ -609,6 +609,13 @@ withMatAssembly m f = do
 
 
 
+-- | create compatible vectors
+matCreateVecs :: Mat -> IO (Vec, Vec)
+matCreateVecs m = chk1 $ matCreateVecs' m
+
+
+
+
 
 
 

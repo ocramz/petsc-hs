@@ -842,6 +842,29 @@ matView' m v = [C.exp|int{MatView($(Mat m),$(PetscViewer v))}|]
 
 
 
+
+-- PetscErrorCode  MatCreateVecs(Mat mat,Vec *right,Vec *left)
+-- Get vector(s) compatible with the matrix, i.e. with the same parallel layout
+-- Collective on Mat
+-- Input Parameter :
+-- mat -the matrix 
+-- Output Parameter :
+-- right	- (optional) vector that the matrix can be multiplied against
+-- left	- (optional) vector that the matrix vector product can be stored in
+-- Notes :
+-- The blocksize of the returned vectors is determined by the row and column block sizes set with MatSetBlockSizes() or the single blocksize (same for both) set by MatSetBlockSize().
+-- Notes: These are new vectors which are not owned by the Mat, they should be destroyed in VecDestroy() when no longer needed
+matCreateVecs' :: Mat -> IO ((Vec, Vec), CInt)
+matCreateVecs' m = withPtr2 $ \vleft vright ->
+  [C.exp|int{MatCreateVecs($(Mat m),$(Vec* vleft),$(Vec* vright))}|]
+
+
+
+
+
+
+
+
 -- PETSC_EXTERN PetscErrorCode MatGetSize(Mat,PetscInt*,PetscInt*);
 
 
@@ -3973,15 +3996,23 @@ epsComputeError' eps i ty = withPtr $ \err ->
 
 
 -- EPSGetEigenpair(EPS eps,int i,PetscScalar *kr,PetscScalar *ki,Vec xr,Vec xi);
-epsGetEigenpair' :: EPS
+epsGetEigenpair0' :: EPS
                     -> CInt
                     -> Ptr PetscScalar_
                     -> Ptr PetscScalar_
                     -> Vec
                     -> Vec
                     -> IO CInt
-epsGetEigenpair' e i kr ki xr xi =
-  [C.exp|int{EPSGetEigenpair($(EPS e),$(int i),$(PetscScalar* kr),$(PetscScalar* ki),$(Vec xr),$(Vec xi))}|]
+epsGetEigenpair0' e i kr ki xr xi =
+  [C.exp|int{EPSGetEigenpair($(EPS e),
+                             $(int i),           -- eigenpair index
+                             $(PetscScalar* kr), -- eigenvalue, Re
+                             $(PetscScalar* ki), -- ", Im
+                             $(Vec xr),          -- eigenvector, Re
+                             $(Vec xi))}|]       -- ", Im
+
+epsGetEigenpair' eps i xr xi = withPtr2 $ \kr ki ->
+  epsGetEigenpair0' eps i kr ki xr xi
 
 -- | is the operator Hermitian?
 epsIsHermitian' :: EPS -> IO (PetscBool, CInt)
