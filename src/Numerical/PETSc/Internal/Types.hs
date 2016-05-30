@@ -401,17 +401,17 @@ matCompositeTypeToInt x = fromEnum (x :: MatCompositeType_ )
 
 -- -- * DMDA
 
-data DMDAStencilType = DmSStar | DmSBox deriving (Eq, Show, Enum)
-dmdaStencilTypeToInt x = fromEnum (x :: DMDAStencilType)
+-- data DMDAStencilType = DmSStar | DmSBox deriving (Eq, Show, Enum)
+-- dmdaStencilTypeToInt x = fromEnum (x :: DMDAStencilType)
 
-cIntToDmdaStencilType :: CInt -> DMDAStencilType
-cIntToDmdaStencilType c =
-  case g of 0 -> DmSStar
-            1 -> DmSBox
-            _ -> DmSStar -- default
-  where
-    g :: Int
-    g = fromIntegral (c :: CInt)
+-- cIntToDmdaStencilType :: CInt -> DMDAStencilType
+-- cIntToDmdaStencilType c =
+--   case g of 0 -> DmSStar
+--             1 -> DmSBox
+--             _ -> DmSStar -- default
+--   where
+--     g :: Int
+--     g = fromIntegral (c :: CInt)
 
 
 

@@ -1115,7 +1115,7 @@ matGetRow' mat row =
 
 
 -- PetscErrorCode MatRestoreRow(Mat mat,PetscInt row,PetscInt *ncols,const PetscInt *cols[],const PetscScalar *vals[]) -- Not Collective
-matRestoreRow0' mat row ncols cols vals = [C.exp|int{MatRestoreRow($(Mat mat),$(int row),$(int* ncols),$(int** cols),$(PetscScalar** vals))}|]
+matRestoreRow0' mat row ncols cols vals = [C.exp|int{MatRestoreRow($(Mat mat),$(int row),$(const int* ncols),$(const int** cols),$(PetscScalar** vals))}|]
 -- Input Parameters :
 -- mat	- the matrix
 -- row	- the row to get
@@ -1582,26 +1582,26 @@ dmdaCreate1d' cc bx m dof s lx_ =
 --    Output Parameter:
 -- .  da - the resulting distributed array object
 
-dmdaCreate2d0' :: Comm
-                        -> DMBoundaryType_
-                        -> DMBoundaryType_
-                        -> DMDAStencilType
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> [CInt]
-                        -> [CInt]
-                        -> IO (DM, CInt)
+-- dmdaCreate2d0' :: Comm
+--                         -> DMBoundaryType_
+--                         -> DMBoundaryType_
+--                         -> DMDAStencilType
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> [CInt]
+--                         -> [CInt]
+--                         -> IO (DM, CInt)
 dmdaCreate2d0' cc bx by sten mm nn m n dof s lx_ ly_ =
   withArray lx_ $ \lx ->
    withArray ly_ $ \ly -> 
     withPtr ( \dm -> [C.exp|int{DMDACreate2d($(int c),
                           $(DMBoundaryType bxe),
                           $(DMBoundaryType bye),
-                          $(int stene),
+                          $(DMDAStencilType stene),
                           $(PetscInt mm),
                           $(PetscInt nn),
                           $(PetscInt m), 
@@ -1614,7 +1614,7 @@ dmdaCreate2d0' cc bx by sten mm nn m n dof s lx_ ly_ =
   where c = unComm cc
         bxe = dmBoundaryTypeToC bx
         bye = dmBoundaryTypeToC by
-        stene = toEnum $ dmdaStencilTypeToInt sten
+        stene = dmdaStencilTypeToC sten
 
 -- | Hp : lx == ly == NULL
 -- (customary in PETSc examples )
@@ -1622,7 +1622,7 @@ dmdaCreate2d0' cc bx by sten mm nn m n dof s lx_ ly_ =
 dmdaCreate2d' :: Comm
                        -> DMBoundaryType_
                        -> DMBoundaryType_
-                       -> DMDAStencilType
+                       -> DMDAStencilType_
                        -> PetscInt_
                        -> PetscInt_
                        -> PetscInt_
@@ -1632,7 +1632,7 @@ dmdaCreate2d' cc bx by sten mm nn dof s  =
     withPtr ( \dm -> [C.exp|int{DMDACreate2d($(int c),
                           $(DMBoundaryType bxe),
                           $(DMBoundaryType bye),
-                          $(int stene),
+                          $(DMDAStencilType stene),
                           $(PetscInt mm),
                           $(PetscInt nn),
                           PETSC_DECIDE, 
@@ -1645,7 +1645,7 @@ dmdaCreate2d' cc bx by sten mm nn dof s  =
   where c = unComm cc
         bxe = dmBoundaryTypeToC bx
         bye = dmBoundaryTypeToC by
-        stene = toEnum $ dmdaStencilTypeToInt sten
+        stene = dmdaStencilTypeToC sten
         
 -- dmdaCreate2d' c bx by sten mm nn dof s =
 --   dmdaCreate2d0' c bx by sten mm nn petscDecide petscDecide dof s [] []

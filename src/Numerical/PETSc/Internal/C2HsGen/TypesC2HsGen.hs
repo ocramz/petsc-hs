@@ -43,3 +43,17 @@ dmBoundaryTypeToC = CT.CInt . fromIntegral . fromEnum
 dmBoundaryTypeFromC :: DMBoundaryType -> DMBoundaryType_
 dmBoundaryTypeFromC = toEnum . fromIntegral
 
+data DMDAStencilType_ = DmdaStencilStar
+                      | DmdaStencilBox
+  deriving (Enum,Eq,Show)
+
+{-# LINE 28 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+
+type DMDAStencilType = (C2HSImp.CInt)
+{-# LINE 29 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+
+dmdaStencilTypeToC :: DMDAStencilType_ -> DMDAStencilType
+dmdaStencilTypeToC = CT.CInt . fromIntegral . fromEnum
+dmdaStencilTypeFromC :: DMDAStencilType -> DMDAStencilType_
+dmdaStencilTypeFromC = toEnum . fromIntegral
+

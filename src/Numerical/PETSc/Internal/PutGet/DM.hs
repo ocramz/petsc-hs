@@ -484,7 +484,7 @@ withDmda1d0 cc b m dof sw =
 withDmda2d0 ::
   Comm ->
   (DMBoundaryType_, DMBoundaryType_) ->
-  DMDAStencilType ->
+  DMDAStencilType_ ->
   (Int, Int) ->
   Int ->
   Int ->
@@ -537,7 +537,7 @@ withDmdaUniform1d cc b m dof sw lx (x1,x2) f=
 withDmdaUniform2d0 ::
   Comm ->
   (DMBoundaryType_, DMBoundaryType_) ->  -- b : type of boundary ghost cells
-  DMDAStencilType ->
+  DMDAStencilType_ ->
   (Int, Int) ->    -- (m, n) : global array dimensions 
   Int ->                 -- dof : # DOF / node
   Int ->                 -- sw : stencil width 
@@ -579,7 +579,7 @@ dmdaGetInfo3d ::
       (DMBoundaryType_,
        DMBoundaryType_,
        DMBoundaryType_ ), -- type of ghost nodes at boundary
-      DMDAStencilType) -- stencil type
+      DMDAStencilType_) -- stencil type
 dmdaGetInfo3d da = do
   (d,(mm,nn,pp),(m,n,p),dof,s,(bx,by,bz),sten) <- dmdaGetInfoCInt da
   let
@@ -590,7 +590,7 @@ dmdaGetInfo3d da = do
     bdries = (dmBoundaryTypeFromC bx,
               dmBoundaryTypeFromC by,
               dmBoundaryTypeFromC bz)
-    st = cIntToDmdaStencilType sten
+    st = dmdaStencilTypeFromC sten
   return (dim,dims,procsPerDim,ndof,ss,bdries,st)
 
 dmdaGetInfo2d ::
@@ -601,7 +601,7 @@ dmdaGetInfo2d ::
       Int,
       Int,
       (DMBoundaryType_, DMBoundaryType_),
-      DMDAStencilType)
+      DMDAStencilType_)
 dmdaGetInfo2d da = do
   (d,(mm,nn,_),(m,n,_),dof,s,(bx,by,_),st) <- dmdaGetInfo3d da
   return (d,(mm,nn),(m,n),dof,s,(bx,by),st)
