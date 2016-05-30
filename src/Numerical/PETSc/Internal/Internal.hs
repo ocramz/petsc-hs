@@ -20,6 +20,7 @@ import Numerical.PETSc.Internal.Types
 
 import qualified Language.C.Inline         as C
 import qualified Language.C.Types          as CT
+import Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
 import           Language.C.Inline.Context
 
 import qualified Language.Haskell.TH       as TH
@@ -51,6 +52,7 @@ petscTypesTable = Map.fromList
                   , (typeNameId "Mat", [t| Mat |] )
                   , (typeNameId "MatInfo", [t| MatInfo |])
                   , (typeNameId "DM", [t| DM |] )
+                  , (typeNameId "DMBoundaryType", [t| DMBoundaryType |] )
                   , (typeNameId "DMDALocalInfo", [t| DMDALocalInfo |])
                   , (typeNameId "KSP", [t| KSP |])
                   , (typeNameId "PC", [t| PC|])  

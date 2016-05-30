@@ -1542,8 +1542,8 @@ dmdaCreate1d0' cc bx m dof s =
   where c = unComm cc
         bxe = dmBoundaryTypeToCInt bx
 
-dmdaCreate1d' ::
-  Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> [CInt] -> IO (DM, CInt)
+-- dmdaCreate1d' ::
+--   Comm -> DMBoundaryType_ -> PetscInt_ -> PetscInt_ -> PetscInt_ -> [CInt] -> IO (DM, CInt)
 dmdaCreate1d' cc bx m dof s lx_ =
   withArray lx_ ( \ lx ->
    withPtr ( \ dm -> [C.exp|int{DMDACreate1d($(int c),
@@ -1582,19 +1582,19 @@ dmdaCreate1d' cc bx m dof s lx_ =
 --    Output Parameter:
 -- .  da - the resulting distributed array object
 
-dmdaCreate2d0' :: Comm
-                        -> DMBoundaryType_
-                        -> DMBoundaryType_
-                        -> DMDAStencilType
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> PetscInt_
-                        -> [CInt]
-                        -> [CInt]
-                        -> IO (DM, CInt)
+-- dmdaCreate2d0' :: Comm
+--                         -> DMBoundaryType_
+--                         -> DMBoundaryType_
+--                         -> DMDAStencilType
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> PetscInt_
+--                         -> [CInt]
+--                         -> [CInt]
+--                         -> IO (DM, CInt)
 dmdaCreate2d0' cc bx by sten mm nn m n dof s lx_ ly_ =
   withArray lx_ $ \lx ->
    withArray ly_ $ \ly -> 
@@ -1619,15 +1619,15 @@ dmdaCreate2d0' cc bx by sten mm nn m n dof s lx_ ly_ =
 -- | Hp : lx == ly == NULL
 -- (customary in PETSc examples )
 
-dmdaCreate2d' :: Comm
-                       -> DMBoundaryType_
-                       -> DMBoundaryType_
-                       -> DMDAStencilType
-                       -> PetscInt_
-                       -> PetscInt_
-                       -> PetscInt_
-                       -> PetscInt_
-                       -> IO (DM, CInt)
+-- dmdaCreate2d' :: Comm
+--                        -> DMBoundaryType_
+--                        -> DMBoundaryType_
+--                        -> DMDAStencilType
+--                        -> PetscInt_
+--                        -> PetscInt_
+--                        -> PetscInt_
+--                        -> PetscInt_
+--                        -> IO (DM, CInt)
 dmdaCreate2d' cc bx by sten mm nn dof s  =
     withPtr ( \dm -> [C.exp|int{DMDACreate2d($(int c),
                           $(int bxe),

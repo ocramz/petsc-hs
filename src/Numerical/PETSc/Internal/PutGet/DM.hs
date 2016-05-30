@@ -15,6 +15,7 @@ module Numerical.PETSc.Internal.PutGet.DM where
 
 import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
+import Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
 
@@ -345,37 +346,37 @@ withDmLocalVec dm = bracket (dmglv dm) (dmrlv dm) where
 dmdaCreate :: Comm -> IO DM
 dmdaCreate cc = chk1 (dmdaCreate' cc)
 
-dmdaCreate1d ::
-  Comm ->             
-  DMBoundaryType_ ->  -- b : type of boundary ghost cells
-  Int ->        -- mm : global array dimension 
-  Int ->        -- dof : # DOF / node
-  Int ->        -- sw : stencil width 
-  [Int] ->           -- # nodes in X dir / processor
-  IO DM
+-- dmdaCreate1d ::
+--   Comm ->             
+--   DMBoundaryType_ ->  -- b : type of boundary ghost cells
+--   Int ->        -- mm : global array dimension 
+--   Int ->        -- dof : # DOF / node
+--   Int ->        -- sw : stencil width 
+--   [Int] ->           -- # nodes in X dir / processor
+--   IO DM
 dmdaCreate1d cc b mm dof sw lx =
   chk1 (dmdaCreate1d' cc b mm' dof' sw' lx') where
     (mm', dof', sw', lx') = (toCInt mm, toCInt dof, toCInt sw, map toCInt lx)
 
-dmdaCreate1d0 ::  -- lx = NULL
-  Comm ->             
-  DMBoundaryType_ ->  -- b : type of boundary ghost cells
-  Int ->        -- mm : global array dimension 
-  Int ->        -- dof : # DOF / node
-  Int ->        -- sw : stencil width 
-  IO DM
+-- dmdaCreate1d0 ::  -- lx = NULL
+--   Comm ->             
+--   DMBoundaryType_ ->  -- b : type of boundary ghost cells
+--   Int ->        -- mm : global array dimension 
+--   Int ->        -- dof : # DOF / node
+--   Int ->        -- sw : stencil width 
+--   IO DM
 dmdaCreate1d0 cc b mm dof sw =
   chk1 (dmdaCreate1d0' cc b mm' dof' sw') where
     (mm', dof', sw') = (toCInt mm, toCInt dof, toCInt sw)
 
-dmdaCreate2d ::
-  Comm ->
-  (DMBoundaryType_, DMBoundaryType_) -> -- (bx, by) : type of bdry ghost cells 
-  DMDAStencilType ->                    -- sten : box or star stencil type
-  (Int, Int) ->             -- (mm, nn) : global array dimensions
-  Int ->                          -- dof : # DOF / node
-  Int ->                          -- stencil width
-  IO DM
+-- dmdaCreate2d ::
+--   Comm ->
+--   (DMBoundaryType_, DMBoundaryType_) -> -- (bx, by) : type of bdry ghost cells 
+--   DMDAStencilType ->                    -- sten : box or star stencil type
+--   (Int, Int) ->             -- (mm, nn) : global array dimensions
+--   Int ->                          -- dof : # DOF / node
+--   Int ->                          -- stencil width
+--   IO DM
 dmdaCreate2d cc (bx, by) sten (mm, nn) dof s =
   chk1 (dmdaCreate2d' cc bx by sten mm' nn' dof' s') where
     (mm', nn', dof', s') = (toCInt mm, toCInt nn, toCInt dof, toCInt s)
@@ -457,38 +458,38 @@ dmdaSetUniformCoordinates2d da (xmin, xmax) (ymin, ymax)  =
 
 -- | DMDA brackets
 
-withDmda1d ::
-  Comm ->
-  DMBoundaryType_ ->  -- b : type of boundary ghost cells
-  Int ->        -- mm : global array dimension 
-  Int ->        -- dof : # DOF / node
-  Int ->        -- sw : stencil width 
-  [Int] ->           -- # nodes in X dir / processor
-  (DM -> IO a) ->
-  IO a
+-- withDmda1d ::
+--   Comm ->
+--   DMBoundaryType_ ->  -- b : type of boundary ghost cells
+--   Int ->        -- mm : global array dimension 
+--   Int ->        -- dof : # DOF / node
+--   Int ->        -- sw : stencil width 
+--   [Int] ->           -- # nodes in X dir / processor
+--   (DM -> IO a) ->
+--   IO a
 withDmda1d cc b m dof sw lx =
   withDm (dmdaCreate1d cc b m dof sw lx)
 
-withDmda1d0 ::
-  Comm ->
-  DMBoundaryType_ ->  -- b : type of boundary ghost cells
-  Int ->        -- mm : global array dimension 
-  Int ->        -- dof : # DOF / node
-  Int ->        -- sw : stencil width 
-  (DM -> IO a) ->
-  IO a
+-- withDmda1d0 ::
+--   Comm ->
+--   DMBoundaryType_ ->  -- b : type of boundary ghost cells
+--   Int ->        -- mm : global array dimension 
+--   Int ->        -- dof : # DOF / node
+--   Int ->        -- sw : stencil width 
+--   (DM -> IO a) ->
+--   IO a
 withDmda1d0 cc b m dof sw =
   withDm (dmdaCreate1d0 cc b m dof sw)
 
-withDmda2d0 ::
-  Comm ->
-  (DMBoundaryType_, DMBoundaryType_) ->
-  DMDAStencilType ->
-  (Int, Int) ->
-  Int ->
-  Int ->
-  (DM -> IO a) ->
-  IO a
+-- withDmda2d0 ::
+--   Comm ->
+--   (DMBoundaryType_, DMBoundaryType_) ->
+--   DMDAStencilType ->
+--   (Int, Int) ->
+--   Int ->
+--   Int ->
+--   (DM -> IO a) ->
+--   IO a
 withDmda2d0 cc (bx, by) sten (m, n) dof s =
   withDm (dmdaCreate2d cc (bx, by) sten (m, n) dof s) 
 
@@ -509,16 +510,16 @@ withDmda2d0 cc (bx, by) sten (m, n) dof s =
 
 -- | DMDA brackets, uniform coordinates
 
-withDmdaUniform1d ::
-  Comm ->
-  DMBoundaryType_ ->  -- b : type of boundary ghost cells
-  Int ->        -- mm : global array dimension 
-  Int ->        -- dof : # DOF / node
-  Int ->        -- sw : stencil width 
-  [Int] ->           -- # nodes in X dir / processor
-  (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
-  (DM -> IO a) ->
-  IO a
+-- withDmdaUniform1d ::
+--   Comm ->
+--   DMBoundaryType_ ->  -- b : type of boundary ghost cells
+--   Int ->        -- mm : global array dimension 
+--   Int ->        -- dof : # DOF / node
+--   Int ->        -- sw : stencil width 
+--   [Int] ->           -- # nodes in X dir / processor
+--   (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
+--   (DM -> IO a) ->
+--   IO a
 withDmdaUniform1d cc b m dof sw lx (x1,x2) f=
   withDmda1d cc b m dof sw lx $ \dm -> do
    dmdaSetUniformCoordinates1d dm (x1,x2)
@@ -533,17 +534,17 @@ withDmdaUniform1d cc b m dof sw lx (x1,x2) f=
 --     dmdaSetUniformCoordinates2d dm bx by
 --     f dm
 
-withDmdaUniform2d0 ::
-  Comm ->
-  (DMBoundaryType_, DMBoundaryType_) ->  -- b : type of boundary ghost cells
-  DMDAStencilType ->
-  (Int, Int) ->    -- (m, n) : global array dimensions 
-  Int ->                 -- dof : # DOF / node
-  Int ->                 -- sw : stencil width 
-  (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
-  (PetscReal_, PetscReal_) ->  -- (ymin, ymax)
-  (DM -> IO a) ->
-  IO a
+-- withDmdaUniform2d0 ::
+--   Comm ->
+--   (DMBoundaryType_, DMBoundaryType_) ->  -- b : type of boundary ghost cells
+--   DMDAStencilType ->
+--   (Int, Int) ->    -- (m, n) : global array dimensions 
+--   Int ->                 -- dof : # DOF / node
+--   Int ->                 -- sw : stencil width 
+--   (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
+--   (PetscReal_, PetscReal_) ->  -- (ymin, ymax)
+--   (DM -> IO a) ->
+--   IO a
 withDmdaUniform2d0 cc (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
   withDmda2d0 cc (bx,by) sten (m,n) dof sw $ \dm -> do
     dmdaSetUniformCoordinates2d dm (x1,x2) (y1,y2)
