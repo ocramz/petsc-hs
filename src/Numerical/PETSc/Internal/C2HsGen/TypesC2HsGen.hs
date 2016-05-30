@@ -34,6 +34,12 @@ type PetscScalar_ = (C2HSImp.CDouble)
 type PetscReal_ = (C2HSImp.CDouble)
 {-# LINE 24 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
 
+type PetscInt_ = (C2HSImp.CInt)
+{-# LINE 25 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+
+type PetscLogStage_ = (C2HSImp.CInt)
+{-# LINE 26 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+
 -- | Enumeration types 
 
 data DMBoundaryType_ = DmBoundaryNone
@@ -43,10 +49,10 @@ data DMBoundaryType_ = DmBoundaryNone
                      | DmBoundaryTwist
   deriving (Enum,Eq,Show)
 
-{-# LINE 27 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+{-# LINE 29 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
 
 type DMBoundaryType = (C2HSImp.CInt)
-{-# LINE 28 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+{-# LINE 30 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
 
 dmBoundaryTypeToC :: DMBoundaryType_ -> DMBoundaryType
 dmBoundaryTypeToC = CT.CInt . fromIntegral . fromEnum
@@ -57,13 +63,27 @@ data DMDAStencilType_ = DmdaStencilStar
                       | DmdaStencilBox
   deriving (Enum,Eq,Show)
 
-{-# LINE 34 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+{-# LINE 36 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
 
 type DMDAStencilType = (C2HSImp.CInt)
-{-# LINE 35 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+{-# LINE 37 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
 
 dmdaStencilTypeToC :: DMDAStencilType_ -> DMDAStencilType
 dmdaStencilTypeToC = CT.CInt . fromIntegral . fromEnum
 dmdaStencilTypeFromC :: DMDAStencilType -> DMDAStencilType_
 dmdaStencilTypeFromC = toEnum . fromIntegral
+
+data PetscBool_ = PetscFalse
+                | PetscTrue
+  deriving (Enum,Eq,Show)
+
+{-# LINE 43 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+
+type PetscBool = (C2HSImp.CInt)
+{-# LINE 44 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+
+petscBoolToC :: PetscBool_ -> PetscBool
+petscBoolToC = CT.CInt . fromIntegral . fromEnum
+petscBoolFromC :: PetscBool -> PetscBool_
+petscBoolFromC = toEnum . fromIntegral
 

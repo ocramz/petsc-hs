@@ -23,18 +23,22 @@ outFormat = StdoutFmt
 -- | `.chs` file name
 outModuleName = "TypesC2HsGen"
 
--- | list of C types to map to Haskell
-outTypes :: [CType]
-outTypes = [
+-- | list of C enum types to map to Haskell
+outEnumTypes :: [CType]
+outEnumTypes = [
   dm "BoundaryType"
   , dmda "StencilType"
+  , petsc "Bool"  
   -- , snes "ConvergedReason"
            ]
 
--- | type synonyms
+-- | type synonyms: `type Ty_ = {# type Ty #}`
 outTypeSynonyms = [
   petsc "Scalar"
   , petsc "Real"
+  , petsc "Int"
+  , petsc "LogStage"
+  -- , petsc "Error"  
                   ]
 
 -- | module paths
@@ -48,8 +52,10 @@ c2hsGenPath = dottedPath ["Numerical", "PETSc", "Internal", "C2HsGen"]
 -- | 
 
 main :: IO ()
-main | outFormat == StdoutFmt = emitModule modulename modImports headers types typeds
-     | otherwise = writeModuleToFile fname modulename modImports headers types
+main | outFormat == StdoutFmt =
+         emitModule modulename modImports headers types typeds
+     | otherwise =
+         writeModuleToFile fname modulename modImports headers types
  where
   fname = modulename ++ ".chs"
   modulename = outModuleName 
@@ -67,7 +73,7 @@ main | outFormat == StdoutFmt = emitModule modulename modImports headers types t
   slepcHeaders =
     chImports "slepc" ["eps", "svd"]
   headers = petscHeaders ++ slepcHeaders
-  types = outTypes
+  types = outEnumTypes
   typeds = outTypeSynonyms
 
 dm :: CTypeSuffix -> CType
