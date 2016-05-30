@@ -15,6 +15,7 @@ module Numerical.PETSc.Test where
 -- import Control.Applicative
 
 import Numerical.PETSc.Internal.Types
+import Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
 import Numerical.PETSc.Internal.PutGet
 import Numerical.PETSc.Internal.Utils
 import qualified Numerical.PETSc.Internal.Sparse as PSparse -- (vvToCSR, vv)
@@ -307,7 +308,7 @@ timesConstS a = VS.map (* a)
 
 -- --
 
-t10' = withDmda1d0 cw DmBNone n 1 1 $ \da ->
+t10' = withDmda1d0 cw DmBoundaryNone n 1 1 $ \da ->
   withPetscViewer cw $ \vi -> do
    petscViewerSetType vi ViewerAscii
    -- petscViewerSetFormat vi ViewFmtAsciiInfoDetail
@@ -325,8 +326,8 @@ t10 = withPetsc0 t10'
 -- | managed resources, obj stdout
 
 t11'  = Mng.runManaged $ do
-  -- dm <- managed $ withDmda1d0 cw DmBNone n 1 1
-  dm <- Mng.managed $ withDmda2d0 cw (DmBNone, DmBNone) DmSStar (n,n) 1 1
+  -- dm <- managed $ withDmda1d0 cw DmBoundaryNone n 1 1
+  dm <- Mng.managed $ withDmda2d0 cw (DmBoundaryNone, DmBoundaryNone) DmSStar (n,n) 1 1
   vi <- Mng.managed $ withPetscViewerAscii cw 
   Mng.liftIO $ dmView dm vi
     where

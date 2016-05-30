@@ -458,38 +458,38 @@ dmdaSetUniformCoordinates2d da (xmin, xmax) (ymin, ymax)  =
 
 -- | DMDA brackets
 
--- withDmda1d ::
---   Comm ->
---   DMBoundaryType_ ->  -- b : type of boundary ghost cells
---   Int ->        -- mm : global array dimension 
---   Int ->        -- dof : # DOF / node
---   Int ->        -- sw : stencil width 
---   [Int] ->           -- # nodes in X dir / processor
---   (DM -> IO a) ->
---   IO a
+withDmda1d ::
+  Comm ->
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
+  Int ->        -- mm : global array dimension 
+  Int ->        -- dof : # DOF / node
+  Int ->        -- sw : stencil width 
+  [Int] ->           -- # nodes in X dir / processor
+  (DM -> IO a) ->
+  IO a
 withDmda1d cc b m dof sw lx =
   withDm (dmdaCreate1d cc b m dof sw lx)
 
--- withDmda1d0 ::
---   Comm ->
---   DMBoundaryType_ ->  -- b : type of boundary ghost cells
---   Int ->        -- mm : global array dimension 
---   Int ->        -- dof : # DOF / node
---   Int ->        -- sw : stencil width 
---   (DM -> IO a) ->
---   IO a
+withDmda1d0 ::
+  Comm ->
+  DMBoundaryType_ ->  -- b : type of boundary ghost cells
+  Int ->        -- mm : global array dimension 
+  Int ->        -- dof : # DOF / node
+  Int ->        -- sw : stencil width 
+  (DM -> IO a) ->
+  IO a
 withDmda1d0 cc b m dof sw =
   withDm (dmdaCreate1d0 cc b m dof sw)
 
--- withDmda2d0 ::
---   Comm ->
---   (DMBoundaryType_, DMBoundaryType_) ->
---   DMDAStencilType ->
---   (Int, Int) ->
---   Int ->
---   Int ->
---   (DM -> IO a) ->
---   IO a
+withDmda2d0 ::
+  Comm ->
+  (DMBoundaryType_, DMBoundaryType_) ->
+  DMDAStencilType ->
+  (Int, Int) ->
+  Int ->
+  Int ->
+  (DM -> IO a) ->
+  IO a
 withDmda2d0 cc (bx, by) sten (m, n) dof s =
   withDm (dmdaCreate2d cc (bx, by) sten (m, n) dof s) 
 
@@ -534,17 +534,17 @@ withDmdaUniform1d cc b m dof sw lx (x1,x2) f=
 --     dmdaSetUniformCoordinates2d dm bx by
 --     f dm
 
--- withDmdaUniform2d0 ::
---   Comm ->
---   (DMBoundaryType_, DMBoundaryType_) ->  -- b : type of boundary ghost cells
---   DMDAStencilType ->
---   (Int, Int) ->    -- (m, n) : global array dimensions 
---   Int ->                 -- dof : # DOF / node
---   Int ->                 -- sw : stencil width 
---   (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
---   (PetscReal_, PetscReal_) ->  -- (ymin, ymax)
---   (DM -> IO a) ->
---   IO a
+withDmdaUniform2d0 ::
+  Comm ->
+  (DMBoundaryType_, DMBoundaryType_) ->  -- b : type of boundary ghost cells
+  DMDAStencilType ->
+  (Int, Int) ->    -- (m, n) : global array dimensions 
+  Int ->                 -- dof : # DOF / node
+  Int ->                 -- sw : stencil width 
+  (PetscReal_, PetscReal_) ->  -- (xmin, xmax)
+  (PetscReal_, PetscReal_) ->  -- (ymin, ymax)
+  (DM -> IO a) ->
+  IO a
 withDmdaUniform2d0 cc (bx,by) sten (m,n) dof sw (x1,x2) (y1,y2) f =
   withDmda2d0 cc (bx,by) sten (m,n) dof sw $ \dm -> do
     dmdaSetUniformCoordinates2d dm (x1,x2) (y1,y2)
@@ -571,13 +571,15 @@ dmdaGetInfoCInt da = chk1 (dmdaGetInfo__' da)
 
 dmdaGetInfo3d ::
   DM ->
-  IO (Int,
-      (Int,Int, Int),
-      (Int,Int, Int),
-      Int,
-      Int,
-      (DMBoundaryType_, DMBoundaryType_, DMBoundaryType_ ),
-      DMDAStencilType)
+  IO (Int,            -- dimension of DM (1, 2 or 3)
+      (Int,Int, Int), -- global dimension in each direction of the array
+      (Int,Int, Int), -- corresponding number of procs in each dimension
+      Int,            -- number of degrees of freedom per node
+      Int,            -- stencil width 
+      (DMBoundaryType_,
+       DMBoundaryType_,
+       DMBoundaryType_ ), -- type of ghost nodes at boundary
+      DMDAStencilType) -- stencil type
 dmdaGetInfo3d da = do
   (d,(mm,nn,pp),(m,n,p),dof,s,(bx,by,bz),sten) <- dmdaGetInfoCInt da
   let
@@ -604,9 +606,9 @@ dmdaGetInfo2d da = do
   (d,(mm,nn,_),(m,n,_),dof,s,(bx,by,_),st) <- dmdaGetInfo3d da
   return (d,(mm,nn),(m,n),dof,s,(bx,by),st)
 
--- dmdaGetInfo1d da = do       -- not sure good idea
---   (d,(mm,_,_),(m,_,_),dof,s,(bx,_,_),st) <- dmdaGetInfo3d da
---   return (d, mm , m ,dof,s, bx ,st)
+dmdaGetInfo1d da = do       -- not sure good idea
+  (d,(mm,_,_),(m,_,_),dof,s,(bx,_,_),st) <- dmdaGetInfo3d da
+  return (d, mm , m ,dof,s, bx ,st)
 
 
 dmdaGetCorners1d ::
