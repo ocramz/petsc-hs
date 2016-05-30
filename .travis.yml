@@ -90,6 +90,10 @@ before_install:
   - export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
 
 
+  # install C2HS bindings automation tool
+  - stack install c2hs
+
+
 
 # # This line does all of the work: installs GHC if necessary, builds the library,
 # # executables, and test suites, and runs the test suites. --no-terminal works
@@ -98,6 +102,10 @@ before_install:
 script: 
   - stack setup
 
+  # # build and interpret C2Hs script (architecture-specific types)
+  - ./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} $(shell pwd)/src/Numerical/PETSc/Internal/C2HsGen
+
+  # # build whole project
   - ./stack-build.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
 
 
