@@ -90,8 +90,7 @@ before_install:
   - export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
 
 
-  # install C2HS bindings automation tool
-  - stack install c2hs
+
 
 
 
@@ -101,6 +100,9 @@ before_install:
 
 script: 
   - stack setup
+  
+  # install C2HS bindings automation tool
+  - stack install c2hs
 
   # # build and interpret C2Hs script (architecture-specific types)
   - ./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} $(shell pwd)/src/Numerical/PETSc/Internal/C2HsGen
