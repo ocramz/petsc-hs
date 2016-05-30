@@ -15,6 +15,7 @@ module Numerical.PETSc.Spec where
 
 
 import Numerical.PETSc.Internal.Types
+import Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
 import Numerical.PETSc.Internal.PutGet
 import Numerical.PETSc.Internal.Utils
 

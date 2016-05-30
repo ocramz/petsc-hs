@@ -12,6 +12,8 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.Types where
 
+import Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
+
 import Numerical.PETSc.Internal.Utils
 import Numerical.PETSc.Internal.Storable.StorableContainer
 
@@ -45,27 +47,17 @@ type PetscError_ = CInt
 
 type PetscInt_ = CInt
 type PetscBool_ = Bool
-type PetscScalar_ = CDouble  -- | FIXME : what abt complex-scalar PETSc builds?
-type PetscReal_ = CDouble
 
 type MatConst = CInt
 
 
--- -- FIXME : robust approach would be to infer the Hs types with c2hs
-
--- type PetscInt_ = PetscInt
--- type PetscBool_ = PetscBool
--- type PetscScalar_ = PetscScalar
--- type PetscReal_ = PetscReal
 
 
 
 
 
 
--- | shortcut synonyms
 
-type Scalar = PetscScalar_
 
 
 
@@ -377,42 +369,8 @@ matCompositeTypeToInt x = fromEnum (x :: MatCompositeType_ )
 
 -- * DM
 
--- data DMBoundaryType_ = DmBNone | DmBGhosted | DmBMirror | DmBPeriodic | DmBTwist
---                      deriving (Eq, Show, Enum)
 
--- dmBoundaryTypeToCInt :: DMBoundaryType_ -> CInt
--- dmBoundaryTypeToCInt i = toCInt $ dmBoundaryTypeToInt i 
-
--- dmBoundaryTypeToInt :: DMBoundaryType_ -> Int
--- dmBoundaryTypeToInt x = fromEnum (x :: DMBoundaryType_)
-
--- cIntToDmBoundaryType :: CInt -> DMBoundaryType_
--- cIntToDmBoundaryType c =
---   case g of 0 -> DmBNone
---             1 -> DmBGhosted
---             2 -> DmBMirror
---             3 -> DmBPeriodic
---             4 -> DmBTwist
---             _ -> DmBNone -- default
---   where
---     g :: Int
---     g = fromIntegral (c :: CInt)
-
-
--- -- * DMDA
-
--- data DMDAStencilType = DmSStar | DmSBox deriving (Eq, Show, Enum)
--- dmdaStencilTypeToInt x = fromEnum (x :: DMDAStencilType)
-
--- cIntToDmdaStencilType :: CInt -> DMDAStencilType
--- cIntToDmdaStencilType c =
---   case g of 0 -> DmSStar
---             1 -> DmSBox
---             _ -> DmSStar -- default
---   where
---     g :: Int
---     g = fromIntegral (c :: CInt)
-
+-- * DMDA
 
 
 -- * KSP

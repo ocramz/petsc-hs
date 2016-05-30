@@ -26,6 +26,16 @@ import  Foreign.Storable
 
 
 
+-- | Type synonyms 
+
+type PetscScalar_ = (C2HSImp.CDouble)
+{-# LINE 23 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+
+type PetscReal_ = (C2HSImp.CDouble)
+{-# LINE 24 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+
+-- | Enumeration types 
+
 data DMBoundaryType_ = DmBoundaryNone
                      | DmBoundaryGhosted
                      | DmBoundaryMirror
@@ -33,10 +43,10 @@ data DMBoundaryType_ = DmBoundaryNone
                      | DmBoundaryTwist
   deriving (Enum,Eq,Show)
 
-{-# LINE 21 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+{-# LINE 27 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
 
 type DMBoundaryType = (C2HSImp.CInt)
-{-# LINE 22 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+{-# LINE 28 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
 
 dmBoundaryTypeToC :: DMBoundaryType_ -> DMBoundaryType
 dmBoundaryTypeToC = CT.CInt . fromIntegral . fromEnum
@@ -47,10 +57,10 @@ data DMDAStencilType_ = DmdaStencilStar
                       | DmdaStencilBox
   deriving (Enum,Eq,Show)
 
-{-# LINE 28 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+{-# LINE 34 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
 
 type DMDAStencilType = (C2HSImp.CInt)
-{-# LINE 29 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
+{-# LINE 35 "/Users/ocramz/Dropbox/RESEARCH/Haskell/petsc-hs/src/Numerical/PETSc/Internal/C2HsGen/TypesC2HsGen.chs" #-}
 
 dmdaStencilTypeToC :: DMDAStencilType_ -> DMDAStencilType
 dmdaStencilTypeToC = CT.CInt . fromIntegral . fromEnum

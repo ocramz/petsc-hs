@@ -14,6 +14,7 @@ module Numerical.PETSc.Internal.PutGet.SNES where
 
 import Numerical.PETSc.Internal.InlineC
 import Numerical.PETSc.Internal.Types
+import Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
 import Numerical.PETSc.Internal.Exception
 import qualified Numerical.PETSc.Internal.PutGet.PetscMisc as PM
 import qualified Numerical.PETSc.Internal.PutGet.Viewer as Viewer

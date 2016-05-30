@@ -14,6 +14,7 @@ module Numerical.PETSc.Internal.PutGet.Vec where
 
 import           Numerical.PETSc.Internal.InlineC
 import           Numerical.PETSc.Internal.Types
+import           Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
 import           Numerical.PETSc.Internal.Exception
 import           Numerical.PETSc.Internal.Utils
 import qualified Numerical.PETSc.Internal.PutGet.PetscMisc as P
@@ -130,18 +131,10 @@ For a given Vec; what stays constant is:
 
 data PetscVector = PetscVector !VecInfo Vec
 
-data PVector = PVector VecInfo Vec (V.Vector Scalar)
+data PVector = PVector VecInfo Vec (V.Vector PetscScalar_)
 
 
 
-
-
-
-
--- Q : how do we carry data-on-mesh ?
--- 1 -- data VectorData a = VectorData !(V.Vector (Int, a))
--- 2 -- data VectorData a = VectorData (Map.Map Int a)  -- for sparse fills, reads
--- 3 -- isn't this implemented in Data.Vector already ?
 
 
 

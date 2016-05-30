@@ -31,15 +31,24 @@ outTypes = [
   -- , snes "ConvergedReason"
            ]
 
+-- | type synonyms
+outTypeSynonyms = [
+  petsc "Scalar"
+  , petsc "Real"
+                  ]
+
 -- | module paths
 internalPath = dottedPath ["Numerical", "PETSc", "Internal"]
 c2hsGenPath = dottedPath ["Numerical", "PETSc", "Internal", "C2HsGen"]
 
 
+
+
+
 -- | 
 
 main :: IO ()
-main | outFormat == StdoutFmt = emitModule modulename modImports headers types
+main | outFormat == StdoutFmt = emitModule modulename modImports headers types typeds
      | otherwise = writeModuleToFile fname modulename modImports headers types
  where
   fname = modulename ++ ".chs"
@@ -59,6 +68,7 @@ main | outFormat == StdoutFmt = emitModule modulename modImports headers types
     chImports "slepc" ["eps", "svd"]
   headers = petscHeaders ++ slepcHeaders
   types = outTypes
+  typeds = outTypeSynonyms
 
 dm :: CTypeSuffix -> CType
 dm = CType "DM"
@@ -66,6 +76,12 @@ dm = CType "DM"
 dmda = CType "DMDA"
 
 snes = CType "SNES"
+
+petsc = CType "Petsc"
+
+
+
+
 
 
 -- | c2hs stuff
@@ -83,10 +99,17 @@ typeOptions to = concat ["{ ", show (to :: TypeOptions) , " }"]
 
 
 
+
+
 -- | Haskell + c2hs  declarations e.g.
 -- `type Ty = {# type Ty #}`
 typeDecl :: CType -> String
-typeDecl t = spaces ["type", show t, "=", typeType [ show t]]
+typeDecl t = spaces ["type", show t, "=", typeType [ show t ]]
+
+-- `type Ty_ = {# type Ty #}`
+typeDecl' t = spaces ["type", typeNameHs t, "=", typeType [show t] ]
+
+
 
 
 
@@ -144,8 +167,11 @@ enumTypeEntry ty =
 enumEntries :: [CType] -> String
 enumEntries tt = cr (map enumTypeEntry tt)
 
---
 
+
+-- | separate type declarations
+
+typeDecls tt = cr (map typeDecl' tt)
    
 
 
@@ -208,8 +234,11 @@ chImports hprefix = map (chImportStr hprefix)
 
 -- | module to stdout
 -- emitModule :: ModuleName -> [ModuleName] -> [HeaderName] -> [CType] -> IO ()
-emitModule m ii hh ee = do
+emitModule m ii hh ee tt = do
   putStrLn $ preamble m ii hh
+  putStrLn "-- | Type synonyms \n"
+  putStrLn $ typeDecls tt
+  putStrLn "-- | Enumeration types \n"
   putStrLn $ enumEntries ee
 
 -- | module to file
@@ -231,11 +260,13 @@ instance Show CType where
   show = showCType
 
 showCType :: CType -> String
-showCType (CType a o) = (map toUpper a) ++ o
+showCType (CType a o) = a ++ o 
 funCType :: CType -> String
 funCType (CType a o) = (map toLower a) ++ o
 
+
 -- | types
+
 type ModuleName = String
 type HeaderName = String
 
