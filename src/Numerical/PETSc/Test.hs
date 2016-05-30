@@ -327,7 +327,7 @@ t10 = withPetsc0 t10'
 
 t11'  = Mng.runManaged $ do
   -- dm <- managed $ withDmda1d0 cw DmBoundaryNone n 1 1
-  dm <- Mng.managed $ withDmda2d0 cw (DmBoundaryNone, DmBoundaryNone) DmSStar (n,n) 1 1
+  dm <- Mng.managed $ withDmda2d0 cw (DmBoundaryNone, DmBoundaryNone) DmdaStencilStar (n,n) 1 1
   vi <- Mng.managed $ withPetscViewerAscii cw 
   Mng.liftIO $ dmView dm vi
     where
