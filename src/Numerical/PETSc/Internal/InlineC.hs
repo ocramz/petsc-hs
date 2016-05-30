@@ -1115,7 +1115,7 @@ matGetRow' mat row =
 
 
 -- PetscErrorCode MatRestoreRow(Mat mat,PetscInt row,PetscInt *ncols,const PetscInt *cols[],const PetscScalar *vals[]) -- Not Collective
-matRestoreRow0' mat row ncols cols vals = [C.exp|int{MatRestoreRow($(Mat mat),$(int row),$(const int* ncols),$(const int** cols),$(PetscScalar** vals))}|]
+matRestoreRow0' mat row ncols cols vals = [C.exp|int{MatRestoreRow($(Mat mat),$(int row),$(int* ncols),$(const int** cols),$(const PetscScalar** vals))}|]
 -- Input Parameters :
 -- mat	- the matrix
 -- row	- the row to get
