@@ -585,9 +585,9 @@ dmdaGetInfo3d da = do
     dims = (fi mm,fi nn, fi pp)
     procsPerDim = (fi m, fi n, fi p)
     (ndof, ss) = (fi dof, fi s)
-    bdries = (cIntToDmBoundaryType bx,
-              cIntToDmBoundaryType by,
-              cIntToDmBoundaryType bz)
+    bdries = (dmBoundaryTypeFromC bx,
+              dmBoundaryTypeFromC by,
+              dmBoundaryTypeFromC bz)
     st = cIntToDmdaStencilType sten
   return (dim,dims,procsPerDim,ndof,ss,bdries,st)
 
