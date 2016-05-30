@@ -104,6 +104,11 @@ script:
   # install C2HS bindings automation tool
   - stack install c2hs
 
+  - find ${HOME} -name runghc
+  - find ${HOME} -name runhaskell
+
+
+
   # # build and interpret C2Hs script (architecture-specific types)
   - ./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} ${PWD}/src/Numerical/PETSc/Internal/C2HsGen
 
