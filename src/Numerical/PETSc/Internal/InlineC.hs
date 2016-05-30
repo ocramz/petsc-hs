@@ -3942,7 +3942,8 @@ epsSetWhichEigenpairs' e wh = [C.exp|int{EPSSetWhichEigenpairs($(EPS e),$(int ew
 -- eps	- eigensolver context
 -- target	- the value of the target
 epsSetTarget' :: EPS -> PetscScalar_ -> IO CInt
-epsSetTarget' eps target = [C.exp|int{EPSSetTarget($(EPS eps),$(PetscScalar target))}|]
+epsSetTarget' eps target =
+  [C.exp|int{EPSSetTarget($(EPS eps),$(PetscScalar target))}|]
 
               
 -- EPSSolve(EPS eps);
@@ -3951,14 +3952,17 @@ epsSolve' e = [C.exp|int{EPSSolve($(EPS e))}|]
 
 -- EPSGetConverged(EPS eps, int *nconv);
 epsGetConverged' :: EPS -> IO (CInt, CInt)
-epsGetConverged' e = withPtr $ \nconv -> [C.exp|int{EPSGetConverged($(EPS e),$(int* nconv))}|]
+epsGetConverged' e = withPtr $ \nconv ->
+  [C.exp|int{EPSGetConverged($(EPS e),$(int* nconv))}|]
 
 -- Computes the error (based on the residual norm) associated with the i-th computed eigenpair.
 -- PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *error)  -- Collective on EPS
 epsComputeError' :: EPS -> Int -> EpsErrorType_ -> IO (PetscReal_, CInt)
-epsComputeError' eps i ty = withPtr $ \err -> [C.exp|int{EPSComputeError($(EPS eps),$(int ii),$(int et),$(PetscReal* err))}|] where
-  ii = toCInt i
-  et = toCInt $ epsErrorTypeToInt ty
+epsComputeError' eps i ty = withPtr $ \err ->
+  [C.exp|int{EPSComputeError($(EPS eps),$(int ii),$(int et),$(PetscReal* err))}|]
+  where
+   ii = toCInt i
+   et = toCInt $ epsErrorTypeToInt ty
 -- Input Parameter :
 -- eps	- the eigensolver context
 -- i	- the solution index
