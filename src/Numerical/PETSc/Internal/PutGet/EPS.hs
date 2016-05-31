@@ -85,7 +85,7 @@ withEpsCreateSetupSolve cc a ty postsolve = withEpsCreateSetup cc a ty $ \e vr -
   postsolve e nconv
 
 -- | type for retrieving eigenpair results : either the i'th eigenpair or the one specified by EPSWhich_, along with its target value (if this applies)
-type EPSGetEigenpair = Either Int (EpsWhich_, Maybe PetscReal_)
+type EPSGetEigenpair = Either Int (EpsWhich_, Maybe PetscScalar_)
 
 
 -- | # of converged eigenpairs

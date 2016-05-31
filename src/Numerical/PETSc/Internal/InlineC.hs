@@ -4025,11 +4025,13 @@ epsGetEigenpair' eps i xr xi = withPtr2 $ \kr ki ->
 
 -- | is the operator Hermitian?
 epsIsHermitian' :: EPS -> IO (PetscBool, CInt)
-epsIsHermitian' e = withPtr $ \ish -> [C.exp|int{EPSIsHermitian($(EPS e),$(PetscBool* ish))}|]
+epsIsHermitian' e = withPtr $ \ish ->
+  [C.exp|int{EPSIsHermitian($(EPS e),$(PetscBool* ish))}|]
 
 -- | is the operator positive definite?
 epsIsPositive' :: EPS -> IO (PetscBool, CInt)
-epsIsPositive' e = withPtr $ \isp -> [C.exp|int{EPSIsPositive($(EPS e),$(PetscBool* isp))}|]
+epsIsPositive' e = withPtr $ \isp ->
+  [C.exp|int{EPSIsPositive($(EPS e),$(PetscBool* isp))}|]
 
 
 -- | set number of eigenvals to compute and subspace dimension:

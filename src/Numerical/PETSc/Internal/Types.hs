@@ -769,7 +769,23 @@ epsBalanceToInt x = fromEnum (x :: EpsBalance_)
 
 data EpsWhich_ =
   LargestMag | SmallestMag | LargestReal | SmallestReal | LargestImag | SmallestImag
-  | TargetMag | TargetReal | TargetImag | EpsWhichAll | EpsWhichUser deriving (Eq, Show, Enum)
+  | TargetMag | TargetReal | TargetImag | EpsWhichAll | EpsWhichUser
+  deriving (Eq, Show, Enum)
+
+
+
+-- EPS_LARGEST_MAGNITUDE	 - largest eigenvalues in magnitude (default)
+-- EPS_SMALLEST_MAGNITUDE	 - smallest eigenvalues in magnitude
+-- EPS_LARGEST_REAL	 - largest real parts
+-- EPS_SMALLEST_REAL	 - smallest real parts
+-- EPS_LARGEST_IMAGINARY	 - largest imaginary parts
+-- EPS_SMALLEST_IMAGINARY	 - smallest imaginary parts
+-- EPS_TARGET_MAGNITUDE	 - eigenvalues closest to the target (in magnitude)
+-- EPS_TARGET_REAL	 - eigenvalues with real part closest to target
+-- EPS_TARGET_IMAGINARY	 - eigenvalues with imaginary part closest to target
+-- EPS_ALL	 - all eigenvalues contained in a given interval or region
+-- EPS_WHICH_USER	 - user defined ordering set with EPSSetEigenvalueComparison()
+
 
 epsWhichToInt :: EpsWhich_ -> Int
 epsWhichToInt x = 1 + fromEnum (x :: EpsWhich_)
