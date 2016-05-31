@@ -3942,7 +3942,7 @@ epsCreate' cc = withPtr $ \e -> [C.exp|int{EPSCreate($(int c), $(EPS* e))}|] whe
 -- EPSSetOperators(EPS eps,Mat A,Mat B);
 epsSetOperators0' :: EPS -> Mat -> IO CInt
 epsSetOperators0' e matA =
-  [C.exp|int{EPSSetOperators($(EPS e),$(Mat matA), NULL))}|]
+  [C.exp|int{EPSSetOperators($(EPS e),$(Mat matA), NULL)}|]
 
 epsSetOperators' :: EPS -> Mat -> Mat -> IO CInt
 epsSetOperators' e matA matB = [C.exp|int{EPSSetOperators($(EPS e),$(Mat matA),$(Mat matB))}|]
@@ -4005,19 +4005,19 @@ epsComputeError' eps i ty = withPtr $ \err ->
 
 -- EPSGetEigenpair(EPS eps,int i,PetscScalar *kr,PetscScalar *ki,Vec xr,Vec xi);
 epsGetEigenpair0' :: EPS
-                    -> CInt
-                    -> Ptr PetscScalar_
-                    -> Ptr PetscScalar_
-                    -> Vec
-                    -> Vec
+                    -> CInt              -- eigenpair index
+                    -> Ptr PetscScalar_  -- eigenvalue, Re
+                    -> Ptr PetscScalar_  -- ", Im
+                    -> Vec               -- eigenvector, Re
+                    -> Vec               -- ", Im
                     -> IO CInt
 epsGetEigenpair0' e i kr ki xr xi =
   [C.exp|int{EPSGetEigenpair($(EPS e),
-                             $(int i),           -- eigenpair index
-                             $(PetscScalar* kr), -- eigenvalue, Re
-                             $(PetscScalar* ki), -- ", Im
-                             $(Vec xr),          -- eigenvector, Re
-                             $(Vec xi))}|]       -- ", Im
+                             $(int i),           
+                             $(PetscScalar* kr), 
+                             $(PetscScalar* ki), 
+                             $(Vec xr),          
+                             $(Vec xi))}|]       
 
 epsGetEigenpair' eps i xr xi = withPtr2 $ \kr ki ->
   epsGetEigenpair0' eps ci kr ki xr xi
