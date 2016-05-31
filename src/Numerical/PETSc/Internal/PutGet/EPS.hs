@@ -32,6 +32,11 @@ import Numerical.PETSc.Internal.PutGet.Mat
 
 -- | setup
 
+-- ordinary eigenproblem : A x = lambda x
+epsSetOperators0 :: EPS -> Mat -> IO ()
+epsSetOperators0 eps matA  = chk0 $ epsSetOperators0' eps matA
+
+-- generalized eigenproblem : A x = lambda B x
 epsSetOperators :: EPS -> Mat -> Mat -> IO ()
 epsSetOperators eps matA matB = chk0 $ epsSetOperators' eps matA matB
 
@@ -60,19 +65,23 @@ withEpsCreate k = bracket (epsCreate k) epsDestroy where
   epsCreate cc = chk1 $ epsCreate' cc
   epsDestroy e = chk0 $ epsDestroy' e
 
-withEpsCreateSetup ::
-  Comm -> Mat -> Mat -> EpsProblemType_ -> (EPS -> IO a) -> IO a
-withEpsCreateSetup cc matA matB ty post = withEpsCreate cc $ \e -> do
-  epsSetOperators e matA matB
-  epsSetProblemType e ty
-  epsSetup e
-  post e
+-- | refer to http://slepc.upv.es/documentation/current/src/eps/examples/tutorials/ex31.c.html for EPS setup + solution
 
-withEpsCreateSetupSolve ::
-  Comm -> Mat -> Mat -> EpsProblemType_ -> (EPS -> IO a) -> IO a
-withEpsCreateSetupSolve cc a b ty postsolve = withEpsCreateSetup cc a b ty $ \e -> do
-  epsSolve e 
-  postsolve e
+
+-- withEpsCreateSetup ::
+--   Comm -> Mat -> Mat -> EpsProblemType_ -> (EPS -> IO a) -> IO a
+-- withEpsCreateSetup cc matA matB ty post = withEpsCreate cc $ \e -> do
+--   epsSetOperators e matA matB
+--   epsSetProblemType e ty
+--   epsSetup e
+--   post e
+
+-- -- withEpsCreateSetupSolve ::
+-- --   Comm -> Mat -> Mat -> EpsProblemType_ -> (EPS -> IO a) -> IO a
+-- withEpsCreateSetupSolve cc a b ty postsolve = withEpsCreateSetup cc a b ty $ \e -> do
+--   epsSolve e
+--   nconv <- epsGetConverged e
+--   postsolve e nconv
 
 
 

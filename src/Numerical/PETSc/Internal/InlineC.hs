@@ -858,9 +858,13 @@ matCreateVecs' :: Mat -> IO ((Vec, Vec), CInt)
 matCreateVecs' m = withPtr2 $ \vleft vright ->
   [C.exp|int{MatCreateVecs($(Mat m),$(Vec* vleft),$(Vec* vright))}|]
 
+matCreateVecRight' :: Mat -> IO (Vec, CInt)
+matCreateVecRight' m = withPtr $ \vright ->
+  [C.exp|int{MatCreateVecs($(Mat m), NULL ,$(Vec* vright))}|]
 
-
-
+matCreateVecLeft' :: Mat -> IO (Vec, CInt)
+matCreateVecLeft' m = withPtr $ \vleft ->
+  [C.exp|int{MatCreateVecs($(Mat m), $(Vec* vleft), NULL)}|]
 
 
 
@@ -3936,6 +3940,10 @@ epsCreate' cc = withPtr $ \e -> [C.exp|int{EPSCreate($(int c), $(EPS* e))}|] whe
   c = unComm cc
 
 -- EPSSetOperators(EPS eps,Mat A,Mat B);
+epsSetOperators0' :: EPS -> Mat -> IO CInt
+epsSetOperators0' e matA =
+  [C.exp|int{EPSSetOperators($(EPS e),$(Mat matA), NULL))}|]
+
 epsSetOperators' :: EPS -> Mat -> Mat -> IO CInt
 epsSetOperators' e matA matB = [C.exp|int{EPSSetOperators($(EPS e),$(Mat matA),$(Mat matB))}|]
   
@@ -4012,7 +4020,8 @@ epsGetEigenpair0' e i kr ki xr xi =
                              $(Vec xi))}|]       -- ", Im
 
 epsGetEigenpair' eps i xr xi = withPtr2 $ \kr ki ->
-  epsGetEigenpair0' eps i kr ki xr xi
+  epsGetEigenpair0' eps ci kr ki xr xi
+    where ci = toCInt i
 
 -- | is the operator Hermitian?
 epsIsHermitian' :: EPS -> IO (PetscBool, CInt)

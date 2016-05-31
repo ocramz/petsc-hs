@@ -613,7 +613,11 @@ withMatAssembly m f = do
 matCreateVecs :: Mat -> IO (Vec, Vec)
 matCreateVecs m = chk1 $ matCreateVecs' m
 
+matCreateVecLeft :: Mat -> IO Vec
+matCreateVecLeft m = chk1 $ matCreateVecLeft' m
 
+matCreateVecRight :: Mat -> IO Vec
+matCreateVecRight m = chk1 $ matCreateVecRight' m
 
 
 
