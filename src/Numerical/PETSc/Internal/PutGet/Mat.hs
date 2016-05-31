@@ -613,9 +613,11 @@ withMatAssembly m f = do
 matCreateVecs :: Mat -> IO (Vec, Vec)
 matCreateVecs m = chk1 $ matCreateVecs' m
 
+-- vector in which the matrix vector product can be stored
 matCreateVecLeft :: Mat -> IO Vec
 matCreateVecLeft m = chk1 $ matCreateVecLeft' m
 
+-- vector that the matrix can be multiplied against
 matCreateVecRight :: Mat -> IO Vec
 matCreateVecRight m = chk1 $ matCreateVecRight' m
 

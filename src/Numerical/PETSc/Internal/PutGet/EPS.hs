@@ -68,21 +68,24 @@ withEpsCreate k = bracket (epsCreate k) epsDestroy where
 -- | refer to http://slepc.upv.es/documentation/current/src/eps/examples/tutorials/ex31.c.html for EPS setup + solution
 
 
--- withEpsCreateSetup ::
+withEpsCreateSetup ::
+  Comm -> Mat -> EpsProblemType_ -> (EPS -> Vec -> IO a) -> IO a
+withEpsCreateSetup cc matA ty post = withEpsCreate cc $ \e -> do
+  epsSetOperators0 e matA -- matB
+  vr <- matCreateVecRight matA
+  epsSetProblemType e ty
+  epsSetup e
+  post e vr
+
+-- withEpsCreateSetupSolve ::
 --   Comm -> Mat -> Mat -> EpsProblemType_ -> (EPS -> IO a) -> IO a
--- withEpsCreateSetup cc matA matB ty post = withEpsCreate cc $ \e -> do
---   epsSetOperators e matA matB
---   epsSetProblemType e ty
---   epsSetup e
---   post e
+withEpsCreateSetupSolve cc a ty postsolve = withEpsCreateSetup cc a ty $ \e vr -> do
+  epsSolve e
+  nconv <- epsGetConverged e
+  postsolve e nconv
 
--- -- withEpsCreateSetupSolve ::
--- --   Comm -> Mat -> Mat -> EpsProblemType_ -> (EPS -> IO a) -> IO a
--- withEpsCreateSetupSolve cc a b ty postsolve = withEpsCreateSetup cc a b ty $ \e -> do
---   epsSolve e
---   nconv <- epsGetConverged e
---   postsolve e nconv
-
+-- | type for retrieving eigenpair results : either the i'th eigenpair or the one specified by EPSWhich_, along with its target value (if this applies)
+type EPSGetEigenpair = Either Int (EpsWhich_, Maybe PetscReal_)
 
 
 -- | # of converged eigenpairs
