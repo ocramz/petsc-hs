@@ -77,15 +77,20 @@ withEpsCreateSetup cc matA ty post = withEpsCreate cc $ \e -> do
   epsSetup e
   post e vr
 
--- withEpsCreateSetupSolve ::
---   Comm -> Mat -> Mat -> EpsProblemType_ -> (EPS -> IO a) -> IO a
+withEpsCreateSetupSolve ::
+  Comm ->
+  Mat ->
+  EpsProblemType_ ->
+  ( EPS -> 
+    Int ->           -- # of converged eigenpairs
+    IO a) ->
+  IO a
 withEpsCreateSetupSolve cc a ty postsolve = withEpsCreateSetup cc a ty $ \e vr -> do
   epsSolve e
   nconv <- epsGetConverged e
   postsolve e nconv
 
--- | type for retrieving eigenpair results : either the i'th eigenpair or the one specified by EPSWhich_, along with its target value (if this applies)
-type EPSGetEigenpair = Either Int (EpsWhich_, Maybe PetscScalar_)
+
 
 
 -- | # of converged eigenpairs

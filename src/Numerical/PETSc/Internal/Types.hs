@@ -790,7 +790,8 @@ data EpsWhich_ =
 epsWhichToInt :: EpsWhich_ -> Int
 epsWhichToInt x = 1 + fromEnum (x :: EpsWhich_)
 
-
+-- | type for retrieving eigenpair results : either the i'th eigenpair or the one specified by EPSWhich_, along with its target value (if this applies)
+type EPSWhichEigenpair = Either Int (EpsWhich_, Maybe PetscScalar_)
 
 
 
