@@ -33,12 +33,23 @@ import Numerical.PETSc.Internal.PutGet.Mat
 -- | setup
 
 -- ordinary eigenproblem : A x = lambda x
+-- ", setting
 epsSetOperators0 :: EPS -> Mat -> IO ()
 epsSetOperators0 eps matA  = chk0 $ epsSetOperators0' eps matA
 
+-- ", retrieval
+epsGetOperators0 :: EPS -> IO Mat
+epsGetOperators0 eps = chk1 $ epsGetOperators0' eps
+
 -- generalized eigenproblem : A x = lambda B x
+-- ", setting
 epsSetOperators :: EPS -> Mat -> Mat -> IO ()
 epsSetOperators eps matA matB = chk0 $ epsSetOperators' eps matA matB
+
+-- ", retrieval
+epsGetOperators :: EPS -> IO (Mat, Mat)
+epsGetOperators eps = chk1 $ epsGetOperators' eps
+
 
 epsSetProblemType :: EPS -> EpsProblemType_ -> IO ()
 epsSetProblemType e ty = chk0 $ epsSetProblemType' e ty
@@ -98,6 +109,16 @@ withEpsCreateSetupSolve cc a ty postsolve = withEpsCreateSetup cc a ty $ \e vr -
 epsGetConverged :: EPS -> IO Int
 epsGetConverged eps = fmap fi (chk1 $ epsGetConverged' eps)
 
+
+
+
+
+-- | get eigenvalues and eigenvectors
+epsGetEigenvalue eps ii = chk1 $ epsGetEigenvalue' eps ii
+
+epsGetEigenvector eps ii = undefined
+  where
+    ege ee jj vvr vvi = chk0 $ epsGetEigenvector ee jj vvr vvi
 
 
 

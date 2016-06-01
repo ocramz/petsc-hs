@@ -3946,6 +3946,23 @@ epsSetOperators0' e matA =
 
 epsSetOperators' :: EPS -> Mat -> Mat -> IO CInt
 epsSetOperators' e matA matB = [C.exp|int{EPSSetOperators($(EPS e),$(Mat matA),$(Mat matB))}|]
+
+
+-- PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
+-- Collective on EPS and Mat
+-- Input Parameter :
+-- eps	 - the EPS context
+-- Output Parameters :
+-- A	 - the matrix associated with the eigensystem
+-- B	 - the second matrix in the case of generalized eigenproblems
+-- ", simple eigenproblems: A x = lambda x
+epsGetOperators0' ee = withPtr $ \matA ->
+  [C.exp|int{EPSGetOperators($(EPS ee),$(Mat* matA),NULL)}|]
+
+-- ", for generalized eigenproblems: A x = lambda B x
+epsGetOperators' ee = withPtr2 $ \matA matB ->
+  [C.exp|int{EPSGetOperators($(EPS ee),$(Mat* matA),$(Mat* matB))}|]
+
   
 -- EPSSetProblemType(EPS eps,EPSProblemType type);
 epsSetProblemType' :: EPS -> EpsProblemType_ -> IO CInt
@@ -4001,6 +4018,34 @@ epsComputeError' eps i ty = withPtr $ \err ->
 -- Output Parameter :
 -- error - the error 
 -- The error can be computed in various ways, all of them based on the residual norm ||Ax-kBx||_2 where k is the eigenvalue and x is the eigenvector.
+
+
+-- PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar *eigi) -- Not Collective
+-- Input Parameters :
+-- eps	 - eigensolver context
+-- i	 - index of the solution
+-- Output Parameters :
+-- eigr	 - real part of eigenvalue
+-- eigi	 - imaginary part of eigenvalue
+-- Notes :
+-- If the eigenvalue is real, then eigi is set to zero. If PETSc is configured with complex scalars the eigenvalue is stored directly in eigr (eigi is set to zero).
+-- The index i should be a value between 0 and nconv-1 (see EPSGetConverged()). Eigenpairs are indexed according to the ordering criterion established with EPSSetWhichEigenpairs().
+epsGetEigenvalue' eps ii = withPtr2 $ \eigr eigi -> 
+  [C.exp|int{EPSGetEigenvalue($(EPS eps),$(PetscInt ii),$(PetscScalar* eigr),$(PetscScalar* eigi))}|]
+
+-- PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
+-- Logically Collective on EPS
+-- Input Parameters :
+-- eps	 - eigensolver context
+-- i	 - index of the solution
+-- Output Parameters :
+-- Vr	 - real part of eigenvector
+-- Vi	 - imaginary part of eigenvector
+-- Notes :
+-- The caller must provide valid Vec objects, i.e., they must be created by the calling program with e.g. MatCreateVecs().
+-- If the corresponding eigenvalue is real, then Vi is set to zero. If PETSc is configured with complex scalars the eigenvector is stored directly in Vr (Vi is set to zero). In both cases, the user can pass NULL in Vi.
+epsGetEigenvector' eps ii vr vi =
+  [C.exp|int{EPSGetEigenvector($(EPS eps),$(PetscInt ii),$(Vec vr),$(Vec vi))}|]
 
 
 -- EPSGetEigenpair(EPS eps,int i,PetscScalar *kr,PetscScalar *ki,Vec xr,Vec xi);
