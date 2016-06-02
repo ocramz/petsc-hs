@@ -248,6 +248,10 @@ vecCreateMPIInfo vi = vecCreateMPI co nl ng where
 vecDestroy :: Vec -> IO ()
 vecDestroy v = chk0 (vecDestroy' v)
 
+vecDestroyRight :: VecRight -> IO ()
+vecDestroyRight (VecRight vr) = vecDestroy vr
+vecDestroyLeft :: VecLeft -> IO ()
+vecDestroyLeft (VecLeft vl) = vecDestroy vl
 
 
 vecSetSizes :: Vec -> Int -> IO ()
@@ -271,6 +275,12 @@ vecSetSizes v n = chk0 $ vecSetSizes1 v (toCInt n)
 
 withVec :: IO Vec -> (Vec -> IO b) -> IO b
 withVec vc = bracket vc vecDestroy
+
+withVecRight :: IO VecRight -> (VecRight -> IO b) -> IO b
+withVecRight vr = bracket vr vecDestroyRight
+withVecLeft :: IO VecLeft -> (VecLeft -> IO b) -> IO b
+withVecLeft vl = bracket vl vecDestroyLeft
+
 
 
 withVecCreate :: VecInfo -> (Vec -> IO a) -> IO a

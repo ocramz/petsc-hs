@@ -610,16 +610,18 @@ withMatAssembly m f = do
 
 
 -- | create compatible vectors
-matCreateVecs :: Mat -> IO (Vec, Vec)
-matCreateVecs m = chk1 $ matCreateVecs' m
+matCreateVecs :: Mat -> IO (VecRight, VecLeft)
+matCreateVecs m = do
+  (vr, vl) <- chk1 $ matCreateVecs' m
+  return (VecRight vr, VecLeft vl)
 
 -- vector in which the matrix vector product can be stored
-matCreateVecLeft :: Mat -> IO Vec
-matCreateVecLeft m = chk1 $ matCreateVecLeft' m
+matCreateVecLeft :: Mat -> IO VecLeft
+matCreateVecLeft m = liftM VecLeft $ chk1 (matCreateVecLeft' m) 
 
 -- vector that the matrix can be multiplied against
-matCreateVecRight :: Mat -> IO Vec
-matCreateVecRight m = chk1 $ matCreateVecRight' m
+matCreateVecRight :: Mat -> IO VecRight
+matCreateVecRight m = liftM VecRight $ chk1 ( matCreateVecRight' m ) 
 
 
 

@@ -224,6 +224,23 @@ data VecInfo = VecInfo
   vecInfoSizeGlobal :: !Int } deriving (Eq, Show)
 
 
+-- | vectors and co-vectors 
+-- data PairedVector =
+--   VecRight Vec         -- mtx. can be multiplied with
+--   | VecLeft Vec        -- stores matrix-vector product
+
+newtype VecRight = VecRight {unVecRight :: Vec}
+instance Show VecRight where show _ = "Right <Vec>"
+
+newtype VecLeft = VecLeft {unVecLeft :: Vec}
+instance Show VecLeft where show _ = "Left <Vec>"
+
+-- instance Eq PairedVector where
+--   VecRight _ == VecRight _ = True
+--   VecLeft _ == VecLeft _ = True
+--   _ == _ = False
+
+
 
 
 

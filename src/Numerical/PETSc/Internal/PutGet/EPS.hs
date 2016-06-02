@@ -139,7 +139,7 @@ withEpsCreateSetup ::
   Maybe Mat ->
   EpsProblemType_ ->
   ( EPS ->
-    (Vec, Vec) ->  -- vector, covector
+    (VecRight, VecLeft) ->  -- vector, covector
     IO a) ->
   IO a
 withEpsCreateSetup cc matA mmatB ty post = withEpsCreate cc $ \e -> do
@@ -155,8 +155,8 @@ withEpsCreateSetupSolve ::
   Maybe Mat -> 
   EpsProblemType_ ->
   ( EPS -> 
-    Int ->           -- # of converged eigenpairs
-    (Vec, Vec) ->    
+    Int ->                 -- # of converged eigenpairs
+    (VecRight, VecLeft) -> -- vector, co-vector   
     IO a) ->
   IO a
 withEpsCreateSetupSolve cc a b ty postsolve =
@@ -169,15 +169,15 @@ withEpsCreateSetupSolve cc a b ty postsolve =
 
 
 -- | Vec brackets compatible with vectors and covectors:
-withEpsVecRight :: EPS -> (Vec -> IO a) -> IO a
+-- withEpsVecRight :: EPS -> (Vec -> IO a) -> IO a
 withEpsVecRight e fm = do
   mat <- epsGetOperators0 e 
-  withVec (matCreateVecRight mat) fm
+  withVecRight (matCreateVecRight mat) fm
 
-withEpsVecLeft :: EPS -> (Vec -> IO a) -> IO a
+-- withEpsVecLeft :: EPS -> (Vec -> IO a) -> IO a
 withEpsVecLeft e fm = do
   mat <- epsGetOperators0 e 
-  withVec (matCreateVecLeft mat) fm
+  withVecLeft (matCreateVecLeft mat) fm
 
 
 
