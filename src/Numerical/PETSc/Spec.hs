@@ -36,8 +36,8 @@ specs :: IO ()
 specs = 
   withPetsc0 $
    withSlepc0 $ hspec $ do
-   --  t_vecDot_r2_1
-   --  t_linSys_r3_1
+    t_vecDot_r2_1
+    t_linSys_r3_1
    -- --  -- 
    -- -- withSlepc0 $ hspec $ do
     t_eigen_r3_1
@@ -108,7 +108,7 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
 
 -- 3x3 asymmetric matrix :
 -- elements
-ixd3x3 = listToCSR 3 3 [1,2,0,0,3,4,5,68234,7]
+ixd3x3 = listToCSR 3 3 [1,2,0,0,3,4,5,6,7]
 -- nonzero pattern
 nz3x3 = VarNZPR (dnnz, onnz) where
    dnnz = V.convert $ V.fromList [1,1,1]
