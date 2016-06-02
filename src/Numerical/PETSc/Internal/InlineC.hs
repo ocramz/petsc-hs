@@ -855,16 +855,16 @@ matView' m v = [C.exp|int{MatView($(Mat m),$(PetscViewer v))}|]
 -- The blocksize of the returned vectors is determined by the row and column block sizes set with MatSetBlockSizes() or the single blocksize (same for both) set by MatSetBlockSize().
 -- Notes: These are new vectors which are not owned by the Mat, they should be destroyed in VecDestroy() when no longer needed
 matCreateVecs' :: Mat -> IO ((Vec, Vec), CInt)
-matCreateVecs' m = withPtr2 $ \vleft vright ->
-  [C.exp|int{MatCreateVecs($(Mat m),$(Vec* vleft),$(Vec* vright))}|]
-
-matCreateVecRight' :: Mat -> IO (Vec, CInt)
-matCreateVecRight' m = withPtr $ \vright ->
-  [C.exp|int{MatCreateVecs($(Mat m), NULL ,$(Vec* vright))}|]
+matCreateVecs' m = withPtr2 $ \vright vleft ->
+  [C.exp|int{MatCreateVecs($(Mat m),$(Vec* vright),$(Vec* vleft))}|]
 
 matCreateVecLeft' :: Mat -> IO (Vec, CInt)
 matCreateVecLeft' m = withPtr $ \vleft ->
-  [C.exp|int{MatCreateVecs($(Mat m), $(Vec* vleft), NULL)}|]
+  [C.exp|int{MatCreateVecs($(Mat m), NULL ,$(Vec* vleft))}|]
+
+matCreateVecRight' :: Mat -> IO (Vec, CInt)
+matCreateVecRight' m = withPtr $ \vright ->
+  [C.exp|int{MatCreateVecs($(Mat m), $(Vec* vright), NULL)}|]
 
 
 

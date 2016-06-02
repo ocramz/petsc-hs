@@ -677,7 +677,7 @@ csrAllNxN_ n = V.zip3 x y a where
   x = V.fromList $ concat $ replicate n [0 .. n-1]
   y = V.fromList $ concatMap (replicate n) [0 .. n-1]
   a = V.fromList [0 .. nc^2-1 :: PetscScalar_ ] where
-    nc = fromIntegral n
+    nc = fromIntegral n 
 
 csrSome3 :: V.Vector (Int, Int, PetscScalar_)
 csrSome3 = V.zip3 x y a where

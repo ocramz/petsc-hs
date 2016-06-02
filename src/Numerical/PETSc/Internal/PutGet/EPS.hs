@@ -158,10 +158,14 @@ epsSetInterval e smin smax = chk0 $ epsSetInterval' e smin smax
 
 -- | various tricks to steer convergence
 
+{-- Specify a basis of vectors that constitute the initial space, that is, the subspace from which the solver starts to iterate.  --}
 epsSetInitialSpace :: VG.Vector v Vec => EPS -> v Vec -> IO ()
 epsSetInitialSpace e ins = chk0 $ epsSetInitialSpace' e ins'
   where ins' = VG.convert ins
 
+{--When a deflation space is given, the eigensolver seeks the eigensolution in the restriction of the problem to the orthogonal complement of this space. This can be used for instance in the case that an invariant subspace is known beforehand (such as the nullspace of the matrix).
+These vectors do not persist from one EPSSolve() call to the other, so the deflation space should be set every time.
+The vectors do not need to be mutually orthonormal, since they are explicitly orthonormalized internally.--}
 epsSetDeflationSpace :: VG.Vector v Vec => EPS -> v Vec -> IO ()
 epsSetDeflationSpace e ds = chk0 $ epsSetDeflationSpace' e ds'
   where ds' = VG.convert ds
