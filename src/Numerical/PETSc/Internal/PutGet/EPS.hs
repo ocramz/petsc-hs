@@ -25,6 +25,7 @@ import Control.Exception (bracket)
 import Numerical.PETSc.Internal.PutGet.Vec
 import Numerical.PETSc.Internal.PutGet.Mat
 
+import qualified Data.Vector as V
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Storable as VS
 
@@ -214,9 +215,11 @@ epsGetEigenvector eps ii = undefined
   where
     ege ee jj vvr vvi = chk0 $ epsGetEigenvector ee (toCInt jj) vvr vvi
 
+epsGetEigenvalues :: EPS -> IO (V.Vector (PetscScalar_, PetscScalar_))
 epsGetEigenvalues eps = do
   nev <- epsGetConverged eps
-  traverse (epsGetEigenvalue eps) [0 .. nev-1]
+  tr <- traverse (epsGetEigenvalue eps) [0 .. nev-1]
+  return $ V.fromList tr
 
 
 
