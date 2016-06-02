@@ -89,10 +89,14 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
    withPetscMatrix com m n  MatAij ixd nz InsertValues $ \mat -> do
     let (_, _, _, mu) = fromPetscMatrix mat
     withEpsCreateSetupSolve com mu Nothing EpsHep $ \eps nev vrr _ -> do
-      epsViewStdout eps
-      print nev
-      let (VecRight vr) = vrr
-      vecViewStdout vr
+      ve <- epsGetEigenvalues eps
+      let (vr, vi) = V.unzip ve
+      print vr
+      print vi
+      -- epsViewStdout eps
+      -- print nev
+      -- let (VecRight vr) = vrr
+      -- vecViewStdout vr
       where
         (m, n) = (3, 3)                              -- matrix size 
         ixd = listToCSR m n [1,2,0,0,3,4,5,6,7]      -- matrix, by rows
