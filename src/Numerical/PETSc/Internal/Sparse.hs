@@ -269,6 +269,7 @@ vvToCSRsparse u = go 0 u where
 
 
 -- | tests
+v0 :: V.Vector Double
 v0 = V.fromList [pi, exp 1, sqrt 2]
 vv0 = V.fromList [v0, v0]
 csr0 = vvToCSR vv0

@@ -207,11 +207,16 @@ epsGetConverged eps = fmap fi (chk1 $ epsGetConverged' eps)
 
 
 -- | get eigenvalues and eigenvectors
-epsGetEigenvalue eps ii = chk1 $ epsGetEigenvalue' eps ii
+epsGetEigenvalue :: EPS -> Int -> IO (PetscScalar_, PetscScalar_)
+epsGetEigenvalue eps ii = chk1 $ epsGetEigenvalue' eps (toCInt ii)
 
 epsGetEigenvector eps ii = undefined
   where
-    ege ee jj vvr vvi = chk0 $ epsGetEigenvector ee jj vvr vvi
+    ege ee jj vvr vvi = chk0 $ epsGetEigenvector ee (toCInt jj) vvr vvi
+
+epsGetEigenvalues eps = do
+  nev <- epsGetConverged eps
+  traverse (epsGetEigenvalue eps) [0 .. nev-1]
 
 
 
