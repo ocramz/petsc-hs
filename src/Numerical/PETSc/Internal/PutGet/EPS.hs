@@ -29,7 +29,18 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Storable as VS
 
 
+
+
+
+epsCreate :: Comm -> IO EPS
+epsCreate k = chk1 $ epsCreate' k
  
+
+
+epsDestroy :: EPS -> IO ()
+epsDestroy e = chk0 $ epsDestroy' e
+
+
 
 
 
@@ -127,10 +138,11 @@ epsSolve e = chk0 $ epsSolve' e
 
 -- | `with` brackets
 
+
+
 withEpsCreate :: Comm -> (EPS -> IO a) -> IO a
-withEpsCreate k = bracket (epsCreate k) epsDestroy where
-  epsCreate cc = chk1 $ epsCreate' cc
-  epsDestroy e = chk0 $ epsDestroy' e
+withEpsCreate k = bracket (epsCreate k) epsDestroy
+  
 
 -- | refer to http://slepc.upv.es/documentation/current/src/eps/examples/tutorials/ex31.c.html for EPS setup + solution
 

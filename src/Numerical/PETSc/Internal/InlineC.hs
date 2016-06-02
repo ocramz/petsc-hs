@@ -63,6 +63,7 @@ C.include "<petscpctypes.h>"
 -- | SLEPc headers
 C.include "<slepceps.h>"
 C.include "<slepcsvd.h>"
+C.include "<slepcsys.h>"
 
 
 
