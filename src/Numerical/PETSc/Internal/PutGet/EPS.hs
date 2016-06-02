@@ -184,12 +184,12 @@ withEpsCreateSetupSolve cc a b ty postsolve =
 
 
 -- | Vec brackets compatible with vectors and covectors:
--- withEpsVecRight :: EPS -> (Vec -> IO a) -> IO a
+withEpsVecRight :: EPS -> (VecRight -> IO a) -> IO a
 withEpsVecRight e fm = do
   mat <- epsGetOperators0 e 
   withVecRight (matCreateVecRight mat) fm
 
--- withEpsVecLeft :: EPS -> (Vec -> IO a) -> IO a
+withEpsVecLeft :: EPS -> (VecLeft -> IO a) -> IO a
 withEpsVecLeft e fm = do
   mat <- epsGetOperators0 e 
   withVecLeft (matCreateVecLeft mat) fm
@@ -208,12 +208,23 @@ epsGetConverged eps = fmap fi (chk1 $ epsGetConverged' eps)
 
 
 -- | get eigenvalues and eigenvectors
-epsGetEigenvalue :: EPS -> Int -> IO (PetscScalar_, PetscScalar_)
+epsGetEigenvalue ::
+  EPS ->
+  Int ->                          -- # eigenpair
+  IO (PetscScalar_, PetscScalar_) -- (real, imag) 
 epsGetEigenvalue eps ii = chk1 $ epsGetEigenvalue' eps (toCInt ii)
 
-epsGetEigenvector eps ii = undefined
-  where
-    ege ee jj vvr vvi = chk0 $ epsGetEigenvector ee (toCInt jj) vvr vvi
+withEpsGetEigenvector ::
+  EPS ->
+  Int ->         -- # eigenpair
+  ( VecRight ->  -- real part
+    VecRight ->  -- imag part
+    IO a) ->
+  IO a
+withEpsGetEigenvector eps ii fme = withEpsVecRight eps $ \(VecRight vvr) -> 
+  withVecClone vvr $ \vvi -> do
+   chk0 $ epsGetEigenvector' eps (toCInt ii) vvr vvi
+   fme (VecRight vvr) (VecRight vvi)
 
 epsGetEigenvalues :: EPS -> IO (V.Vector (PetscScalar_, PetscScalar_))
 epsGetEigenvalues eps = do
