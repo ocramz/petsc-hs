@@ -88,7 +88,7 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
    withPetscMatrix com m n  MatAij ixd nz InsertValues $ \mat -> do
     let (_, _, _, mu) = fromPetscMatrix mat
     withEpsCreateSetupSolve com mu Nothing EpsHep $ \eps nev vrr _ -> do
-      _ <- withEpsEigenvectors eps $ \vr vi -> do
+      _ <- withEpsEigenvectors eps $ \(VecRight vr) (VecRight vi) -> do
              print vr
              print vi
       ve <- epsGetEigenvalues eps
