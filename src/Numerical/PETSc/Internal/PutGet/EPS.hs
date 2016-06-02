@@ -139,15 +139,15 @@ withEpsCreateSetup ::
   Maybe Mat ->
   EpsProblemType_ ->
   ( EPS ->
-    (VecRight, VecLeft) ->  -- vector, covector
+    VecRight -> VecLeft ->  -- vector, covector
     IO a) ->
   IO a
 withEpsCreateSetup cc matA mmatB ty post = withEpsCreate cc $ \e -> do
   epsSetOperators e matA mmatB
-  vrl <- matCreateVecs matA
-  epsSetProblemType e ty
-  epsSetup e
-  post e vrl
+  withVecRL (matCreateVecRight matA) (matCreateVecLeft matA) $ \ vr vl -> do 
+   epsSetProblemType e ty
+   epsSetup e
+   post e vr vl
 
 withEpsCreateSetupSolve ::
   Comm ->
@@ -156,14 +156,14 @@ withEpsCreateSetupSolve ::
   EpsProblemType_ ->
   ( EPS -> 
     Int ->                 -- # of converged eigenpairs
-    (VecRight, VecLeft) -> -- vector, co-vector   
+    VecRight -> VecLeft -> -- vector, co-vector   
     IO a) ->
   IO a
 withEpsCreateSetupSolve cc a b ty postsolve =
-  withEpsCreateSetup cc a b ty $ \e vrl -> do
+  withEpsCreateSetup cc a b ty $ \e vr vl -> do
    epsSolve e
    nconv <- epsGetConverged e
-   postsolve e nconv vrl
+   postsolve e nconv vr vl
 
 
 

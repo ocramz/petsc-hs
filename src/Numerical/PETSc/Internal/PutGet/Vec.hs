@@ -277,9 +277,14 @@ withVec :: IO Vec -> (Vec -> IO b) -> IO b
 withVec vc = bracket vc vecDestroy
 
 withVecRight :: IO VecRight -> (VecRight -> IO b) -> IO b
-withVecRight vr = bracket vr vecDestroyRight
+withVecRight vcr = bracket vcr vecDestroyRight
 withVecLeft :: IO VecLeft -> (VecLeft -> IO b) -> IO b
-withVecLeft vl = bracket vl vecDestroyLeft
+withVecLeft vcl = bracket vcl vecDestroyLeft
+
+withVecRL :: IO VecRight -> IO VecLeft -> (VecRight -> VecLeft -> IO a) -> IO a
+withVecRL vcr vcl f = withVecRight vcr $ \r ->
+  withVecLeft vcl $ \l ->
+   f r l
 
 
 
