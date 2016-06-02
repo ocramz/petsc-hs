@@ -74,14 +74,13 @@ t_linSys_r3_1 = describe "t_linSys_r3_1" $
           nd <- vecNorm solnDiff VecNorm2
           nd < diffNormTol `shouldBe` True 
       where
-        (m, n) = (3, 3)                              -- matrix size
-        vrhs = V.fromList [3, 7, 18]                 -- r.h.s
-        vsolnTrue = V.fromList [1, 1, 1]             -- exact solution  
-        ixd = listToCSR m n [1,2,0,0,3,4,5,6,7]      -- matrix, by rows
-        diffNormTol = 1e-300                         -- lin.solv. convergence tol.
-        nz = VarNZPR (dnnz, onnz) -- ConstNZPR (3,3) -- matrix nonzero pattern
-        dnnz = V.convert $ V.fromList [1,1,1] 
-        onnz = V.convert $ V.fromList [1,1,2]
+        (m, n) = (3, 3)                      -- matrix size
+        vrhs = V.fromList [3, 7, 18]         -- r.h.s
+        vsolnTrue = V.fromList [1, 1, 1]     -- exact solution  
+        ixd = ixd3x3                         -- matrix elements, by rows
+        diffNormTol = 1e-300                 -- lin.solv. convergence tol.
+        nz = nz3x3 -- ConstNZPR (3,3)        -- matrix nonzero pattern
+
 
 
 t_eigen_r3_1 = describe "t_eigen_r3_1" $
@@ -89,23 +88,28 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
    withPetscMatrix com m n  MatAij ixd nz InsertValues $ \mat -> do
     let (_, _, _, mu) = fromPetscMatrix mat
     withEpsCreateSetupSolve com mu Nothing EpsHep $ \eps nev vrr _ -> do
+      _ <- withEpsEigenvectors eps $ \vr vi -> do
+             print vr
+             print vi
       ve <- epsGetEigenvalues eps
-      let (vr, vi) = V.unzip ve
-      print vr
-      print vi
-      -- epsViewStdout eps
-      -- print nev
-      -- let (VecRight vr) = vrr
-      -- vecViewStdout vr
+      let (er, ei) = V.unzip ve
+      print er
+      print ei
       where
-        (m, n) = (3, 3)                              -- matrix size 
-        ixd = listToCSR m n [1,2,0,0,3,4,5,6,7]      -- matrix, by rows
-        nz = VarNZPR (dnnz, onnz) -- ConstNZPR (3,3) -- matrix nonzero pattern
-        dnnz = V.convert $ V.fromList [1,1,1] 
-        onnz = V.convert $ V.fromList [1,1,2]
+        (m, n) = (3, 3)                   
+        ixd = ixd3x3                      
+        nz = nz3x3
 
 
 
 
 
+-- | test data
 
+-- 3x3 asymmetric matrix :
+-- elements
+ixd3x3 = listToCSR 3 3 [1,2,0,0,3,4,5,6,7]
+-- nonzero pattern
+nz3x3 = VarNZPR (dnnz, onnz) where
+   dnnz = V.convert $ V.fromList [1,1,1]
+   onnz = V.convert $ V.fromList [1,1,2]

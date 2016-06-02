@@ -4045,6 +4045,7 @@ epsGetEigenvalue' eps ii = withPtr2 $ \eigr eigi ->
 -- Notes :
 -- The caller must provide valid Vec objects, i.e., they must be created by the calling program with e.g. MatCreateVecs().
 -- If the corresponding eigenvalue is real, then Vi is set to zero. If PETSc is configured with complex scalars the eigenvector is stored directly in Vr (Vi is set to zero). In both cases, the user can pass NULL in Vi.
+epsGetEigenvector' :: EPS -> PetscInt_ -> Vec -> Vec -> IO CInt
 epsGetEigenvector' eps ii vr vi =
   [C.exp|int{EPSGetEigenvector($(EPS eps),$(PetscInt ii),$(Vec vr),$(Vec vi))}|]
 
