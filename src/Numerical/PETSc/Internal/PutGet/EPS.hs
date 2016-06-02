@@ -134,7 +134,14 @@ withEpsCreate k = bracket (epsCreate k) epsDestroy where
 
 
 withEpsCreateSetup ::
-  Comm -> Mat -> Maybe Mat -> EpsProblemType_ -> (EPS -> (Vec, Vec) -> IO a) -> IO a
+  Comm ->
+  Mat ->
+  Maybe Mat ->
+  EpsProblemType_ ->
+  ( EPS ->
+    (Vec, Vec) ->  -- vector, covector
+    IO a) ->
+  IO a
 withEpsCreateSetup cc matA mmatB ty post = withEpsCreate cc $ \e -> do
   epsSetOperators e matA mmatB
   vrl <- matCreateVecs matA
@@ -149,7 +156,7 @@ withEpsCreateSetupSolve ::
   EpsProblemType_ ->
   ( EPS -> 
     Int ->           -- # of converged eigenpairs
-    (Vec, Vec) ->
+    (Vec, Vec) ->    
     IO a) ->
   IO a
 withEpsCreateSetupSolve cc a b ty postsolve =
