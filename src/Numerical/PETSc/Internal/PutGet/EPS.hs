@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
+{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes, FlexibleContexts#-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.PutGet.EPS
@@ -23,7 +23,8 @@ import Control.Exception (bracket)
 import Numerical.PETSc.Internal.PutGet.Vec
 import Numerical.PETSc.Internal.PutGet.Mat
 
-
+import qualified Data.Vector.Generic as VG
+import qualified Data.Vector.Storable as VS
 
 
  
@@ -155,14 +156,16 @@ epsSetInterval e smin smax = chk0 $ epsSetInterval' e smin smax
 
 
 
--- | various tricks to improve convergence
+-- | various tricks to steer convergence
 
--- FIXME : use Vector instead of list
-epsSetInitialSpace :: EPS -> [Vec] -> IO ()
-epsSetInitialSpace e ss = chk0 $ epsSetInitialSpace' e ss
+epsSetInitialSpace :: VG.Vector v Vec => EPS -> v Vec -> IO ()
+epsSetInitialSpace e ins = chk0 $ epsSetInitialSpace' e ins'
+  where ins' = VG.convert ins
 
-epsSetDeflationSpace :: EPS -> [Vec] -> IO ()
-epsSetDeflationSpace e ds = chk0 $ epsSetDeflationSpace' e ds
+epsSetDeflationSpace :: VG.Vector v Vec => EPS -> v Vec -> IO ()
+epsSetDeflationSpace e ds = chk0 $ epsSetDeflationSpace' e ds'
+  where ds' = VG.convert ds
+  
 
 
 
@@ -188,3 +191,17 @@ epsView e viewer = chk0 $ epsView' e viewer
 
 epsVectorsView :: EPS -> PetscViewer -> IO ()
 epsVectorsView e viewer = chk0 $ epsVectorsView' e viewer
+
+
+
+
+
+-- | hybrid
+
+
+-- 
+
+withEpsVecRight :: EPS -> (Vec -> IO a) -> IO a
+withEpsVecRight e fm = do
+  mat <- epsGetOperators0 e 
+  withVec (matCreateVecRight mat) fm

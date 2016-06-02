@@ -4092,11 +4092,11 @@ epsSetInterval' e smin smax = [C.exp|int{EPSSetInterval($(EPS e),$(PetscReal smi
 
 -- | sets subspace (array of Vec's) from which EPSSolve starts to iterate
 -- PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
-epsSetInitialSpace' :: EPS -> [Vec] -> IO CInt
-epsSetInitialSpace' e subspace = withArray subspace $ \isp -> 
+epsSetInitialSpace' :: EPS -> VS.Vector Vec -> IO CInt
+epsSetInitialSpace' e subspace = VS.unsafeWith subspace $ \isp -> 
   [C.exp|int{EPSSetInitialSpace($(EPS e),$(int nc),$(Vec* isp))}|]
     where nc = toCInt n
-          n = length subspace
+          n = VS.length subspace
 
 
 -- PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
@@ -4108,10 +4108,10 @@ epsSetInitialSpace' e subspace = withArray subspace $ \isp ->
 -- When a deflation space is given, the eigensolver seeks the eigensolution in the restriction of the problem to the orthogonal complement of this space. This can be used for instance in the case that an invariant subspace is known beforehand (such as the nullspace of the matrix).
 -- These vectors do not persist from one EPSSolve() call to the other, so the deflation space should be set every time.
 -- The vectors do not need to be mutually orthonormal, since they are explicitly orthonormalized internally.
-epsSetDeflationSpace' :: EPS -> [Vec] -> IO CInt
-epsSetDeflationSpace' e deflspace = withArray deflspace $ \dsp -> [C.exp|int{EPSSetDeflationSpace($(EPS e),$(int nd),$(Vec* dsp))}|]
+epsSetDeflationSpace' :: EPS -> VS.Vector Vec -> IO CInt
+epsSetDeflationSpace' e deflspace = VS.unsafeWith deflspace $ \dsp -> [C.exp|int{EPSSetDeflationSpace($(EPS e),$(int nd),$(Vec* dsp))}|]
    where nd = toCInt n
-         n = length deflspace
+         n = VS.length deflspace
          
 
 -- EPSDestroy(EPS eps);

@@ -648,11 +648,7 @@ t20 = withPetsc0 $
 
 
 
--- | EPS
 
--- asdfe e = do
---   mat <- epsGetOperators0 e 
---   withVec (matCreateVecRight mat)
 
 
 
