@@ -33,9 +33,15 @@ import Test.Hspec
 
 
 specs :: IO ()
-specs = withPetsc0 $ hspec $ do
-  t_vecDot_r2_1
-  t_linSys_r3_1
+specs = do
+  withPetsc0 $ hspec $ do
+   t_vecDot_r2_1
+   t_linSys_r3_1
+   -- 
+  withSlepc0 $ hspec $ do
+   t_eigen_r3_1
+
+
 
 
 
@@ -75,6 +81,7 @@ t_linSys_r3_1 = describe "t_linSys_r3_1" $
         nz = VarNZPR (dnnz, onnz) -- ConstNZPR (3,3) -- matrix nonzero pattern
         dnnz = V.convert $ V.fromList [1,1,1] 
         onnz = V.convert $ V.fromList [1,1,2]
+
 
 t_eigen_r3_1 = describe "t_eigen_r3_1" $
   it "solves a 3x3 linear eigenproblem" $
