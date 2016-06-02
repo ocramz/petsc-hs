@@ -183,7 +183,7 @@ withEpsCreateSetupSolve cc a b ty postsolve =
 
 
 
--- | Vec brackets compatible with vectors and covectors:
+-- | Vec brackets compatible with vectors and covectors, resp.:
 withEpsVecRight :: EPS -> (VecRight -> IO a) -> IO a
 withEpsVecRight e fm = do
   mat <- epsGetOperators0 e 
@@ -226,12 +226,24 @@ withEpsGetEigenvector eps ii fme = withEpsVecRight eps $ \(VecRight vvr) ->
    chk0 $ epsGetEigenvector' eps (toCInt ii) vvr vvi
    fme (VecRight vvr) (VecRight vvi)
 
-epsGetEigenvalues :: EPS -> IO (V.Vector (PetscScalar_, PetscScalar_))
-epsGetEigenvalues eps = do
-  nev <- epsGetConverged eps
-  tr <- traverse (epsGetEigenvalue eps) [0 .. nev-1]
-  return $ V.fromList tr
 
+
+-- | traverse converged eigenpairs and collect results in a V.Vector
+
+withEpsConvergedEigenpairs :: EPS -> (EPS -> Int -> IO a) -> IO (V.Vector a)
+withEpsConvergedEigenpairs eps fm = do
+  nev <- epsGetConverged eps
+  tr <- traverse (fm eps) [0..nev-1]
+  return (V.fromList tr)
+
+epsGetEigenvalues :: EPS -> IO (V.Vector (PetscScalar_, PetscScalar_))
+epsGetEigenvalues eps = withEpsConvergedEigenpairs eps epsGetEigenvalue
+
+withEpsEigenvectors :: EPS -> (VecRight -> VecRight -> IO a) -> IO (V.Vector a)
+withEpsEigenvectors eps fm =
+  withEpsConvergedEigenpairs eps $ \e i ->
+   withEpsGetEigenvector e i fm
+  
 
 
 -- | check properties of eigensolution
