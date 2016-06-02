@@ -17,6 +17,8 @@ import Numerical.PETSc.Internal.Types
 import Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
 import Numerical.PETSc.Internal.Exception
 import Numerical.PETSc.Internal.Utils
+import qualified Numerical.PETSc.Internal.PutGet.PetscMisc as P
+import qualified Numerical.PETSc.Internal.PutGet.Viewer as View
 
 import Control.Exception (bracket)
 
@@ -237,6 +239,9 @@ epsGetOperators eps = chk1 $ epsGetOperators' eps
 
 epsView :: EPS -> PetscViewer -> IO ()
 epsView e viewer = chk0 $ epsView' e viewer
+
+epsViewStdout :: EPS  -> IO ()
+epsViewStdout v = View.withPetscViewerTypeFmt P.commWorld ViewerAscii ViewFmtAsciiInfoDetail (epsView v)
 
 epsVectorsView :: EPS -> PetscViewer -> IO ()
 epsVectorsView e viewer = chk0 $ epsVectorsView' e viewer
