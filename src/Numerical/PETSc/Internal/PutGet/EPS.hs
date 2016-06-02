@@ -34,22 +34,21 @@ import qualified Data.Vector.Storable as VS
 -- | setup
 
 -- ordinary eigenproblem : A x = lambda x
--- ", setting
-epsSetOperators0 :: EPS -> Mat -> IO ()
-epsSetOperators0 eps matA  = chk0 $ epsSetOperators0' eps matA
-
--- ", retrieval
-epsGetOperators0 :: EPS -> IO Mat
-epsGetOperators0 eps = chk1 $ epsGetOperators0' eps
-
 -- generalized eigenproblem : A x = lambda B x
--- ", setting
-epsSetOperators :: EPS -> Mat -> Mat -> IO ()
-epsSetOperators eps matA matB = chk0 $ epsSetOperators' eps matA matB
 
--- ", retrieval
-epsGetOperators :: EPS -> IO (Mat, Mat)
-epsGetOperators eps = chk1 $ epsGetOperators' eps
+epsSetOperators ::
+  EPS ->
+  Mat ->
+  Maybe Mat -> -- optional operator for generalized eigenproblem
+  IO ()
+epsSetOperators eps matA Nothing = chk0 $ epsSetOperators0' eps matA
+epsSetOperators eps matA (Just matB) = chk0 $ epsSetOperators' eps matA matB
+
+
+
+
+
+
 
 
 epsSetProblemType :: EPS -> EpsProblemType_ -> IO ()
@@ -59,78 +58,6 @@ epsSetup :: EPS -> IO ()
 epsSetup e = chk0 $ epsSetup' e
 
 
-
-
-
--- | solve
-
-epsSolve :: EPS -> IO ()
-epsSolve e = chk0 $ epsSolve' e
-
-
-
-
--- | `with` brackets
-
-withEpsCreate :: Comm -> (EPS -> IO a) -> IO a
-withEpsCreate k = bracket (epsCreate k) epsDestroy where
-  epsCreate cc = chk1 $ epsCreate' cc
-  epsDestroy e = chk0 $ epsDestroy' e
-
--- | refer to http://slepc.upv.es/documentation/current/src/eps/examples/tutorials/ex31.c.html for EPS setup + solution
-
-
-withEpsCreateSetup ::
-  Comm -> Mat -> EpsProblemType_ -> (EPS -> Vec -> IO a) -> IO a
-withEpsCreateSetup cc matA ty post = withEpsCreate cc $ \e -> do
-  epsSetOperators0 e matA -- matB
-  vr <- matCreateVecRight matA
-  epsSetProblemType e ty
-  epsSetup e
-  post e vr
-
-withEpsCreateSetupSolve ::
-  Comm ->
-  Mat ->
-  EpsProblemType_ ->
-  ( EPS -> 
-    Int ->           -- # of converged eigenpairs
-    IO a) ->
-  IO a
-withEpsCreateSetupSolve cc a ty postsolve = withEpsCreateSetup cc a ty $ \e vr -> do
-  epsSolve e
-  nconv <- epsGetConverged e
-  postsolve e nconv
-
-
-
-
--- | # of converged eigenpairs
-
-epsGetConverged :: EPS -> IO Int
-epsGetConverged eps = fmap fi (chk1 $ epsGetConverged' eps)
-
-
-
-
-
--- | get eigenvalues and eigenvectors
-epsGetEigenvalue eps ii = chk1 $ epsGetEigenvalue' eps ii
-
-epsGetEigenvector eps ii = undefined
-  where
-    ege ee jj vvr vvi = chk0 $ epsGetEigenvector ee jj vvr vvi
-
-
-
--- | check properties of eigensolution
-
-epsComputeError :: EPS -> Int -> EpsErrorType_ -> IO PetscReal_
-epsComputeError eps i ty = chk1 $ epsComputeError' eps i ty
-
-epsIsHermitian, epsIsPositive :: EPS -> IO PetscBool
-epsIsHermitian = chk1 . epsIsHermitian'
-epsIsPositive = chk1 . epsIsPositive'
 
 
 
@@ -147,6 +74,7 @@ epsSetDimensions e nev ncv mpd  = chk0 $ epsSetDimensions' e nev ncv mpd
 
 
 
+-- | set spectrum interval
 
 epsSetInterval :: EPS -> PetscReal_ -> PetscReal_ -> IO ()
 epsSetInterval e smin smax = chk0 $ epsSetInterval' e smin smax
@@ -187,6 +115,116 @@ epsSetTarget e t = chk0 $ epsSetTarget' e t
 
 
 
+-- | solve
+
+epsSolve :: EPS -> IO ()
+epsSolve e = chk0 $ epsSolve' e
+
+
+
+
+-- | `with` brackets
+
+withEpsCreate :: Comm -> (EPS -> IO a) -> IO a
+withEpsCreate k = bracket (epsCreate k) epsDestroy where
+  epsCreate cc = chk1 $ epsCreate' cc
+  epsDestroy e = chk0 $ epsDestroy' e
+
+-- | refer to http://slepc.upv.es/documentation/current/src/eps/examples/tutorials/ex31.c.html for EPS setup + solution
+
+
+withEpsCreateSetup ::
+  Comm -> Mat -> Maybe Mat -> EpsProblemType_ -> (EPS -> (Vec, Vec) -> IO a) -> IO a
+withEpsCreateSetup cc matA mmatB ty post = withEpsCreate cc $ \e -> do
+  epsSetOperators e matA mmatB
+  vrl <- matCreateVecs matA
+  epsSetProblemType e ty
+  epsSetup e
+  post e vrl
+
+withEpsCreateSetupSolve ::
+  Comm ->
+  Mat ->
+  Maybe Mat -> 
+  EpsProblemType_ ->
+  ( EPS -> 
+    Int ->           -- # of converged eigenpairs
+    (Vec, Vec) ->
+    IO a) ->
+  IO a
+withEpsCreateSetupSolve cc a b ty postsolve =
+  withEpsCreateSetup cc a b ty $ \e vrl -> do
+   epsSolve e
+   nconv <- epsGetConverged e
+   postsolve e nconv vrl
+
+
+
+
+-- | Vec brackets compatible with vectors and covectors:
+withEpsVecRight :: EPS -> (Vec -> IO a) -> IO a
+withEpsVecRight e fm = do
+  mat <- epsGetOperators0 e 
+  withVec (matCreateVecRight mat) fm
+
+withEpsVecLeft :: EPS -> (Vec -> IO a) -> IO a
+withEpsVecLeft e fm = do
+  mat <- epsGetOperators0 e 
+  withVec (matCreateVecLeft mat) fm
+
+
+
+
+
+-- | # of converged eigenpairs
+
+epsGetConverged :: EPS -> IO Int
+epsGetConverged eps = fmap fi (chk1 $ epsGetConverged' eps)
+
+
+
+
+
+-- | get eigenvalues and eigenvectors
+epsGetEigenvalue eps ii = chk1 $ epsGetEigenvalue' eps ii
+
+epsGetEigenvector eps ii = undefined
+  where
+    ege ee jj vvr vvi = chk0 $ epsGetEigenvector ee jj vvr vvi
+
+
+
+-- | check properties of eigensolution
+
+epsComputeError :: EPS -> Int -> EpsErrorType_ -> IO PetscReal_
+epsComputeError eps i ty = chk1 $ epsComputeError' eps i ty
+
+epsIsHermitian, epsIsPositive :: EPS -> IO PetscBool
+epsIsHermitian = chk1 . epsIsHermitian'
+epsIsPositive = chk1 . epsIsPositive'
+
+
+
+
+-- -- retrieve
+epsGetOperators0 :: EPS -> IO Mat
+epsGetOperators0 eps = chk1 $ epsGetOperators0' eps
+
+epsGetOperators :: EPS -> IO (Mat, Mat)
+epsGetOperators eps = chk1 $ epsGetOperators' eps
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- | viewers
 
@@ -200,12 +238,5 @@ epsVectorsView e viewer = chk0 $ epsVectorsView' e viewer
 
 
 
--- | hybrid
 
 
--- 
-
-withEpsVecRight :: EPS -> (Vec -> IO a) -> IO a
-withEpsVecRight e fm = do
-  mat <- epsGetOperators0 e 
-  withVec (matCreateVecRight mat) fm
