@@ -34,12 +34,12 @@ import Test.Hspec
 
 specs :: IO ()
 specs = 
-  withPetsc0 $
+  -- withPetsc0 $
   withSlepc0 $ hspec $ do
-   t_vecDot_r2_1
-   t_linSys_r3_1
-  --  -- 
-  -- withSlepc0 $ hspec $ do
+  --  t_vecDot_r2_1
+  --  t_linSys_r3_1
+  -- --  -- 
+  -- -- withSlepc0 $ hspec $ do
    t_eigen_r3_1
 
 
