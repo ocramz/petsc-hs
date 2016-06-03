@@ -39,8 +39,8 @@ specs =
     t_vecDot_r2_1
     t_linSys_r3_1
    -- --  -- 
-   -- -- withSlepc0 $ hspec $ do
     t_eigen_r3_1
+    t_eigen_r3_1_symm
 
 
 
@@ -83,6 +83,7 @@ t_linSys_r3_1 = describe "t_linSys_r3_1" $
 
 
 
+
 t_eigen_r3_1 = describe "t_eigen_r3_1" $
   it "solves a 3x3 (real, asymmetric) linear eigenproblem" $
    withPetscMatrix com m n  MatAij ixd nz InsertValues $ \mat -> do
@@ -96,7 +97,7 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
       let (er, _) = V.unzip ve
       -- print (er, ei)
       -- ver <- vecGetVS er
-      V.all (>0) er `shouldBe` False
+      V.all (>0) er `shouldBe` False -- asymmetric mtx
       where
         (m, n) = (3, 3)                   
         ixd = ixd3x3                      
@@ -104,14 +105,32 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
 
 
 
+-- | data for3x3 asymmetric matrix :
 
-
--- | test data
-
--- 3x3 asymmetric matrix :
 -- elements
 ixd3x3 = listToCSR 3 3 [1,2,0,0,3,4,5,6,7]
 -- nonzero pattern
 nz3x3 = VarNZPR (dnnz, onnz) where
    dnnz = V.convert $ V.fromList [1,1,1]
    onnz = V.convert $ V.fromList [1,1,2]
+
+
+
+-- |
+
+
+t_eigen_r3_1_symm = describe "t_eigen_r3_1_symm" $
+  it "solves a 3x3 (real, symmetric) linear eigenproblem" $
+   withPetscMatrix com m n  MatAij ixd nz InsertValues $ \mat -> do
+    let (_, _, _, mu) = fromPetscMatrix mat
+    withEpsCreateSetupSolve com mu Nothing EpsHep $ \eps nev vrr _ -> do
+      -- putStrLn "Eigenvalues : (real, imag)"
+      ve <- epsGetEigenvalues eps
+      let (er, _) = V.unzip ve
+      -- print (er, ei)
+      -- ver <- vecGetVS er
+      V.all (>0) er `shouldBe` True -- symmetric mtx
+      where
+        (m, n) = (3, 3)                   
+        ixd = listToCSR m n [1,2,3, 2,3,4, 3,4,2]                      
+        nz = ConstNZPR (3,3)
