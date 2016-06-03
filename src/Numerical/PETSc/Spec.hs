@@ -94,10 +94,11 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
       --        print (vr, vi)
       -- putStrLn "Eigenvalues : (real, imag)"
       ve <- epsGetEigenvalues eps
-      let (er, _) = V.unzip ve
+      let (er, ei) = V.unzip ve
       -- print (er, ei)
       -- ver <- vecGetVS er
       V.all (>0) er `shouldBe` False -- asymmetric mtx
+      V.all (== 0) ei `shouldBe` True -- real mtx
       where
         (m, n) = (3, 3)                   
         ixd = ixd3x3                      
@@ -126,10 +127,11 @@ t_eigen_r3_1_symm = describe "t_eigen_r3_1_symm" $
     withEpsCreateSetupSolve com mu Nothing EpsHep $ \eps nev vrr _ -> do
       -- putStrLn "Eigenvalues : (real, imag)"
       ve <- epsGetEigenvalues eps
-      let (er, _) = V.unzip ve
+      let (er, ei) = V.unzip ve
       -- print (er, ei)
       -- ver <- vecGetVS er
       V.all (>0) er `shouldBe` True -- symmetric mtx
+      V.all (== 0) ei `shouldBe` True -- real mtx
       where
         (m, n) = (3, 3)                   
         ixd = listToCSR m n [1,2,3, 2,3,4, 3,4,2]                      
