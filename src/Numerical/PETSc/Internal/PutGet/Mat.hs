@@ -752,19 +752,18 @@ identityMatrix cc n =
 
 
 
--- petscMatrixBounds :: PetscMatrix -> ((Int, Int), (Int, Int))
-petscMatrixBounds pm = pmib (petscMatrixInfoB pm) where
- pmib mi = (ibx, iby) where
-  ibx = (0, matRows mi - 1) :: (Int, Int)
-  iby = (0, matCols mi - 1) :: (Int, Int)
+-- -- petscMatrixBounds :: PetscMatrix a -> ((Int, Int), (Int, Int))
+-- petscMatrixBounds pm = pmib (petscMatrixInfoB pm) where
+--  pmib mi = (ibx, iby) where
+--   ibx = (0, matRows mi - 1)-- :: (Int, Int)
+--   iby = (0, matCols mi - 1)-- :: (Int, Int)
 
--- -- petscMatrixInfoB :: PetscMatrix -> MatrixInfoBase
+petscMatrixInfoB :: PetscMatrix a -> MatrixInfoBase
 petscMatrixInfoB (PetscMatrix mi _ _ _) = mi
--- petscMatrixInfoB (PetscMatrix (MIVarNZPR mi _) _) = mi
 
--- -- petscMatrixMat :: PetscMatrix -> Mat
--- petscMatrixMat (PetscMatrix (MIConstNZPR _ _ ) m) = m
--- petscMatrixMat (PetscMatrix (MIVarNZPR _ _ ) m) = m
+
+petscMatrixMat :: PetscMatrix a -> Mat
+petscMatrixMat (PetscMatrix _ _ _ m) = m
 
 
 
@@ -772,7 +771,7 @@ validDims' :: MatrixInfoBase -> Bool
 validDims' mi = nr > 0 && nc > 0
       where (nr, nc) = (matRows &&& matCols) mi
 
--- validDims :: MatrixInfo -> Bool
+validDims :: MatrixInfoBase -> NZPR -> Bool
 validDims mi (ConstNZPR (dnz, onz)) =
   validDims' mi && nz >= 0 && nz <= matCols mi where
    nz = dnz+onz
@@ -859,6 +858,8 @@ withMatFDColoring mat iscoloring =
 
 -- | some math operations that use Mat
 
+-- Q : when to allocate space for result?
+
 matScale :: Mat -> PetscScalar_ -> IO ()
 matScale m s = chk0 (matScale' m s)
 
@@ -892,6 +893,9 @@ matMultHermitianTranspose m v vresult = chk0 (matMultHermitianTranspose' m v vre
 -- | v3 = m' * v1 + v2
 matMultHermitianTransposeAdd :: Mat -> Vec -> Vec -> Vec -> IO ()
 matMultHermitianTransposeAdd m v1 v2 v3 = chk0 (matMultHermitianTransposeAdd' m v1 v2 v3)
+
+
+-- matMatMult ma mb reuse fill = ch
 
 
 

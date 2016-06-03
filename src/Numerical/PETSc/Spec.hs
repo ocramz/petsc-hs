@@ -85,7 +85,7 @@ t_linSys_r3_1 = describe "t_linSys_r3_1" $
 
 
 t_eigen_r3_1 = describe "t_eigen_r3_1" $
-  it "solves a 3x3 (real, asymmetric) linear eigenproblem" $
+  it "solves a 3x3 (real, asymmetric) linear eigenproblem: eigenvalues are real numbers" $
    withPetscMatrix com m n  MatAij ixd nz InsertValues $ \mat -> do
     let (_, _, _, mu) = fromPetscMatrix mat
     withEpsCreateSetupSolve com mu Nothing EpsHep $ \eps nev vrr _ -> do
@@ -94,10 +94,10 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
       --        print (vr, vi)
       -- putStrLn "Eigenvalues : (real, imag)"
       ve <- epsGetEigenvalues eps
-      let (er, ei) = V.unzip ve
+      let (_, ei) = V.unzip ve
       -- print (er, ei)
       -- ver <- vecGetVS er
-      V.all (>0) er `shouldBe` False -- asymmetric mtx
+      -- V.all (>0) er `shouldBe` False -- asymmetric mtx
       V.all (== 0) ei `shouldBe` True -- real mtx
       where
         (m, n) = (3, 3)                   
@@ -130,7 +130,7 @@ t_eigen_r3_1_symm = describe "t_eigen_r3_1_symm" $
       let (er, ei) = V.unzip ve
       print (er, ei)
       -- ver <- vecGetVS er
-      -- V.all (>0) er `shouldBe` True -- symmetric mtx
+      -- V.all (>0) er `shouldBe` True -- 
       -- V.all (== 0) ei `shouldBe` True -- real mtx
       matViewStdout mu
       where

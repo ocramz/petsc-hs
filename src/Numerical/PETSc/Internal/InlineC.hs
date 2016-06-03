@@ -1329,10 +1329,56 @@ matShift' mat s = [C.exp|int{MatShift($(Mat mat),$(PetscScalar s))}|]
 
 
 
+-- PetscErrorCode  MatMatMult(Mat A,Mat B,MatReuse scall,PetscReal fill,Mat *C)
+-- Neighbor-wise Collective on Mat
+-- Input Parameters :
+-- A	- the left matrix
+-- B	- the right matrix
+-- scall	- either MAT_INITIAL_MATRIX or MAT_REUSE_MATRIX
+-- fill	- expected fill as ratio of nnz(C)/(nnz(A) + nnz(B)), use PETSC_DEFAULT if you do not have a good estimate if the result is a dense matrix this is irrelevent
+-- Output Parameters :
+-- C -the product matrix 
+-- Notes :
+-- Unless scall is MAT_REUSE_MATRIX C will be created.
+-- MAT_REUSE_MATRIX can only be used if the matrices A and B have the same nonzero pattern as in the previous call
+
+-- To determine the correct fill value, run with -info and search for the string "Fill ratio" to see the value actually needed.
+
+-- If you have many matrices with the same non-zero structure to multiply, you should either
+
+--   1) use MAT_REUSE_MATRIX in all calls but the first or
+--   2) call MatMatMultSymbolic() once and then MatMatMultNumeric() for each product needed
+-- Matrix-Matrix Multiplication C=A*B.
+matMatMult' matA matB scall fill =
+  withPtr $ \matC ->
+    [C.exp|int{MatMatMult($(Mat matA),$(Mat matB),$(int scallc),$(PetscReal fill),$(Mat* matC))}|] where scallc = toCInt $ matReuseToInt scall
 
 
+-- PetscErrorCode  MatTransposeMatMult(Mat A,Mat B,MatReuse scall,PetscReal fill,Mat *C)  -- Neighbor-wise Collective on Mat
+matTransposeMatMult' matA matB scall fill =
+  withPtr $ \matC ->
+    [C.exp|int{MatTransposeMatMult($(Mat matA),$(Mat matB),$(int scallc),$(PetscReal fill),$(Mat* matC))}|] where scallc = toCInt $ matReuseToInt scall
 
 
+-- PetscErrorCode  MatMatMultSymbolic(Mat A,Mat B,PetscReal fill,Mat *C)
+-- Neighbor-wise Collective on Mat
+-- Input Parameters :
+-- A	- the left matrix
+-- B	- the right matrix
+-- fill	- expected fill as ratio of nnz(C)/(nnz(A) + nnz(B)), use PETSC_DEFAULT if you do not have a good estimate, if C is a dense matrix this is irrelevent
+-- Output Parameters :
+-- C -the product matrix 
+-- Notes :
+-- Unless scall is MAT_REUSE_MATRIX C will be created.
+-- To determine the correct fill value, run with -info and search for the string "Fill ratio" to see the value actually needed.
+-- This routine is currently implemented for - pairs of AIJ matrices and classes which inherit from AIJ, C will be of type AIJ - pairs of AIJ (A) and Dense (B) matrix, C will be of type Dense. - pairs of Dense (A) and AIJ (B) matrix, C will be of type Dense.
+matMatMultSymbolic' matA matB fill =
+  withPtr $ \matC ->
+     [C.exp|int{MatMatMultSymbolic($(Mat matA),$(Mat matB),$(PetscReal fill),$(Mat* matC))}|]
+
+-- PetscErrorCode  MatMatMultNumeric(Mat A,Mat B,Mat C)
+matMatMultNumeric' matA matB matC =
+  [C.exp|int{MatMatMultNumeric($(Mat matA),$(Mat matB),$(Mat matC))}|]
 
 -- -- -- Mat experiments
 
@@ -4066,9 +4112,9 @@ epsGetEigenpair0' e i kr ki xr xi =
                              $(Vec xr),          
                              $(Vec xi))}|]       
 
+epsGetEigenpair' :: EPS -> Int -> Vec -> Vec -> IO ((PetscScalar_,PetscScalar_),CInt)
 epsGetEigenpair' eps i xr xi = withPtr2 $ \kr ki ->
-  epsGetEigenpair0' eps ci kr ki xr xi
-    where ci = toCInt i
+  epsGetEigenpair0' eps (toCInt i) kr ki xr xi
 
 -- | is the operator Hermitian?
 epsIsHermitian' :: EPS -> IO (PetscBool, CInt)
