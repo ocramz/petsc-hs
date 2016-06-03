@@ -132,6 +132,7 @@ t_eigen_r3_1_symm = describe "t_eigen_r3_1_symm" $
       -- ver <- vecGetVS er
       V.all (>0) er `shouldBe` True -- symmetric mtx
       V.all (== 0) ei `shouldBe` True -- real mtx
+      matViewStdout mu
       where
         (m, n) = (3, 3)                   
         ixd = listToCSR m n [1,2,3, 2,3,4, 3,4,2]                      
