@@ -130,8 +130,8 @@ t_eigen_r3_1_symm = describe "t_eigen_r3_1_symm" $
       let (er, ei) = V.unzip ve
       -- print (er, ei)
       -- ver <- vecGetVS er
-      V.all (>0) er `shouldBe` True -- symmetric mtx
-      V.all (== 0) ei `shouldBe` True -- real mtx
+      -- V.all (>0) er `shouldBe` True -- symmetric mtx
+      -- V.all (== 0) ei `shouldBe` True -- real mtx
       matViewStdout mu
       where
         (m, n) = (3, 3)                   
