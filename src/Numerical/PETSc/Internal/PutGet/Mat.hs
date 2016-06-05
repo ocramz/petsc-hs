@@ -858,7 +858,7 @@ withMatFDColoring mat iscoloring =
 
 -- | some math operations that use Mat
 
--- Q : when to allocate space for result?
+-- Mat, scalar
 
 matScale :: Mat -> PetscScalar_ -> IO ()
 matScale m s = chk0 (matScale' m s)
@@ -866,6 +866,7 @@ matScale m s = chk0 (matScale' m s)
 matShift :: Mat -> PetscScalar_ -> IO ()
 matShift m s = chk0 (matShift' m s)
 
+-- Mat, Vec
 
 -- | vresult = m * v
 matMult :: Mat -> Vec -> Vec -> IO ()
@@ -894,6 +895,8 @@ matMultHermitianTranspose m v vresult = chk0 (matMultHermitianTranspose' m v vre
 matMultHermitianTransposeAdd :: Mat -> Vec -> Vec -> Vec -> IO ()
 matMultHermitianTransposeAdd m v1 v2 v3 = chk0 (matMultHermitianTransposeAdd' m v1 v2 v3)
 
+
+-- Mat, Mat
 
 -- matMatMult ma mb reuse fill = ch
 
