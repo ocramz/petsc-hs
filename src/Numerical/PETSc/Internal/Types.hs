@@ -218,10 +218,7 @@ vecNormToInt x = fromEnum (x :: VecNorm_ )
 
 
 
-data VecInfo = VecInfo 
- {vecInfoMpiComm :: Comm ,
-  vecInfoSizeLocal :: !Int ,
-  vecInfoSizeGlobal :: !Int } deriving (Eq, Show)
+
 
 
 -- | vectors and co-vectors 

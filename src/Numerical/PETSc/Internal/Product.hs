@@ -12,8 +12,9 @@
 module Numerical.PETSc.Internal.Product where
 
 import Numerical.PETSc.Internal.PutGet.Mat
+import Numerical.PETSc.Internal.PutGet.Vec
 
-import qualified Data.Foldable as Fold
+import qualified Data.Traversable as T
 
 import qualified Data.Vector as V
 
@@ -32,7 +33,12 @@ sizeCompatNV :: (Eq a) => (t -> a) -> (t -> a) -> V.Vector t -> Bool
 sizeCompatNV sz sz2 tt =
   V.all (\(x, y) -> sz x == sz2 y) $ V.zip tt (V.tail tt)
 
--- |", specialized to matrix dimensions: "are all pairs of PetscMatrix in the Vector such that the # of columns in the first element match the # of rows in the second?"
-sizeCompatMat = sizeCompatNV fm1 fm2 where
-  fm1 = matCols . getMatrixInfoBase
-  fm2 = matRows . getMatrixInfoBase
+-- |", specialized to matrix dimensions:
+-- "are all pairs of PetscMatrix in the Vector such that the # of columns in the first element match the # of rows in the second?"
+-- sizeCompatMat = sizeCompatN fm1 fm2 where
+--   fm1 = matCols . getMatrixInfoBase
+--   fm2 = matRows . getMatrixInfoBase
+
+sizeCompatMat2 a b = matCols a == matRows b
+
+sizeCompatMatVec a b = matCols a == vecInfoSizeGlobal b

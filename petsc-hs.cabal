@@ -1,7 +1,7 @@
 name:                petsc-hs
 version:             0.1.0.0
-synopsis:            Haskell bindings for the scientific computation library PETSc
-description:         Lambdas and large linear systems, oh my         
+synopsis:            Haskell bindings for PETSc
+description:         Lambdas and large linear systems, oh my
 homepage:            https://github.com/ocramz/petsc-hs
 license:             LGPL-3
 license-file:        LICENSE
@@ -115,6 +115,16 @@ executable petsc-valgrind
   c-sources:           src/Numerical/PETSc/Internal/InlineC.c
   extra-libraries:     petsc, mpich, slepc
 
+test-suite doctest
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is: DocTest.hs
+  build-depend: base >= 4.7 && < 5
+              , petsc-hs
+              , Glob >= 0.7
+              , doctest >= 0.9.12
+  extra-libraries:     petsc, mpich, slepc
+  
 -- executable foo
 --   main-is:             Main.hs, Foo.hs, Bar.hs
 --   hs-source-dirs:      src

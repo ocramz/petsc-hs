@@ -84,6 +84,19 @@ data MVec s a = MVec
 
 
 
+-- | data
+            
+
+{- STATE : Vec, VectorData
+
+NB : state is replicated in the distributed memory and in local data. How do we keep these consistent ?
+
+For a given Vec; what stays constant is:
+* length (global and local)
+* MPI communicator
+
+-}
+
 
 -- -- StorableContainer
 
@@ -103,18 +116,7 @@ data MVec s a = MVec
 
 
 
--- | data
-            
 
-{- STATE : Vec, VectorData
-
-NB : state is replicated in the distributed memory and in local data. How do we keep these consistent ?
-
-For a given Vec; what stays constant is:
-* length (global and local)
-* MPI communicator
-
--}
 
 
 
@@ -126,13 +128,15 @@ For a given Vec; what stays constant is:
 -- -- --- 
 
 
--- data PetscVector = PetscVector { vec     :: !Vec,
---                                  vecInfo :: !VecInfo }
+data PetscVector = PetscVector !VecInfoBase Vec
 
-data PetscVector = PetscVector !VecInfo Vec
+data PVector = PVector VecInfoBase Vec (V.Vector PetscScalar_)
 
-data PVector = PVector VecInfo Vec (V.Vector PetscScalar_)
 
+data VecInfoBase = VecInfo 
+ {vecInfoMpiComm :: Comm ,
+  vecInfoSizeLocal :: !Int ,
+  vecInfoSizeGlobal :: !Int } deriving (Eq, Show)
 
 
 
@@ -239,7 +243,7 @@ vecCreateMPIdecideLocalSize co nglob
 
 -- | " , using VecInfo
 
-vecCreateMPIInfo :: VecInfo -> IO Vec
+vecCreateMPIInfo :: VecInfoBase -> IO Vec
 vecCreateMPIInfo vi = vecCreateMPI co nl ng where
   nl = vecInfoSizeLocal vi
   ng = vecInfoSizeGlobal vi
@@ -289,17 +293,17 @@ withVecRL vcr vcl f =
 
 
 
-withVecCreate :: VecInfo -> (Vec -> IO a) -> IO a
+withVecCreate :: VecInfoBase -> (Vec -> IO a) -> IO a
 withVecCreate vv = withVec (vecCreate c)  where
   c = vecInfoMpiComm vv
 
 
-withVecCreateMPI :: VecInfo -> (Vec -> IO a) -> IO a
+withVecCreateMPI :: VecInfoBase -> (Vec -> IO a) -> IO a
 withVecCreateMPI vi = withVec (vecCreateMPIInfo vi) 
 
 
 
-withVecMPIPipeline :: VecInfo -> (Vec -> IO a) -> (Vec -> IO b) -> IO b 
+withVecMPIPipeline :: VecInfoBase -> (Vec -> IO a) -> (Vec -> IO b) -> IO b 
 withVecMPIPipeline vv pre post = withVecCreateMPI vv $ \v -> do
   pre v
   vecAssembly v
