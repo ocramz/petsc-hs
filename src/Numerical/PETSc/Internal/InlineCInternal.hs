@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numerical.Petsc.Internal.Internal
+-- Module      :  Numerical.Petsc.Internal.InlineCInternal
 -- Copyright   :  (c) Marco Zocca 2015
 -- License     :  LGPL3
 -- Maintainer  :  zocca . marco . gmail . com
@@ -14,7 +14,7 @@
 -- | inline-c context (i.e. the C-Haskell type map)
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Internal.Internal where
+module Numerical.PETSc.Internal.InlineCInternal where
 
 import Numerical.PETSc.Internal.Types
 

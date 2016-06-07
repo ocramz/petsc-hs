@@ -11,14 +11,10 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Test where
 
--- import Data.Functor
--- import Control.Applicative
+import Numerical.PETSc.Internal
 
-import Numerical.PETSc.Internal.Types
-import Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
-import Numerical.PETSc.Internal.PutGet
-import Numerical.PETSc.Internal.Utils
 import qualified Numerical.PETSc.Internal.Sparse as PSparse -- (vvToCSR, vv)
+import Numerical.PETSc.Internal.Sized
 
 import Foreign
 import Foreign.C.Types
@@ -645,6 +641,10 @@ t20 = withPetsc0 $
     cw = commWorld
     (m, n) = (3, 3)
     vv = csrSome3
+
+
+-- Sized
+
 
 
 

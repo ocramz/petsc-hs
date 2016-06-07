@@ -12,7 +12,7 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.InlineC where
 
-import           Numerical.PETSc.Internal.Internal
+import           Numerical.PETSc.Internal.InlineCInternal
 import           Numerical.PETSc.Internal.Storable.Common (unsafeWithVS)
 import           Numerical.PETSc.Internal.Types
 import           Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen

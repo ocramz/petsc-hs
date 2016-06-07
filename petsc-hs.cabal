@@ -30,9 +30,10 @@ library
   exposed-modules:     Numerical.PETSc, 
                        Numerical.PETSc.Spec
                        Numerical.PETSc.Test
-  other-modules:       Numerical.PETSc.Internal.Exception
+  other-modules:       Numerical.PETSc.Internal
+                       Numerical.PETSc.Internal.Exception
                        Numerical.PETSc.Internal.InlineC                         
-                       Numerical.PETSc.Internal.Internal
+                       Numerical.PETSc.Internal.InlineCInternal
                        Numerical.PETSc.Internal.PutGet
                        Numerical.PETSc.Internal.PutGet.IS
                        Numerical.PETSc.Internal.PutGet.Vec
