@@ -3743,9 +3743,9 @@ petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|]
 
 type OptionName = String
 
--- -- PetscErrorCode  PetscOptionsView(PetscViewer viewer)
--- petscOptionsView' :: PetscViewer -> IO CInt
--- petscOptionsView' vi = [C.exp|int{PetscOptionsView($(PetscViewer vi))}|]
+-- -- PetscErrorCode  PetscOptionsView(PetscOptions opts, PetscViewer viewer)
+petscOptionsView0' :: PetscViewer -> IO CInt
+petscOptionsView0' vi = [C.exp|int{PetscOptionsView(NULL, $(PetscViewer vi))}|]
 
 -- PetscErrorCode  PetscOptionsSetValue(PetscOptions opts, const char iname[],const char value[])
 petscOptionsSetValue0' :: OptionName -> String -> IO CInt

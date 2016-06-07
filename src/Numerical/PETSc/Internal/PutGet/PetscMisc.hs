@@ -118,10 +118,10 @@ getMPICommRank c = fromEnum (commRank c)
 -- options handling
 
 petscOptionsView :: PetscViewer -> IO ()
-petscOptionsView vi = chk0 $ petscOptionsView' vi
+petscOptionsView vi = chk0 $ petscOptionsView0' vi
 
 petscOptionsSetValue :: OptionName -> String -> IO ()
-petscOptionsSetValue opt val = chk0 $ petscOptionsSetValue' opt val
+petscOptionsSetValue opt val = chk0 $ petscOptionsSetValue0' opt val
 
 -- -- NB : all PETSc functions must appear within a withPetsc* bracket
 
