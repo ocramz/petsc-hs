@@ -3167,35 +3167,37 @@ tsSetCostGradients' ts numcost lambda mu =
 
 -- PetscErrorCode  TSSetCostIntegrand(TS ts,PetscInt numcost, PetscErrorCode (*rf)(TS,PetscReal,Vec,Vec,void*),
 -- PetscErrorCode (*drdyf)(TS,PetscReal,Vec,Vec*,void*),
--- PetscErrorCode (*drdpf)(TS,PetscReal,Vec,Vec*,void*),void *ctx)
+-- PetscErrorCode (*drdpf)(TS,PetscReal,Vec,Vec*,void*),PetscBool fwd, void *ctx)
 tsSetCostIntegrand0' :: TS
                         -> PetscInt_
                         -> (TS -> PetscReal_ -> Vec -> Vec -> Ptr () -> IO CInt)
                         -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
                         -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
+                        -> PetscBool
                         -> IO CInt
-tsSetCostIntegrand0' ts n rf drdyf drdpf =
+tsSetCostIntegrand0' ts n rf drdyf drdpf fwdf =
   [C.exp|
    int{TSSetCostIntegrand($(TS ts),
                           $(PetscInt n),
                           $fun:(int (*rf)(TS,PetscReal,Vec,Vec,void*)),
                           $fun:(int (*drdyf)(TS,PetscReal,Vec,Vec*,void*)),
-                          $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),NULL)}|]
+                          $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),$(PetscBool fwdf), NULL)}|]
 
 tsSetCostIntegrand' :: TS
                        -> PetscInt_
                        -> (TS -> PetscReal_ -> Vec -> Vec -> Ptr () -> IO CInt)
                        -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
                        -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
+                       -> PetscBool 
                        -> Ptr ()
                        -> IO CInt
-tsSetCostIntegrand' ts n rf drdyf drdpf ctx =
+tsSetCostIntegrand' ts n rf drdyf drdpf fwdf ctx =
   [C.exp|
    int{TSSetCostIntegrand($(TS ts),
                           $(PetscInt n),
                           $fun:(int (*rf)(TS,PetscReal,Vec,Vec,void*)),
                           $fun:(int (*drdyf)(TS,PetscReal,Vec,Vec*,void*)),
-                          $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),$(void* ctx))}|]  
+                          $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),$(PetscBool fwdf), $(void* ctx))}|]  
 
 tsGetCostIntegral' :: TS -> IO (Vec, CInt)
 tsGetCostIntegral' ts = withPtr $ \p -> [C.exp|int{TSGetCostIntegral($(TS ts),$(Vec* p))}|]
@@ -3741,39 +3743,40 @@ petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|]
 
 type OptionName = String
 
--- PetscErrorCode  PetscOptionsView(PetscViewer viewer)
-petscOptionsView' :: PetscViewer -> IO CInt
-petscOptionsView' vi = [C.exp|int{PetscOptionsView($(PetscViewer vi))}|]
+-- -- PetscErrorCode  PetscOptionsView(PetscViewer viewer)
+-- petscOptionsView' :: PetscViewer -> IO CInt
+-- petscOptionsView' vi = [C.exp|int{PetscOptionsView($(PetscViewer vi))}|]
 
--- PetscErrorCode  PetscOptionsSetValue(const char iname[],const char value[])
-petscOptionsSetValue' :: OptionName -> String -> IO CInt
-petscOptionsSetValue' iname val =
+-- PetscErrorCode  PetscOptionsSetValue(PetscOptions opts, const char iname[],const char value[])
+petscOptionsSetValue0' :: OptionName -> String -> IO CInt
+petscOptionsSetValue0' iname val =
   withCString iname $ \inamep ->
   withCString val $ \valp ->
-  [C.exp|int{PetscOptionsSetValue($(const char* inamep), $(const char* valp))}|]
+  [C.exp|int{PetscOptionsSetValue(NULL, $(const char* inamep), $(const char* valp))}|]
 -- petscOptionsSetValue iname val = [C.exp|int{PetscOptionsSetValue($bs-ptr:iname, $bs-ptr:val)}|]
 
 
 -- #include "petscsys.h"   
--- PetscErrorCode  PetscOptionsGetInt(const char pre[],const char name[],PetscInt *ivalue,PetscBool  *set)    -- Not Collective
+-- PetscErrorCode  PetscOptionsGetInt(PetscOptions options, const char pre[],const char name[],PetscInt *ivalue,PetscBool  *set)    -- Not Collective
 -- Input Parameters :
+-- options - the options database, NULL to use the global database
 -- pre	- the string to prepend to the name or NULL
 -- name	- the option one is seeking
 -- Output Parameters :
 -- ivalue	- the integer value to return
 -- set	- PETSC_TRUE if found, else PETSC_FALSE
 
-petscOptionsGetInt' :: Ptr CChar -> Ptr CChar -> Ptr CInt -> Ptr PetscBool -> IO CInt
-petscOptionsGetInt' pre name n s = [C.exp| int{PetscOptionsGetInt($(char *pre), $(char *name), $(int *n), $(PetscBool *s))} |]
+petscOptionsGetInt0' :: Ptr CChar -> Ptr CChar -> Ptr CInt -> Ptr PetscBool -> IO CInt
+petscOptionsGetInt0' pre name n s = [C.exp| int{PetscOptionsGetInt(NULL, $(char *pre), $(char *name), $(int *n), $(PetscBool *s))} |]
 
-petscOptionsGetInt'' ::
+petscOptionsGetInt0'' ::
   String -> String -> IO (CInt, (PetscBool, CInt))
-petscOptionsGetInt'' prefix name = 
+petscOptionsGetInt0'' prefix name = 
   withCString prefix ( \p ->
    withCString name $ \n ->
     withPtr $ \ptr ->
      withPtr $ \pb -> 
-      petscOptionsGetInt' p n ptr pb) -- >>= \(a, (f, e)) -> handleErrTup ((a, f), e)
+      petscOptionsGetInt0' p n ptr pb) -- >>= \(a, (f, e)) -> handleErrTup ((a, f), e)
 
 -- petscOptionsGetInt prefix name = do
 --   (a, (f, e)) <- petscOptionsGetInt'' prefix name
