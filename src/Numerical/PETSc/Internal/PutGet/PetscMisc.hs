@@ -126,18 +126,16 @@ petscOptionsSetValue opt val = chk0 $ petscOptionsSetValue0' opt val
 -- -- NB : all PETSc functions must appear within a withPetsc* bracket
 
 petscInit0 :: IO ()
-petscInit0 = do
-  chk0 petscInit01
-  putStrLn (petscHeader ++ " with default options\n")
+petscInit0 = 
+  chk0 petscInit0' >> putStrLn (petscHeader ++ " with default options\n")
 
 petscFin :: IO ()
-petscFin = chk0 petscFin1 >> putStrLn ("\nPETSc : finalized\n" ++ sep)
+petscFin =
+  chk0 petscFin' >> putStrLn ("\nPETSc : finalized\n" ++ sep)
 
-withPetscFin :: IO a -> IO b -> IO b
-withPetscFin initializ = bracket_ initializ petscFin
 
 withPetsc0 :: IO a -> IO a
-withPetsc0 = withPetscFin petscInit0
+withPetsc0 = bracket_ petscInit0 petscFin
 
 
 withPetsc0MpiComm :: MPIComm -> (MpiCommSize -> MpiCommRank -> IO a) -> IO a
@@ -159,7 +157,7 @@ petscInit args opts help = do
 
 withPetsc ::
   [String] -> String -> String -> IO a -> IO a
-withPetsc a o h = withPetscFin (petscInit a o h) 
+withPetsc a o h = bracket_ (petscInit a o h) petscFin
 
 withPetscMpiComm :: [String] -> String -> String ->
      MPIComm ->

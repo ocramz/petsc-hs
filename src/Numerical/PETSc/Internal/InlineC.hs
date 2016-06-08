@@ -3814,8 +3814,8 @@ petscFinalized = withPtr ( \p ->
 
 
 -- petscInit0 :: IO ()
-petscInit01 :: IO CInt
-petscInit01 = [C.exp| int{ PetscInitializeNoArguments()  }|]
+petscInit0' :: IO CInt
+petscInit0' = [C.exp| int{ PetscInitializeNoArguments()  }|]
 
 -- -- PETSC_EXTERN PetscErrorCode PetscInitialize(int*,char***,const char[],const char[]);
 petscInitialize1 :: Argv -> OptsStr -> HelpStr -> IO CInt
@@ -3832,28 +3832,10 @@ type Argv = [String]
 type OptsStr = String
 type HelpStr = String
 
-petscFin1 :: IO CInt
-petscFin1 = [C.block| int{ PetscFinalize(); }|] 
+petscFin' :: IO CInt
+petscFin' = [C.block| int{ PetscFinalize(); }|] 
 
-withPetsc01 :: IO a -> IO CInt
-withPetsc01 f = do -- returns IO ()
-  _ <- petscInit01
-  _ <- f
-  petscFin1
 
-withPetsc01', withPetsc0'' :: IO a -> IO a
-withPetsc0'' f =
-  petscInit01 >> (f `finally` petscFin1)
-  
-withPetsc01' = bracket_ petscInit01 petscFin1 -- returns IO a
-
-withPetsc' :: Argv -> OptsStr -> HelpStr -> IO a -> IO a
-withPetsc' a o h = bracket_ (petscInitialize1 a o h) petscFin1
-
-withPetsc'' :: Argv -> OptsStr -> HelpStr -> IO b -> IO b
-withPetsc'' a o h f = petscInitialize1 a o h >> (f `finally` petscFin1)
-
--- -- NB : bracket_ ignores the return type of the allocation action
 
 
 
