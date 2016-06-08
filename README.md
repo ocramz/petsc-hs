@@ -118,7 +118,7 @@ The library is being developed with/on :
 
 * C and Fortran compilers : `gcc` 5.0.0 , `gfortran` 5.0.0
 
-* OS : OSX 10.9.5, Ubuntu 12.04 LTS Server Edition 64 bit on Travis CI
+* OS : OSX 10.9.5, Ubuntu 12.04, Ubuntu 14.04
 
 * Haskell compiler : `ghc` 7.8.3, 7.10.2, 7.10.3 
 
