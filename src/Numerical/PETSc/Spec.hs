@@ -16,9 +16,10 @@ module Numerical.PETSc.Spec where
 
 import Numerical.PETSc.Internal
 
-
 import Foreign
 import Foreign.C.Types
+
+import Data.Complex
 
 import qualified Data.Vector.Storable as VS
 -- import qualified Data.Vector.Storable.Mutable as VM
@@ -32,7 +33,8 @@ import Test.Hspec
 specs :: IO ()
 specs = 
   withPetsc0 $
-   withSlepc0 $ hspec $ do
+   withSlepc0 $
+   hspec $ do
     t_vecDot_r2_1
     t_linSys_r3_1
    -- --  -- 
@@ -124,8 +126,10 @@ t_eigen_r3_1_symm = describe "t_eigen_r3_1_symm" $
     withEpsCreateSetupSolve com mu Nothing EpsHep $ \eps nev vrr _ -> do
       putStrLn "Eigenvalues : (real, imag)"
       ve <- epsGetEigenvalues eps
-      let (er, ei) = V.unzip ve
-      print (er, ei)
+      let evc = V.map (\(a,b) -> a :+ b) ve
+      print evc
+      -- let (er, ei) = V.unzip ve
+      -- print (er, ei)
       -- ver <- vecGetVS er
       -- V.all (>0) er `shouldBe` True -- 
       -- V.all (== 0) ei `shouldBe` True -- real mtx
