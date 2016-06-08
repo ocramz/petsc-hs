@@ -17,4 +17,6 @@ SLEPC_LIB="$SLEPC_DIR"/"$SLEPC_ARCH"/lib/
 
 
 
-stack build "$STACK_ARGS" --no-terminal --install-ghc --extra-include-dirs="$PETSC_INCLUDE1" --extra-include-dirs="$PETSC_INCLUDE2" --extra-include-dirs="$SLEPC_INCLUDE1" --extra-include-dirs="$SLEPC_INCLUDE2" --extra-lib-dirs="$PETSC_LIB" --extra-lib-dirs="$SLEPC_LIB"
+# stack build "$STACK_ARGS" --no-terminal --install-ghc --extra-include-dirs="$PETSC_INCLUDE1" --extra-include-dirs="$PETSC_INCLUDE2" --extra-include-dirs="$SLEPC_INCLUDE1" --extra-include-dirs="$SLEPC_INCLUDE2" --extra-lib-dirs="$PETSC_LIB" --extra-lib-dirs="$SLEPC_LIB"
+
+stack build "$STACK_ARGS" --no-terminal --extra-include-dirs="$PETSC_INCLUDE1" --extra-include-dirs="$PETSC_INCLUDE2" --extra-include-dirs="$SLEPC_INCLUDE1" --extra-include-dirs="$SLEPC_INCLUDE2" --extra-lib-dirs="$PETSC_LIB" --extra-lib-dirs="$SLEPC_LIB"
