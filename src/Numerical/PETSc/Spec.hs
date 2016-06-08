@@ -124,7 +124,7 @@ t_eigen_r3_1_symm = describe "t_eigen_r3_1_symm" $
    withPetscMatrix com m n  MatAij ixd nz InsertValues $ \mat -> do
     let (_, _, _, mu) = fromPetscMatrix mat
     withEpsCreateSetupSolve com mu Nothing EpsHep $ \eps nev vrr _ -> do
-      putStrLn "Eigenvalues : (real, imag)"
+      putStrLn "Eigenvalues : (real :+ imag)"
       ve <- epsGetEigenvalues eps
       let evc = V.map (\(a,b) -> a :+ b) ve
       print evc
