@@ -4266,8 +4266,8 @@ slepcInitialized' = withPtr ( \b ->
   
 
 
-slepcInit01 :: IO CInt
-slepcInit01 = [C.exp| int{ SlepcInitializeNoArguments()  }|]
+slepcInit0' :: IO CInt
+slepcInit0' = [C.exp| int{ SlepcInitializeNoArguments()  }|]
 
 slepcInitialize' :: Argv -> OptsStr -> HelpStr -> IO CInt
 slepcInitialize' args opts help = 
@@ -4280,8 +4280,8 @@ slepcInitialize' args opts help =
     [C.exp|int{SlepcInitialize($(int *ac), $(char*** a), $(char* o), $(char *h))}|] 
 
 
-slepcFin1 :: IO CInt
-slepcFin1 = [C.block| int{ SlepcFinalize(); }|] 
+slepcFin' :: IO CInt
+slepcFin' = [C.block| int{ SlepcFinalize(); }|] 
 
 
 
