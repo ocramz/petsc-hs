@@ -18,10 +18,13 @@ Discuss features, ideas, bugs : [![Gitter chat: petsc-hs](https://badges.gitter.
 
 ## News
 
-20/01/2016 : Experimenting with Docker containers : [petsc-hs-docker](https://github.com/ocramz/petsc-hs-docker) uses a pre-compiled image with PETSc and SLEPc  ([ocramz/petsc-docker](https://hub.docker.com/r/ocramz/petsc-docker/) on Docker Hub, that builds upon ~~`debian:7.7`~~ ~~`ubuntu:14.04`~~ `phusion/baseimage`) and a derived image that pulls in the Haskell `stack` tool with which to build `petsc-hs` . 
+
+June 8, 2016 : Building `petsc-hs` against the latest PETSc (3.7.2, rel. June 5, 2016) and SLEPc (3.7.1, rel. May 27, 2016). See branch `petsc-3.7`.
+
+Jan 20, 2016 : Experimenting with Docker containers : [petsc-hs-docker](https://github.com/ocramz/petsc-hs-docker) uses a pre-compiled image with PETSc and SLEPc  ([ocramz/petsc-docker](https://hub.docker.com/r/ocramz/petsc-docker/) on Docker Hub, that builds upon ~~`debian:7.7`~~ ~~`ubuntu:14.04`~~ `phusion/baseimage`) and a derived image that pulls in the Haskell `stack` tool with which to build `petsc-hs` . 
 
 
-6/12/2015 : We're integrating the [SLEPc](http://slepc.upv.es/) eigensolver suite, which is based on PETSc, and provides many options for spectral decomposition of sparse operators, e.g. (non)linear eigenproblem solvers, spectral transformation facilities for accelerated convergence, etc. 
+Dec 6, 2015 : We're integrating the [SLEPc](http://slepc.upv.es/) eigensolver suite, which is based on PETSc, and provides many options for spectral decomposition of sparse operators, e.g. (non)linear eigenproblem solvers, spectral transformation facilities for accelerated convergence, etc. 
 
 
 
