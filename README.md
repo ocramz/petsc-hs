@@ -59,6 +59,10 @@ Functional composition of sub-programs and rich, static types are the missing li
 
 Download and install the `stack` build tool following these [instructions](http://docs.haskellstack.org/en/stable/README.html). 
 
+With `stack`, install the `c2hs` tool (used for generating low-level parts of the C bindings)
+
+    $ stack install c2hs
+
 ### 1
 
 If you already have a working installation of PETSc, MPICH and SLEPc and the `PETSC_DIR`, `PETSC_ARCH`, `SLEPC_DIR` and `SLEPC_ARCH` environment variables are set, proceed to Step 2,
@@ -120,12 +124,16 @@ The library is being developed with/on :
 
 * OS : OSX 10.9.5, Ubuntu 12.04, 14.04
 
-* Haskell compiler : `ghc` 7.8.3, 7.10.2, 7.10.3 
+* Haskell compiler : `ghc` 7.8.3, ~~7.10.2, 7.10.3~~
 
 * Cabal 1.22
 
 * `stack` 1.0.4, 1.1.0
 
+
+## Compatibility Notes
+
+June 10, 2016 : There seems to be a linker bug in GHC version 7.10.* preventing the use of cross-referencing dynamic libraries, which is why the project will make the transition to GHC 8.
 
 
 
