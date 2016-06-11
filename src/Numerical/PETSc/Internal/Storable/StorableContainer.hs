@@ -29,8 +29,8 @@ import Data.IORef
 
 -- | mtl
 -- import Control.Monad.Managed
-import Control.Monad.Reader
-import Control.Monad.Reader.Class
+-- import Control.Monad.Reader
+-- import Control.Monad.Reader.Class
 import Control.Monad.Trans.Class
 
 import Foreign.Storable
@@ -71,149 +71,153 @@ instance Element Float
 instance RealFloat e => Element (Complex e) where
   conj = conjugate
 
--- -- data TransposedState = NotTransposed | Transposed deriving (Eq, Show)
+-- -- -- data TransposedState = NotTransposed | Transposed deriving (Eq, Show)
 
--- {-- | NB : complex conjugation and transposition are aspects of a more general concept, that of Hermitian transposition.
+-- -- {-- | NB : complex conjugation and transposition are aspects of a more general concept, that of Hermitian transposition.
+-- -- -}
+
+-- -- -- class Transposable t where
+-- -- --   data Transposed -- = T | NT
+
+-- -- class (Functor c, Element e) => Container c e where
+-- --   type IxC c e :: *    -- Int for Vectors, (Int, Int) for Matrices ..
+-- --   type DimC c e :: *
+-- --   generateC :: DimC c e -> (IxC c e -> e) -> c e
+-- --   selectC :: c e -> IxC c e-> e   -- or Maybe e ?
+-- --   dimC :: c e -> DimC c e
+-- --   subC :: c e -> IxC c e -> IxC c e -> c e
+-- --   mapC :: (e -> e) -> c e -> c e
+
+-- -- -- class (Monad m, Container c e) => MContainer m c e where
+
+-- -- instance Element a => Container [] a where
+-- --   type IxC [] a = Int
+-- --   type DimC [] a = Int
+-- --   dimC = length
+-- --   selectC = (!!)
+-- --   subC l a b = drop a (take b l)
+-- --   mapC = map
+-- --   generateC n f = map f [0 .. n-1]
+
+-- -- -- example :
+-- -- -- t0 = generateC 3 (^2) :: [Int]
+
+
+
+-- -- class Container c e => Vector c e where
+-- --   fromListV :: [e] -> c e
+-- --   toListV :: c e -> [e]
+-- --   concatV :: [c e] -> c e
+-- --   foldrV :: (e -> a -> a) -> a -> c e -> a  
+-- --   zipWithV :: (e -> e -> e) -> c e -> c e -> c e -- NB : works IFF args have same dims
+
+
+
+
+
+-- -- class Container c e => Matrix c e where
+-- --   fromListM :: Int -> Int -> [e] -> c e
+-- -- --   -- transposeM :: c e -> c e    -- NB : transposition shd be reflected in type
+
+
+
+
+
+
+
+
+-- -- | `Element` class from Data.Packed.Internal.Matrix
+
+-- -- class Functor f => Element f a where
+-- --   type ElementIx a :: *
+-- --   elementRange :: f a -> ElementIx a -> ElementIx a -> f a
+-- --   elementConst :: a -> f a
+
+-- -- instance Element [] a where
+-- --   type ElementIx a = Int
+-- --   elementRange xs i1 i2
+-- --     | length xs >= i2 && i2 >= i1 = drop i1 (take i2 xs) 
+-- --     | otherwise = error "elementRange [a] : indices out of range"
+-- --   elementConst = flip replicate
+
+
+
+
+
+
+
+-- -- | `Container` class from Data.Packed.Internal.Matrix
+
+-- -- class (Functor c, Element c e) => Container c e where
+-- --   -- type IndexOf (c :: * -> *) :: *
+-- --   type SizeOf (c :: * -> *) :: *
+-- --   -- type ArgOf (c :: * -> *) a
+-- --   containerSize :: c e -> SizeOf c
+-- --   containerConst :: e -> c e
+-- --   scale :: e -> c e -> c e
+
+
+
+
+
+
+
+-- -- | IxContainer
+
+-- -- class Container c a => IxContainer c a where
+-- --   type IndexOf (c :: * -> *) :: *
+
+
+
+
+
+
+-- -- | StorableContainer
+
+-- -- | types that can be exchanged between PETSc and GHC RTS
+-- -- NB :
+-- -- first type : PETSc side (Storable types in Internal.Types)
+-- -- third type : Haskell side (e.g. PetscVector in PutGet.Vec)
+
+-- -- class (Storable p, Monad m) => StorableContainer p m a where
+-- --   type SCInfo p 
+-- --   type SCLocal p
+-- --   initP :: SCInfo p -> m p
+-- --   updateH :: p -> m (SCLocal p)
+-- --   updateP :: p -> SCLocal p -> m ()
+-- --   withP :: p -> (SCLocal p -> m b) -> m b
+-- --   destroyP :: p -> m ()
+
+-- {-
+-- -- | usage example :  
+-- instance StorableContainer Vec IO a where
+--   type PObjInfo Vec = VecInfo
+--   type PObjLocal Vec a = V.Vector a
 -- -}
 
--- -- class Transposable t where
--- --   data Transposed -- = T | NT
-
--- class (Functor c, Element e) => Container c e where
---   type IxC c e :: *    -- Int for Vectors, (Int, Int) for Matrices ..
---   type DimC c e :: *
---   generateC :: DimC c e -> (IxC c e -> e) -> c e
---   selectC :: c e -> IxC c e-> e   -- or Maybe e ?
---   dimC :: c e -> DimC c e
---   subC :: c e -> IxC c e -> IxC c e -> c e
---   mapC :: (e -> e) -> c e -> c e
-
--- -- class (Monad m, Container c e) => MContainer m c e where
-
--- instance Element a => Container [] a where
---   type IxC [] a = Int
---   type DimC [] a = Int
---   dimC = length
---   selectC = (!!)
---   subC l a b = drop a (take b l)
---   mapC = map
---   generateC n f = map f [0 .. n-1]
-
--- -- example :
--- -- t0 = generateC 3 (^2) :: [Int]
-
-
-
--- class Container c e => Vector c e where
---   fromListV :: [e] -> c e
---   toListV :: c e -> [e]
---   concatV :: [c e] -> c e
---   foldrV :: (e -> a -> a) -> a -> c e -> a  
---   zipWithV :: (e -> e -> e) -> c e -> c e -> c e -- NB : works IFF args have same dims
-
-
-
-
-
--- class Container c e => Matrix c e where
---   fromListM :: Int -> Int -> [e] -> c e
--- --   -- transposeM :: c e -> c e    -- NB : transposition shd be reflected in type
-
-
-
-
-
-
-
-
--- | `Element` class from Data.Packed.Internal.Matrix
-
--- class Functor f => Element f a where
---   type ElementIx a :: *
---   elementRange :: f a -> ElementIx a -> ElementIx a -> f a
---   elementConst :: a -> f a
-
--- instance Element [] a where
---   type ElementIx a = Int
---   elementRange xs i1 i2
---     | length xs >= i2 && i2 >= i1 = drop i1 (take i2 xs) 
---     | otherwise = error "elementRange [a] : indices out of range"
---   elementConst = flip replicate
-
-
-
-
-
-
-
--- | `Container` class from Data.Packed.Internal.Matrix
-
--- class (Functor c, Element c e) => Container c e where
---   -- type IndexOf (c :: * -> *) :: *
---   type SizeOf (c :: * -> *) :: *
---   -- type ArgOf (c :: * -> *) a
---   containerSize :: c e -> SizeOf c
---   containerConst :: e -> c e
---   scale :: e -> c e -> c e
-
-
-
-
-
-
-
--- | IxContainer
-
--- class Container c a => IxContainer c a where
---   type IndexOf (c :: * -> *) :: *
-
-
-
-
-
-
--- | StorableContainer
-
--- | types that can be exchanged between PETSc and GHC RTS
--- NB :
--- first type : PETSc side (Storable types in Internal.Types)
--- third type : Haskell side (e.g. PetscVector in PutGet.Vec)
-
--- class (Storable p, Monad m) => StorableContainer p m a where
+-- class Storable p => StorableContainer p where
 --   type SCInfo p 
 --   type SCLocal p
---   initP :: SCInfo p -> m p
---   updateH :: p -> m (SCLocal p)
---   updateP :: p -> SCLocal p -> m ()
---   withP :: p -> (SCLocal p -> m b) -> m b
---   destroyP :: p -> m ()
+--   type SCRemote p
+--   initRemote :: SCInfo p -> IO (SCRemote p)
+--   updateLocal :: SCRemote p -> IO (SCLocal p)
+--   updateRemote :: SCRemote p -> SCLocal p -> IO ()
+--   withRemote :: SCRemote p -> (SCLocal p -> IO b) -> IO b
+--   destroyRemote :: SCRemote p -> IO ()
 
-{-
--- | usage example :  
-instance StorableContainer Vec IO a where
-  type PObjInfo Vec = VecInfo
-  type PObjLocal Vec a = V.Vector a
--}
 
-class Storable p => StorableContainer p where
-  type SCInfo p 
-  type SCLocal p
-  type SCRemote p
-  initRemote :: SCInfo p -> IO (SCRemote p)
-  updateLocal :: SCRemote p -> IO (SCLocal p)
-  updateRemote :: SCRemote p -> SCLocal p -> IO ()
-  withRemote :: SCRemote p -> (SCLocal p -> IO b) -> IO b
-  destroyRemote :: SCRemote p -> IO ()
 
--- instance StorableContainer Vec where
---   type SCInfo Vec = VecInfo
---   type SCLocal Vec = VS.Vector PetscScalar_
---   type SCRemote Vec = Vec
---   initRemote = vecCreateMPIInfo  -- must import PutGet.Vec for these ..
---   updateLocal = vecGetVector
---   updateRemote = vecRestoreVector
---   withRemote v = bracket (vecGetVector v) (vecRestoreVector v)
---   destroyRemote = vecDestroy
+
+
+-- -- instance StorableContainer Vec where
+-- --   type SCInfo Vec = VecInfo
+-- --   type SCLocal Vec = VS.Vector PetscScalar_
+-- --   type SCRemote Vec = Vec
+-- --   initRemote = vecCreateMPIInfo  -- must import PutGet.Vec for these ..
+-- --   updateLocal = vecGetVector
+-- --   updateRemote = vecRestoreVector
+-- --   withRemote v = bracket (vecGetVector v) (vecRestoreVector v)
+-- --   destroyRemote = vecDestroy
 
 
 
@@ -221,24 +225,24 @@ class Storable p => StorableContainer p where
 
 
 
--- | StorableIxContainer
+-- -- | StorableIxContainer
 
--- class (StorableContainer sc, Ix i) => StorableIxContainer i sc x where
---   sicGet :: sc -> i -> IO x
---   sicPut :: sc -> i -> x -> IO ()
+-- -- class (StorableContainer sc, Ix i) => StorableIxContainer i sc x where
+-- --   sicGet :: sc -> i -> IO x
+-- --   sicPut :: sc -> i -> x -> IO ()
 
 
--- class (Storable p) => StorableIxContainer p a where
---   -- indexing depends on `p` :
---   -- e.g. for Vec : SCIdx p == Int
---   -- --   for Mat : SCIdx p == (Int, Int) , etc.
---   type SCIdx p 
---   type SCInfo p
---   type SCLocal p a
---   newSIC :: SCInfo p -> SCLocal p a -> IO p
---   readSIC :: p -> SCIdx p -> IO a
---   writeSIC :: p -> SCIdx p -> a -> IO ()
---   modifySIC :: p -> SCIdx p -> (a -> a) -> IO ()
+-- -- class (Storable p) => StorableIxContainer p a where
+-- --   -- indexing depends on `p` :
+-- --   -- e.g. for Vec : SCIdx p == Int
+-- --   -- --   for Mat : SCIdx p == (Int, Int) , etc.
+-- --   type SCIdx p 
+-- --   type SCInfo p
+-- --   type SCLocal p a
+-- --   newSIC :: SCInfo p -> SCLocal p a -> IO p
+-- --   readSIC :: p -> SCIdx p -> IO a
+-- --   writeSIC :: p -> SCIdx p -> a -> IO ()
+-- --   modifySIC :: p -> SCIdx p -> (a -> a) -> IO ()
 
 
 
@@ -256,17 +260,17 @@ class Storable p => StorableContainer p where
 
 
 
--- | ManagedContainer
+-- -- | ManagedContainer
 
--- class (Monad m, Storable r) => ManagedContainer m r where
---   type MCInfo r
---   type MCLocType r
---   manageP :: MCInfo r -> (MCInfo r -> IO (MCLocType r)) -> (MCLocType r -> IO a) -> Managed (MCLocType r)
---   manageP info get set = managed (bracket (get info) set)
-
-
--- asdf info ini fin = managed (bracket (ini info) fin)
+-- -- class (Monad m, Storable r) => ManagedContainer m r where
+-- --   type MCInfo r
+-- --   type MCLocType r
+-- --   manageP :: MCInfo r -> (MCInfo r -> IO (MCLocType r)) -> (MCLocType r -> IO a) -> Managed (MCLocType r)
+-- --   manageP info get set = managed (bracket (get info) set)
 
 
--- withSizeArray :: (Storable a, Integral a) => [a] -> (Ptr CULong -> IO b) -> IO b
--- withSizeArray = withArray . liftM fromIntegral
+-- -- asdf info ini fin = managed (bracket (ini info) fin)
+
+
+-- -- withSizeArray :: (Storable a, Integral a) => [a] -> (Ptr CULong -> IO b) -> IO b
+-- -- withSizeArray = withArray . liftM fromIntegral

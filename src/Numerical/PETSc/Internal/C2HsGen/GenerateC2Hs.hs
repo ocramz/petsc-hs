@@ -24,7 +24,7 @@ outFormat = StdoutFmt
 outModuleName = "TypesC2HsGen"
 
 -- | list of C enum types to map to Haskell
-outEnumTypes :: [CType]
+-- outEnumTypes :: [CType]
 outEnumTypes = [
   dm "BoundaryType"
   , dmda "StencilType"

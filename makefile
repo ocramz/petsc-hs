@@ -24,7 +24,7 @@ main:
 	make step3
 
 step1:
-	make c2hs
+	# make c2hs
 	stack ghc -- -optc -g ${SRCDIR}/Internal/InlineC.hs -isrc/
 
 step2:
