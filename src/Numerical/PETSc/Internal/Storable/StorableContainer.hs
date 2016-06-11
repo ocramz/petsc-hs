@@ -28,7 +28,7 @@ import qualified Data.Vector as V
 import Data.IORef
 
 -- | mtl
-import Control.Monad.Managed
+-- import Control.Monad.Managed
 import Control.Monad.Reader
 import Control.Monad.Reader.Class
 import Control.Monad.Trans.Class

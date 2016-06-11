@@ -82,7 +82,7 @@ library
                        prelude-extras,
                        void,
                        MonadRandom,
-                       managed,
+                       -- managed,
                        storable-complex,
                        split,
                        ad,
