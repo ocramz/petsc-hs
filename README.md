@@ -122,9 +122,9 @@ The library is being developed with/on :
 
 * C and Fortran compilers : `gcc` 5.0.0 , `gfortran` 5.0.0
 
-* OS : OSX 10.9.5, Ubuntu 12.04, 14.04
+* OS : OSX 10.9.5, Ubuntu Linux 12.04, 14.04
 
-* Haskell compiler : `ghc` 7.8.3, ~~7.10.2, 7.10.3~~
+* Haskell compiler : `ghc` 7.10.3 (Linux only)
 
 * Cabal 1.22
 
@@ -133,7 +133,7 @@ The library is being developed with/on :
 
 ## Compatibility Notes
 
-June 10, 2016 : There seems to be a linker bug in GHC version 7.10.* preventing the use of cross-referencing dynamic libraries, which is why the project will make the transition to GHC 8.
+June 10, 2016 : There seems to be a linker bug in GHC version 7.10.* for OSX preventing the use of cross-referencing dynamic libraries, which is why `petsc-hs` will make the transition to GHC 8 as soon as all its dependencies will be met (expected end of 2016).
 
 
 

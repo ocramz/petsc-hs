@@ -64,7 +64,7 @@ library
                        QuickCheck >=2.7,
                        hspec,
                        bytestring >=0.10 && <0.11, 
-                       transformers,
+                       transformers < 0.5,
                        transformers-base,
                        contravariant,
                        monad-control,
@@ -82,11 +82,12 @@ library
                        prelude-extras,
                        void,
                        MonadRandom,
-                       -- managed,
+                       managed,
                        storable-complex,
                        split,
                        ad,
                        process
+                       -- ,parsers
   hs-source-dirs:      src/
   default-language:    Haskell2010
   ghc-options:         -j2 -O2 -Wall
