@@ -18,6 +18,9 @@ TESTDIR = ${CURDIR}/test
 LIBDIR = ${CURDIR}/lib
 EXAMPLEDIR = ${CURDIR}/examples
 
+C2HS_DIR = $(shell pwd)/src/Numerical/PETSc/Internal/C2HsGen
+C2HS_GEN_FILE=TypesC2HsGen 
+
 main:
 	make step1
 	make step2
@@ -49,6 +52,7 @@ reload:
 	make step3
 
 
+
 # ARGS="--resolver nightly"
 ARGS=""
 
@@ -63,5 +67,14 @@ stack_haddock:
 grind:
 	valgrind --leak-check=yes --track-origins=yes stack exec petsc-valgrind 
 
+
+PETSC_INCLUDE1=${PETSC_DIR}/include/
+SLEPC_INCLUDE1=${SLEPC_DIR}/include/
+PETSC_INCLUDE2 = ${PETSC_DIR_ARCH_INCLUDE}
+SLEPC_INCLUDE2 = ${SLEPC_DIR_ARCH_INCLUDE}
+
 c2hs:
-	./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} $(shell pwd)/src/Numerical/PETSc/Internal/C2HsGen
+	# ./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} $(shell pwd)/src/Numerical/PETSc/Internal/C2HsGen
+	stack exec runhaskell ${C2HS_DIR}/GenerateC2Hs.hs > ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
+	stack exec c2hs --  -C -I${PETSC_INCLUDE1} -C -iprefix "petsc" -C -iwithprefix${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
+

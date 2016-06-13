@@ -18,7 +18,7 @@ import System.Cmd
 import System.Directory
 import System.FilePath -- ((</>), splitPath)
 import System.Exit ( ExitCode(..) )
-
+import System.Process
 
 
 -- | BUILD SEQUENCE :
@@ -53,7 +53,7 @@ main = defaultMainWithHooks simpleUserHooks
                                             , cleanHook = myCleanHook
                                             }
 
-myBuildHook pkgDescr localBuildInfo userHooks buildFlags= return ()
+myBuildHook pkgDescr localBuildInfo userHooks buildFlags = return ()
 
 myCleanHook pd _ uh cf = return ()
 

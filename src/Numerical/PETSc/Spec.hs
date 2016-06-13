@@ -40,8 +40,8 @@ specs =
      t_vecDot_r2_1
      t_linSys_r3_1
     -- --  -- 
-     -- t_eigen_r3_1
-     -- t_eigen_r3_1_symm
+     t_eigen_r3_1
+     t_eigen_r3_1_symm
 
 
 
@@ -50,6 +50,7 @@ specs =
 
 -- | tests
 
+com :: Comm
 com = commWorld
 
 t_vecDot_r2_1 = 
