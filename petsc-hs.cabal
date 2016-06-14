@@ -86,7 +86,7 @@ library
                        storable-complex,
                        split,
                        ad,
-                       process
+                       process,
                        parsers
   hs-source-dirs:      src/
   default-language:    Haskell2010
