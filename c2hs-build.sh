@@ -22,8 +22,8 @@ C2HS_GEN_FILE=TypesC2HsGen
 stack exec runhaskell ${C2HS_DIR}/GenerateC2Hs.hs > ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
 
 # # interpret c2hs -> render Haskell bindings
-# stack exec c2hs --  -C -I${PETSC_INCLUDE1} -C -I${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
+stack exec c2hs --  -C -I${PETSC_INCLUDE1} -C -I${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
 
 # stack exec c2hs --  -C -I${PETSC_INCLUDE2} -C -I${PETSC_INCLUDE1}  -C -I${SLEPC_INCLUDE1} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
 
-stack exec c2hs --  -C -I${PETSC_INCLUDE1} -C -iprefix "petsc" -C -iwithprefix${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
+# stack exec c2hs --  -C -I${PETSC_INCLUDE1} -C -iprefix "petsc" -C -iwithprefix${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
