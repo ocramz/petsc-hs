@@ -74,7 +74,7 @@ PETSC_INCLUDE2 = ${PETSC_DIR_ARCH_INCLUDE}
 SLEPC_INCLUDE2 = ${SLEPC_DIR_ARCH_INCLUDE}
 
 c2hs:
-	# ./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} $(shell pwd)/src/Numerical/PETSc/Internal/C2HsGen
-	stack exec runhaskell ${C2HS_DIR}/GenerateC2Hs.hs > ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
-	stack exec c2hs --  -C -I${PETSC_INCLUDE1} -C -iprefix "petsc" -C -iwithprefix${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
+	./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} $(shell pwd)/src/Numerical/PETSc/Internal/C2HsGen
+	# stack exec runhaskell ${C2HS_DIR}/GenerateC2Hs.hs > ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
+	# stack exec c2hs --  -C -I${PETSC_INCLUDE1} -C -iprefix "petsc" -C -iwithprefix${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
 
