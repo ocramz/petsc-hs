@@ -10,6 +10,7 @@ maintainer:          Marco Zocca <zocca.marco@gmail.com>
 copyright:           (c) 2015 Marco Zocca
 category:            Numerical
 build-type:          Simple
+-- build-type:          Custom                                          
 extra-source-files:  README.md
 cabal-version:       >=1.10
 

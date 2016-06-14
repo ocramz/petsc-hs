@@ -5,7 +5,7 @@ extra-deps:
 - inline-c-0.5.5.1
 # - parsers-0.12.3  # needed by inline-c
 # resolver: lts-1.0 #  ghc-7.8.4
-# resolver: lts-5.15 # ghc-7.10.3
-resolver: nightly-2016-06-14 # ghc 8.0.1 with `ad-4.3.2.1` 
+resolver: lts-5.15 # ghc-7.10.3
+# resolver: nightly-2016-06-14 # ghc 8.0.1 with `ad-4.3.2.1` 
 ghc-options:
   "*": -fno-warn-missing-signatures -fno-warn-unused-do-bind -fno-warn-unused-imports

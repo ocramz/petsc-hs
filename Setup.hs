@@ -21,6 +21,15 @@ import System.Exit ( ExitCode(..) )
 import System.Process
 
 
+
+-- | currently supported
+
+petsc, slepc :: Dep 
+petsc = mkDep Petsc 3 7 2
+slepc = mkDep Slepc 3 7 1
+
+
+
 -- | BUILD SEQUENCE :
 
 -- | 1) dependencies :
@@ -65,13 +74,16 @@ myCleanHook pd _ uh cf = return ()
 
 -- | dependencies model
 
-data VerN = VerN { verN :: [Int] } deriving Eq
+data VerN =
+  VerN { _verMajor :: Int,
+         _verMinor :: Int,
+         _verPatch :: Int} deriving Eq
 instance Show VerN where
   show = showVerN 
 
 showVerN :: VerN -> String
-showVerN = intercalate "." . map show . verN
-
+showVerN v = show v1 ++ ", " ++ show v2 ++ ", " ++ show v3
+  where (v1,v2,v3) = (_verMajor v, _verMinor v, _verPatch v)
 
 data DepName = Petsc | Slepc deriving (Eq)
 instance Show DepName where
@@ -79,7 +91,7 @@ instance Show DepName where
   show Slepc = "slepc"
 
 data Dep = Dep DepName VerN deriving Eq
-mkDep d nn = Dep d (VerN nn)
+mkDep d nmm nm np  = Dep d (VerN nmm nm np)
 
 instance Show Dep where
   show = showDep
@@ -90,11 +102,7 @@ showDep (Dep s n) = show s ++ "-" ++ show n
 
 
 
--- | currently supported
 
-petsc, slepc :: Dep 
-petsc = mkDep Petsc [3,6,2]
-slepc = mkDep Slepc [3,6,1]
 
 
 
