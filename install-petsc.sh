@@ -15,11 +15,11 @@ curl -L $PETSC_TAR | tar xz --strip-components=1 -C $PETSC_DIR/
 cd $PETSC_DIR/
 
 # configure
-if [${NODETYPE} == "master"]; then 
-    echo "=== Configuring as Master node"
+if [${BUILDTYPE} == "batch"]; then 
+    echo "=== Configuring in batch mode"
     ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich --with-batch 
 else
-    echo "=== Configuring as Compute node"
+    echo "=== Configuring without batch mode"
     ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
 fi
 
