@@ -2,7 +2,7 @@ flags: {}
 packages:
 - '.'
 extra-deps: 
-- inline-c-0.5.5.1
+- inline-c-0.5.5.3
 # - parsers-0.12.3  # needed by inline-c
 # resolver: lts-1.0 #  ghc-7.8.4
 # resolver: lts-5.15 # ghc-7.10.3
