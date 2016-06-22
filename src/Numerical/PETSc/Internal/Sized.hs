@@ -1,6 +1,8 @@
 {-# language KindSignatures, DataKinds, ScopedTypeVariables #-}
 {-# language GeneralizedNewtypeDeriving, RankNTypes #-}
 {-# language TypeFamilies, MultiParamTypeClasses #-}
+
+{-# language AllowAmbiguousTypes #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Sized
