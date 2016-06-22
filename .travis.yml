@@ -77,6 +77,8 @@ before_install:
   # # Download and install SLEPc
   - travis_retry ./install-slepc.sh $SLEPC_VERSION $SLEPC_DIR 
 
+  - find . -name libpetsc.so
+  - find . -name libslepc.so
 
 
 
@@ -126,7 +128,11 @@ script:
   # # stack directories
   - export DIST_DIR="$(stack path --dist-dir)/build"
 
-  
+
+  # show the dynlib path
+  - find . -name libpetsc.so
+  - find . -name libslepc.so
+
 
   # # # run an example program
   - stack exec ./"$DIST_DIR"/petsc-example/petsc-example
