@@ -79,7 +79,7 @@ before_install:
 
   - find . -name libpetsc.so
   - find . -name libslepc.so
-
+  - find . -name libpetsc.so.3.7
 
 
   # Download and unpack the `stack` executable :
@@ -132,6 +132,7 @@ script:
   # show the dynlib path
   - find . -name libpetsc.so
   - find . -name libslepc.so
+  - find . -name libpetsc.so.3.7
 
 
   # # # run an example program
