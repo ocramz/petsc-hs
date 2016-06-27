@@ -264,6 +264,8 @@ snesSetJacobian0 snes amat pmat vvJac m n =
      return (0 :: CInt)
 
 
+snesSetJacobian0' snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat f
+
 
 {- Internal/Sparse :
 vvToCSR :: V.Vector (V.Vector a) -> V.Vector (Int, Int, a)

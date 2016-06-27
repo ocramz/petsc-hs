@@ -734,7 +734,7 @@ withVecArrayPtr :: Vec -> (Ptr PetscScalar_ -> IO a) -> IO a
 withVecArrayPtr v =
   bracket (vecGetArrayPtr v) (vecRestoreArrayPtr v)
   where
-    vecGetArrayPtr u = chk1 (vecGetArray1' u)
+    vecGetArrayPtr u = chk1 (vecGetArray' u)
     vecRestoreArrayPtr u ar = chk0 (vecRestoreArrayPtr' u ar)
 
 
@@ -812,7 +812,8 @@ withIOVector n p v =
 
   
 
-
+-- withMVector vec f = withVecSizedPtr vec $ \n p ->
+--   bracket (getIOVector n p) (putIOVector n)
 
 
 

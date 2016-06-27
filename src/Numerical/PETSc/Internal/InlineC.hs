@@ -189,8 +189,8 @@ vecSetName1 v name = withCString name $ \n ->
 vecCreate' :: Comm -> IO (Vec, CInt)
 vecCreate' cc = withPtr $ \p -> [C.exp|int{VecCreate($(int c), $(Vec *p))} |]
    where c = unComm cc
-  
 
+         
 -- PetscErrorCode VecCreateMPI(MPI_Comm comm, int m, int M, Vec* x)
 
 
@@ -345,23 +345,11 @@ vecViewStdout1 v = [C.exp|int{VecView($(Vec v), PETSC_VIEWER_STDOUT_SELF)}|]
 
 
 -- PETSC_EXTERN PetscErrorCode VecGetArray(Vec,PetscScalar**);
-vecGetArray0' :: Vec -> Ptr (Ptr PetscScalar_) -> IO CInt
-vecGetArray0' v p =  [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]
+vecGetArray' :: Vec -> IO (Ptr PetscScalar_, CInt)
+vecGetArray' v = withPtr $ \p ->
+  [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|] 
 
-vecGetArray' :: Vec -> Int -> IO ([PetscScalar_], CInt)
-vecGetArray' v sz = do
-  (p, e) <- vga v
-  arr <- peekArray sz p
-  return (arr, e)
-    where
-      vga v' = withPtr $ \p -> vecGetArray0' v' p
 
-vecGetArray1' :: Vec -> IO (Ptr PetscScalar_, CInt)
-vecGetArray1' v = withPtr $ \p -> vecGetArray0' v p
-
--- vecGetArray2' :: Vec -> IO (Ptr PetscScalar_, CInt)
--- vecGetArray2' v = withPtr $ \p -> vga v p where
---   vga v p = [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]
 
 
 -- PetscErrorCode VecGetArrayRead(Vec x,const PetscScalar **a)
