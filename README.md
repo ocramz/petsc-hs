@@ -18,7 +18,7 @@ Discuss features, ideas, bugs : [![Gitter chat: petsc-hs](https://badges.gitter.
 
 ## News
 
-June 28-30, 2016 : Presented petsc-hs at the [PETSc User Meeting](https://www.mcs.anl.gov/petsc/meetings/2016/program.html) in Vienna, [poster in PDF](https://github.com/ocramz/petsc-hs/tree/master/doc/poster/petsc-hs_PETSc_2016.pdf).
+June 28-30, 2016 : Presented petsc-hs at the [PETSc User Meeting](https://www.mcs.anl.gov/petsc/meetings/2016/program.html) in Vienna, [poster in PDF](https://github.com/ocramz/petsc-hs/blob/master/doc/posters/petsc-hs_PETSc_2016.pdf).
 
 June 8, 2016 : Building petsc-hs against the latest PETSc (3.7.2, rel. June 5, 2016) and SLEPc (3.7.1, rel. May 27, 2016). See branch petsc-3.7.
 
