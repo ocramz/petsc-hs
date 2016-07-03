@@ -185,6 +185,9 @@ snesSetFunction' snes r f = chk0 $ snesSetFunction_' snes r g
         return (0 :: CInt)
 
 
+
+
+
 -- asdfs :: Storable a => VS.Vector a -> IO (VM.IOVector a)
 -- asdfs = VS.thaw
 

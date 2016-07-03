@@ -804,6 +804,8 @@ getIOVector = getVM1
 putIOVector :: Storable a => Int -> (VM.IOVector a, FPR.ForeignPtr a) -> IO ()
 putIOVector = putVM1
 
+-- withIOVector0 n p = bracket (getIOVector n p) (putIOVector n)
+
 withIOVector :: Storable a => Int -> Ptr a -> V.Vector a -> IO ()
 withIOVector n p v =
   bracket (getIOVector n p) (putIOVector n) $ \(vm, _) -> 
@@ -840,8 +842,9 @@ fromMutableV mv = do
 toMutableV :: (VG.Vector v a, Storable a) => v a -> IO (VM.IOVector a)
 toMutableV = VS.thaw . VG.convert
 
-
-
+withMutableV ::
+  (VG.Vector v a, Storable a) => VM.IOVector a -> (v a -> v a) -> IO (VM.IOVector a)
+withMutableV mv f = fromMutableV mv >>= toMutableV . f
 
 
 
