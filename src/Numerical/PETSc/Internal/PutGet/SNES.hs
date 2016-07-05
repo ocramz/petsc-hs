@@ -173,16 +173,19 @@ snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g where
 --      Vec ->
 --      (v PetscScalar_ -> w PetscScalar_) ->
 --      IO ()
--- snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g
---   where
---    g _snes x y _p = 
---      withVecVector x $ \xv -> do
---        -- withVecArrayPtr y $ \yp -> do
---         _ <- vecOverwriteIOVector_ y (V.convert $ f xv)
---         -- do
---         -- vecSetValuesRangeVector y (V.convert $ f xv) InsertValues
---         -- vecAssembly y
---         return (0 :: CInt)
+snesSetFunction' snes r f = chk0 $ snesSetFunction_' snes r g
+  where
+   g _snes x y _p = 
+     withVecVector x $ \xv -> do
+       -- withVecArrayPtr y $ \yp -> do
+        _ <- vecOverwriteIOVectorN2_ y (V.convert $ f xv)
+        -- do
+        -- vecSetValuesRangeVector y (V.convert $ f xv) InsertValues
+        -- vecAssembly y
+        return (0 :: CInt)
+
+
+
 
 
 -- asdfs :: Storable a => VS.Vector a -> IO (VM.IOVector a)
@@ -263,6 +266,8 @@ snesSetJacobian0 snes amat pmat vvJac m n =
      matAssembly jj
      return (0 :: CInt)
 
+
+snesSetJacobian0' snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat f
 
 
 {- Internal/Sparse :

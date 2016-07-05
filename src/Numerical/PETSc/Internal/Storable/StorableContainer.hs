@@ -1,5 +1,10 @@
 {-# LANGUAGE MultiParamTypeClasses, TypeFamilies, RankNTypes #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE CPP #-}
+
+-- #if __GLASGOW_HASKELL__ >= 801
+{-# LANGUAGE AllowAmbiguousTypes #-}
+-- #endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Storable.StorableContainer

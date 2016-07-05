@@ -1,5 +1,7 @@
 {-# LANGUAGE TypeFamilies, MultiParamTypeClasses, RankNTypes#-}
 {-# LANGUAGE FlexibleInstances #-}
+
+{-# LANGUAGE AllowAmbiguousTypes #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.PutGet.DM

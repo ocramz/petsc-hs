@@ -189,8 +189,8 @@ vecSetName1 v name = withCString name $ \n ->
 vecCreate' :: Comm -> IO (Vec, CInt)
 vecCreate' cc = withPtr $ \p -> [C.exp|int{VecCreate($(int c), $(Vec *p))} |]
    where c = unComm cc
-  
 
+         
 -- PetscErrorCode VecCreateMPI(MPI_Comm comm, int m, int M, Vec* x)
 
 
@@ -345,23 +345,11 @@ vecViewStdout1 v = [C.exp|int{VecView($(Vec v), PETSC_VIEWER_STDOUT_SELF)}|]
 
 
 -- PETSC_EXTERN PetscErrorCode VecGetArray(Vec,PetscScalar**);
-vecGetArray0' :: Vec -> Ptr (Ptr PetscScalar_) -> IO CInt
-vecGetArray0' v p =  [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]
+vecGetArray' :: Vec -> IO (Ptr PetscScalar_, CInt)
+vecGetArray' v = withPtr $ \p ->
+  [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|] 
 
-vecGetArray' :: Vec -> Int -> IO ([PetscScalar_], CInt)
-vecGetArray' v sz = do
-  (p, e) <- vga v
-  arr <- peekArray sz p
-  return (arr, e)
-    where
-      vga v' = withPtr $ \p -> vecGetArray0' v' p
 
-vecGetArray1' :: Vec -> IO (Ptr PetscScalar_, CInt)
-vecGetArray1' v = withPtr $ \p -> vecGetArray0' v p
-
--- vecGetArray2' :: Vec -> IO (Ptr PetscScalar_, CInt)
--- vecGetArray2' v = withPtr $ \p -> vga v p where
---   vga v p = [C.exp|int{VecGetArray($(Vec v), $(PetscScalar** p))}|]
 
 
 -- PetscErrorCode VecGetArrayRead(Vec x,const PetscScalar **a)
@@ -3167,35 +3155,37 @@ tsSetCostGradients' ts numcost lambda mu =
 
 -- PetscErrorCode  TSSetCostIntegrand(TS ts,PetscInt numcost, PetscErrorCode (*rf)(TS,PetscReal,Vec,Vec,void*),
 -- PetscErrorCode (*drdyf)(TS,PetscReal,Vec,Vec*,void*),
--- PetscErrorCode (*drdpf)(TS,PetscReal,Vec,Vec*,void*),void *ctx)
+-- PetscErrorCode (*drdpf)(TS,PetscReal,Vec,Vec*,void*),PetscBool fwd, void *ctx)
 tsSetCostIntegrand0' :: TS
                         -> PetscInt_
                         -> (TS -> PetscReal_ -> Vec -> Vec -> Ptr () -> IO CInt)
                         -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
                         -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
+                        -> PetscBool
                         -> IO CInt
-tsSetCostIntegrand0' ts n rf drdyf drdpf =
+tsSetCostIntegrand0' ts n rf drdyf drdpf fwdf =
   [C.exp|
    int{TSSetCostIntegrand($(TS ts),
                           $(PetscInt n),
                           $fun:(int (*rf)(TS,PetscReal,Vec,Vec,void*)),
                           $fun:(int (*drdyf)(TS,PetscReal,Vec,Vec*,void*)),
-                          $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),NULL)}|]
+                          $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),$(PetscBool fwdf), NULL)}|]
 
 tsSetCostIntegrand' :: TS
                        -> PetscInt_
                        -> (TS -> PetscReal_ -> Vec -> Vec -> Ptr () -> IO CInt)
                        -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
                        -> (TS -> PetscReal_ -> Vec -> Ptr Vec -> Ptr () -> IO CInt)
+                       -> PetscBool 
                        -> Ptr ()
                        -> IO CInt
-tsSetCostIntegrand' ts n rf drdyf drdpf ctx =
+tsSetCostIntegrand' ts n rf drdyf drdpf fwdf ctx =
   [C.exp|
    int{TSSetCostIntegrand($(TS ts),
                           $(PetscInt n),
                           $fun:(int (*rf)(TS,PetscReal,Vec,Vec,void*)),
                           $fun:(int (*drdyf)(TS,PetscReal,Vec,Vec*,void*)),
-                          $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),$(void* ctx))}|]  
+                          $fun:(int (*drdpf)(TS,PetscReal,Vec,Vec*,void*)),$(PetscBool fwdf), $(void* ctx))}|]  
 
 tsGetCostIntegral' :: TS -> IO (Vec, CInt)
 tsGetCostIntegral' ts = withPtr $ \p -> [C.exp|int{TSGetCostIntegral($(TS ts),$(Vec* p))}|]
@@ -3741,39 +3731,40 @@ petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|]
 
 type OptionName = String
 
--- PetscErrorCode  PetscOptionsView(PetscViewer viewer)
-petscOptionsView' :: PetscViewer -> IO CInt
-petscOptionsView' vi = [C.exp|int{PetscOptionsView($(PetscViewer vi))}|]
+-- -- PetscErrorCode  PetscOptionsView(PetscOptions opts, PetscViewer viewer)
+petscOptionsView0' :: PetscViewer -> IO CInt
+petscOptionsView0' vi = [C.exp|int{PetscOptionsView(NULL, $(PetscViewer vi))}|]
 
--- PetscErrorCode  PetscOptionsSetValue(const char iname[],const char value[])
-petscOptionsSetValue' :: OptionName -> String -> IO CInt
-petscOptionsSetValue' iname val =
+-- PetscErrorCode  PetscOptionsSetValue(PetscOptions opts, const char iname[],const char value[])
+petscOptionsSetValue0' :: OptionName -> String -> IO CInt
+petscOptionsSetValue0' iname val =
   withCString iname $ \inamep ->
   withCString val $ \valp ->
-  [C.exp|int{PetscOptionsSetValue($(const char* inamep), $(const char* valp))}|]
+  [C.exp|int{PetscOptionsSetValue(NULL, $(const char* inamep), $(const char* valp))}|]
 -- petscOptionsSetValue iname val = [C.exp|int{PetscOptionsSetValue($bs-ptr:iname, $bs-ptr:val)}|]
 
 
 -- #include "petscsys.h"   
--- PetscErrorCode  PetscOptionsGetInt(const char pre[],const char name[],PetscInt *ivalue,PetscBool  *set)    -- Not Collective
+-- PetscErrorCode  PetscOptionsGetInt(PetscOptions options, const char pre[],const char name[],PetscInt *ivalue,PetscBool  *set)    -- Not Collective
 -- Input Parameters :
+-- options - the options database, NULL to use the global database
 -- pre	- the string to prepend to the name or NULL
 -- name	- the option one is seeking
 -- Output Parameters :
 -- ivalue	- the integer value to return
 -- set	- PETSC_TRUE if found, else PETSC_FALSE
 
-petscOptionsGetInt' :: Ptr CChar -> Ptr CChar -> Ptr CInt -> Ptr PetscBool -> IO CInt
-petscOptionsGetInt' pre name n s = [C.exp| int{PetscOptionsGetInt($(char *pre), $(char *name), $(int *n), $(PetscBool *s))} |]
+petscOptionsGetInt0' :: Ptr CChar -> Ptr CChar -> Ptr CInt -> Ptr PetscBool -> IO CInt
+petscOptionsGetInt0' pre name n s = [C.exp| int{PetscOptionsGetInt(NULL, $(char *pre), $(char *name), $(int *n), $(PetscBool *s))} |]
 
-petscOptionsGetInt'' ::
+petscOptionsGetInt0'' ::
   String -> String -> IO (CInt, (PetscBool, CInt))
-petscOptionsGetInt'' prefix name = 
+petscOptionsGetInt0'' prefix name = 
   withCString prefix ( \p ->
    withCString name $ \n ->
     withPtr $ \ptr ->
      withPtr $ \pb -> 
-      petscOptionsGetInt' p n ptr pb) -- >>= \(a, (f, e)) -> handleErrTup ((a, f), e)
+      petscOptionsGetInt0' p n ptr pb) -- >>= \(a, (f, e)) -> handleErrTup ((a, f), e)
 
 -- petscOptionsGetInt prefix name = do
 --   (a, (f, e)) <- petscOptionsGetInt'' prefix name
@@ -3811,8 +3802,8 @@ petscFinalized = withPtr ( \p ->
 
 
 -- petscInit0 :: IO ()
-petscInit01 :: IO CInt
-petscInit01 = [C.exp| int{ PetscInitializeNoArguments()  }|]
+petscInit0' :: IO CInt
+petscInit0' = [C.exp| int{ PetscInitializeNoArguments()  }|]
 
 -- -- PETSC_EXTERN PetscErrorCode PetscInitialize(int*,char***,const char[],const char[]);
 petscInitialize1 :: Argv -> OptsStr -> HelpStr -> IO CInt
@@ -3829,28 +3820,10 @@ type Argv = [String]
 type OptsStr = String
 type HelpStr = String
 
-petscFin1 :: IO CInt
-petscFin1 = [C.block| int{ PetscFinalize(); }|] 
+petscFin' :: IO CInt
+petscFin' = [C.block| int{ PetscFinalize(); }|] 
 
-withPetsc01 :: IO a -> IO CInt
-withPetsc01 f = do -- returns IO ()
-  _ <- petscInit01
-  _ <- f
-  petscFin1
 
-withPetsc01', withPetsc0'' :: IO a -> IO a
-withPetsc0'' f =
-  petscInit01 >> (f `finally` petscFin1)
-  
-withPetsc01' = bracket_ petscInit01 petscFin1 -- returns IO a
-
-withPetsc' :: Argv -> OptsStr -> HelpStr -> IO a -> IO a
-withPetsc' a o h = bracket_ (petscInitialize1 a o h) petscFin1
-
-withPetsc'' :: Argv -> OptsStr -> HelpStr -> IO b -> IO b
-withPetsc'' a o h f = petscInitialize1 a o h >> (f `finally` petscFin1)
-
--- -- NB : bracket_ ignores the return type of the allocation action
 
 
 
@@ -4263,8 +4236,8 @@ slepcInitialized' = withPtr ( \b ->
   
 
 
-slepcInit01 :: IO CInt
-slepcInit01 = [C.exp| int{ SlepcInitializeNoArguments()  }|]
+slepcInit0' :: IO CInt
+slepcInit0' = [C.exp| int{ SlepcInitializeNoArguments()  }|]
 
 slepcInitialize' :: Argv -> OptsStr -> HelpStr -> IO CInt
 slepcInitialize' args opts help = 
@@ -4277,8 +4250,8 @@ slepcInitialize' args opts help =
     [C.exp|int{SlepcInitialize($(int *ac), $(char*** a), $(char* o), $(char *h))}|] 
 
 
-slepcFin1 :: IO CInt
-slepcFin1 = [C.block| int{ SlepcFinalize(); }|] 
+slepcFin' :: IO CInt
+slepcFin' = [C.block| int{ SlepcFinalize(); }|] 
 
 
 

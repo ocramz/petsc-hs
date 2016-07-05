@@ -249,8 +249,8 @@ tsAdjointSetRHSJacobian ts amat f  =
 
 -- | if nonzero integrand in Bolza cost functional `r(t, y, p)`:
 
-tsSetCostIntegrand_ ts ncostf rf drdyf drdpf =
-  chk0 (tsSetCostIntegrand0' ts ncostf rf drdyf drdpf)
+tsSetCostIntegrand_ ts ncostf rf drdyf drdpf fwdf =
+  chk0 (tsSetCostIntegrand0' ts ncostf rf drdyf drdpf fwdf)
   
 tsSetCostIntegrand ::
   TS ->
@@ -258,8 +258,9 @@ tsSetCostIntegrand ::
   (TS -> PetscReal_ -> Vec -> Vec -> IO CInt) ->      -- value of integrand `r`
   (TS -> PetscReal_ -> Vec -> Ptr Vec -> IO CInt) ->  -- dr/dy
   (TS -> PetscReal_ -> Vec -> Ptr Vec -> IO CInt) ->  -- dr/dp
+  PetscBool -> 
   IO ()
-tsSetCostIntegrand ts n rf drdyf drdpf = tsSetCostIntegrand_ ts n fa fb fc where
+tsSetCostIntegrand ts n rf drdyf drdpf fwdf = tsSetCostIntegrand_ ts n fa fb fc fwdf where
   fa a b c d _ = rf a b c d
   fb a b c d _ = drdyf a b c d
   fc a b c d _ = drdpf a b c d

@@ -39,11 +39,13 @@ import System.IO.Unsafe (unsafePerformIO)
 slepcInit :: Argv -> OptsStr -> HelpStr -> IO ()
 slepcInit a o h = chk0 $ slepcInitialize' a o h
 
-slepcInit0, slepcFin :: IO ()
-slepcInit0 = do 
-  chk0 slepcInit01
-  putStrLn (slepcHeader ++ " with default options\n")
-slepcFin = chk0 slepcFin1 >> putStrLn ("\nSLEPc : finalized\n" ++ sep)
+slepcInit0 :: IO ()
+slepcInit0 =
+  chk0 slepcInit0' >> putStrLn (slepcHeader ++ " with default options\n")
+
+slepcFin :: IO ()
+slepcFin =
+  chk0 slepcFin' >> putStrLn ("\nSLEPc : finalized\n" ++ sep)
 
 
 -- | FIXME: move into specialized monad

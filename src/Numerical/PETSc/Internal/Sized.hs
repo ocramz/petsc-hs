@@ -1,5 +1,8 @@
 {-# language KindSignatures, DataKinds, ScopedTypeVariables #-}
 {-# language GeneralizedNewtypeDeriving, RankNTypes #-}
+{-# language TypeFamilies, MultiParamTypeClasses #-}
+
+{-# language AllowAmbiguousTypes #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numerical.PETSc.Internal.Sized
@@ -35,6 +38,16 @@ lift2F f (Dim u) (Dim v) = Dim (f u v)
 -- newtype R n = R (Dim n (V.Vector Double))
 --   deriving (Num,Fractional,Floating)
 
+type family IndexOf (c :: * -> *)
+
+type instance IndexOf V.Vector = Int
+-- type instance IndexOf Matrix = (Int,Int)
+
+type family ArgOf (c :: * -> *) a
+type instance ArgOf V.Vector a = a -> a
+
+
+
 type V n t = Dim n (V.Vector t)
 
 type Vd n = V n Double
@@ -62,7 +75,30 @@ gvect xs'
     d = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
     abort info = error $ show d++" can't be created from elements "++info
 
--- gvect1 = gvect "gvect"
+
+
+
+-- class Num t => Sized t s d | s -> t, s -> d
+--   where
+--     konst     ::  t   -> s
+--     unwrap    ::  s   -> d t
+--     fromList  :: [t]  -> s
+--     extract   ::  s   -> d t
+--     create    ::  d t -> Maybe s
+--     size      ::  s   -> IndexOf d
+
+class Sized t where
+  type SizedC t
+  type SizeOf t
+  -- konst :: t -> SizedC t
+  fromList :: [t] -> SizedC t
+  size :: SizedC t -> SizeOf t
+
+instance Sized [a] where
+  type SizedC [a] = [a]
+  type SizeOf [a] = Int
+  -- fromList = id
+  -- size = length
 
 -- -- see Bartosz Milewski's blog on Operads and Tic Tac Toe
 

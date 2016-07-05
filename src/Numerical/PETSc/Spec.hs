@@ -14,14 +14,12 @@
 module Numerical.PETSc.Spec where
 
 
-import Numerical.PETSc.Internal.Types
-import Numerical.PETSc.Internal.C2HsGen.TypesC2HsGen
-import Numerical.PETSc.Internal.PutGet
-import Numerical.PETSc.Internal.Utils
-
+import Numerical.PETSc.Internal
 
 import Foreign
 import Foreign.C.Types
+
+import Data.Complex
 
 import qualified Data.Vector.Storable as VS
 -- import qualified Data.Vector.Storable.Mutable as VM
@@ -36,12 +34,12 @@ specs :: IO ()
 specs = 
   withPetsc0 $
    withSlepc0 $
-    hspec $ do
-     t_vecDot_r2_1
-     t_linSys_r3_1
-    -- --  -- 
-     t_eigen_r3_1
-     t_eigen_r3_1_symm
+   hspec $ do
+    t_vecDot_r2_1
+    t_linSys_r3_1
+   -- --  -- 
+    t_eigen_r3_1
+    t_eigen_r3_1_symm
 
 
 
@@ -100,11 +98,12 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
       -- print (er, ei)
       -- ver <- vecGetVS er
       -- V.all (>0) er `shouldBe` False -- asymmetric mtx
-      V.all (== 0) ei `shouldBe` True -- real mtx
+      V.all (<= imzTol) ei `shouldBe` True -- real mtx
       where
         (m, n) = (3, 3)                   
         ixd = ixd3x3                      
         nz = nz3x3
+        imzTol = 1e-300
 
 
 
@@ -127,10 +126,12 @@ t_eigen_r3_1_symm = describe "t_eigen_r3_1_symm" $
    withPetscMatrix com m n  MatAij ixd nz InsertValues $ \mat -> do
     let (_, _, _, mu) = fromPetscMatrix mat
     withEpsCreateSetupSolve com mu Nothing EpsHep $ \eps nev vrr _ -> do
-      putStrLn "Eigenvalues : (real, imag)"
+      putStrLn "Eigenvalues : (real :+ imag)"
       ve <- epsGetEigenvalues eps
-      let (er, ei) = V.unzip ve
-      print (er, ei)
+      let evc = V.map (\(a,b) -> a :+ b) ve
+      print evc
+      -- let (er, ei) = V.unzip ve
+      -- print (er, ei)
       -- ver <- vecGetVS er
       -- V.all (>0) er `shouldBe` True -- 
       -- V.all (== 0) ei `shouldBe` True -- real mtx

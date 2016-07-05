@@ -734,7 +734,7 @@ withVecArrayPtr :: Vec -> (Ptr PetscScalar_ -> IO a) -> IO a
 withVecArrayPtr v =
   bracket (vecGetArrayPtr v) (vecRestoreArrayPtr v)
   where
-    vecGetArrayPtr u = chk1 (vecGetArray1' u)
+    vecGetArrayPtr u = chk1 (vecGetArray' u)
     vecRestoreArrayPtr u ar = chk0 (vecRestoreArrayPtr' u ar)
 
 
@@ -804,6 +804,8 @@ getIOVector = getVM1
 putIOVector :: Storable a => Int -> (VM.IOVector a, FPR.ForeignPtr a) -> IO ()
 putIOVector = putVM1
 
+-- withIOVector0 n p = bracket (getIOVector n p) (putIOVector n)
+
 withIOVector :: Storable a => Int -> Ptr a -> V.Vector a -> IO ()
 withIOVector n p v =
   bracket (getIOVector n p) (putIOVector n) $ \(vm, _) -> 
@@ -812,7 +814,8 @@ withIOVector n p v =
 
   
 
-
+-- withMVector vec f = withVecSizedPtr vec $ \n p ->
+--   bracket (getIOVector n p) (putIOVector n)
 
 
 
@@ -839,8 +842,9 @@ fromMutableV mv = do
 toMutableV :: (VG.Vector v a, Storable a) => v a -> IO (VM.IOVector a)
 toMutableV = VS.thaw . VG.convert
 
-
-
+withMutableV ::
+  (VG.Vector v a, Storable a) => VM.IOVector a -> (v a -> v a) -> IO (VM.IOVector a)
+withMutableV mv f = fromMutableV mv >>= toMutableV . f
 
 
 

@@ -11,8 +11,8 @@ language:
 # # # change flags or use --stack-yaml to point to a different file.
 
 env:
-  - STACK_ARGS="" PETSC_VERSION=3.6.2 SLEPC_VERSION=3.6.1
-  # - STACK_ARGS="" PETSC_VERSION=3.7 SLEPC_VERSION=3.6.3
+  # - STACK_ARGS="" PETSC_VERSION=3.6.2 SLEPC_VERSION=3.6.1
+  - STACK_ARGS="" PETSC_VERSION=3.7.2 SLEPC_VERSION=3.7.1
   # - STACK_ARGS="--resolver lts-2"
   # - STACK_ARGS="--resolver lts-3"
   # - STACK_ARGS="--resolver lts"
@@ -77,7 +77,9 @@ before_install:
   # # Download and install SLEPc
   - travis_retry ./install-slepc.sh $SLEPC_VERSION $SLEPC_DIR 
 
-
+  - find . -name libpetsc.so
+  - find . -name libslepc.so
+  - find . -name libpetsc.so.3.7
 
 
   # Download and unpack the `stack` executable :
@@ -126,7 +128,12 @@ script:
   # # stack directories
   - export DIST_DIR="$(stack path --dist-dir)/build"
 
-  
+
+  # show the dynlib path
+  - find . -name libpetsc.so
+  - find . -name libslepc.so
+  - find . -name libpetsc.so.3.7
+
 
   # # # run an example program
   - stack exec ./"$DIST_DIR"/petsc-example/petsc-example

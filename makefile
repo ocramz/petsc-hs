@@ -27,11 +27,14 @@ main:
 	make step3
 
 step1:
-	#make c2hs
+	# make c2hs
 	stack ghc -- -optc -g ${SRCDIR}/Internal/InlineC.hs -isrc/
 
+DEADCODESTRIP := -fdata-sections -ffunction-sections -Wl,--gc-sections
+
 step2:
-	cc -w -c -g ${SRCDIR}/Internal/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include -I${SLEPC_DIR_ARCH}/include -I${SLEPC_DIR}/include
+	gcc -c -g -w $(DEADCODESTRIP) ${SRCDIR}/Internal/InlineC.c -o ${LIBDIR}/InlineC_c.o -I${PETSC_DIR_ARCH}/include -I${PETSC_DIR}/include -I${SLEPC_DIR_ARCH}/include -I${SLEPC_DIR}/include
+
 
 step3:
 	stack exec ghci ${SRCDIR}/Spec.hs ${SRCDIR}/Internal/InlineC.hs  ${LIBDIR}/InlineC_c.o  -- -isrc/ -L${PETSC_DIR_ARCH}/lib -L${SLEPC_DIR_ARCH}/lib -lpetsc -lmpich -lslepc
