@@ -109,7 +109,7 @@ petscViewerPopFormat v = chk0 $ petscViewerPopFormat' v
 
 
 
--- petscViewerHDF5Open :: Comm -> String -> PetscFileMode_ -> IO PetscViewer
--- petscViewerHDF5Open comm name fm = chk1 (petscViewerHDF5Open' comm name fm)
+petscViewerHDF5Open :: Comm -> String -> PetscFileMode_ -> IO PetscViewer
+petscViewerHDF5Open cc name fm = chk1 (petscViewerHDF5Open' cc name fm)
 
 

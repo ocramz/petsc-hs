@@ -324,17 +324,13 @@ t10 = withPetsc0 t10'
 t11'  = Mng.runManaged $ do
   -- dm <- managed $ withDmda1d0 cw DmBoundaryNone n 1 1
   dm <- Mng.managed $ withDmda2d0 cw (DmBoundaryNone, DmBoundaryNone) DmdaStencilStar (n,n) 1 1
-  vi <- Mng.managed $ withPetscViewerAscii cw 
+  vi <- Mng.managed $ withPetscViewerTypeFmt cw ViewerAscii ViewFmtAsciiInfoDetail 
   Mng.liftIO $ dmView dm vi
     where
       n = 10
       cw = commWorld
 
 
-withPetscViewerAscii c  f = withPetscViewer c $ \v -> do
-  petscViewerSetType v ViewerAscii
-  petscViewerSetFormat v  ViewFmtAsciiInfoDetail
-  f v
 
 -- fmts = [ViewFmtDefault, ViewFmtAsciiIndex ]--, ViewFmtAsciiInfo, ViewFmtAsciiInfoDetail]
 
