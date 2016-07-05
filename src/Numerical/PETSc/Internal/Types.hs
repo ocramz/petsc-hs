@@ -64,6 +64,8 @@ type MatConst = CInt
 
 newtype PetscLogDouble = PetscLogDouble (Ptr PetscLogDouble) deriving Storable
 
+newtype PetscLogStage = PetscLogStage (Ptr PetscLogStage) deriving Storable
+
 newtype PetscMPIInt_ = PetscMPIInt_ (Ptr PetscMPIInt_ ) deriving (Show, Storable)
 
 newtype PetscReal = PetscReal (Ptr PetscReal)

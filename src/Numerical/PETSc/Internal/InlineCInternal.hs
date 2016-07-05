@@ -44,7 +44,7 @@ petscTypesTable = Map.fromList
                   -- , (typeNameId "PetscError", [t| PetscError_ |]) 
                   , (typeNameId "PetscBool", [t| PetscBool |])                
                   , (typeNameId "PetscScalar", [t| PetscScalar_ |])
-                  , (typeNameId "PetscLogStage", [t| PetscLogStage_ |])  
+                  , (typeNameId "PetscLogStage", [t| PetscLogStage |])  
 
                   , (typeNameId "IS", [t| IS |] )
                   , (typeNameId "Vec", [t| Vec |] )

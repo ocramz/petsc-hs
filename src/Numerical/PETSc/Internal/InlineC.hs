@@ -3735,13 +3735,13 @@ petscLogView' vi = [C.exp|int{PetscLogView($(PetscViewer vi))}|]
 -- PETSC_EXTERN PetscErrorCode PetscLogStagePush(PetscLogStage);
 
 -- petscLogStageRegister :: String -> PetscLogStage_ -> IO CInt
-petscLogStageRegister' :: String -> PetscLogStage_ -> IO CInt
-petscLogStageRegister' s ls =
+petscLogStageRegister' :: String -> IO (PetscLogStage, CInt)
+petscLogStageRegister' s =
   withCString s $ \c ->
-   with ls $ \lls -> 
+   withPtr $ \lls -> 
     [C.exp|int{PetscLogStageRegister($(char *c), $(PetscLogStage* lls ))}|] 
 
-petscLogStagePush' :: PetscLogStage_ -> IO CInt
+petscLogStagePush' :: PetscLogStage -> IO CInt
 petscLogStagePush' ls = [C.exp|int{PetscLogStagePush($(PetscLogStage ls))}|] 
 
 petscLogStagePop' :: IO CInt

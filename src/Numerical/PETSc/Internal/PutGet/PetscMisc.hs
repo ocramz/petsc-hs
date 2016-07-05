@@ -14,6 +14,7 @@
 module Numerical.PETSc.Internal.PutGet.PetscMisc
        (
          petscTime, petscGetCPUTime, petscGetFlops,
+         petscLogView, petscLogStageRegister, petscLogStagePush, petscLogStagePop,
          commWorld, commSelf,
          commWorldC, commSelfC,
          mkMPIComm, getMPICommSize, getMPICommRank,
@@ -98,7 +99,14 @@ petscGetCPUTime = chk1 petscGetCPUTime'
 petscLogView :: PetscViewer -> IO ()
 petscLogView vi = chk0 $ petscLogView' vi
 
+petscLogStageRegister :: String -> IO PetscLogStage
+petscLogStageRegister logstagename = chk1 $ petscLogStageRegister' logstagename
 
+petscLogStagePush :: PetscLogStage -> IO ()
+petscLogStagePush ls = chk0 $ petscLogStagePush' ls
+
+petscLogStagePop :: IO ()
+petscLogStagePop = chk0 petscLogStagePop'
 
 
 
