@@ -62,7 +62,8 @@ type MatConst = CInt
 -- | newtypes
 
 
-newtype PetscLogDouble = PetscLogDouble (Ptr PetscLogDouble) deriving Storable
+-- newtype PetscLogDouble = PetscLogDouble (Ptr PetscLogDouble) deriving Storable
+type PetscLogDouble = CDouble
 
 newtype PetscLogStage = PetscLogStage (Ptr PetscLogStage) deriving Storable
 

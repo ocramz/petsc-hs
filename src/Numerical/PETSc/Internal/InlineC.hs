@@ -58,6 +58,7 @@ C.include "<petscts.h>"
 C.include "<petscviewer.h>"
 C.include "<petscviewerhdf5.h>"
 C.include "<petscsys.h>"
+C.include "<petsctime.h>"
 C.include "<petscpctypes.h>"
 
 -- | SLEPc headers

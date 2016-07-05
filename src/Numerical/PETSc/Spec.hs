@@ -58,6 +58,7 @@ t_vecDot_r2_1 =
   withVecNew com vd2 $ \e2 -> do
     x <- vecDot e1 e2
     x `shouldBe` (0 :: PetscScalar_)
+    petscGetFlops >>= \nfl -> putStrLn $ "total # FLOPs : " ++ show nfl
       where
         vd1 = V.convert $ V.fromList [0 , 1]
         vd2 = V.convert $ V.fromList [1 , 0]
@@ -68,11 +69,12 @@ t_linSys_r3_1 = describe "t_linSys_r3_1" $
    withPetscMatrix com m n MatAij ixd nz InsertValues $ \mat ->
     withVecNew com vrhs $ \rhs -> do
      let (_, _, _, mu) = fromPetscMatrix mat
-     withKspSetupSolveAlloc com KspGmres mu mu rhs $ \ksp soln -> 
+     withKspSetupSolveAlloc com KspGmres mu mu rhs $ \ksp soln -> do
        withVecNew com vsolnTrue $ \solnTrue -> 
         withVecVecSubtract soln solnTrue $ \solnDiff -> do
           nd <- vecNorm solnDiff VecNorm2
-          nd < diffNormTol `shouldBe` True 
+          nd < diffNormTol `shouldBe` True
+          petscGetFlops >>= \nfl -> putStrLn $ "total # FLOPs : " ++ show nfl
       where
         (m, n) = (3, 3)                      -- matrix size
         vrhs = V.fromList [3, 7, 18]         -- r.h.s
@@ -93,6 +95,7 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
       -- _ <- withEpsEigenvectors eps $ \(VecRight vr) (VecRight vi) -> do
       --        print (vr, vi)
       -- putStrLn "Eigenvalues : (real, imag)"
+      petscGetFlops >>= \nfl -> putStrLn $ "total # FLOPs : " ++ show nfl
       ve <- epsGetEigenvalues eps
       let (_, ei) = V.unzip ve
       -- print (er, ei)

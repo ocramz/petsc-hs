@@ -13,7 +13,8 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.PutGet.PetscMisc
        (
-         petscTime, petscGetCPUTime, petscGetFlops,
+         petscTime,
+         petscGetCPUTime, petscGetFlops,
          petscLogView, petscLogStageRegister, petscLogStagePush, petscLogStagePop,
          commWorld, commSelf,
          commWorldC, commSelfC,
