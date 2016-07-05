@@ -3639,6 +3639,18 @@ petscViewerSetType' v t = withCString ts $ \tsp ->
 
 
 
+-- PetscErrorCode  PetscViewerPushFormat(PetscViewer viewer,PetscViewerFormat format)
+petscViewerPushFormat' :: PetscViewer -> PetscViewerFormat_ -> IO CInt
+petscViewerPushFormat' v fmt = [C.exp|int{PetscViewerPushFormat($(PetscViewer v), $(int e))}|]
+    where
+      e = petscViewerFormatToCInt fmt
+
+-- PetscErrorCode  PetscViewerPopFormat(PetscViewer viewer)
+petscViewerPopFormat' :: PetscViewer -> IO CInt
+petscViewerPopFormat' vi = [C.exp|int{PetscViewerPopFormat($(PetscViewer vi))}|]
+  
+
+
 -- PetscErrorCode  PetscViewerSetFormat(PetscViewer viewer,PetscViewerFormat format)
 petscViewerSetFormat' :: PetscViewer -> PetscViewerFormat_ -> IO CInt
 petscViewerSetFormat' v fmt =

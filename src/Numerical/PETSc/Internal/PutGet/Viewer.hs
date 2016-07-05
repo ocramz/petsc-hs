@@ -49,8 +49,10 @@ withPetscViewerTypeFmt ::
   Comm -> PetscViewerType_ -> PetscViewerFormat_ -> (PetscViewer -> IO a) -> IO a
 withPetscViewerTypeFmt cc ty fmt f = withPetscViewer cc $ \v -> do
   petscViewerSetType v ty
-  petscViewerSetFormat v fmt
-  f v
+  petscViewerPushFormat v fmt
+  x <- f v
+  petscViewerPopFormat v
+  return x
 
 
 withPetscViewerSetup cc ty mode name f = withPetscViewer cc $ \v -> do
@@ -64,8 +66,12 @@ withPetscViewerSetup cc ty mode name f = withPetscViewer cc $ \v -> do
 petscViewerSetType :: PetscViewer -> PetscViewerType_ -> IO ()
 petscViewerSetType v t = chk0 (petscViewerSetType' v t)
 
-petscViewerSetFormat :: PetscViewer -> PetscViewerFormat_ -> IO ()
-petscViewerSetFormat v fmt = chk0 (petscViewerSetFormat' v fmt)
+
+petscViewerPushFormat :: PetscViewer -> PetscViewerFormat_ -> IO ()
+petscViewerPushFormat v fmt = chk0 (petscViewerPushFormat' v fmt)
+
+petscViewerPopFormat :: PetscViewer -> IO ()
+petscViewerPopFormat v = chk0 $ petscViewerPopFormat' v
 
 
 -- petscViewerStdoutCreate comm = chk1 (petscViewerStdoutCreate' comm)
