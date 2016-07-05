@@ -136,7 +136,8 @@ script:
 
 
   # # # run an example program
-  - stack exec ./"$DIST_DIR"/petsc-example/petsc-example
+  # - stack exec ./"$DIST_DIR"/petsc-example/petsc-example #
+  - stack exec petsc-example
 
 
   # # # run example with `mpirun`
