@@ -3710,6 +3710,20 @@ petscViewerDestroy' v =
 -- * PETSc misc
 
 
+-- PetscErrorCode  PetscGetFlops(PetscLogDouble *flops)
+petscGetFlops' :: IO (PetscLogDouble, CInt)
+petscGetFlops' = withPtr $ \ nflops  ->
+  [C.exp|int{PetscGetFlops($(PetscLogDouble* nflops))}|]
+
+
+-- PetscTime(PetscLogDouble *v)
+petscTime' :: IO (PetscLogDouble, CInt)
+petscTime' = withPtr $ \t -> [C.exp|int{PetscTime($(PetscLogDouble* t))}|]
+
+-- PetscErrorCode  PetscGetCPUTime(PetscLogDouble *t)
+petscGetCPUTime' :: IO (PetscLogDouble, CInt)
+petscGetCPUTime' = withPtr $ \t -> [C.exp|int{PetscGetCPUTime($(PetscLogDouble* t))}|]
+
 -- PETSC_EXTERN PetscErrorCode PetscLogStageRegister(const char[],PetscLogStage*);
 -- PETSC_EXTERN PetscErrorCode PetscLogStagePush(PetscLogStage);
 

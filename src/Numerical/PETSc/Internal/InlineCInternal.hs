@@ -37,8 +37,8 @@ petscCtx = baseCtx <> funCtx <> vecCtx <> bsCtx <> pctx <> sctx where
 
 petscTypesTable :: Map.Map CT.TypeSpecifier TH.TypeQ  
 petscTypesTable = Map.fromList
-                  [
-                    (typeNameId "PetscInt", [t| PetscInt_ |] )
+                  [ (typeNameId "PetscLogDouble", [t| PetscLogDouble |])
+                  , (typeNameId "PetscInt", [t| PetscInt_ |] )
                   , (typeNameId "PetscReal", [t| PetscReal_ |])  
                   , (typeNameId "PetscMPIInt", [t| PetscMPIInt_ |] )
                   -- , (typeNameId "PetscError", [t| PetscError_ |]) 

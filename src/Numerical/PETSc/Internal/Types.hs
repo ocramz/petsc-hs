@@ -62,7 +62,7 @@ type MatConst = CInt
 -- | newtypes
 
 
-
+newtype PetscLogDouble = PetscLogDouble (Ptr PetscLogDouble) deriving Storable
 
 newtype PetscMPIInt_ = PetscMPIInt_ (Ptr PetscMPIInt_ ) deriving (Show, Storable)
 

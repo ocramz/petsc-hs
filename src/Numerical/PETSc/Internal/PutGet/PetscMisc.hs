@@ -13,6 +13,7 @@
 -----------------------------------------------------------------------------
 module Numerical.PETSc.Internal.PutGet.PetscMisc
        (
+         petscTime, petscGetCPUTime, petscGetFlops,
          commWorld, commSelf,
          commWorldC, commSelfC,
          mkMPIComm, getMPICommSize, getMPICommRank,
@@ -69,6 +70,23 @@ import System.Process (readProcess)
 --   -- lift (f cs cr)
 --   -- lift (f c')
 
+
+
+
+-- * FLOPs
+
+petscGetFlops :: IO PetscLogDouble
+petscGetFlops = chk1 petscGetFlops'
+
+
+
+-- * timing
+
+petscTime :: IO PetscLogDouble
+petscTime = chk1 petscTime'
+
+petscGetCPUTime :: IO PetscLogDouble
+petscGetCPUTime = chk1 petscGetCPUTime'
 
 
 
@@ -179,6 +197,7 @@ isMpiRoot c = getMPICommRank c == 0
 
 -- | git commit hash (for debugging)
 -- Hp: `git` command is available
+{-# noinline gitHash #-}
 gitHash :: String
 gitHash = unsafePerformIO $ readProcess "git" ["rev-parse","--verify","HEAD"] []
 
