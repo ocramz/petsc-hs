@@ -3724,6 +3724,13 @@ petscTime' = withPtr $ \t -> [C.exp|int{PetscTime($(PetscLogDouble* t))}|]
 petscGetCPUTime' :: IO (PetscLogDouble, CInt)
 petscGetCPUTime' = withPtr $ \t -> [C.exp|int{PetscGetCPUTime($(PetscLogDouble* t))}|]
 
+
+-- PetscErrorCode  PetscLogView(PetscViewer viewer)
+petscLogView' :: PetscViewer -> IO CInt
+petscLogView' vi = [C.exp|int{PetscLogView($(PetscViewer vi))}|]
+
+
+
 -- PETSC_EXTERN PetscErrorCode PetscLogStageRegister(const char[],PetscLogStage*);
 -- PETSC_EXTERN PetscErrorCode PetscLogStagePush(PetscLogStage);
 

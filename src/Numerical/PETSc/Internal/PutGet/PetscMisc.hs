@@ -93,6 +93,15 @@ petscGetCPUTime = chk1 petscGetCPUTime'
 
 
 
+-- * logging
+
+petscLogView :: PetscViewer -> IO ()
+petscLogView vi = chk0 $ petscLogView' vi
+
+
+
+
+
 -- * MPI
 
 commWorld, commSelf :: Comm

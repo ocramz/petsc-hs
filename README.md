@@ -123,13 +123,13 @@ The binaries using `petsc-hs` will be linked both with the PETSc dynamic librari
 
 The library is being developed with/on :
 
-* PETSc 3.6.0, 3.6.2 (October 2015), 3.7.2 (June 2016) (and MPICH 3.1.1)
+* PETSc ~~3.6.0, 3.6.2 (October 2015),~~ 3.7.2 (June 2016) (and MPICH 3.1.1)
 
 * C and Fortran compilers : `gcc` 5.0.0 , `gfortran` 5.0.0
 
 * OS : OSX 10.9.5, Ubuntu Linux 12.04, 14.04
 
-* Haskell compiler : `ghc` 7.10.3 (Linux only)
+* Haskell compiler : `ghc` 7.10.3 (Linux only), 8.0.1 (Linux and OSX)
 
 * Cabal 1.22
 
