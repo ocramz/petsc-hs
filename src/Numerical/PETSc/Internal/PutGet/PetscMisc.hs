@@ -15,6 +15,7 @@ module Numerical.PETSc.Internal.PutGet.PetscMisc
        (
          petscTime,
          petscGetCPUTime, petscGetFlops,
+         petscLogDefaultBegin,
          petscLogView, petscLogStageRegister, petscLogStagePush, petscLogStagePop,
          commWorld, commSelf,
          commWorldC, commSelfC,
@@ -96,6 +97,9 @@ petscGetCPUTime = chk1 petscGetCPUTime'
 
 
 -- * logging
+
+petscLogDefaultBegin :: IO ()
+petscLogDefaultBegin = chk0 petscLogDefaultBegin'
 
 petscLogView :: PetscViewer -> IO ()
 petscLogView vi = chk0 $ petscLogView' vi

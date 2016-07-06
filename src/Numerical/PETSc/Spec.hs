@@ -102,6 +102,7 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
       -- ver <- vecGetVS er
       -- V.all (>0) er `shouldBe` False -- asymmetric mtx
       V.all (<= imzTol) ei `shouldBe` True -- real mtx
+      logViewStdout com
       where
         (m, n) = (3, 3)                   
         ixd = ixd3x3                      

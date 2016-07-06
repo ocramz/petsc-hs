@@ -3739,6 +3739,11 @@ petscGetCPUTime' :: IO (PetscLogDouble, CInt)
 petscGetCPUTime' = withPtr $ \t -> [C.exp|int{PetscGetCPUTime($(PetscLogDouble* t))}|]
 
 
+-- PetscErrorCode  PetscLogDefaultBegin(void)
+petscLogDefaultBegin' :: IO CInt
+petscLogDefaultBegin' = [C.exp|int{PetscLogDefaultBegin()}|]
+
+
 -- PetscErrorCode  PetscLogView(PetscViewer viewer)
 petscLogView' :: PetscViewer -> IO CInt
 petscLogView' vi = [C.exp|int{PetscLogView($(PetscViewer vi))}|]
@@ -3760,6 +3765,11 @@ petscLogStagePush' ls = [C.exp|int{PetscLogStagePush($(PetscLogStage ls))}|]
 
 petscLogStagePop' :: IO CInt
 petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|] 
+
+
+
+
+
 
 
 -- -- * options

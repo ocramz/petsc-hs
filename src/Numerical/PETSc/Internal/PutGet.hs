@@ -10,7 +10,9 @@
 --   scope of `bracket`s
 --
 -----------------------------------------------------------------------------
-module Numerical.PETSc.Internal.PutGet ( module X ) where
+module Numerical.PETSc.Internal.PutGet
+       ( logViewStdout, 
+         module X ) where
 
 import Numerical.PETSc.Internal.PutGet.IS as X 
 import Numerical.PETSc.Internal.PutGet.Vec as X
@@ -27,7 +29,7 @@ import Numerical.PETSc.Internal.PutGet.PetscMisc as X
 import Numerical.PETSc.Internal.PutGet.EPS as X
 import Numerical.PETSc.Internal.PutGet.SVD as X
 import Numerical.PETSc.Internal.PutGet.SlepcMisc as X
-
+import Numerical.PETSc.Internal.Types as X
 
 
 
@@ -35,4 +37,9 @@ import Numerical.PETSc.Internal.PutGet.SlepcMisc as X
 
   
 
+-- | logging
 
+logViewStdout :: Comm -> IO ()
+logViewStdout cc = do
+  petscLogDefaultBegin
+  withPetscViewStdout cc petscLogView
