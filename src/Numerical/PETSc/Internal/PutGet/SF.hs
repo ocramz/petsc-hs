@@ -22,8 +22,10 @@ import Foreign.C.Types
 
 import Control.Exception (bracket)
 
+petscSFCreate :: Comm -> IO PetscSF
 petscSFCreate cc = chk1 $ petscSFCreate' cc
 
+petscSFDestroy :: PetscSF -> IO ()
 petscSFDestroy sf = chk0 $ petscSFDestroy' sf
 
 -- |
