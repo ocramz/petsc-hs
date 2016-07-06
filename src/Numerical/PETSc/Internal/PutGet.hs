@@ -14,7 +14,8 @@ module Numerical.PETSc.Internal.PutGet
        ( logViewStdout, 
          module X ) where
 
-import Numerical.PETSc.Internal.PutGet.IS as X 
+import Numerical.PETSc.Internal.PutGet.IS as X
+import Numerical.PETSc.Internal.PutGet.SF as X
 import Numerical.PETSc.Internal.PutGet.Vec as X
 import Numerical.PETSc.Internal.PutGet.Mat as X
 import Numerical.PETSc.Internal.PutGet.DM as X
