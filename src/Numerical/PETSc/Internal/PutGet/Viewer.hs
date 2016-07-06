@@ -48,8 +48,11 @@ petscViewerDestroy v = chk0 (petscViewerDestroy' v)
 
 -- | with- brackets
 
+withPetscViewer0 :: IO PetscViewer -> (PetscViewer -> IO a) -> IO a
+withPetscViewer0 fpv = bracket fpv petscViewerDestroy
+
 withPetscViewer :: Comm -> (PetscViewer -> IO a) -> IO a
-withPetscViewer cc = bracket (petscViewerCreate cc) petscViewerDestroy 
+withPetscViewer cc = withPetscViewer0 (petscViewerCreate cc)
 
 
 withPetscViewerTypeFmt ::
@@ -62,11 +65,11 @@ withPetscViewerTypeFmt cc ty fmt f = withPetscViewer cc $ \v -> do
   return x
 
 
-withPetscViewerSetup cc ty mode name f = withPetscViewer cc $ \v -> do
-  petscViewerSetType v ty
-  chk0 $ petscViewerFileSetName' v name
-  chk0 $ petscViewerFileSetMode' v mode
-  f v
+-- withPetscViewerSetup cc ty mode name f = withPetscViewer cc $ \v -> do
+--   petscViewerSetType v ty
+--   chk0 $ petscViewerFileSetName' v name
+--   chk0 $ petscViewerFileSetMode' v mode
+--   f v
 
 
 
@@ -81,11 +84,25 @@ petscViewerPopFormat :: PetscViewer -> IO ()
 petscViewerPopFormat v = chk0 $ petscViewerPopFormat' v
 
 
--- petscViewerStdoutCreate comm = chk1 (petscViewerStdoutCreate' comm)
+-- | STDOUT
+
+withPetscViewStdout :: Comm -> (PetscViewer -> IO a) -> IO a
+withPetscViewStdout cc = withPetscViewerTypeFmt cc ViewerAscii ViewFmtAsciiInfoDetail
 
 
 
--- -- | HDF5-specific stuff 
+-- | HDF5
+
+withPetscViewerHDF5 ::
+  PetscFileMode_ -> Comm -> String -> (PetscViewer -> IO a) -> IO a
+withPetscViewerHDF5 fm cc name =
+  withPetscViewer0 (chk1 $ petscViewerHDF5Open' cc name fm) 
+
+withHDF5Write :: Comm -> String -> (PetscViewer -> IO a) -> IO a
+withHDF5Write = withPetscViewerHDF5 FileModeWrite
+
+withHDF5Read :: Comm -> String -> (PetscViewer -> IO a) -> IO a
+withHDF5Read = withPetscViewerHDF5 FileModeRead 
 
 
 -- {- -- -- usage of HDF5 groups: 
@@ -116,16 +133,4 @@ petscViewerPopFormat v = chk0 $ petscViewerPopFormat' v
 
 
 
-petscViewerHDF5Open :: Comm -> String -> PetscFileMode_ -> IO PetscViewer
-petscViewerHDF5Open cc name fm = chk1 (petscViewerHDF5Open' cc name fm)
 
-
-withPetscViewerHDF5 ::
-  PetscFileMode_ -> Comm -> String -> (PetscViewer -> IO a) -> IO a
-withPetscViewerHDF5 fm cc name = bracket (petscViewerHDF5Open cc name fm) petscViewerDestroy
-
-withHDF5Write :: Comm -> String -> (PetscViewer -> IO a) -> IO a
-withHDF5Write = withPetscViewerHDF5 FileModeWrite
-
-withHDF5Read :: Comm -> String -> (PetscViewer -> IO a) -> IO a
-withHDF5Read = withPetscViewerHDF5 FileModeRead 
