@@ -78,24 +78,27 @@ instance Storable PetscReal where
 
 
 newtype IS = IS (Ptr IS) deriving Storable
+newtype ISColoring = ISColoring (Ptr ISColoring) deriving Storable
+
+newtype PetscSF = PetscSF (Ptr PetscSF) deriving Storable
+newtype PetscSFNode = PetscSFNode (Ptr PetscSFNode) deriving Storable
 
 newtype Vec = Vec (Ptr Vec) deriving Storable
 
 -- instance StorableContainer Vec IO PetscScalar_ where
   
-
-
 newtype Mat = Mat (Ptr Mat) deriving Storable
+newtype MatFDColoring = MatFDColoring (Ptr MatFDColoring) deriving Storable
+newtype MatFactorInfo = MatFactorInfo (Ptr MatFactorInfo) deriving Storable
 
 newtype DM = DM (Ptr DM) deriving Storable
 newtype DMDALocalInfo = DMDALocalInfo (Ptr DMDALocalInfo) deriving Storable
 
 newtype KSP = KSP (Ptr KSP) deriving Storable
-
-newtype PC = PC (Ptr PC) deriving Storable
-
 newtype KSPConvergedReason = KSPConvergedReason (Ptr KSPConvergedReason)
                            deriving (Eq, Storable)
+
+newtype PC = PC (Ptr PC) deriving Storable
 
 newtype SNES = SNES (Ptr SNES) deriving Storable
 newtype SNESLineSearch = SNESLineSearch (Ptr SNESLineSearch) deriving Storable
@@ -114,13 +117,9 @@ newtype PetscQuadrature = PetscQuadrature (Ptr PetscQuadrature) deriving Storabl
 
 newtype PetscViewer = PetscViewer (Ptr PetscViewer) deriving Storable
 
-newtype MatFDColoring = MatFDColoring (Ptr MatFDColoring) deriving Storable
-
-newtype ISColoring = ISColoring (Ptr ISColoring) deriving Storable
-
-newtype MatFactorInfo = MatFactorInfo (Ptr MatFactorInfo) deriving Storable
-
 newtype PetscSection = PetscSection (Ptr PetscSection) deriving Storable
+
+
 
 
 -- | SLEPc newtypes

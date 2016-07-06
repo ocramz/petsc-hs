@@ -47,6 +47,8 @@ petscTypesTable = Map.fromList
                   , (typeNameId "PetscLogStage", [t| PetscLogStage |])  
 
                   , (typeNameId "IS", [t| IS |] )
+                  , (typeNameId "PetscSF", [t| PetscSF |])
+                  , (typeNameId "PetscSFNode", [t| PetscSFNode|])  
                   , (typeNameId "Vec", [t| Vec |] )
                   , (typeNameId "Mat", [t| Mat |] )
                   , (typeNameId "MatInfo", [t| MatInfo |])

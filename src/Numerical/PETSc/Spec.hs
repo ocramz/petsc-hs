@@ -80,7 +80,7 @@ t_linSys_r3_1 = describe "t_linSys_r3_1" $
         vrhs = V.fromList [3, 7, 18]         -- r.h.s
         vsolnTrue = V.fromList [1, 1, 1]     -- exact solution  
         ixd = ixd3x3                         -- matrix elements, by rows
-        diffNormTol = 1e-300                 -- lin.solv. convergence tol.
+        diffNormTol = 1e-16                  -- lin.solv. convergence tol.
         nz = nz3x3 -- ConstNZPR (3,3)        -- matrix nonzero pattern
 
 
@@ -98,16 +98,13 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
       petscGetFlops >>= \nfl -> putStrLn $ "total # FLOPs : " ++ show nfl
       ve <- epsGetEigenvalues eps
       let (_, ei) = V.unzip ve
-      -- print (er, ei)
-      -- ver <- vecGetVS er
-      -- V.all (>0) er `shouldBe` False -- asymmetric mtx
       V.all (<= imzTol) ei `shouldBe` True -- real mtx
       logViewStdout com
       where
         (m, n) = (3, 3)                   
         ixd = ixd3x3                      
         nz = nz3x3
-        imzTol = 1e-300
+        imzTol = 1e-16
 
 
 

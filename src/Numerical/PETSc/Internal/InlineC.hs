@@ -60,6 +60,7 @@ C.include "<petscviewerhdf5.h>"
 C.include "<petscsys.h>"
 C.include "<petsctime.h>"
 C.include "<petscpctypes.h>"
+C.include "<petscsf.h>"
 
 -- | SLEPc headers
 C.include "<slepceps.h>"
@@ -162,6 +163,38 @@ isColoringDestroy' isc = with isc $ \iscp -> [C.exp|int{ISColoringDestroy($(ISCo
 
 
 
+
+
+
+
+
+
+-- * PetscSF
+-- "star forest" communicator pattern
+
+-- PetscErrorCode PetscSFCreate(MPI_Comm comm,PetscSF *sf)
+petscSFCreate' :: Comm -> IO (PetscSF, CInt)
+petscSFCreate' cc = withPtr $ \sf ->
+  [C.exp|int{PetscSFCreate($(int co),$(PetscSF* sf)))}|] where co = unComm cc
+
+
+petscSFDestroy' :: PetscSF -> IO CInt
+petscSFDestroy' sf = with sf $ \sfp -> [C.exp|int{PetscSFDestroy($(PetscSF* sfp))}|]
+
+-- PetscErrorCode PetscSFSetGraph(PetscSF sf,PetscInt nroots,PetscInt nleaves,const PetscInt *ilocal,PetscCopyMode localmode,const PetscSFNode *iremote,PetscCopyMode remotemode)
+-- Collective
+-- Input Arguments :
+-- sf	- star forest
+-- nroots	- number of root vertices on the current process (these are possible targets for other process to attach leaves)
+-- nleaves	- number of leaf vertices on the current process, each of these references a root on any process
+-- ilocal	- locations of leaves in leafdata buffers, pass NULL for contiguous storage
+-- localmode	- copy mode for ilocal
+-- iremote	- remote locations of root vertices for each leaf on the current process
+-- remotemode	- copy mode for iremote
+petscSFSetGraph' sf nroots nleaves ilocal localmode iremote remotemode =
+  [C.exp|int{PetscSFSetGraph($(PetscSF sf), $(PetscInt nroots), $(PetscInt nleaves), $(const PetscInt* ilocal), $(int localmodep), $(const PetscSFNode* iremote), $(int remotemodep))}|] where
+  localmodep = toCInt $ petscCopyModeToInt localmode
+  remotemodep = toCInt $ petscCopyModeToInt remotemode
 
 
 
