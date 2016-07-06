@@ -37,13 +37,20 @@ import Control.Exception
 
 
 
+petscViewerCreate :: Comm -> IO PetscViewer
+petscViewerCreate k = chk1 (petscViewerCreate' k)
 
+petscViewerDestroy :: PetscViewer -> IO ()
+petscViewerDestroy v = chk0 (petscViewerDestroy' v)
+
+
+
+
+-- | with- brackets
 
 withPetscViewer :: Comm -> (PetscViewer -> IO a) -> IO a
-withPetscViewer cc = 
-  bracket (petscViewerCreate cc) petscViewerDestroy where
-   petscViewerCreate k = chk1 (petscViewerCreate' k)
-   petscViewerDestroy v = chk0 (petscViewerDestroy' v)
+withPetscViewer cc = bracket (petscViewerCreate cc) petscViewerDestroy 
+
 
 withPetscViewerTypeFmt ::
   Comm -> PetscViewerType_ -> PetscViewerFormat_ -> (PetscViewer -> IO a) -> IO a
@@ -113,3 +120,12 @@ petscViewerHDF5Open :: Comm -> String -> PetscFileMode_ -> IO PetscViewer
 petscViewerHDF5Open cc name fm = chk1 (petscViewerHDF5Open' cc name fm)
 
 
+withPetscViewerHDF5 ::
+  PetscFileMode_ -> Comm -> String -> (PetscViewer -> IO a) -> IO a
+withPetscViewerHDF5 fm cc name = bracket (petscViewerHDF5Open cc name fm) petscViewerDestroy
+
+withHDF5Write :: Comm -> String -> (PetscViewer -> IO a) -> IO a
+withHDF5Write = withPetscViewerHDF5 FileModeWrite
+
+withHDF5Read :: Comm -> String -> (PetscViewer -> IO a) -> IO a
+withHDF5Read = withPetscViewerHDF5 FileModeRead 
