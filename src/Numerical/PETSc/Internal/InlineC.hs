@@ -175,7 +175,7 @@ isColoringDestroy' isc = with isc $ \iscp -> [C.exp|int{ISColoringDestroy($(ISCo
 -- PetscErrorCode PetscSFCreate(MPI_Comm comm,PetscSF *sf)
 petscSFCreate' :: Comm -> IO (PetscSF, CInt)
 petscSFCreate' cc = withPtr $ \sf ->
-  [C.exp|int{PetscSFCreate($(int co),$(PetscSF* sf)))}|] where co = unComm cc
+  [C.exp|int{PetscSFCreate($(int co),$(PetscSF* sf))}|] where co = unComm cc
 
 
 petscSFDestroy' :: PetscSF -> IO CInt

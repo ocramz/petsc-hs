@@ -99,7 +99,7 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
       ve <- epsGetEigenvalues eps
       let (_, ei) = V.unzip ve
       V.all (<= imzTol) ei `shouldBe` True -- real mtx
-      logViewStdout com
+      -- logViewStdout com
       where
         (m, n) = (3, 3)                   
         ixd = ixd3x3                      
