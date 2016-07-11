@@ -218,6 +218,10 @@ vecSetName1 v name = withCString name $ \n ->
   [C.exp|int{PetscObjectSetName($(Vec v),$(const char* n))}|]
 
 
+-- PetscErrorCode  VecLoad(Vec newvec, PetscViewer viewer)
+vecLoad' :: Vec -> PetscViewer -> IO CInt
+vecLoad' v viewer = [C.exp|int{VecLoad($(Vec v),$(PetscViewer viewer))}|]
+
 
 
 vecCreate' :: Comm -> IO (Vec, CInt)
@@ -2535,7 +2539,9 @@ snesGetConvergedReason' s =  withPtr ( \v ->
   [C.exp|int{SNESGetConvergedReason($(SNES s), $(int* v))}|] ) 
 
 
-
+-- PetscErrorCode  SNESReasonView(SNES snes,PetscViewer viewer)
+snesReasonView' :: SNES -> PetscViewer -> IO CInt
+snesReasonView' s vi = [C.exp|int{SNESReasonView($(SNES s),$(PetscViewer vi))}|]
 
 
 

@@ -392,6 +392,13 @@ snesVISetVariableBounds snes xl xu = chk0 $ snesVISetVariableBounds' snes xl xu
 
 
 
+snesGetConvergedReason :: SNES -> IO CInt
+snesGetConvergedReason s = chk1 $ snesGetConvergedReason' s
+
+
+snesReasonView :: SNES -> PetscViewer -> IO ()
+snesReasonView s vi = chk0 $ snesReasonView' s vi
+
 
 
 

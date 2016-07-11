@@ -24,6 +24,9 @@ import Control.Applicative
 
 import Control.Exception 
 import Control.Monad
+
+import Control.Monad.State
+
 import qualified Foreign.ForeignPtr as FPR
 
 import Foreign.Ptr
@@ -187,10 +190,15 @@ getVM n p = do
   return $ VM.unsafeFromForeignPtr0 fp n
 
 putVM :: Storable a => VM.IOVector a -> Int -> Ptr a -> IO ()
-putVM v n p = do 
+putVM vsrc n p = do 
   fp <- FPR.newForeignPtr_ p
-  VM.copy (VM.unsafeFromForeignPtr0 fp n) v
+  VM.copy (VM.unsafeFromForeignPtr0 fp n) vsrc
 
+
+-- | overwrites the data referenced by the pointer argument with the `vsrc` argument
+withVMoverwrite ::
+  Storable a => VM.IOVector a -> Int -> Ptr a -> (VM.IOVector a -> IO b) -> IO b
+withVMoverwrite vsrc n p = bracket (getVM n p) (`VM.copy` vsrc)
 
 
 
@@ -227,12 +235,17 @@ putVM1 n (v, fp) =
   VM.copy (VM.unsafeFromForeignPtr0 fp n) v
 
 
+withVM1 n p io = do
+  (x, fp) <- getVM1 n p
+  y <- io x
+  putVM1 n (y, fp)
 
 
 
 
-
-
+asdf f = do
+  y <- get
+  put $ fmap f y
 
 
 

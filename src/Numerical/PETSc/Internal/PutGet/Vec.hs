@@ -661,6 +661,12 @@ vecCreateMPIFromVectorDecideLocalSize cc w = do
 
 
 
+-- | load Vec contents from HDF5
+
+vecLoad :: Vec -> PetscViewer -> IO ()
+vecLoad v vi = chk0 $ vecLoad' v vi
+
+
 
 
 
@@ -684,6 +690,10 @@ vecView v =
 
 vecViewStdout :: Vec -> IO ()
 vecViewStdout = vecView
+
+
+
+
 
 
 
@@ -804,18 +814,22 @@ getIOVector = getVM1
 putIOVector :: Storable a => Int -> (VM.IOVector a, FPR.ForeignPtr a) -> IO ()
 putIOVector = putVM1
 
+-- withIOVector0 ::
+--   Storable a => Int -> Ptr a -> ((VM.IOVector a, FPR.ForeignPtr a) -> IO a) -> IO a
 -- withIOVector0 n p = bracket (getIOVector n p) (putIOVector n)
 
-withIOVector :: Storable a => Int -> Ptr a -> V.Vector a -> IO ()
-withIOVector n p v =
-  bracket (getIOVector n p) (putIOVector n) $ \(vm, _) -> 
-   V.imapM_ (VM.write vm) v
+-- -- withIOVector :: Storable a => Int -> Ptr a -> V.Vector a -> IO ()
+-- -- withIOVector n p v =
+-- --   bracket (getIOVector n p) (putIOVector n) $ \(vm, _) -> 
+-- --    V.imapM_ (VM.write vm) v
 
 
   
 
--- withMVector vec f = withVecSizedPtr vec $ \n p ->
---   bracket (getIOVector n p) (putIOVector n)
+-- withIOVectorSized0 vec io = withVecSizedPtr vec $ \n p ->
+--   bracket (getIOVector n p) (putIOVector n) io
+
+-- withIOVectorSized vec io = withIOVectorSized0 vec $ \(vm, _) -> io vm
 
 
 
