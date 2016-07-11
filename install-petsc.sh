@@ -17,10 +17,10 @@ cd $PETSC_DIR/
 # configure
 if [${BUILDTYPE} == "batch"]; then 
     echo "=== Configuring in batch mode"
-    ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich --with-batch 
+    ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich --download-hdf5=yes --with-batch 
 else
     echo "=== Configuring without batch mode"
-    ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich
+    ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich --download-hdf5=yes
 fi
 
 # compile
