@@ -161,6 +161,7 @@ t_hdf5_float = describe "t_hdf5_float" $
        vhtest2 = V.fromList [pi, exp 1, sqrt 2]
        fname = "test.hdf5"
 
+-- NB: HDF5 data are named, so VecLoad expects the same name as was used in the Vec that was stored in the file (using PetscObjectSetName()):
 hdf5test w vname fname = withVecNew com w $ \vt -> do
     vecSetName vt vname
     withVecDuplicate vt $ \vhat -> do

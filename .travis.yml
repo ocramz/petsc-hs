@@ -128,7 +128,10 @@ script:
   # # stack directories
   - export DIST_DIR="$(stack path --dist-dir)/build"
 
-
+  - printenv | grep PETSC
+  - printenv | grep SLEPC
+  - pwd
+  
   # show the dynlib path
   - find . -name libpetsc.so
   - find . -name libslepc.so
