@@ -37,11 +37,14 @@ specs =
    hspec $ do
     t_vecDot_r2_1
     t_linSys_r3_1
-    t_hdf5_int
-   -- --  -- 
-    t_eigen_r3_1
-    t_eigen_r3_1_symm
 
+    -- | SLEPc
+    t_eigen_r3_1
+    t_eigen_r3_1_spd
+    
+    -- | HDF5 
+    t_hdf5_int
+    t_hdf5_float
 
 
 
@@ -87,6 +90,8 @@ t_linSys_r3_1 = describe "t_linSys_r3_1" $
 
 
 
+-- | SLEPc tests
+
 t_eigen_r3_1 = describe "t_eigen_r3_1" $
   it "solves a 3x3 (real, asymmetric) linear eigenproblem: eigenvalues are real numbers" $
    withPetscMatrix com m n  MatAij ixd nz InsertValues $ \mat -> do
@@ -109,7 +114,7 @@ t_eigen_r3_1 = describe "t_eigen_r3_1" $
 
 
 
--- | data for3x3 asymmetric matrix :
+-- | data for3x3 asymmetric matrix used in examples above :
 
 -- elements
 ixd3x3 = listToCSR 3 3 [1,2,0,0,3,4,5,6,7]
@@ -120,40 +125,47 @@ nz3x3 = VarNZPR (dnnz, onnz) where
 
 
 
--- |
-
-
-t_eigen_r3_1_symm = describe "t_eigen_r3_1_symm" $
-  it "solves a 3x3 (real, symmetric) linear eigenproblem" $
+t_eigen_r3_1_spd = describe "t_eigen_r3_1_symm" $
+  it "solves a 3x3 (symmetric positive definite) linear eigenproblem: eigenvalues are real positive numbers" $
    withPetscMatrix com m n  MatAij ixd nz InsertValues $ \mat -> do
     let (_, _, _, mu) = fromPetscMatrix mat
     withEpsCreateSetupSolve com mu Nothing EpsHep $ \eps nev vrr _ -> do
-      putStrLn "Eigenvalues : (real :+ imag)"
+      -- putStrLn "Eigenvalues : (real :+ imag)"
       ve <- epsGetEigenvalues eps
-      let evc = V.map (\(a,b) -> a :+ b) ve
-      print evc
-      -- let (er, ei) = V.unzip ve
-      -- print (er, ei)
-      -- ver <- vecGetVS er
-      -- V.all (>0) er `shouldBe` True -- 
-      -- V.all (== 0) ei `shouldBe` True -- real mtx
-      matViewStdout mu
+      -- let evc = V.map (\(a,b) -> a :+ b) ve
+      -- print evc
+      let (er, ei) = V.unzip ve
+      V.all (>0) er `shouldBe` True -- SPD matrices have real positive eigenvalues
+      V.all (<= imzTol) ei `shouldBe` True 
+      -- matViewStdout mu
       where
         (m, n) = (3, 3)                   
-        ixd = listToCSR m n [1,2,3, 2,3,4, 3,4,2]                      
+        ixd = listToCSR m n [2,-1,0, -1,2,-1, 0,-1,2] -- SPD mtx        
         nz = ConstNZPR (3,3)
+        imzTol = 1e-16
 
 
--- |
+-- | HDF5 tests
 
 t_hdf5_int = describe "t_hdf5_int" $
   it "writes and reads back a Vec of integers to HDF5" $
-    withVecNew com vtest $ \vt ->
+     hdf5test vhtest1 "intvec" fname
+     where
+       vhtest1 = V.fromList [1,2,3,4,5]
+       fname = "test.hdf5"
+
+t_hdf5_float = describe "t_hdf5_float" $
+  it "writes and reads back a Vec of floats to HDF5" $
+    hdf5test vhtest2 "floatvec" fname
+     where
+       vhtest2 = V.fromList [pi, exp 1, sqrt 2]
+       fname = "test.hdf5"
+
+hdf5test w vname fname = withVecNew com w $ \vt -> do
+    vecSetName vt vname
     withVecDuplicate vt $ \vhat -> do
+     vecSetName vhat vname
      withHDF5Write com fname (vecView0 vt)
      withHDF5Read com fname (vecLoad vhat)
      eqq <- vecEqual vt vhat
      eqq `shouldBe` True
-     where
-       vtest = V.fromList [1,2,3,4,5]
-       fname = "test.hdf5"
