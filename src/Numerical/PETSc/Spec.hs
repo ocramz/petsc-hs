@@ -37,6 +37,7 @@ specs =
    hspec $ do
     t_vecDot_r2_1
     t_linSys_r3_1
+    t_hdf5_int
    -- --  -- 
     t_eigen_r3_1
     t_eigen_r3_1_symm
