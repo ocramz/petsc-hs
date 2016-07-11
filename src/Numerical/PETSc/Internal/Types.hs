@@ -40,6 +40,16 @@ showDropN n = drop n . map toLower . show
 
 
 
+
+
+petscBoolCToBool :: PetscBool -> Bool
+petscBoolCToBool = petscBoolToBool . petscBoolFromC where
+  petscBoolToBool PetscFalse = False
+  petscBoolToBool _          = True
+
+
+
+
 -- | elementary type synonyms
 
 type MatConst = CInt

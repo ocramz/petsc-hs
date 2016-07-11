@@ -148,7 +148,11 @@ t_eigen_r3_1_symm = describe "t_eigen_r3_1_symm" $
 t_hdf5_int = describe "t_hdf5_int" $
   it "writes and reads back a Vec of integers to HDF5" $
     withVecNew com vtest $ \vt ->
+    withVecDuplicate vt $ \vhat -> do
      withHDF5Write com fname (vecView0 vt)
+     withHDF5Read com fname (vecLoad vhat)
+     eqq <- vecEqual vt vhat
+     eqq `shouldBe` True
      where
        vtest = V.fromList [1,2,3,4,5]
        fname = "test.hdf5"

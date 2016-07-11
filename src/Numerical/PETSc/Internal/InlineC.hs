@@ -316,8 +316,8 @@ vecSetValues' x ni ixx y imm =
 -- | Compares two vectors. Returns true if the two vectors are either pointing to the same memory buffer, or if the two vectors have the same local and global layout as well as bitwise equality of all entries. Does NOT take round-off errors into account.
 
 -- PETSC_EXTERN PetscErrorCode VecEqual(Vec,Vec,PetscBool *);
-vecEqual1 :: Vec -> Vec -> IO (PetscBool, CInt)
-vecEqual1 v1 v2 = withPtr ( \b ->
+vecEqual' :: Vec -> Vec -> IO (PetscBool, CInt)
+vecEqual' v1 v2 = withPtr ( \b ->
   [C.exp|int{VecEqual($(Vec v1), $(Vec v2), $(PetscBool* b))}|] )
 
 
