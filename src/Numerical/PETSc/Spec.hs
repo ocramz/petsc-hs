@@ -149,24 +149,24 @@ t_eigen_r3_1_spd = describe "t_eigen_r3_1_symm" $
 
 t_hdf5_int = describe "t_hdf5_int" $
   it "writes and reads back a Vec of integers to HDF5" $
-     hdf5test vhtest1 "intvec" fname
+     hdf5RoundtripTest vhtest1 "intvec" fname
      where
        vhtest1 = V.fromList [1,2,3,4,5]
        fname = "test.hdf5"
 
 t_hdf5_float = describe "t_hdf5_float" $
   it "writes and reads back a Vec of floats to HDF5" $
-    hdf5test vhtest2 "floatvec" fname
+    hdf5RoundtripTest vhtest2 "floatvec" fname
      where
        vhtest2 = V.fromList [pi, exp 1, sqrt 2]
        fname = "test.hdf5"
 
 -- NB: HDF5 data are named, so VecLoad expects the same name as was used in the Vec that was stored in the file (using PetscObjectSetName()):
-hdf5test w vname fname = withVecNew com w $ \vt -> do
+hdf5RoundtripTest w vname fname = withVecNew com w $ \vt -> do
     vecSetName vt vname
     withVecDuplicate vt $ \vhat -> do
      vecSetName vhat vname
-     withHDF5Write com fname (vecView0 vt)
-     withHDF5Read com fname (vecLoad vhat)
+     withHDF5Write com fname (vecView0 vt) -- roundtrip: write named Ved to HDF 
+     withHDF5Read com fname (vecLoad vhat) -- --, expect Vec with same name
      eqq <- vecEqual vt vhat
      eqq `shouldBe` True

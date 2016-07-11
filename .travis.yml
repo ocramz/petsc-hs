@@ -140,7 +140,7 @@ script:
 
   # # # run an example program
   # - stack exec ./"$DIST_DIR"/petsc-example/petsc-example #
-  - ./stack-exec-example "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
+  - ./stack-exec-example.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
 
 
   # # # run example with `mpirun`
