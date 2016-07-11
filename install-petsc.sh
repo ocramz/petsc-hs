@@ -15,7 +15,7 @@ curl -L $PETSC_TAR | tar xz --strip-components=1 -C $PETSC_DIR/
 cd $PETSC_DIR/
 
 # configure
-if [ ${BUILDTYPE} == "batch" ]; then 
+if [ "${BUILDTYPE}" == "batch" ]; then 
     echo "=== Configuring in batch mode"
     ./configure --with-cc=gcc --with-cxx=g++ --with-fc=gfortran --download-fblaslapack --download-mpich --download-hdf5=yes --with-batch 
 else
