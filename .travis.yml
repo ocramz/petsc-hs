@@ -90,6 +90,7 @@ before_install:
   # augment bash path with stack path :
 
   - export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
+  - export PATH=${PETSC_DIR}/${PETSC_ARCH}/lib:${PATH}
 
 
 
