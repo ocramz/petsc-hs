@@ -14,8 +14,9 @@ import Control.Monad
 -- import Data.String
 import Data.Char (toLower)
 
-import System.Cmd
+-- import System.Cmd
 import System.Directory
+import System.Environment (lookupEnv)
 import System.FilePath -- ((</>), splitPath)
 import System.Exit ( ExitCode(..) )
 import System.Process
@@ -94,10 +95,7 @@ data Dep = Dep DepName VerN deriving Eq
 mkDep d nmm nm np  = Dep d (VerN nmm nm np)
 
 instance Show Dep where
-  show = showDep
-
-showDep :: Dep -> String
-showDep (Dep s n) = show s ++ "-" ++ show n
+  show (Dep s n) = show s ++ "-" ++ show n
 
 
 

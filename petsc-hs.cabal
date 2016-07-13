@@ -1,7 +1,7 @@
 name:                petsc-hs
 version:             0.1.0.0
 synopsis:            Haskell bindings for PETSc
-description:         Lambdas and large linear systems, oh my
+description:         Haskell bindings for PETSc (Portable, Extensible Toolkit for Scientific Computation, https://www.mcs.anl.gov/petsc/)
 homepage:            https://github.com/ocramz/petsc-hs
 license:             LGPL-3
 license-file:        LICENSE
@@ -9,8 +9,8 @@ author:              Marco Zocca <zocca.marco@gmail.com>
 maintainer:          Marco Zocca <zocca.marco@gmail.com>
 copyright:           (c) 2015 Marco Zocca
 category:            Numerical
-build-type:          Simple
--- build-type:          Custom                                          
+-- build-type:          Simple
+build-type:          Custom                                          
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
@@ -88,7 +88,10 @@ library
                        split,
                        ad,
                        process,
-                       parsers
+                       parsers,
+                       directory,
+                       Cabal,
+                       filepath
   hs-source-dirs:      src/
   default-language:    Haskell2010
   ghc-options:         -j2 -O2 -Wall
