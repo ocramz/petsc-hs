@@ -83,7 +83,6 @@ before_install:
 
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
 
-
   # augment bash path with stack path :
 
   - export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
