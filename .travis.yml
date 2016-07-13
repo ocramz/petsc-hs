@@ -51,10 +51,7 @@ before_install:
 
 
 
-  # # # check env
-  - echo $HOME
-  - printenv | grep PETSC
-  - printenv | grep SLEPC
+
 
 
   # # # make directories
@@ -90,11 +87,10 @@ before_install:
   # augment bash path with stack path :
 
   - export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
-  - export PATH=${PETSC_DIR}/${PETSC_ARCH}/lib:${PATH}
+  - export PATH=${PETSC_LIB}:${PATH}
 
-
-
-
+  # # # check env
+  - printenv
 
 
 # # This line does all of the work: installs GHC if necessary, builds the library,
