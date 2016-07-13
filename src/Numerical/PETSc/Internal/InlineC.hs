@@ -3690,12 +3690,7 @@ petscViewerPopFormat' vi = [C.exp|int{PetscViewerPopFormat($(PetscViewer vi))}|]
   
 
 
--- PetscErrorCode  PetscViewerSetFormat(PetscViewer viewer,PetscViewerFormat format)
-petscViewerSetFormat' :: PetscViewer -> PetscViewerFormat_ -> IO CInt
-petscViewerSetFormat' v fmt =
-  [C.exp|int{PetscViewerSetFormat($(PetscViewer v), $(int e))}|]
-    where
-      e = petscViewerFormatToCInt fmt
+
 
 
 
