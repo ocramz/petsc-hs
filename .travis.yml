@@ -1,4 +1,3 @@
-# # # Use new container infrastructure to enable caching
 sudo: 
   false
 
@@ -7,144 +6,34 @@ sudo:
 language: 
   c 
 
+services:
+  - docker
+  
 # # # The different configurations we want to test. You could also do things like
 # # # change flags or use --stack-yaml to point to a different file.
 
 env:
   # - STACK_ARGS="" PETSC_VERSION=3.6.2 SLEPC_VERSION=3.6.1
-  - STACK_ARGS="" PETSC_VERSION=3.7.2 SLEPC_VERSION=3.7.1
+  # - STACK_ARGS="" PETSC_VERSION=3.7.2 SLEPC_VERSION=3.7.1
   # - STACK_ARGS="--resolver lts-2"
   # - STACK_ARGS="--resolver lts-3"
   # - STACK_ARGS="--resolver lts"
   # - STACK_ARGS="--resolver nightly"
 
-
-# # # Install GFortran via apt-get.
-# # # See http://docs.travis-ci.com/user/apt/ for more information
-
-addons:
-  apt:
-    packages:
-    - gfortran            # needed to build PETSc
-    - libgmp-dev          # needed by GHC
+# addons:
+#   apt:
+#     packages:
+#     - gfortran            # needed to build PETSc
+#     - libgmp-dev          # needed by GHC
 
 
 
 
 before_install:
 
-  # # # environment variables : 
-
-  - export PETSC_DIR="$PWD"/petsc
-  - export PETSC_ARCH=arch-linux2-c-debug 
-
-  - export SLEPC_DIR="$PWD"/slepc
-  - export SLEPC_ARCH=arch-linux2-c-debug 
-
-  - export PETSC_INCLUDE1="$PETSC_DIR"/include/
-  - export PETSC_INCLUDE2="$PETSC_DIR"/"$PETSC_ARCH"/include/
-  - export PETSC_LIB="$PETSC_DIR"/"$PETSC_ARCH"/lib/
-
-  - export SLEPC_INCLUDE1="$SLEPC_DIR"/include/
-  - export SLEPC_INCLUDE2="$SLEPC_DIR"/"$SLEPC_ARCH"/include/
-  - export SLEPC_LIB="$SLEPC_DIR"/"$SLEPC_ARCH"/lib/
-
-
-
-
-
-
-  # # # make directories
-
-  - mkdir -p "$HOME"/.local/bin
-  - mkdir -p $PETSC_DIR
-  - mkdir -p $SLEPC_DIR
-
-  # # # PATH
-
-  - export PATH=$HOME/.local/bin:$PATH
-
-
-
-  # # # INSTALL DEPENDENCIES
-
-  # # Download and install PETSc, MPICH, FBLASLAPACK
-  - travis_retry ./install-petsc.sh $PETSC_VERSION $PETSC_DIR $PETSC_ARCH
-
-  # # Download and install SLEPc
-  - travis_retry ./install-slepc.sh $SLEPC_VERSION $SLEPC_DIR 
-
-  - find . -name libpetsc.so
-  - find . -name libslepc.so
-  - find . -name libpetsc.so.3.7
-
-
-  # Download and unpack the `stack` executable :
-
-  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
-
-  # augment bash path with stack path :
-
-  - export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
-  - export PATH=${PETSC_LIB}:${PATH}
-
-  # # # check env
-  - printenv
-
-
-# # This line does all of the work: installs GHC if necessary, builds the library,
-# # executables, and test suites, and runs the test suites. --no-terminal works
-# # around some quirks in Travis's terminal implementation.
 
 script: 
-  - stack setup
-  
-  # install C2HS bindings automation tool
-  - stack install c2hs
-
-  - find ${HOME} -name runghc
-  - find ${HOME} -name runhaskell
-
-
-
-  # # build and interpret C2Hs script (architecture-specific types)
-  - ./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} ${PWD}/src/Numerical/PETSc/Internal/C2HsGen
-
-  # # build whole project
-  - ./stack-build.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
-
-
-  - stack --version			
-
-
-  # # where is the petsc-example binary? 
-  - stack path
-  - find . -name petsc-example
-
-  # # stack directories
-  - export DIST_DIR="$(stack path --dist-dir)/build"
-
-  - printenv | grep PETSC
-  - printenv | grep SLEPC
-  - pwd
-  
-  # show the dynlib path
-  - find . -name libpetsc.so
-  - find . -name libslepc.so
-  - find . -name libpetsc.so.3.7
-
-
-  # # # run an example program
-  # - stack exec ./"$DIST_DIR"/petsc-example/petsc-example #
-  - ./stack-exec-example.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
-
-
-  # # # run example with `mpirun`
-  # - find ~ -name mpirun*
-  # - export PATH="$PETSC_DIR"/"$PETSC_ARCH"/bin/:$PATH
-  # - mpirun -n 2 ./"$DIST_DIR"/petsc-example/petsc-example
-
-  # # stack $ARGS --no-terminal --install-ghc test --haddock
+  - docker build -t ocramz/petsc-hs .
 
 
 
