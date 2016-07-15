@@ -1,6 +1,6 @@
 FROM ocramz/petsc-docker
 
-MAINTAINER Marco Zocca < github.com/ocramz >
+# MAINTAINER Marco Zocca < github.com/ocramz >
 
 ENV SWDIR=/opt
 
