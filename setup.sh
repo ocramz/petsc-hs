@@ -2,7 +2,11 @@
 
 SWDIR=$1
 
+printf "\n=== Inherited environment :\n"
 printenv
+printf "\n=== Operating system :\n"
+uname -srvmpio
+lsb_release -d
 
 export PETSC_INCLUDE1=${PETSC_DIR}/include/
 export PETSC_INCLUDE2=${PETSC_DIR}/${PETSC_ARCH}/include/
@@ -13,6 +17,7 @@ export SLEPC_LIB=${SLEPC_DIR}/${SLEPC_ARCH}/lib/
 
 export PETSCHS_DIR=${SWDIR}/petsc-hs
 
+printf "\n=== APT-Installing dependencies\n"
 apt-get update && apt-get install -y --no-install-recommends build-essential sudo
 
 printf "\n=== Setting up FP Complete APT repository\n"
