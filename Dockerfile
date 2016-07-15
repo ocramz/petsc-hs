@@ -5,6 +5,9 @@ FROM ocramz/petsc-docker
 ENV SWDIR=/opt
 
 COPY setup.sh ${SWDIR}/
+COPY c2hs-build.sh ${SWDIR}/
+COPY stack-build.sh ${SWDIR}/
+
 WORKDIR ${SWDIR}
 
 RUN ./setup.sh ${SWDIR}
