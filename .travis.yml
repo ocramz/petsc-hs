@@ -33,7 +33,7 @@ before_install:
 
 
 script: 
-  - docker build -t ocramz/petsc-hs .
+  - make docker
 
 
 
