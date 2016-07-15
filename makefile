@@ -21,6 +21,14 @@ EXAMPLEDIR = ${CURDIR}/examples
 C2HS_DIR = $(shell pwd)/src/Numerical/PETSc/Internal/C2HsGen
 C2HS_GEN_FILE=TypesC2HsGen 
 
+.DEFAULT_GOAL := help
+
+help:
+	@echo "Use \`make <target>\` where <target> is one of"
+	@echo "  main    build project and link to GHCi session"
+	@echo "  reload  '', assuming no change in inline-c bindings"
+	@echo "  docker  build project within a Docker container"
+
 main:
 	make step1
 	make step2
@@ -81,3 +89,7 @@ c2hs:
 	# stack exec runhaskell ${C2HS_DIR}/GenerateC2Hs.hs > ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
 	# stack exec c2hs --  -C -I${PETSC_INCLUDE1} -C -iprefix "petsc" -C -iwithprefix${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
 
+
+
+docker:
+	docker build -t ocramz/petsc-hs .
