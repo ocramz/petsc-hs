@@ -13,18 +13,26 @@ export SLEPC_LIB=${SLEPC_DIR}/${SLEPC_ARCH}/lib/
 
 export PETSCHS_DIR=${SWDIR}/petsc-hs
 
+apt-get update && apt-get install -y --no-install-recommends build-essential sudo
+
+printf "\n=== Setting up FP Complete APT repository\n"
+# # get FP Complete public key
+apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 575159689BEFB442
+# Ubuntu 14 APT repo for FP Complete
+echo 'deb http://download.fpcomplete.com/ubuntu trusty main' | sudo tee /etc/apt/sources.list.d/fpco.list
+
 printf "\n=== APT-Installing dependencies\n"
-apt-get update -y && apt-get install -y --no-install-recommends git libgmp-dev
+apt-get update -y && apt-get install -y --no-install-recommends \
+			     git libgmp-dev stack
 
 
-mkdir -p "$HOME"/.local/bin
 
-export PATH=$HOME/.local/bin:$PATH
+# # Download and unpack the `stack` executable :
+# mkdir -p "$HOME"/.local/bin
+# export PATH=$HOME/.local/bin:$PATH
 
-
-# Download and unpack the `stack` executable :
-printf "\n=== Retrieving Stack build tool\n"
-curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
+# printf "\n=== Retrieving Stack build tool\n"
+# curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
 
 
 export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
@@ -43,7 +51,7 @@ cd ${PETSCHS_DIR}
 printf "\n=== Compiling petsc-hs dependencies\n"
 stack setup
 
-printf "\n=== Compiling petsc-hs"
+printf "\n=== Compiling petsc-hs\n"
 stack install c2hs
 # # build and interpret C2Hs script (architecture-specific types)
 ./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} ${PWD}/src/Numerical/PETSc/Internal/C2HsGen
