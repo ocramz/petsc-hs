@@ -14,7 +14,7 @@ export SLEPC_LIB=${SLEPC_DIR}/${SLEPC_ARCH}/lib/
 export PETSCHS_DIR=${SWDIR}/petsc-hs
 
 printf "\n=== APT-Installing dependencies\n"
-apt-get install -y --no-install-recommends git libgmp-dev
+apt-get update -y && apt-get install -y --no-install-recommends git libgmp-dev
 
 
 mkdir -p "$HOME"/.local/bin
