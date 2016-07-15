@@ -91,5 +91,8 @@ c2hs:
 
 
 
-docker_based:
+docker_build:
 	docker build -t ocramz/petsc-hs .
+
+docker_run:
+	docker run --rm -it ocramz/petsc-hs /bin/bash

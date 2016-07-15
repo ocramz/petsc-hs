@@ -33,7 +33,7 @@ before_install:
 
 
 script: 
-  - make docker_based
+  - make docker_build
 
 
 
