@@ -64,13 +64,13 @@ stack install c2hs
 # # build whole project
 ./stack-build.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
 
-printf "\n=== Stack path :\n"
-stack path
+# printf "\n=== Stack path :\n"
+# stack path
 
-printf "\n=== PETSc dynlib path\n"
-find . -name libpetsc.so
-find . -name libslepc.so
-find . -name libpetsc.so.3.7
+# printf "\n=== PETSc dynlib path\n"
+# find . -name libpetsc.so
+# find . -name libslepc.so
+# find . -name libpetsc.so.3.7
 
-printf "\n=== Running petsc-hs example\n"
-./stack-exec-example.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
+# printf "\n=== Running petsc-hs example\n"
+# ./stack-exec-example.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
