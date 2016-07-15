@@ -25,9 +25,9 @@ C2HS_GEN_FILE=TypesC2HsGen
 
 help:
 	@echo "Use \`make <target>\` where <target> is one of"
-	@echo "  main    build project and link to GHCi session"
-	@echo "  reload  '', assuming no change in inline-c bindings"
-	@echo "  docker  build project within a Docker container"
+	@echo "  main          build project and link to GHCi session"
+	@echo "  reload        '', assuming no change in inline-c bindings"
+	@echo "  docker_based  build project within a Docker container"
 
 main:
 	make step1
@@ -91,5 +91,5 @@ c2hs:
 
 
 
-docker:
+docker_based:
 	docker build -t ocramz/petsc-hs .
