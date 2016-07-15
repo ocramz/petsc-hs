@@ -43,6 +43,8 @@ apt-get update -y && apt-get install -y --no-install-recommends \
 export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
 export PATH=${PETSC_LIB}:${PATH}
 
+export LD_LIBRARY_PATH=${PETSC_LIB}:${SLEPC_LIB}:${LD_LIBRARY_PATH}
+
 # # # check env
 printenv
 pwd
@@ -72,5 +74,5 @@ stack install c2hs
 # find . -name libslepc.so
 # find . -name libpetsc.so.3.7
 
-# printf "\n=== Running petsc-hs example\n"
-# ./stack-exec-example.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
+printf "\n=== Running petsc-hs example\n"
+./stack-exec-example.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
