@@ -12,7 +12,7 @@ printenv
 # pwd
 
 # get up to date source
-printf "\n=== Update source tree ('git pull')"
+printf "\n=== Update source tree ('git pull')\n"
 git pull
 
 
