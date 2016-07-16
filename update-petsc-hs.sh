@@ -8,6 +8,10 @@ cd ${SWDIR}
 printf "\n=== Inherited environment:\n"
 printenv
 
+printf "\n=== Haskell 'stack' version"
+stack --version
+
+
 # printf "\n=== Current directory:\n"
 # pwd
 

@@ -30,10 +30,11 @@ DOCKER_IMG = ${AUTHOR}/${REPO}
 
 help:
 	@echo "Use \`make <target>\` where <target> is one of"
-	@echo "  ghci          build project and link to GHCi session"
+	@echo "  ghci          build and link to GHCi session"
 	@echo "  reload        '', assuming no change in inline-c bindings"
-	@echo "  docker_build  build petsc-hs within a Docker container"
-	@echo "  docker_all    '', update sources and run an example"
+	@echo "  docker_build  build dependencies within a Docker container"
+	@echo "  docker_all    '', rebuild sources and run an example binary"
+	@echo "  docker_run0   run a bash shell in the container"
 
 ghci:
 	make step1
