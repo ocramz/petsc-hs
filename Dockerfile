@@ -17,4 +17,3 @@ COPY setup.sh c2hs-build.sh stack-build.sh update-petsc-hs.sh stack-exec-example
 WORKDIR ${SWDIR}
 
 RUN ./setup.sh ${SWDIR}
-   

@@ -63,6 +63,7 @@ stack install c2hs
 
 
 # # rm source
+printf "\n=== Removing petsc-hs src/ directory\n"
 rm -rf src/
 
 

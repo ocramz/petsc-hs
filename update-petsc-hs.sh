@@ -11,7 +11,7 @@ printenv
 # PETSC_ARCH="$PETSC_ARCH"
 # SLEPC_ARCH="$SLEPC_ARCH"
 
-cd ${PETSC_HS}
+cd ${PETSCHS_DIR}
 # get up to date source
 git pull
 
