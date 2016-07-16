@@ -21,6 +21,11 @@ EXAMPLEDIR = ${CURDIR}/examples
 C2HS_DIR = $(shell pwd)/src/Numerical/PETSc/Internal/C2HsGen
 C2HS_GEN_FILE=TypesC2HsGen 
 
+AUTHOR = ocramz
+REPO = petsc-hs
+DOCKER_IMG = ${AUTHOR}/${REPO}
+
+
 .DEFAULT_GOAL := help
 
 help:
@@ -94,5 +99,10 @@ c2hs:
 docker_build:
 	docker build -t ocramz/petsc-hs .
 
-docker_run:
+docker_update_src:
+	docker run --rm -it ocramz/petsc-hs /bin/bash -c ./update-petsc-hs.sh
+
+
+
+docker_run0:
 	docker run --rm -it ocramz/petsc-hs /bin/bash

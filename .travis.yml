@@ -32,8 +32,12 @@ env:
 before_install:
 
 
-script: 
+script:
   - make docker_build
+  # - docker build -t ocramz/petsc-hs .
+  
+  - make docker_update_src
+  # - docker run --rm -it ocramz/petsc-hs update-petsc-hs.sh
 
 
 

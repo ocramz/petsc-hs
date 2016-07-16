@@ -15,7 +15,7 @@ export SLEPC_INCLUDE1=${SLEPC_DIR}/include/
 export SLEPC_INCLUDE2=${SLEPC_DIR}/${SLEPC_ARCH}/include/
 export SLEPC_LIB=${SLEPC_DIR}/${SLEPC_ARCH}/lib/
 
-export PETSCHS_DIR=${SWDIR}/petsc-hs
+# export PETSCHS_DIR=${SWDIR}/petsc-hs
 
 printf "\n=== APT-Installing dependencies\n"
 apt-get update && apt-get install -y --no-install-recommends build-essential sudo
@@ -43,7 +43,7 @@ apt-get update -y && apt-get install -y --no-install-recommends \
 export PATH=$(stack --stack-yaml stack.yaml path --local-install-root):$PATH
 export PATH=${PETSC_LIB}:${PATH}
 
-export LD_LIBRARY_PATH=${PETSC_LIB}:${SLEPC_LIB}:${LD_LIBRARY_PATH}
+# export LD_LIBRARY_PATH=${PETSC_LIB}:${SLEPC_LIB}:${LD_LIBRARY_PATH}
 
 # # # check env
 printenv
@@ -60,19 +60,30 @@ stack setup
 
 printf "\n=== Compiling petsc-hs\n"
 stack install c2hs
+
+
+# # rm source
+rm -rf src/
+
+
+
+
+# # # CUT
+
+cd ${PETSC_HS}
+# get up to date source
+git pull
+
+
+
 # # build and interpret C2Hs script (architecture-specific types)
 ./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} ${PWD}/src/Numerical/PETSc/Internal/C2HsGen
 
 # # build whole project
-./stack-build.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
+./stack-build.sh ${STACK_ARGS} ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH}
 
 # printf "\n=== Stack path :\n"
 # stack path
 
-# printf "\n=== PETSc dynlib path\n"
-# find . -name libpetsc.so
-# find . -name libslepc.so
-# find . -name libpetsc.so.3.7
-
 printf "\n=== Running petsc-hs example\n"
-./stack-exec-example.sh "$STACK_ARGS" "$PETSC_DIR" "$PETSC_ARCH" "$SLEPC_DIR" "$SLEPC_ARCH"
+./stack-exec-example.sh ${STACK_ARGS} ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH}
