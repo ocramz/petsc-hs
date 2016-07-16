@@ -97,7 +97,7 @@ c2hs:
 
 docker_all:
 	make docker_build
-	make docker_update_src:
+	make docker_update_src
 
 docker_build:
 	docker build -t ocramz/petsc-hs .
