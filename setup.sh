@@ -62,9 +62,9 @@ printf "\n=== Compiling petsc-hs\n"
 stack install c2hs
 
 
-# # rm source
-printf "\n=== Removing petsc-hs src/ directory\n"
-rm -rf src/
+# # rm source dir contents
+printf "\n=== Removing petsc-hs src/ contents\n"
+rm -rf src/*
 
 
 

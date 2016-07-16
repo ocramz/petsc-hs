@@ -8,13 +8,11 @@ cd ${PETSCHS_DIR}
 printf "\n=== Inherited environment:\n"
 printenv
 
-printf "\n=== Current directory:\n"
-pwd
-
-printf "\n== '' contents:"
-ls -lsA
+# printf "\n=== Current directory:\n"
+# pwd
 
 # get up to date source
+printf "\n=== Update source tree ('git pull')"
 git pull
 
 
