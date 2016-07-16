@@ -3,7 +3,7 @@
 
 # # NB : PETSc/SLEPc environment variables must be already set at this stage
 
-cd ${PETSCHS_DIR}
+cd ${SWDIR}
 
 printf "\n=== Inherited environment:\n"
 printenv
@@ -12,10 +12,10 @@ printenv
 # pwd
 
 # get up to date source
-printf "\n=== Update source tree ('git pull')\n"
-git pull
+printf "\n=== Fetch up to date source:\n"
+git clone https://github.com/ocramz/petsc-hs.git
 
-
+cd ${PETSCHS_DIR}
 
 # # build and interpret C2Hs script (architecture-specific types)
 ./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} ${PETSCHS_DIR}/src/Numerical/PETSc/Internal/C2HsGen
@@ -26,7 +26,7 @@ git pull
 # printf "\n=== Stack path :\n"
 # stack path
 
-printf "\n=== Running petsc-hs example\n"
+printf "\n=== Run petsc-hs example\n"
 
 stack exec petsc-example # needs LD_LIBRARY_PATH to point at PETSc and SLEPc dynlib directory
 

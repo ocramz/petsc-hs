@@ -63,8 +63,8 @@ stack install c2hs
 
 
 # # rm source dir contents
-printf "\n=== Removing petsc-hs src/ contents\n"
-rm -rf src/*
+printf "\n=== Removing petsc-hs sources and build artifacts (dependencies are in /.stack/ ):\n"
+rm -rf petsc-hs/
 
 
 
