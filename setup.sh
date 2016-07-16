@@ -8,12 +8,12 @@ printf "\n=== Operating system :\n"
 uname -srvmpio
 lsb_release -d
 
-export PETSC_INCLUDE1=${PETSC_DIR}/include/
-export PETSC_INCLUDE2=${PETSC_DIR}/${PETSC_ARCH}/include/
-export PETSC_LIB=${PETSC_DIR}/${PETSC_ARCH}/lib/
-export SLEPC_INCLUDE1=${SLEPC_DIR}/include/
-export SLEPC_INCLUDE2=${SLEPC_DIR}/${SLEPC_ARCH}/include/
-export SLEPC_LIB=${SLEPC_DIR}/${SLEPC_ARCH}/lib/
+# export PETSC_INCLUDE1=${PETSC_DIR}/include/
+# export PETSC_INCLUDE2=${PETSC_DIR}/${PETSC_ARCH}/include/
+# # export PETSC_LIB=${PETSC_DIR}/${PETSC_ARCH}/lib/
+# export SLEPC_INCLUDE1=${SLEPC_DIR}/include/
+# export SLEPC_INCLUDE2=${SLEPC_DIR}/${SLEPC_ARCH}/include/
+# # export SLEPC_LIB=${SLEPC_DIR}/${SLEPC_ARCH}/lib/
 
 # export PETSCHS_DIR=${SWDIR}/petsc-hs
 
@@ -70,20 +70,4 @@ rm -rf src/
 
 # # # CUT
 
-cd ${PETSC_HS}
-# get up to date source
-git pull
 
-
-
-# # build and interpret C2Hs script (architecture-specific types)
-./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} ${PWD}/src/Numerical/PETSc/Internal/C2HsGen
-
-# # build whole project
-./stack-build.sh ${STACK_ARGS} ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH}
-
-# printf "\n=== Stack path :\n"
-# stack path
-
-printf "\n=== Running petsc-hs example\n"
-./stack-exec-example.sh ${STACK_ARGS} ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH}
