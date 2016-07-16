@@ -17,16 +17,16 @@ lsb_release -d
 
 # export PETSCHS_DIR=${SWDIR}/petsc-hs
 
-printf "\n=== APT-Installing dependencies\n"
+printf "\n=== APT-Installing dependencies :\n"
 apt-get update && apt-get install -y --no-install-recommends build-essential sudo
 
-printf "\n=== Setting up FP Complete APT repository\n"
+printf "\n=== Setting up FP Complete APT repository :\n"
 # # get FP Complete public key
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 575159689BEFB442
 # Ubuntu 14 APT repo for FP Complete
 echo 'deb http://download.fpcomplete.com/ubuntu trusty main' | sudo tee /etc/apt/sources.list.d/fpco.list
 
-printf "\n=== APT-Installing dependencies\n"
+printf "\n=== APT-Installing dependencies : \n"
 apt-get update -y && apt-get install -y --no-install-recommends \
 			     git libgmp-dev stack
 
@@ -46,24 +46,27 @@ export PATH=${PETSC_LIB}:${PATH}
 # export LD_LIBRARY_PATH=${PETSC_LIB}:${SLEPC_LIB}:${LD_LIBRARY_PATH}
 
 # # # check env
+printf "\n=== Environment :\n"
 printenv
+
+printf "\n=== Current directory :\n"
 pwd
 
 
-printf "\n=== Downloading petsc-hs\n"
+printf "\n=== Downloading petsc-hs :\n"
 cd ${SWDIR}
 git clone https://github.com/ocramz/petsc-hs.git
 cd ${PETSCHS_DIR}
 
-printf "\n=== Compiling petsc-hs dependencies\n"
+printf "\n=== Compiling petsc-hs dependencies :\n"
 stack setup
 
-printf "\n=== Compiling petsc-hs\n"
+printf "\n=== Compiling petsc-hs :\n"
 stack install c2hs
 
 
 # # rm source dir contents
-printf "\n=== Removing petsc-hs sources and build artifacts (dependencies are in /.stack/ ):\n"
+printf "\n=== Removing petsc-hs sources and build artifacts (dependencies are in /.stack/ ) :\n"
 rm -rf petsc-hs/
 
 
