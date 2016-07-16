@@ -95,6 +95,9 @@ c2hs:
 	# stack exec c2hs --  -C -I${PETSC_INCLUDE1} -C -iprefix "petsc" -C -iwithprefix${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
 
 
+docker_all:
+	make docker_build
+	make docker_update_src:
 
 docker_build:
 	docker build -t ocramz/petsc-hs .
