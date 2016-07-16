@@ -8,7 +8,7 @@ cd ${SWDIR}
 printf "\n=== Inherited environment:\n"
 printenv
 
-printf "\n=== Haskell 'stack' version"
+printf "\n=== Haskell 'stack' version: \n"
 stack --version
 
 
