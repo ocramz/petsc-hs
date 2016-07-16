@@ -2,16 +2,18 @@
 
 
 # # NB : PETSc/SLEPc environment variables must be already set at this stage
-printenv
-# printenv | grep PETSC ..
-
-# STACK_ARGS="$STACK_ARGS"
-# PETSC_DIR="$PETSC_DIR"
-# SLEPC_DIR="$SLEPC_DIR"
-# PETSC_ARCH="$PETSC_ARCH"
-# SLEPC_ARCH="$SLEPC_ARCH"
 
 cd ${PETSCHS_DIR}
+
+printf "\n=== Inherited environment:\n"
+printenv
+
+printf "\n=== Current directory:\n"
+pwd
+
+printf "\n== '' contents:"
+ls -lsA
+
 # get up to date source
 git pull
 
