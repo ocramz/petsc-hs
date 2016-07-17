@@ -27,7 +27,7 @@ ls -lsA ${C2HS_DIR}
  
 # # interpret c2hs -> render Haskell bindings
 printf "\n=== Run c2hs -> render Haskell FFI bindings:\n"
-stack exec c2hs --  -C -I${PETSC_INCLUDE1} -C -I${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
+stack exec c2hs --  -d genbind -C -I${PETSC_INCLUDE1} -C -I${PETSC_INCLUDE2} -C -I${SLEPC_INCLUDE1} -C -I${SLEPC_INCLUDE2} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
 
 # stack exec c2hs --  -C -I${PETSC_INCLUDE2} -C -I${PETSC_INCLUDE1}  -C -I${SLEPC_INCLUDE1} -o ${C2HS_DIR}/${C2HS_GEN_FILE}.hs ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
 
