@@ -58,15 +58,17 @@ cd ${SWDIR}
 git clone https://github.com/ocramz/petsc-hs.git
 cd ${PETSCHS_DIR}
 
-printf "\n=== Building petsc-hs dependencies ('stack setup'):\n"
+printf "\n=== Setting up GHC ('stack setup'):\n"
 stack setup
 
 printf "\n=== Installing 'c2hs' :\n"
 stack install c2hs
 
+printf "\n=== Compiling petsc-hs dependencies"
+./stack-build.sh "--dependencies-only"
 
 # # rm source dir contents
-printf "\n=== Removing petsc-hs sources and build artifacts (NB: compiled dependencies are in /.stack/ ) :\n"
+printf "\n=== Removing petsc-hs sources and build artifacts :\n"
 cd ${SWDIR}
 rm -rf petsc-hs/
 

@@ -16,7 +16,7 @@ stack --version
 # pwd
 
 # get up to date source
-printf "\n=== Fetch up to date source:\n"
+printf "\n=== Fetch latest petsc-hs source:\n"
 git clone https://github.com/ocramz/petsc-hs.git
 
 cd ${PETSCHS_DIR}
@@ -24,7 +24,7 @@ cd ${PETSCHS_DIR}
 # # build and interpret C2Hs script (architecture-specific types)
 ./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} ${PETSCHS_DIR}/src/Numerical/PETSc/Internal/C2HsGen
 
-printf "\n=== DONE\n"
+
 
 # # build whole project
 ./stack-build.sh ${STACK_ARGS} ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH}

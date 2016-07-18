@@ -7,7 +7,7 @@ license:             LGPL-3
 license-file:        LICENSE
 author:              Marco Zocca <zocca.marco@gmail.com>
 maintainer:          Marco Zocca <zocca.marco@gmail.com>
-copyright:           (c) 2015 Marco Zocca
+copyright:           (c) 2015- , Marco Zocca
 category:            Numerical
 build-type:          Simple
 -- build-type:          Custom                                          
