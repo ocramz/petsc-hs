@@ -24,6 +24,8 @@ cd ${PETSCHS_DIR}
 # # build and interpret C2Hs script (architecture-specific types)
 ./c2hs-build.sh ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH} ${PETSCHS_DIR}/src/Numerical/PETSc/Internal/C2HsGen
 
+printf "\n=== DONE"
+
 # # build whole project
 ./stack-build.sh ${STACK_ARGS} ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH}
 
