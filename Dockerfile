@@ -12,7 +12,7 @@ ENV PETSC_INCLUDE1=${PETSC_DIR}/include/ \
 ENV PETSCHS_DIR=${SWDIR}/petsc-hs \
     LD_LIBRARY_PATH=${PETSC_LIB}:${SLEPC_LIB}:${LD_LIBRARY_PATH}
 
-COPY petsc-hs-setup.sh ${SWDIR}/
+COPY petsc-hs-setup.sh update-petsc-hs.sh ${SWDIR}/
 
 WORKDIR ${SWDIR}
 
