@@ -12,8 +12,8 @@ ENV PETSC_INCLUDE1=${PETSC_DIR}/include/ \
 ENV PETSCHS_DIR=${SWDIR}/petsc-hs \
     LD_LIBRARY_PATH=${PETSC_LIB}:${SLEPC_LIB}:${LD_LIBRARY_PATH}
 
-COPY setup.sh c2hs-build.sh stack-build.sh update-petsc-hs.sh stack-exec-example.sh ${SWDIR}/
+COPY petsc-hs-setup.sh ${SWDIR}/
 
 WORKDIR ${SWDIR}
 
-RUN ./setup.sh ${SWDIR}
+RUN ./petsc-hs-setup.sh ${SWDIR}
