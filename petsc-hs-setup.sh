@@ -28,7 +28,9 @@ echo 'deb http://download.fpcomplete.com/ubuntu trusty main' | sudo tee /etc/apt
 
 printf "\n=== APT-Installing dependencies : \n"
 apt-get update -y && apt-get install -y --no-install-recommends \
-			     git libgmp-dev stack
+			     git libgmp-dev stack &&  \
+       apt-get clean && apt-get purge && \
+       rm -rf /var/lib/apt/lists/*
 
 
 

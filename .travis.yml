@@ -39,6 +39,8 @@ script:
   - make docker_update_src
   # - docker run --rm -it ocramz/petsc-hs update-petsc-hs.sh
 
+  - docker images
+
 
 
 

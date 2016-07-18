@@ -33,7 +33,8 @@ help:
 	@echo "  ghci          build and link to GHCi session"
 	@echo "  reload        '', assuming no change in inline-c bindings"
 	@echo "  docker_build  build dependencies within a Docker container"
-	@echo "  docker_all    '', rebuild sources and run an example binary"
+	@echo "  docker_upd    fetch & build latest sources and run example"
+	@echo "  docker_all    docker_build, docker_upd"
 	@echo "  docker_run0   run a bash shell in the container"
 
 ghci:
@@ -99,12 +100,12 @@ c2hs:
 
 docker_all:
 	make docker_build
-	make docker_update_src
+	make docker_upd
 
 docker_build:
 	docker build -t ocramz/petsc-hs .
 
-docker_update_src:
+docker_upd:
 	docker run --rm -it ocramz/petsc-hs /bin/bash -c ./update-petsc-hs.sh
 
 
