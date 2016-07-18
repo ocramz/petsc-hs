@@ -19,7 +19,7 @@ SLEPC_LIB="$SLEPC_DIR"/"$SLEPC_ARCH"/lib/
 C2HS_GEN_FILE=TypesC2HsGen 
 
 # # generate c2hs
-printf "\n=== Generate C2HS bindings:\n"
+printf "\n=== Generate C2HS bindings (%s):\n" ${C2HS_GEN_FILE}.chs
 stack exec runhaskell ${C2HS_DIR}/GenerateC2Hs.hs > ${C2HS_DIR}/${C2HS_GEN_FILE}.chs
 
 printf "\n=== Contents of %s:\n" ${C2HS_DIR}
