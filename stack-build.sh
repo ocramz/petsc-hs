@@ -13,11 +13,8 @@ SLEPC_LIB=${SLEPC_DIR}/${SLEPC_ARCH}/lib/
 
 printf "\n=== Current environment :\n"
 
-printf "PETSc home directory and current build architecture : \n"
 printf "PETSC_DIR = %s\nPETSC_ARCH = %s\n" ${PETSC_DIR} ${PETSC_ARCH}
-printf "SLEPc home directory and current build architecture : \n"
 printf "SLEPC_DIR = %s\nSLEPC_ARCH = %s\n" ${SLEPC_DIR} ${SLEPC_ARCH}
-printf "Linker flags : \n"
 printf "LD_LIBRARY_PATH = %s \n" ${LD_LIBRARY_PATH}
 
 
