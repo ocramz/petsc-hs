@@ -27,7 +27,7 @@ cd ${PETSCHS_DIR}
 
 
 # # build whole project
-./stack-build.sh ${STACK_ARGS} ${PETSC_DIR} ${PETSC_ARCH} ${SLEPC_DIR} ${SLEPC_ARCH}
+./stack-build.sh ""
 
 # printf "\n=== Stack path :\n"
 # stack path
