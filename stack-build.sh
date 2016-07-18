@@ -15,6 +15,9 @@ SLEPC_INCLUDE1=${SLEPC_DIR}/include/
 SLEPC_INCLUDE2=${SLEPC_DIR}/${SLEPC_ARCH}/include/
 SLEPC_LIB=${SLEPC_DIR}/${SLEPC_ARCH}/lib/
 
+printf "\n=== Current environment :\nPETSC_INCLUDE1 = %s\nPETSC_INCLUDE2 = %s\nPETSC_LIB = %s\nSLEPC_INCLUDE1 = %s\nSLEPC_INCLUDE2 = %s\nSLEPC_LIB = %s\n\n" ${PETSC_INCLUDE1} ${PETSC_INCLUDE2} ${PETSC_LIB} ${SLEPC_INCLUDE1} ${SLEPC_INCLUDE2} ${SLEPC_LIB}
+
+
 
 printf "\n=== Building petsc-hs :\n"
 
