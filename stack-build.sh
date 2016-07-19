@@ -24,6 +24,6 @@ printf "PETSC_INCLUDE1 = %s\nPETSC_INCLUDE2 = %s\nPETSC_LIB = %s\nSLEPC_INCLUDE1
 
 printf "\n=== Building petsc-hs :\n"
 
-printf "\n%s\n" "stack build ${STACK_ARGS} --no-terminal --extra-include-dirs=${PETSC_INCLUDE1} --extra-include-dirs=${PETSC_INCLUDE2} --extra-include-dirs=${SLEPC_INCLUDE1} --extra-include-dirs=${SLEPC_INCLUDE2} --extra-lib-dirs=${PETSC_LIB} --extra-lib-dirs=${SLEPC_LIB}\n" 
+printf "\n%s\n\n" "stack build ${STACK_ARGS} --no-terminal --extra-include-dirs=${PETSC_INCLUDE1} --extra-include-dirs=${PETSC_INCLUDE2} --extra-include-dirs=${SLEPC_INCLUDE1} --extra-include-dirs=${SLEPC_INCLUDE2} --extra-lib-dirs=${PETSC_LIB} --extra-lib-dirs=${SLEPC_LIB}" 
 
 stack build ${STACK_ARGS} --no-terminal --extra-include-dirs=${PETSC_INCLUDE1} --extra-include-dirs=${PETSC_INCLUDE2} --extra-include-dirs=${SLEPC_INCLUDE1} --extra-include-dirs=${SLEPC_INCLUDE2} --extra-lib-dirs=${PETSC_LIB} --extra-lib-dirs=${SLEPC_LIB}
