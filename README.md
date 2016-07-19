@@ -117,6 +117,20 @@ The binaries using `petsc-hs` will be linked both with the PETSc dynamic librari
 
 
 
+
+## Usage (Docker image)
+
+0. (make sure Docker is installed, preferably at the latest version, and if running on OSX or Windows a `docker-machine` VM should be up and running)
+
+1. Download the image with `docker pull ocramz/petsc-hs`
+
+2. Run the image with `docker run --rm -it ocramz/petsc-hs /bin/bash` and, at its prompt, build the latest version of `petsc-hs` with  `./update-petsc-hs.sh`. This will run the examples and leave the image open for experimentation.
+
+
+
+
+
+
 ## Dependencies 
 
 The library is being developed with/on :
