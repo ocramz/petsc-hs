@@ -18,7 +18,7 @@ Discuss features, ideas, bugs : [![Gitter chat: petsc-hs](https://badges.gitter.
 
 ## News
 
-July 19, 2016 : petsc-hs now ships also as a Docker image, so the [petsc-hs-docker](https://github.com/ocramz/petsc-hs-docker) project becomes redundant. Please use only the image provided [here](hub.docker.com/r/ocramz/petsc-hs) from now on.
+July 19, 2016 : petsc-hs now ships also as a Docker image, so the [petsc-hs-docker](https://github.com/ocramz/petsc-hs-docker) project becomes redundant. Please use only the image provided [here](https://hub.docker.com/r/ocramz/petsc-hs) from now on.
 
 July 5, 2016 : Merged branch `petsc-3.7` into `master`: Development will from now on target PETSc 3.7, due to some breaking API changes with respect to 3.6. Also, we are GHC 8.0.1-compatible, and using Stackage (`nightly-2016-06-20`)for reproducible dependencies.
 
