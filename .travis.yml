@@ -19,6 +19,7 @@ env:
   # - STACK_ARGS="--resolver lts-3"
   # - STACK_ARGS="--resolver lts"
   # - STACK_ARGS="--resolver nightly"
+  - REBUILD_HS_DEPS="no"
 
 # addons:
 #   apt:
@@ -33,7 +34,7 @@ before_install:
 
 
 script:
-  # - make docker_build
+  - if [ ${REBUILD_HS_DEPS}=="yes" ]; then make docker_build; fi
   # - docker build -t ocramz/petsc-hs .
   
   - make docker_upd
