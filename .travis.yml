@@ -34,7 +34,7 @@ before_install:
 
 
 script:
-  - if [ ${REBUILD_HS_DEPS}=="yes" ]; then make docker_build; fi
+  - if [[ "$REBUILD_HS_DEPS" == "yes" ]]; then make docker_build; fi
   # - docker build -t ocramz/petsc-hs .
   
   - make docker_upd
