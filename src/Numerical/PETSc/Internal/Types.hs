@@ -64,7 +64,9 @@ type MatConst = CInt
 
 
 
+type PetscLogDouble = CDouble
 
+type PetscLogEvent = CInt
 
 
 
@@ -77,7 +79,7 @@ type MatConst = CInt
 
 
 -- newtype PetscLogDouble = PetscLogDouble (Ptr PetscLogDouble) deriving Storable
-type PetscLogDouble = CDouble
+
 
 newtype PetscLogStage = PetscLogStage (Ptr PetscLogStage) deriving Storable
 
@@ -137,7 +139,8 @@ newtype PetscSection = PetscSection (Ptr PetscSection) deriving Storable
 
 
 newtype PetscClassId = PetscClassId (Ptr PetscClassId) deriving Storable
-newtype PetscLogEvent = PetscLogEvent (Ptr PetscLogEvent) deriving Storable
+
+
 
 
 

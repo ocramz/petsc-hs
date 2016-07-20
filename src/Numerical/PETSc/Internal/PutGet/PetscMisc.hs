@@ -17,6 +17,8 @@ module Numerical.PETSc.Internal.PutGet.PetscMisc
          petscGetCPUTime, petscGetFlops,
          petscLogDefaultBegin,
          petscLogView, petscLogStageRegister, petscLogStagePush, petscLogStagePop,
+         petscClassIdRegister, petscLogEventRegister,
+         petscLogEventBegin0, petscLogEventEnd0,
          commWorld, commSelf,
          commWorldC, commSelfC,
          mkMPIComm, getMPICommSize, getMPICommRank,
@@ -112,6 +114,28 @@ petscLogStagePush ls = chk0 $ petscLogStagePush' ls
 
 petscLogStagePop :: IO ()
 petscLogStagePop = chk0 petscLogStagePop'
+
+
+petscClassIdRegister :: String -> IO PetscClassId
+petscClassIdRegister name = chk1 $ petscClassIdRegister' name
+
+petscLogEventRegister :: String -> PetscClassId -> IO PetscLogEvent
+petscLogEventRegister name cid = chk1 $ petscLogEventRegister' name cid
+
+petscLogEventBegin0 :: PetscLogEvent -> IO ()
+petscLogEventBegin0 = chk0 . petscLogEventBegin0'
+
+petscLogEventEnd0 :: PetscLogEvent -> IO ()
+petscLogEventEnd0 = chk0 . petscLogEventEnd0'
+
+
+-- withPetscLogEvent0 name cid io = do
+--   ev <- petscLogEventRegister name cid
+--   petscLogEventBegin0 ev
+--   io
+--   petscLogEventEnd0 ev
+
+
 
 
 

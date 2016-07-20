@@ -3930,6 +3930,7 @@ petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|]
 
 
 -- PetscErrorCode  PetscClassIdRegister(const char name[],PetscClassId *oclass)
+petscClassIdRegister' :: String -> IO (PetscClassId, CInt)
 petscClassIdRegister' name =
   withPtr $ \oclass ->
   withCString name $ \namep -> 
@@ -3951,6 +3952,7 @@ petscClassIdRegister' name =
 --          [code segment to monitor]
 --          PetscLogFlops(user_event_flops);
 --       PetscLogEventEnd(USER_EVENT,0,0,0,0);
+petscLogEventRegister' :: String -> PetscClassId -> IO (PetscLogEvent, CInt)
 petscLogEventRegister' name classid =
   withPtr $ \ev ->
   withCString name $ \namep -> 
@@ -3958,7 +3960,15 @@ petscLogEventRegister' name classid =
 
 
 -- PetscErrorCode PetscLogEventBegin(int e,PetscObject o1,PetscObject o2,PetscObject o3,PetscObject o4)
--- petscLogEventBegin0' e
+petscLogEventBegin0' ev =
+  [C.exp|int{PetscLogEventBegin($(PetscLogEvent ev), 0,0,0,0)}|] 
+
+
+petscLogEventEnd0' ev =
+  [C.exp|int{PetscLogEventEnd($(PetscLogEvent ev), 0,0,0,0)}|]
+
+
+
 
 
 -- -- * options
