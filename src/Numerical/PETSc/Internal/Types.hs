@@ -43,10 +43,14 @@ showDropN n = drop n . map toLower . show
 
 
 petscBoolCToBool :: PetscBool -> Bool
-petscBoolCToBool = petscBoolToBool . petscBoolFromC where
-  petscBoolToBool PetscFalse = False
-  petscBoolToBool _          = True
+petscBoolCToBool = p' . petscBoolFromC where
+  p' PetscFalse = False
+  p' _          = True
 
+boolToPetscBoolC :: Bool -> PetscBool
+boolToPetscBoolC = petscBoolToC . p where
+  p False = PetscFalse
+  p True = PetscTrue
 
 
 
@@ -100,6 +104,7 @@ newtype Vec = Vec (Ptr Vec) deriving Storable
 newtype Mat = Mat (Ptr Mat) deriving Storable
 newtype MatFDColoring = MatFDColoring (Ptr MatFDColoring) deriving Storable
 newtype MatFactorInfo = MatFactorInfo (Ptr MatFactorInfo) deriving Storable
+newtype MatNullSpace = MatNullSpace (Ptr MatNullSpace) deriving Storable
 
 newtype DM = DM (Ptr DM) deriving Storable
 newtype DMDALocalInfo = DMDALocalInfo (Ptr DMDALocalInfo) deriving Storable

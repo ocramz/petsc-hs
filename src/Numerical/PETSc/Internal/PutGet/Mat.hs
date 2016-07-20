@@ -852,6 +852,24 @@ withMatFDColoring mat iscoloring =
 
 
 
+-- | -- MatNullSpace
+
+matNullSpaceCreate :: Comm -> Bool -> Int -> VS.Vector Vec -> IO MatNullSpace
+matNullSpaceCreate cc hasc n vecs = chk1 $ matNullSpaceCreate' cc hasc n vecs
+
+matNullSpaceDestroy :: MatNullSpace -> IO ()
+matNullSpaceDestroy sp = chk0 $  matNullSpaceDestroy' sp
+
+matNullSpaceRemove :: MatNullSpace -> Vec -> IO ()
+matNullSpaceRemove sp v = chk0 $ matNullSpaceRemove' sp v
+
+matSetNullSpace :: Mat -> MatNullSpace -> IO ()
+matSetNullSpace amat sp = chk0 $ matSetNullSpace' amat sp
+
+
+
+
+
 
 
 

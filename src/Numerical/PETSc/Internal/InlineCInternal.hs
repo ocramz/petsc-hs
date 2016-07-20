@@ -52,6 +52,8 @@ petscTypesTable = Map.fromList
                   , (typeNameId "Vec", [t| Vec |] )
                   , (typeNameId "Mat", [t| Mat |] )
                   , (typeNameId "MatInfo", [t| MatInfo |])
+                  , (typeNameId "MatNullSpace", [t|MatNullSpace|])
+                    
                   , (typeNameId "DM", [t| DM |] )
                   , (typeNameId "DMBoundaryType", [t| DMBoundaryType |] )
                   , (typeNameId "DMDAStencilType", [t| DMDAStencilType |] )          

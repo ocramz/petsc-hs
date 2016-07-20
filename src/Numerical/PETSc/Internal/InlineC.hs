@@ -1496,6 +1496,55 @@ matFDColoringDestroy' color = with color $ \cp -> [C.exp|int{MatFDColoringDestro
 
 
 
+-- | -- MatNullSpace
+
+-- PetscErrorCode  MatNullSpaceCreate(MPI_Comm comm,PetscBool has_cnst,PetscInt n,const Vec vecs[],MatNullSpace *SP)   -- Collective on MPI_Comm
+-- Creates a data structure used to project vectors out of null spaces.
+-- Input Parameters :
+-- comm	- the MPI communicator associated with the object
+-- has_cnst	- PETSC_TRUE if the null space contains the constant vector; otherwise PETSC_FALSE
+-- n	- number of vectors (excluding constant vector) in null space
+-- vecs	- the vectors that span the null space (excluding the constant vector); these vectors must be orthonormal. These vectors are NOT copied, so do not change them after this call. You should free the array that you pass in and destroy the vectors (this will reduce the reference count for them by one).
+-- Notes: See MatNullSpaceSetFunction() as an alternative way of providing the null space information instead of setting vecs.
+-- If has_cnst is PETSC_TRUE you do not need to pass a constant vector in as a fourth argument to this routine, nor do you need to pass in a function that eliminates the constant function into MatNullSpaceSetFunction().
+-- Output Parameter:
+-- SP -the null space context
+matNullSpaceCreate' :: Comm -> Bool -> Int -> VS.Vector Vec -> IO (MatNullSpace, CInt)
+matNullSpaceCreate' cc hasc n vecs = withPtr $ \sp ->
+  VS.unsafeWith vecs $ \vecsp -> 
+   [C.exp|int{MatNullSpaceCreate($(int c),$(PetscBool hascc),$(PetscInt nn),$(const Vec* vecsp),$(MatNullSpace* sp))}|]
+  where c = unComm cc
+        hascc = boolToPetscBoolC hasc
+        nn = toCInt n
+
+matNullSpaceDestroy' :: MatNullSpace -> IO CInt
+matNullSpaceDestroy' sp = with sp $ \spp ->
+  [C.exp|int{MatNullSpaceDestroy($(MatNullSpace* spp))}|]
+        
+-- PetscErrorCode  MatNullSpaceRemove(MatNullSpace sp,Vec vec)
+-- Collective on MatNullSpace
+-- Input Parameters
+-- sp	- the null space context
+-- vec	- the vector from which the null space is to be removed
+
+matNullSpaceRemove' :: MatNullSpace -> Vec -> IO CInt
+matNullSpaceRemove' sp v =
+  [C.exp|int{MatNullSpaceRemove($(MatNullSpace sp),$(Vec v))}|]
+
+-- MatSetNullSpace(Mat Amat,MatNullSpace nsp);
+matSetNullSpace' :: Mat -> MatNullSpace -> IO CInt
+matSetNullSpace' amat sp = [C.exp|int{MatSetNullSpace($(Mat amat),$(MatNullSpace sp))}|]
+
+-- MatSetTransposeNullSpace(Mat Amat,MatNullSpace nsp);
+
+
+
+
+
+
+
+
+
 
 
 
