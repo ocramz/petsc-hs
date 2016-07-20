@@ -860,6 +860,10 @@ matNullSpaceCreate cc hasc n vecs = chk1 $ matNullSpaceCreate' cc hasc n vecs
 matNullSpaceDestroy :: MatNullSpace -> IO ()
 matNullSpaceDestroy sp = chk0 $  matNullSpaceDestroy' sp
 
+withMatNullSpace ::
+  Comm -> Bool -> Int -> VS.Vector Vec -> (MatNullSpace -> IO c) -> IO c
+withMatNullSpace cc hasc n vecs = bracket (matNullSpaceCreate cc hasc n vecs) matNullSpaceDestroy
+
 matNullSpaceRemove :: MatNullSpace -> Vec -> IO ()
 matNullSpaceRemove sp v = chk0 $ matNullSpaceRemove' sp v
 
