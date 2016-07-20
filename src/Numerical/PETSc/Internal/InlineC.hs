@@ -3960,10 +3960,11 @@ petscLogEventRegister' name classid =
 
 
 -- PetscErrorCode PetscLogEventBegin(int e,PetscObject o1,PetscObject o2,PetscObject o3,PetscObject o4)
+petscLogEventBegin0' :: PetscLogEvent -> IO CInt
 petscLogEventBegin0' ev =
   [C.exp|int{PetscLogEventBegin($(PetscLogEvent ev), 0,0,0,0)}|] 
 
-
+petscLogEventEnd0' :: PetscLogEvent -> IO CInt
 petscLogEventEnd0' ev =
   [C.exp|int{PetscLogEventEnd($(PetscLogEvent ev), 0,0,0,0)}|]
 
@@ -4024,7 +4025,7 @@ petscOptionsGetInt0'' prefix name =
 
 
 -- PETSC_EXTERN PetscErrorCode PetscGetArgs(int*,char ***);
--- petscGetArgs                   -- 
+
 
 
 -- PETSC_EXTERN PetscErrorCode PetscInitialized(PetscBool *);

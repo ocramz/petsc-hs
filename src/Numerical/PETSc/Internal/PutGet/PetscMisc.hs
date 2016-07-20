@@ -115,6 +115,7 @@ petscLogStagePush ls = chk0 $ petscLogStagePush' ls
 petscLogStagePop :: IO ()
 petscLogStagePop = chk0 petscLogStagePop'
 
+--
 
 petscClassIdRegister :: String -> IO PetscClassId
 petscClassIdRegister name = chk1 $ petscClassIdRegister' name
