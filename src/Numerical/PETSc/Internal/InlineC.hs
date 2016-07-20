@@ -3930,7 +3930,7 @@ petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|]
 
 
 -- PetscErrorCode  PetscClassIdRegister(const char name[],PetscClassId *oclass)
-petscClassIdRegister name =
+petscClassIdRegister' name =
   withPtr $ \oclass ->
   withCString name $ \namep -> 
   [C.exp|int{PetscClassIdRegister($(const char* namep),$(PetscClassId* oclass))}|]
@@ -3954,7 +3954,7 @@ petscClassIdRegister name =
 petscLogEventRegister' name classid =
   withPtr $ \ev ->
   withCString name $ \namep -> 
-  [C.exp|int{PetscLogEventRegister($(const char* namep), $(PetscClassId classid),$(PetscEvent* ev))}|]
+  [C.exp|int{PetscLogEventRegister($(const char* namep), $(PetscClassId classid),$(PetscLogEvent* ev))}|]
 
 
 -- PetscErrorCode PetscLogEventBegin(int e,PetscObject o1,PetscObject o2,PetscObject o3,PetscObject o4)

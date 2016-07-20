@@ -137,7 +137,7 @@ newtype PetscSection = PetscSection (Ptr PetscSection) deriving Storable
 
 
 newtype PetscClassId = PetscClassId (Ptr PetscClassId) deriving Storable
-newtype PetscEvent = PetscEvent (Ptr PetscEvent) deriving Storable
+newtype PetscLogEvent = PetscLogEvent (Ptr PetscLogEvent) deriving Storable
 
 
 

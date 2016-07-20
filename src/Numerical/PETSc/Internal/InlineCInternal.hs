@@ -86,7 +86,7 @@ petscTypesTable = Map.fromList
                   , (typeNameId "PetscSection", [t| PetscSection |])
 
                   , (typeNameId "PetscClassId", [t| PetscClassId |])
-                  , (typeNameId "PetscEvent", [t| PetscEvent |])  
+                  , (typeNameId "PetscLogEvent", [t| PetscLogEvent |])  
                   ]
                   
 
