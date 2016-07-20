@@ -49,8 +49,6 @@ context petscCtx
 
 
 -- | PETSc headers
-C.include "<petscsnes.h>"
-C.include "<petsctao.h>"
 C.include "<petscdm.h>"
 C.include "<petscdmda.h>"
 C.include "<petscdmcomposite.h>"
@@ -61,6 +59,9 @@ C.include "<petscsys.h>"
 C.include "<petsctime.h>"
 C.include "<petscpctypes.h>"
 C.include "<petscsf.h>"
+C.include "<petscsnes.h>"
+C.include "<petsctao.h>"
+C.include "<petsctaolinesearch.h>"
 
 -- | SLEPc headers
 C.include "<slepceps.h>"
@@ -3648,6 +3649,19 @@ taoSetVariableBoundsRoutine' tao f =
 -- PETSC_EXTERN PetscErrorCode TaoResetStatistics(Tao);
 
 -- PETSC_EXTERN PetscErrorCode TaoGetKSP(Tao, KSP*);
+
+
+
+
+
+-- | -- TaoLineSearch
+
+-- PetscErrorCode TaoLineSearchCreate(MPI_Comm comm, TaoLineSearch *newls)
+taoLineSearchCreate cc = withPtr $ \tls -> [C.exp|int{TaoLineSearchCreate($(int c), $(TaoLineSearch* tls))}|] where
+  c = unComm cc
+
+-- PetscErrorCode TaoLineSearchDestroy(TaoLineSearch *ls)
+taoLineSearchDestroy t = with t $ \tp -> [C.exp|int{TaoLineSearchDestroy($(TaoLineSearch* tp))}|]
 
 
 

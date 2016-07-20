@@ -62,7 +62,7 @@ t_vecDot_r2_1 =
   withVecNew com vd2 $ \e2 -> do
     x <- vecDot e1 e2
     x `shouldBe` (0 :: PetscScalar_)
-    petscGetFlops >>= \nfl -> putStrLn $ "total # FLOPs : " ++ show nfl
+    -- petscGetFlops >>= \nfl -> putStrLn $ "total # FLOPs : " ++ show nfl
       where
         vd1 = V.convert $ V.fromList [0 , 1]
         vd2 = V.convert $ V.fromList [1 , 0]

@@ -73,6 +73,7 @@ petscTypesTable = Map.fromList
                   , (typeNameId "TSTrajectory", [t|TSTrajectory|])
                    
                   , (typeNameId "Tao", [t| Tao |])
+                  , (typeNameId "TaoLineSearch", [t| TaoLineSearch |])  
 
                   , (typeNameId "PetscViewer", [t| PetscViewer |])
 

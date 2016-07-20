@@ -30,6 +30,7 @@ outEnumTypes = [
   , dmda "StencilType"
   , petsc "Bool"  
   -- , snes "ConvergedReason"
+  , tao "LineSearchConvergedReason"  
            ]
 
 -- | type synonyms: `type Ty_ = {# type Ty #}`
@@ -85,6 +86,7 @@ snes = CType "SNES"
 
 petsc = CType "Petsc"
 
+tao = CType "Tao"
 
 
 

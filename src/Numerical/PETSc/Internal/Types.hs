@@ -118,7 +118,8 @@ newtype PF = PF (Ptr PF) deriving Storable
 newtype TS = TS (Ptr TS) deriving Storable
 newtype TSTrajectory = TSTrajectory (Ptr TSTrajectory) deriving Storable
 
-newtype Tao = Tao (Ptr Tao) deriving Storable 
+newtype Tao = Tao (Ptr Tao) deriving Storable
+newtype TaoLineSearch = TaoLineSearch (Ptr TaoLineSearch) deriving Storable
 
 newtype PetscSpace = PetscSpace (Ptr PetscSpace) deriving Storable
 newtype PetscDualSpace = PetscDualSpace (Ptr PetscDualSpace) deriving Storable
