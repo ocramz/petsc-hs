@@ -3657,20 +3657,50 @@ taoSetVariableBoundsRoutine' tao f =
 -- | -- TaoLineSearch
 
 -- PetscErrorCode TaoLineSearchCreate(MPI_Comm comm, TaoLineSearch *newls)
-taoLineSearchCreate cc = withPtr $ \tls -> [C.exp|int{TaoLineSearchCreate($(int c), $(TaoLineSearch* tls))}|] where
+taoLineSearchCreate' :: Comm -> IO (TaoLineSearch, CInt)
+taoLineSearchCreate' cc = withPtr $ \tls -> [C.exp|int{TaoLineSearchCreate($(int c), $(TaoLineSearch* tls))}|] where
   c = unComm cc
 
 -- PetscErrorCode TaoLineSearchDestroy(TaoLineSearch *ls)
-taoLineSearchDestroy t = with t $ \tp -> [C.exp|int{TaoLineSearchDestroy($(TaoLineSearch* tp))}|]
+taoLineSearchDestroy' :: TaoLineSearch -> IO CInt
+taoLineSearchDestroy' t = with t $ \tp -> [C.exp|int{TaoLineSearchDestroy($(TaoLineSearch* tp))}|]
 
 
+-- PetscErrorCode TaoLineSearchGetStartingVector(TaoLineSearch ls, Vec *x)
+-- Not Collective
+-- Input Parameter :
+-- ls - the TaoLineSearch context
+-- Output :
+-- x - The initial point of the line search
+taoLineSearchGetStartingVector' :: TaoLineSearch -> IO (Vec, CInt)
+taoLineSearchGetStartingVector' ls = withPtr $ \x0 ->
+  [C.exp|int{TaoLineSearchGetStartingVector($(TaoLineSearch ls), $(Vec* x0))}|]
 
 
+-- PetscErrorCode TaoLineSearchGetStepDirection(TaoLineSearch ls, Vec *s)
+taoLineSearchGetStepDirection' :: TaoLineSearch -> IO (Vec, CInt)
+taoLineSearchGetStepDirection' tls = withPtr $ \v ->
+  [C.exp|int{TaoLineSearchGetStepDirection($(TaoLineSearch tls),$(Vec* v))}|]
 
 
+-- PetscErrorCode TaoLineSearchSetInitialStepLength(TaoLineSearch ls,PetscReal s)
+taoLineSearchSetInitialStepLength' :: TaoLineSearch -> PetscReal_ -> IO CInt
+taoLineSearchSetInitialStepLength' ls s =
+  [C.exp|int{TaoLineSearchSetInitialStepLength($(TaoLineSearch ls), $(PetscReal s))}|]
 
 
-
+-- PetscErrorCode TaoLineSearchGetNumberFunctionEvaluations(TaoLineSearch ls, PetscInt *nfeval, PetscInt *ngeval, PetscInt *nfgeval)
+-- Not Collective
+-- Input Parameter :
+-- ls -the TaoLineSearch context 
+-- Outputs :
+-- nfeval	- number of function evaluations
+-- ngeval	- number of gradient evaluations
+-- nfgeval	- number of function/gradient evaluations
+taoLineSearchGetNumberFunctionEvaluations' ::
+  TaoLineSearch -> IO ((PetscInt_, PetscInt_, PetscInt_) , CInt)
+taoLineSearchGetNumberFunctionEvaluations' ls = withPtr3 $ \nfeval ngeval nfgeval ->
+  [C.exp|int{TaoLineSearchGetNumberFunctionEvaluations($(TaoLineSearch ls),$(PetscInt* nfeval),$(PetscInt* ngeval), $(PetscInt* nfgeval))}|]
 
 
 -- * Viewer
@@ -4367,7 +4397,7 @@ withPtr3 ::
   (Storable a, Storable b, Storable c) =>
   (Ptr a -> Ptr b -> Ptr c -> IO x) ->
   IO ((a, b, c), x)
-withPtr3 act = withPtr (\x -> withPtr (withPtr . (act x))) >>= snoc3
+withPtr3 act = withPtr (\x -> withPtr (withPtr . act x)) >>= snoc3
 
 withPtr4 ::
   (Storable a, Storable b, Storable c, Storable d) =>

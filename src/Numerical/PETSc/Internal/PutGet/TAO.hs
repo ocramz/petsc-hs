@@ -159,6 +159,30 @@ withTaoCreateInit c ty v pre f = withTaoCreate c $ \tt -> do
 
 -- | TaoLineSearch
 
+taoLineSearchCreate :: Comm -> IO TaoLineSearch
+taoLineSearchCreate cc = chk1 $ taoLineSearchCreate' cc
 
+taoLineSearchDestroy :: TaoLineSearch -> IO ()
+taoLineSearchDestroy = chk0 . taoLineSearchDestroy'
 
+withTaoLineSearch :: Comm -> (TaoLineSearch -> IO a) -> IO a
+withTaoLineSearch cc = bracket (taoLineSearchCreate cc) taoLineSearchDestroy
 
+-- setters
+
+taoLineSearchSetInitialStepLength :: TaoLineSearch -> PetscReal_ -> IO ()
+taoLineSearchSetInitialStepLength ls s = chk0 $ taoLineSearchSetInitialStepLength' ls s
+
+-- getters
+
+taoLineSearchGetStartingVector :: TaoLineSearch -> IO Vec
+taoLineSearchGetStartingVector ls = chk1 $ taoLineSearchGetStartingVector' ls
+
+taoLineSearchGetStepDirection :: TaoLineSearch -> IO Vec
+taoLineSearchGetStepDirection ls = chk1 $ taoLineSearchGetStepDirection' ls
+
+-- ", after linesearch process
+
+taoLineSearchGetNumberFunctionEvaluations ::
+  TaoLineSearch -> IO (PetscInt_, PetscInt_, PetscInt_) 
+taoLineSearchGetNumberFunctionEvaluations ls = chk1 $ taoLineSearchGetNumberFunctionEvaluations' ls
