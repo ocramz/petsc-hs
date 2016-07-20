@@ -43,7 +43,7 @@ ghci:
 	make step3
 
 step1:
-	make c2hs
+	# make c2hs
 	stack ghc -- -optc -g ${SRCDIR}/Internal/InlineC.hs -isrc/
 
 DEADCODESTRIP := -fdata-sections -ffunction-sections -Wl,--gc-sections

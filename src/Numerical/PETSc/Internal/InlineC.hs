@@ -3666,6 +3666,9 @@ taoLineSearchDestroy' :: TaoLineSearch -> IO CInt
 taoLineSearchDestroy' t = with t $ \tp -> [C.exp|int{TaoLineSearchDestroy($(TaoLineSearch* tp))}|]
 
 
+-- PetscErrorCode TaoLineSearchSetType(TaoLineSearch ls, const TaoLineSearchType type)
+
+
 -- PetscErrorCode TaoLineSearchGetStartingVector(TaoLineSearch ls, Vec *x)
 -- Not Collective
 -- Input Parameter :
@@ -3701,6 +3704,28 @@ taoLineSearchGetNumberFunctionEvaluations' ::
   TaoLineSearch -> IO ((PetscInt_, PetscInt_, PetscInt_) , CInt)
 taoLineSearchGetNumberFunctionEvaluations' ls = withPtr3 $ \nfeval ngeval nfgeval ->
   [C.exp|int{TaoLineSearchGetNumberFunctionEvaluations($(TaoLineSearch ls),$(PetscInt* nfeval),$(PetscInt* ngeval), $(PetscInt* nfgeval))}|]
+
+
+-- PetscErrorCode TaoLineSearchSetVariableBounds(TaoLineSearch ls,Vec xl, Vec xu)
+-- Logically Collective on Tao
+-- Input Parameters
+-- ls	- the TaoLineSearch context
+-- xl	- vector of lower bounds
+-- xu	- vector of upper bounds
+-- Note: If the variable bounds are not set with this routine, then PETSC_NINFINITY and PETSC_INFINITY are assumed
+taoLineSearchSetVariableBounds' :: TaoLineSearch -> Vec -> Vec -> IO CInt
+taoLineSearchSetVariableBounds' ls xl xu =
+  [C.exp|int{TaoLineSearchSetVariableBounds($(TaoLineSearch ls),$(Vec xl),$(Vec xu))}|]
+
+
+
+
+
+
+
+
+
+
 
 
 -- * Viewer

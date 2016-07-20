@@ -30,6 +30,7 @@ outEnumTypes = [
   , dmda "StencilType"
   , petsc "Bool"  
   -- , snes "ConvergedReason"
+  , tao "LineSearchType"  
   , tao "LineSearchConvergedReason"  
            ]
 
@@ -66,7 +67,7 @@ main | outFormat == StdoutFmt =
                 ("Foreign.Storable", Nothing)]
   petscHeaders =
     chImports "petsc" ["snes",
-                       "tao",
+                       "tao", "taolinesearch",
                        "dm", "dmda", "dmcomposite",
                        "ts",
                        "viewer", "viewerhdf5",

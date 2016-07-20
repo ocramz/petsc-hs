@@ -173,6 +173,9 @@ withTaoLineSearch cc = bracket (taoLineSearchCreate cc) taoLineSearchDestroy
 taoLineSearchSetInitialStepLength :: TaoLineSearch -> PetscReal_ -> IO ()
 taoLineSearchSetInitialStepLength ls s = chk0 $ taoLineSearchSetInitialStepLength' ls s
 
+taoLineSearchSetVariableBounds :: TaoLineSearch -> Vec -> Vec -> IO ()
+taoLineSearchSetVariableBounds ls xl xu = chk0 $ taoLineSearchSetVariableBounds' ls xl xu
+
 -- getters
 
 taoLineSearchGetStartingVector :: TaoLineSearch -> IO Vec
