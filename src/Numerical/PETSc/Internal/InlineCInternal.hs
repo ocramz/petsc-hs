@@ -84,6 +84,9 @@ petscTypesTable = Map.fromList
 
                   , (typeNameId "MatFactorInfo", [t| MatFactorInfo |])
                   , (typeNameId "PetscSection", [t| PetscSection |])
+
+                  , (typeNameId "PetscClassId", [t| PetscClassId |])
+                  , (typeNameId "PetscEvent", [t| PetscEvent |])  
                   ]
                   
 

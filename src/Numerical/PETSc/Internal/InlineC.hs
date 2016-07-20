@@ -3929,7 +3929,36 @@ petscLogStagePop' = [C.exp|int{PetscLogStagePop()}|]
 
 
 
+-- PetscErrorCode  PetscClassIdRegister(const char name[],PetscClassId *oclass)
+petscClassIdRegister name =
+  withPtr $ \oclass ->
+  withCString name $ \namep -> 
+  [C.exp|int{PetscClassIdRegister($(const char* namep),$(PetscClassId* oclass))}|]
 
+-- PetscErrorCode  PetscLogEventRegister(const char name[],PetscClassId classid,PetscLogEvent *event) -- Not Collective
+-- Input Parameter :
+-- name	- The name associated with the event
+-- classid	- The classid associated to the class for this event, obtain either with PetscClassIdRegister() or use a predefined one such as KSP_CLASSID, SNES_CLASSID, the predefined ones are only available in C code
+-- Output 
+-- event -The event id for use with PetscLogEventBegin() and PetscLogEventEnd(). 
+-- Example of Usage :
+--       PetscLogEvent USER_EVENT;
+--       PetscClassId classid;
+--       PetscLogDouble user_event_flops;
+--       PetscClassIdRegister("class name",&classid);
+--       PetscLogEventRegister("User event name",classid,&USER_EVENT);
+--       PetscLogEventBegin(USER_EVENT,0,0,0,0);
+--          [code segment to monitor]
+--          PetscLogFlops(user_event_flops);
+--       PetscLogEventEnd(USER_EVENT,0,0,0,0);
+petscLogEventRegister' name classid =
+  withPtr $ \ev ->
+  withCString name $ \namep -> 
+  [C.exp|int{PetscLogEventRegister($(const char* namep), $(PetscClassId classid),$(PetscEvent* ev))}|]
+
+
+-- PetscErrorCode PetscLogEventBegin(int e,PetscObject o1,PetscObject o2,PetscObject o3,PetscObject o4)
+-- petscLogEventBegin0' e
 
 
 -- -- * options

@@ -196,8 +196,8 @@ putVM vsrc n p = do
 
 
 -- | overwrites the data referenced by the pointer argument with the `vsrc` argument
-withVMoverwrite ::
-  Storable a => VM.IOVector a -> Int -> Ptr a -> (VM.IOVector a -> IO b) -> IO b
+-- withVMoverwrite ::
+--   Storable a => VM.IOVector a -> Int -> Ptr a -> (VM.IOVector a -> IO b) -> IO b
 withVMoverwrite vsrc n p = bracket (getVM n p) (`VM.copy` vsrc)
 
 
@@ -243,9 +243,7 @@ withVM1 n p io = do
 
 
 
-asdf f = do
-  y <- get
-  put $ fmap f y
+
 
 
 

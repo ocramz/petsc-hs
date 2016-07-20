@@ -517,11 +517,6 @@ vecSetValuesUnsafeVector1 v ixy =
     
 -- -- -- 3 vectors : Vec, Vector and Vector of indices
 
--- assertOtherwise :: Bool -> String -> a -> a
--- assertOtherwise q c m | q = m | otherwise = error c
-
--- whenEqualInts3 :: Int -> Int -> Int -> String -> a -> a
--- whenEqualInts3 l1 l2 l3 = assertOtherwise (l1==l2 && l1==l3)
 
 
 -- -- | index in range of Vec ?

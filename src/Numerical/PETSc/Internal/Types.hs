@@ -136,6 +136,9 @@ newtype PetscViewer = PetscViewer (Ptr PetscViewer) deriving Storable
 newtype PetscSection = PetscSection (Ptr PetscSection) deriving Storable
 
 
+newtype PetscClassId = PetscClassId (Ptr PetscClassId) deriving Storable
+newtype PetscEvent = PetscEvent (Ptr PetscEvent) deriving Storable
+
 
 
 -- | SLEPc newtypes
