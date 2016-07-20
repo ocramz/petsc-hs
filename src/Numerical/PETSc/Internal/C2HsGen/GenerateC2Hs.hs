@@ -30,7 +30,7 @@ outEnumTypes = [
   , dmda "StencilType"
   , petsc "Bool"  
   -- , snes "ConvergedReason"
-  , tao "LineSearchType"  
+  -- , tao "LineSearchType"  
   , tao "LineSearchConvergedReason"  
            ]
 
@@ -159,6 +159,9 @@ enumTypeDecl ty =
   enumType ([show ty ++" as "++ typeNameHs ty,
              typeOptions UnderscoreToCase,
              " deriving (Eq, Show)"])
+
+-- {#enum define hsid {alias1 , ... , aliasn} [deriving (clid1 , ... , clidn)]#}
+-- enumDefineTypeDecl (ty:tys)
 
 
 -- | entry for a single type (declarations and conversion functions)

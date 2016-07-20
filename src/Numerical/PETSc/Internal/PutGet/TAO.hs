@@ -189,3 +189,6 @@ taoLineSearchGetStepDirection ls = chk1 $ taoLineSearchGetStepDirection' ls
 taoLineSearchGetNumberFunctionEvaluations ::
   TaoLineSearch -> IO (PetscInt_, PetscInt_, PetscInt_) 
 taoLineSearchGetNumberFunctionEvaluations ls = chk1 $ taoLineSearchGetNumberFunctionEvaluations' ls
+
+taoLineSearchGetStepLength :: TaoLineSearch -> IO PetscReal_
+taoLineSearchGetStepLength ls = chk1 $ taoLineSearchGetStepLength' ls

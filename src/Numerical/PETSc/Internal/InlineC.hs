@@ -3692,6 +3692,14 @@ taoLineSearchSetInitialStepLength' ls s =
   [C.exp|int{TaoLineSearchSetInitialStepLength($(TaoLineSearch ls), $(PetscReal s))}|]
 
 
+
+
+-- PetscErrorCode TaoLineSearchGetStepLength(TaoLineSearch ls,PetscReal *s)
+taoLineSearchGetStepLength' :: TaoLineSearch -> IO (PetscReal_, CInt)
+taoLineSearchGetStepLength' ls = withPtr $ \s ->
+  [C.exp|int{TaoLineSearchGetStepLength($(TaoLineSearch ls), $(PetscReal* s))}|]
+
+
 -- PetscErrorCode TaoLineSearchGetNumberFunctionEvaluations(TaoLineSearch ls, PetscInt *nfeval, PetscInt *ngeval, PetscInt *nfgeval)
 -- Not Collective
 -- Input Parameter :

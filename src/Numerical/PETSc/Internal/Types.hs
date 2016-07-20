@@ -644,7 +644,12 @@ taoConvergedIntToReason x =
 
 
 
+data TaoLineSearchType_ = TaoLSUnit | TaoLSMoreThuente | TaoLSGpcg | TaoLSArmijo
+                        | TaoLSOwarmijo | TaoLSIpm deriving (Eq, Show)
 
+taoLineSearchTypeToStr :: TaoLineSearchType_ -> String                          
+taoLineSearchTypeToStr TaoLSMoreThuente = "more-thuente"
+taoLineSearchTypeToStr tt = showDropN 5 (tt :: TaoLineSearchType_)
 
 
 
