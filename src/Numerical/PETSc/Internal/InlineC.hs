@@ -4002,15 +4002,13 @@ petscOptionsSetValue0' iname val =
 petscOptionsGetInt0' :: Ptr CChar -> Ptr CChar -> Ptr CInt -> Ptr PetscBool -> IO CInt
 petscOptionsGetInt0' pre name n s = [C.exp| int{PetscOptionsGetInt(NULL, $(char *pre), $(char *name), $(int *n), $(PetscBool *s))} |]
 
-petscOptionsGetInt0'' ::
-  String -> String -> IO (CInt, (PetscBool, CInt))
+petscOptionsGetInt0'' :: String -> String -> IO ((CInt, PetscBool), CInt)
 petscOptionsGetInt0'' prefix name = 
-  withCString prefix ( \p ->
+  withCString prefix $ \p ->
    withCString name $ \n ->
-    withPtr $ \ptr ->
-     withPtr $ \pb -> 
-      petscOptionsGetInt0' p n ptr pb) -- >>= \(a, (f, e)) -> handleErrTup ((a, f), e)
-
+    withPtr2 $ \ptr pb ->
+      petscOptionsGetInt0' p n ptr pb
+      
 -- petscOptionsGetInt prefix name = do
 --   (a, (f, e)) <- petscOptionsGetInt'' prefix name
 --   if f then handleErrTup (Just a, e)
