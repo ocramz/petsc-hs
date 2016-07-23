@@ -3998,9 +3998,6 @@ petscOptionsSetValue0' iname val =
 -- Output Parameters :
 -- ivalue	- the integer value to return
 -- set	- PETSC_TRUE if found, else PETSC_FALSE
-
-
-
 petscOptionsGetInt0' :: String -> String -> IO (Maybe Int, CInt)
 petscOptionsGetInt0' prefix name = 
   withCString prefix ( \pre ->
@@ -4010,17 +4007,31 @@ petscOptionsGetInt0' prefix name =
 
 
 -- PetscErrorCode  PetscOptionsGetString(PetscOptions options,const char pre[],const char name[],char string[],size_t len,PetscBool  *set)
+petscOptionsGetString0' :: String -> String -> Int -> IO (Maybe String, CInt)
+petscOptionsGetString0' prefix name len =
+  withCString prefix ( \pre ->
+   withCString name $ \namep ->
+    withPtr $ \pb ->
+     getCString len $ \strp ->
+      [C.exp|int{PetscOptionsGetString(NULL, $(const char* pre), $(const char* namep), $(char* strp), $(size_t lenc), $(PetscBool* pb))}|] ) >>= \(b, (s, e)) ->
+        optionsGet id ((s, b), e)
+          where lenc = fromIntegral len :: CSize
+    
 
+
+
+optionsGet :: Monad m => (a -> b) -> ((a, PetscBool), c) -> m (Maybe b, c)    
 optionsGet f ((dats, setflag), err) = do
   let b = petscBoolCToBool setflag
   if b then return (Just (f dats), err)
        else return (Nothing, err)
 
--- optionsGetArray f ((dats, n, setflag), err) =
---   case setflag of PetscTrue -> return (Just (f dats, n), err)
---                   _         -> return (Nothing, err)
 
-        
+
+
+
+
+  
 
 -- withPetscOptionsGetInt prefix name f = do
 --   x <- petscOptionsGetInt prefix name

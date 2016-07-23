@@ -46,6 +46,20 @@ withCStringArrayPtr ss f = withCStringArray ss $ \css -> with css f
 
 
 
+
+
+-- | C array -> String
+
+getCString :: Int -> (Ptr CChar -> IO a) -> IO (String, a)
+getCString len io = 
+  allocaArray len $ \p -> do
+    x <- io p
+    s <- peekCString p
+    return (s, x)
+
+
+
+
 -- * lists
 
 filterMap :: (a -> Bool) -> (a -> b) -> [a] -> [b]
@@ -482,6 +496,9 @@ return0 m = do
 
 fi :: CInt -> Int
 fi = fromIntegral
+
+fs :: CSize -> Int
+fs = fromIntegral
 
 toCInt :: Int -> CInt
 toCInt = CInt . fromIntegral
