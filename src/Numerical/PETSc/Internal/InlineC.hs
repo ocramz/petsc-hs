@@ -3999,20 +3999,28 @@ petscOptionsSetValue0' iname val =
 -- ivalue	- the integer value to return
 -- set	- PETSC_TRUE if found, else PETSC_FALSE
 
-petscOptionsGetInt0' :: Ptr CChar -> Ptr CChar -> Ptr CInt -> Ptr PetscBool -> IO CInt
-petscOptionsGetInt0' pre name n s = [C.exp| int{PetscOptionsGetInt(NULL, $(char *pre), $(char *name), $(int *n), $(PetscBool *s))} |]
 
-petscOptionsGetInt0'' :: String -> String -> IO ((CInt, PetscBool), CInt)
-petscOptionsGetInt0'' prefix name = 
-  withCString prefix $ \p ->
-   withCString name $ \n ->
+
+petscOptionsGetInt0' :: String -> String -> IO (Maybe Int, CInt)
+petscOptionsGetInt0' prefix name = 
+  withCString prefix ( \pre ->
+   withCString name $ \namep ->
     withPtr2 $ \ptr pb ->
-      petscOptionsGetInt0' p n ptr pb
-      
--- petscOptionsGetInt prefix name = do
---   (a, (f, e)) <- petscOptionsGetInt'' prefix name
---   if f then handleErrTup (Just a, e)
---        else handleErrTup (Nothing, e)
+      [C.exp| int{PetscOptionsGetInt(NULL, $(const char *pre), $(const char *namep), $(int *ptr), $(PetscBool *pb))} |] ) >>= optionsGet fi
+
+
+-- PetscErrorCode  PetscOptionsGetString(PetscOptions options,const char pre[],const char name[],char string[],size_t len,PetscBool  *set)
+
+optionsGet f ((dats, setflag), err) = do
+  let b = petscBoolCToBool setflag
+  if b then return (Just (f dats), err)
+       else return (Nothing, err)
+
+-- optionsGetArray f ((dats, n, setflag), err) =
+--   case setflag of PetscTrue -> return (Just (f dats, n), err)
+--                   _         -> return (Nothing, err)
+
+        
 
 -- withPetscOptionsGetInt prefix name f = do
 --   x <- petscOptionsGetInt prefix name
