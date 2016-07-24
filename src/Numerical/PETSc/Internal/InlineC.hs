@@ -3981,6 +3981,11 @@ petscOptionsView0' :: PetscViewer -> IO CInt
 petscOptionsView0' vi = [C.exp|int{PetscOptionsView(NULL, $(PetscViewer vi))}|]
 
 -- PetscErrorCode  PetscOptionsSetValue(PetscOptions opts, const char iname[],const char value[])
+-- Not collective, but setting values on certain processors could cause problems for parallel objects looking for options.
+-- Input  :
+-- options	- options database, use NULL for the default global database
+-- name	- name of option, this SHOULD have the - prepended
+-- value	- the option value (not used for all options)
 petscOptionsSetValue0' :: OptionName -> String -> IO CInt
 petscOptionsSetValue0' iname val =
   withCString iname $ \inamep ->
@@ -3988,6 +3993,10 @@ petscOptionsSetValue0' iname val =
   [C.exp|int{PetscOptionsSetValue(NULL, $(const char* inamep), $(const char* valp))}|]
 -- petscOptionsSetValue iname val = [C.exp|int{PetscOptionsSetValue($bs-ptr:iname, $bs-ptr:val)}|]
 
+
+
+-- | PetscOptionsGet...0
+-- NB: by passing NULL as a first argument, the global options database will be used
 
 -- #include "petscsys.h"   
 -- PetscErrorCode  PetscOptionsGetInt(PetscOptions options, const char pre[],const char name[],PetscInt *ivalue,PetscBool  *set)    -- Not Collective
@@ -4018,7 +4027,7 @@ petscOptionsGetString0' prefix name len =
           where lenc = fromIntegral len :: CSize
     
 
-
+-- optionsGet : helper for the @petscOptionsGet..@ family of functions
 
 optionsGet :: Monad m => (a -> b) -> ((a, PetscBool), c) -> m (Maybe b, c)    
 optionsGet f ((dats, setflag), err) = do

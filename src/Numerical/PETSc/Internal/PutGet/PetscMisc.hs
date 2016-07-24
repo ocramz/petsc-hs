@@ -186,7 +186,11 @@ petscOptionsView :: PetscViewer -> IO ()
 petscOptionsView vi = chk0 $ petscOptionsView0' vi
 
 petscOptionsSetValue :: OptionName -> String -> IO ()
-petscOptionsSetValue opt val = chk0 $ petscOptionsSetValue0' opt val
+petscOptionsSetValue opt val = chk0 $ petscOptionsSetValue0' (helper opt) val
+  where
+     helper o@(x:_) | x=='-' = o
+                    | otherwise = '-':o
+     helper [] = error "petscOptionsSetValue : no option name supplied" 
 
 -- -- NB : all PETSc functions must appear within a withPetsc* bracket
 
