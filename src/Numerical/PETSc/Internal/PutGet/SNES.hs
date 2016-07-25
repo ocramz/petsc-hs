@@ -202,12 +202,11 @@ snesSetFunction' snes r f = chk0 $ snesSetFunction_' snes r g
 -- gf0 = AD.grad f0
 
 -- gf1 :: forall a. Floating a => ([a] -> a) -> [a] -> [a]
+-- gf1 :: ([Double] -> Double) -> [Double] -> [Double]
 -- gf1 = AD.grad
 
 
--- NB : modifies second Vec argument
-snesComputeFunction :: SNES -> Vec -> Vec -> IO ()
-snesComputeFunction snes x y = chk0 $ snesComputeFunction' snes x y
+
 
 
 
@@ -271,6 +270,11 @@ vvToCSR :: V.Vector (V.Vector a) -> V.Vector (Int, Int, a)
 -}
      
 
+
+
+-- NB : modifies second Vec argument
+snesComputeFunction :: SNES -> Vec -> Vec -> IO ()
+snesComputeFunction snes x y = chk0 $ snesComputeFunction' snes x y
 
 
 -- snesComputeJacobianDefault0 :: SNES -> Vec -> Mat -> Mat -> Ptr () -> IO ()
