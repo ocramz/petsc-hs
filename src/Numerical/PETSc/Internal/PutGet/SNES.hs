@@ -27,6 +27,7 @@ import Numerical.PETSc.Internal.Sparse
 
 import Foreign
 import Foreign.C.Types
+import qualified Foreign.ForeignPtr as FPR
 
 -- import System.IO.Unsafe (unsafePerformIO)
 
@@ -43,8 +44,6 @@ import Control.Exception
 -- import Control.Monad.ST (ST, runST)
 -- import Control.Monad.ST.Unsafe (unsafeIOToST) -- for HMatrix bits
 
-
-import qualified Foreign.ForeignPtr as FPR
 
 -- Vector
 import qualified Data.Vector as V
@@ -120,7 +119,7 @@ withSnesCreateSetup c pre post = withSnesCreate c $ \sn -> do
 --   Mat ->
 --   Mat ->
 --   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
---   (SNES -> IO a) ->
+  --   (SNES -> IO a) ->
 --   IO a
 -- withSnesCreateSetupAD c v amat pmat f post = withSnesCreate c $ \s -> do 
 --   snesSetFunction s v f
@@ -168,21 +167,18 @@ snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g where
 
 
 
--- snesSetFunction :: (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
---      SNES ->
---      Vec ->
---      (v PetscScalar_ -> w PetscScalar_) ->
---      IO ()
+snesSetFunction' :: (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
+     SNES ->
+     Vec ->
+     (v PetscScalar_ -> w PetscScalar_) ->
+     IO ()
 snesSetFunction' snes r f = chk0 $ snesSetFunction_' snes r g
   where
-   g _snes x y _p = 
-     withVecVector x $ \xv -> do
-       -- withVecArrayPtr y $ \yp -> do
-        _ <- vecOverwriteIOVectorN2_ y (V.convert $ f xv)
-        -- do
-        -- vecSetValuesRangeVector y (V.convert $ f xv) InsertValues
-        -- vecAssembly y
-        return (0 :: CInt)
+   g _snes x y _p = do
+     xv <- vecGetVS x          -- immutable Vector from Vec`x`
+     let yv = f $ VG.convert xv
+     vecPutVS y $ VG.convert yv
+     return (0 :: CInt)
 
 
 
@@ -225,31 +221,31 @@ snesComputeFunction snes x y = chk0 $ snesComputeFunction' snes x y
 
 
 
--- | snesSetJacobianAD : computes Jacobian of `f` via AD.jacobian
-snesSetJacobianAD ::  -- (VG.Vector w PetscScalar_, VG.Vector v PetscScalar_) =>
-  SNES ->
-  Mat ->        -- amat : storage for approximate Jacobian
-  Mat ->        -- pmat : storage for preconditioner (usually == amat)
-  (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
-  -- (V.Vector Double -> V.Vector Double) -> 
-    -- (SNES ->       
-    --  Vec ->        -- vector at which to compute Jacobian
-    --  Mat ->        
-    --  Mat ->
-    --  IO a) ->
-  IO ()
-snesSetJacobianAD snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat gj
-  where
-    gj _snes x jac _jacp = 
-      withVecVector x $ \xv -> do
-      -- xv <- vecCopyVector x
-      let (m, n) = matSize jac
-          jjxv = AD.jacobian (V.map realToFrac . f . V.map realToFrac) xv -- (V.map AD.auto xv)
-          -- jj :: V.Vector PetscScalar_ -> V.Vector (V.Vector PetscScalar_)
-          -- jj z = AD.jacobian f (V.map AD.auto z)
-          vvJac = vvToCSR jjxv
-      withMatSetValueVectorSafe jac m n vvJac InsertValues return
-      return (0 :: CInt)
+-- -- | snesSetJacobianAD : computes Jacobian of `f` via AD.jacobian
+-- snesSetJacobianAD ::  -- (VG.Vector w PetscScalar_, VG.Vector v PetscScalar_) =>
+--   SNES ->
+--   Mat ->        -- amat : storage for approximate Jacobian
+--   Mat ->        -- pmat : storage for preconditioner (usually == amat)
+--   (V.Vector PetscScalar_ -> V.Vector PetscScalar_) ->
+--   -- (V.Vector Double -> V.Vector Double) -> 
+--     -- (SNES ->       
+--     --  Vec ->        -- vector at which to compute Jacobian
+--     --  Mat ->        
+--     --  Mat ->
+--     --  IO a) ->
+--   IO ()
+-- snesSetJacobianAD snes amat pmat f = chk0 $ snesSetJacobian_' snes amat pmat gj
+--   where
+--     gj _snes x jac _jacp = 
+--       withVecVector x $ \xv -> do
+--       -- xv <- vecCopyVector x
+--       let (m, n) = matSize jac
+--           -- jjxv = AD.jacobian (V.map realToFrac . f . V.map realToFrac) xv -- (V.map AD.auto xv)
+--           jj :: V.Vector PetscScalar_ -> V.Vector (V.Vector PetscScalar_)
+--           jj z = AD.jacobian f (V.map AD.auto z)
+--           vvJac = vvToCSR (jj xv)
+--       withMatSetValueVectorSafe jac m n vvJac InsertValues return
+--       return (0 :: CInt)
 
 snesSetJacobian0 ::
   SNES ->
