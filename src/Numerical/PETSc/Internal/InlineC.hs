@@ -390,7 +390,6 @@ vecGetArray' v = withPtr $ \p ->
 
 
 
-
 -- PetscErrorCode VecGetArrayRead(Vec x,const PetscScalar **a)
 vecGetArrayRead' :: Vec -> IO (Ptr PetscScalar_, CInt)
 vecGetArrayRead' v = withPtr $ \p ->
@@ -3773,6 +3772,29 @@ taoLineSearchGetNumberFunctionEvaluations' ls = withPtr3 $ \nfeval ngeval nfgeva
 taoLineSearchSetVariableBounds' :: TaoLineSearch -> Vec -> Vec -> IO CInt
 taoLineSearchSetVariableBounds' ls xl xu =
   [C.exp|int{TaoLineSearchSetVariableBounds($(TaoLineSearch ls),$(Vec xl),$(Vec xu))}|]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

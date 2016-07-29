@@ -715,15 +715,7 @@ withVecSize :: Vec -> (Int -> Vec -> t) -> t
 withVecSize v f = f (vecSize v) v
 
 
--- | accessing size and pointer
 
-withVecSizedPtr :: Vec -> (Int -> Ptr PetscScalar_ -> IO a) -> IO a
-withVecSizedPtr w io = withVecSize w (\n v -> withVecArrayPtr v (io n))
-
--- |", read only
-
-withVecSizedReadPtr :: Vec -> (Int -> Ptr PetscScalar_ -> IO a) -> IO a
-withVecSizedReadPtr w io = withVecSize w (\n v -> withVecArrayReadPtr v (io n))
 
 
 
@@ -752,6 +744,15 @@ withVecArrayReadPtr v =
     vecRestoreArrayReadPtr u ar = chk0 (vecRestoreArrayRead' u ar)
 
 
+-- | " accessing size and pointer
+
+withVecSizedPtr :: Vec -> (Int -> Ptr PetscScalar_ -> IO a) -> IO a
+withVecSizedPtr w io = withVecSize w (\n v -> withVecArrayPtr v (io n))
+
+-- |", read only
+
+withVecSizedReadPtr :: Vec -> (Int -> Ptr PetscScalar_ -> IO a) -> IO a
+withVecSizedReadPtr w io = withVecSize w (\n v -> withVecArrayReadPtr v (io n))
 
 
 
