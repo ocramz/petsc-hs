@@ -417,15 +417,13 @@ vecGetArrayRead' v = withPtr $ \p ->
 
 
 -- PETSC_EXTERN PetscErrorCode VecRestoreArray(Vec,PetscScalar**);
-vecRestoreArray0' :: Vec -> Ptr (Ptr PetscScalar_) -> IO CInt
-vecRestoreArray0' v pc = [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]
+vecRestoreArray' :: Vec -> Ptr PetscScalar_ -> IO CInt
+vecRestoreArray' v c = with c $ \pc ->
+  [C.exp|int{VecRestoreArray($(Vec v), $(PetscScalar** pc))}|]
 
-vecRestoreArrayPtr' :: Vec -> Ptr PetscScalar_ -> IO CInt
-vecRestoreArrayPtr' v c = with c $ \pc -> vecRestoreArray0' v pc
-
-vecRestoreArray' :: Vec -> [PetscScalar_] -> IO CInt
-vecRestoreArray' v c = withArray c $ \cp ->
-  with cp $ \cpp -> vecRestoreArray0' v cpp
+-- vecRestoreArray' :: Vec -> [PetscScalar_] -> IO CInt
+-- vecRestoreArray' v c = withArray c $ \cp ->
+--   with cp $ \cpp -> vecRestoreArray0' v cpp
 
 -- vecRestoreArrayPtr2' :: Vec -> Ptr PetscScalar_ -> IO CInt
 -- vecRestoreArrayPtr2' v c = with c $ \pc -> vra v pc

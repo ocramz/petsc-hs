@@ -163,10 +163,6 @@ snesSetFunction snes r f = chk0 $ snesSetFunction_' snes r g where
     return (0 :: CInt)
 
 
-
-
-
-
 snesSetFunction' :: (VG.Vector v PetscScalar_, VG.Vector w PetscScalar_) =>
      SNES ->
      Vec ->
@@ -180,6 +176,20 @@ snesSetFunction' snes r f = chk0 $ snesSetFunction_' snes r g
      vecPutVS y $ VG.convert yv
      return (0 :: CInt)
 
+-- snesSetFunction'' snes r f = chk0 $ snesSetFunction_' snes r g
+--   where
+--     g _snes x y _p = withVecVector x $ \xv -> do
+      
+{- internals of snesSetFunction'
+vecOverwriteIOVectorN2_ = withVecArrayPtr v (withVM2_ lv vnew)
+
+withVM2_ ::
+  (Storable a, VG.Vector v a) => Int -> v a -> Ptr a -> IO ()
+withVM2_ n y p  = do
+  fp <- FPR.newForeignPtr_ p
+  let xm = VM.unsafeFromForeignPtr0 fp n  -- mutable vec from `p` 
+  VG.imapM_ (VM.write xm) y               -- overwrite mutable vec with `y`
+-}
 
 
 

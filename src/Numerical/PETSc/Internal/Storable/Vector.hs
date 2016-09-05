@@ -213,9 +213,9 @@ overwriteIOV_ vm = VG.imapM_ (VM.write vm)
 -- | withVM2_ :
 -- dereference pointer `p` and overwrite contents using contents of vector `y`
 
-withVM2_ ::
+overwriteCArray ::
   (Storable a, VG.Vector v a) => Int -> v a -> Ptr a -> IO ()
-withVM2_ n y p  = do
+overwriteCArray n y p  = do
   fp <- FPR.newForeignPtr_ p
   let xm = VM.unsafeFromForeignPtr0 fp n  -- mutable vec from `p` 
   VG.imapM_ (VM.write xm) y               -- overwrite mutable vec with `y`

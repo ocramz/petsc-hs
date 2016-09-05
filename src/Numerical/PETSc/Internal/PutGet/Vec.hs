@@ -730,7 +730,7 @@ withVecArrayPtr v =
   bracket (vecGetArrayPtr v) (vecRestoreArrayPtr v)
   where
     vecGetArrayPtr u = chk1 (vecGetArray' u)
-    vecRestoreArrayPtr u ar = chk0 (vecRestoreArrayPtr' u ar)
+    vecRestoreArrayPtr u ar = chk0 (vecRestoreArray' u ar)
 
 
 
@@ -790,7 +790,7 @@ vecGetVSRead v = withVecSizedReadPtr v getVS
 
 vecOverwriteIOVectorN2_ :: Vec -> V.Vector PetscScalar_ -> IO ()
 vecOverwriteIOVectorN2_ v vnew
-  | lv == lvnew = withVecArrayPtr v (withVM2_ lv vnew)
+  | lv == lvnew = withVecArrayPtr v (overwriteCArray lv vnew)
   | otherwise = error "incompatible sizes"
     where (lv, lvnew) = (vecSize v, V.length vnew)
 
